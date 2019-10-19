@@ -3,41 +3,22 @@ package com.hhp227.knu_minigroup.user;
 import java.io.Serializable;
 
 public class User implements Serializable {
-    int id;
-    String name, knuId, password;
+    String userId, password;
 
     public User() {
     }
 
-    public User(int id, String name, String knuId, String password) {
-        this.id = id;
-        this.name = name;
-        this.knuId = knuId;
+    public User(String userId, String password) {
+        this.userId = userId;
         this.password = password;
     }
 
-    public int getId() {
-        return id;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getKnuId() {
-        return knuId;
-    }
-
-    public void setKnuId(String knuId) {
-        this.knuId = knuId;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getPassword() {

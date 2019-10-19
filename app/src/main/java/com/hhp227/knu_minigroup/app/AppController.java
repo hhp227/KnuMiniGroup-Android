@@ -1,4 +1,4 @@
-package com.hhp227.knu_minigroup.app;
+package app;
 
 import android.app.Application;
 import android.text.TextUtils;
