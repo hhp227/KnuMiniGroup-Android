@@ -19,7 +19,7 @@ public class PreferenceManager {
 
     private static final String KEY_USER_ID = "usr_id";
     private static final String KEY_USER_PASSWORD = "usr_pwd";
-    private static final String KEY_SESSION_ID = "session_id";
+    private static final String KEY_COOKIE = "cookie";
 
     public PreferenceManager(Context context) {
         this.context = context;
@@ -46,13 +46,13 @@ public class PreferenceManager {
         return null;
     }
 
-    public void storeSessionId(String session) {
-        editor.putString(KEY_SESSION_ID, session);
+    public void storeCookie(String cookie) {
+        editor.putString(KEY_COOKIE, cookie);
         editor.commit();
     }
 
-    public String getSessionId() {
-        return sharedPreferences.getString(KEY_SESSION_ID, null);
+    public String getCookie() {
+        return sharedPreferences.getString(KEY_COOKIE, null);
     }
 
     public void clear() {

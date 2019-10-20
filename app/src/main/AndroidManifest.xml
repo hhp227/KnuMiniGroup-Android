@@ -15,6 +15,8 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             android:usesCleartextTraffic="true">
+        <activity android:name=".CreateActivity">
+        </activity>
         <activity android:name=".SplashActivity">
         </activity>
         <activity android:name=".LoginActivity">

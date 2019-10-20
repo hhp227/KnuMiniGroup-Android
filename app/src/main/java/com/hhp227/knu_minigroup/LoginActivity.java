@@ -95,7 +95,7 @@ public class LoginActivity extends Activity {
                             List<Header> headers = response.allHeaders;
                             for(Header header : headers)
                                 if(header.getName().equals("Set-Cookie") && header.getValue().contains("SESSION_NEWLMS"))
-                                    app.AppController.getInstance().getPreferenceManager().storeSessionId(header.getValue());
+                                    app.AppController.getInstance().getPreferenceManager().storeCookie(header.getValue());
                             return super.parseNetworkResponse(response);
                         }
 
