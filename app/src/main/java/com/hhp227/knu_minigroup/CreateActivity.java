@@ -55,6 +55,7 @@ public class CreateActivity extends Activity {
                                 JSONObject jsonObject = new JSONObject(response);
                                 if(!jsonObject.getBoolean("isError")) {
                                     Toast.makeText(getApplicationContext(), response, Toast.LENGTH_LONG).show();
+                                    jsonObject.getInt("CLUB_GRP_ID");
                                 }
                             } catch(JSONException e) {
                                 Log.e(TAG, e.getMessage());

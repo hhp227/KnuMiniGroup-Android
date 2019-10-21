@@ -1,55 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#eeeeee">
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true">
 
-    <RelativeLayout
-            android:id="@+id/rlGroup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true" >
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="5dp"
+                android:background="@drawable/bg_parent_rounded_corner"
+                android:orientation="vertical" >
 
-        <com.android.volley.toolbox.NetworkImageView
-                android:id="@+id/nivGroupImage"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:padding="5dp"
-                android:layout_centerHorizontal="true"
-                android:layout_centerVertical="true"
-                android:scaleType="fitCenter" />
+            <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
-        <ImageView
-                android:id="@+id/nullGroupImage"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:padding="5dp"
-                android:layout_centerHorizontal="true"
-                android:layout_centerVertical="true"
-                android:src="@drawable/ic_launcher_background"
-                android:scaleType="fitCenter" />
+                <com.android.volley.toolbox.NetworkImageView
+                        android:id="@+id/nivGroupImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="100dp"
+                        android:layout_centerHorizontal="true"
+                        android:layout_centerVertical="true"
+                        android:scaleType="fitXY" />
 
-    </RelativeLayout>
+                <ImageView
+                        android:id="@+id/nullGroupImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="100dp"
+                        android:layout_centerHorizontal="true"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/ic_launcher_background"
+                        android:scaleType="fitXY" />
 
-    <TextView
-            android:id="@+id/tvGroupName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/rlGroup"
-            android:layout_centerHorizontal="true"
-            android:text="이름"
-            android:textSize="8dp" />
+            </RelativeLayout>
 
-    <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="2px"
-            android:layout_alignParentRight="true"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_below="@+id/tvGroupName"
-            android:background="@android:color/white" >
-    </LinearLayout>
+                <LinearLayout
+                        android:layout_below="@+id/nullGroupImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="1px"
+                        android:background="@android:color/darker_gray" />
+
+            <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="75dp"
+                    android:layout_marginBottom="0dp">
+
+                <TextView
+                        android:id="@+id/tvGroupName"
+                        android:textSize="18dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp"
+                        android:layout_marginTop="10dp"
+                        android:text="제목"/>
+
+            </RelativeLayout>
+
+        </LinearLayout>
 
 </RelativeLayout>
