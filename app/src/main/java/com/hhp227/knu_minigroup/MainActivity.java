@@ -14,7 +14,6 @@ import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
-import net.htmlparser.jericho.StartTagType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,9 +60,9 @@ public class MainActivity extends Activity {
                 for(int i = 0; i < list.size(); i++) {
                     Element elementA = list.get(i);
                     GroupItem groupItem = new GroupItem();
-                    groupItem.setId(groupIdExtract(elementA.getAttributeValue("onclick")));
+                    groupItem.setId(groupIdExtract(elementA.getAttributeValue("href")));
                     groupItem.setImage(EndPoint.BASE_URL + elementA.getFirstElement(HTMLElementName.IMG).getAttributeValue("src"));
-                    groupItem.setName(elementA.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString());
+                    groupItem.setName(elementA.getAllElements(HTMLElementName.DIV).get(3).getTextExtractor().toString());
 
                     groupItems.add(groupItem);
                 }
@@ -82,17 +81,6 @@ public class MainActivity extends Activity {
 
                 return headers;
             }
-
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-                params.put("panel_id", "2");
-                params.put("start", "1");
-                params.put("display", "10");
-                params.put("encoding", "utf-8");
-
-                return params;
-            }
         });
 
         createGroup.setOnClickListener(new View.OnClickListener() {
@@ -110,6 +98,6 @@ public class MainActivity extends Activity {
     }
 
     private int groupIdExtract(String href) {
-        return Integer.parseInt(href.split("'")[3].trim());
+        return Integer.parseInt(href.split("'")[1].trim());
     }
 }
