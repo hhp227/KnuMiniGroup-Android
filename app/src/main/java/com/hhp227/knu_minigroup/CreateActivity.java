@@ -3,11 +3,13 @@ package com.hhp227.knu_minigroup;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.EditText;
-import android.widget.Toast;
+import android.view.View;
+import android.widget.*;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
 import com.hhp227.knu_minigroup.app.EndPoint;
@@ -20,6 +22,9 @@ import java.util.Map;
 public class CreateActivity extends Activity {
     private static final String TAG = CreateActivity.class.getSimpleName();
     private EditText groupTitle, groupDescription;
+    private TextView resetTitle;
+    private RadioGroup joinType;
+    private boolean joinTypeCheck;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +32,39 @@ public class CreateActivity extends Activity {
         setContentView(R.layout.activity_create);
         groupTitle = findViewById(R.id.etTitle);
         groupDescription = findViewById(R.id.etDescription);
+        resetTitle = findViewById(R.id.tvReset);
+        joinType = findViewById(R.id.rgJoinType);
+
+        groupTitle.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                resetTitle.setTextColor(getResources().getColor(s.length() > 0 ? android.R.color.black : android.R.color.darker_gray));
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
+        resetTitle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                groupTitle.setText("");
+            }
+        });
+
+        joinType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                joinTypeCheck = checkedId == R.id.rbAuto ? false : true;
+            }
+        });
+
+        joinType.check(R.id.rbAuto);
     }
 
     @Override
@@ -47,6 +85,7 @@ public class CreateActivity extends Activity {
             case R.id.actionSend :
                 final String title = groupTitle.getText().toString().trim();
                 final String description = groupDescription.getText().toString().trim();
+                final String join = !joinTypeCheck ? "0" : "1";
                 if(!title.isEmpty() && !description.isEmpty()) {
                     app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.CREATE_GROUP, new Response.Listener<String>() {
                         @Override
@@ -80,7 +119,7 @@ public class CreateActivity extends Activity {
                             Map<String, String> params = new HashMap<>();
                             params.put("GRP_NM", title);
                             params.put("TXT", description);
-                            params.put("JOIN_DIV", "0");
+                            params.put("JOIN_DIV", join);
                             return params;
                         }
                     });

@@ -10,20 +10,47 @@
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-        <TextView
-                android:id="@+id/tvTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="제목"/>
+            android:layout_weight="0"
+            android:background="@android:color/white"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="5dp">
 
         <EditText
                 android:id="@+id/etTitle"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="match_parent"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                android:background="@null"
+                android:hint="그룹이름 입력"
+                android:inputType="textNoSuggestions"
+                android:paddingLeft="5dp"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+        <TextView
+                android:id="@+id/tvReset"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:padding="10dp"
+                android:text="X"
+                android:textColor="@android:color/darker_gray"
+                android:textStyle="bold" />
 
     </LinearLayout>
+
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"/>
+
+    </RelativeLayout>
 
     <LinearLayout
             android:layout_width="match_parent"
@@ -42,5 +69,37 @@
                 android:layout_height="wrap_content"/>
 
     </LinearLayout>
+
+    <RadioGroup
+            android:id="@+id/rgJoinType"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="0"
+            android:gravity="bottom">
+
+        <TextView
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="가입방식">
+
+        </TextView>
+
+        <RadioButton
+                android:layout_weight="2"
+                android:text="자동 승인"
+                android:id="@+id/rbAuto"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"/>
+
+        <RadioButton
+                android:layout_weight="2"
+                android:text="승인 확인"
+                android:id="@+id/rbCheck"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"/>
+
+    </RadioGroup>
 
 </LinearLayout>
