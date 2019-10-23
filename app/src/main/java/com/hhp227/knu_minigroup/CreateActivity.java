@@ -1,11 +1,14 @@
 package com.hhp227.knu_minigroup;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,8 +24,12 @@ import java.util.Map;
 
 public class CreateActivity extends Activity {
     private static final String TAG = CreateActivity.class.getSimpleName();
+    // 인텐트값
+    public static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
+    public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 200;
     private EditText groupTitle, groupDescription;
     private TextView resetTitle;
+    private ImageView groupImage;
     private RadioGroup joinType;
     private boolean joinTypeCheck;
 
@@ -33,6 +40,7 @@ public class CreateActivity extends Activity {
         groupTitle = findViewById(R.id.etTitle);
         groupDescription = findViewById(R.id.etDescription);
         resetTitle = findViewById(R.id.tvReset);
+        groupImage = findViewById(R.id.ivGroupImage);
         joinType = findViewById(R.id.rgJoinType);
 
         groupTitle.addTextChangedListener(new TextWatcher() {
@@ -57,6 +65,15 @@ public class CreateActivity extends Activity {
             }
         });
 
+        groupImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                registerForContextMenu(v);
+                openContextMenu(v);
+                unregisterForContextMenu(v);
+            }
+        });
+
         joinType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -69,7 +86,6 @@ public class CreateActivity extends Activity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.create, menu);
         return true;
     }
@@ -129,5 +145,43 @@ public class CreateActivity extends Activity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        menu.setHeaderTitle("이미지 선택");
+        menu.add("카메라");
+        menu.add("갤러리");
+        menu.add("이미지 없음");
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        switch(item.getTitle().toString()) {
+            case "카메라" :
+                Toast.makeText(getBaseContext(), "카메라 선택", Toast.LENGTH_LONG).show();
+                break;
+            case "갤러리" :
+                Intent intent = new Intent(Intent.ACTION_PICK);
+                intent.setType(android.provider.MediaStore.Images.Media.CONTENT_TYPE);
+                intent.setData(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(intent, CAMERA_PICK_IMAGE_REQUEST_CODE);
+                break;
+            case "이미지 없음" :
+                groupImage.setImageResource(R.drawable.ic_launcher_background);
+                Toast.makeText(getBaseContext(), "이미지 없음 선택", Toast.LENGTH_LONG).show();
+                break;
+        }
+        return super.onContextItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == CAMERA_PICK_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
+            Uri fileUri = data.getData();
+            groupImage.setImageURI(fileUri);
+        }
     }
 }
