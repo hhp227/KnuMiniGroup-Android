@@ -27,14 +27,14 @@ public class AppController extends Application {
     }
 
     public RequestQueue getRequestQueue() {
-        if(mRequestQueue == null) {
+        if (mRequestQueue == null) {
             mRequestQueue = Volley.newRequestQueue(getApplicationContext());
         }
         return mRequestQueue;
     }
 
     public PreferenceManager getPreferenceManager() {
-        if(preferenceManager == null) {
+        if (preferenceManager == null) {
             preferenceManager = new PreferenceManager(this);
         }
         return preferenceManager;
@@ -42,7 +42,7 @@ public class AppController extends Application {
 
     public ImageLoader getImageLoader() {
         getRequestQueue();
-        if(mImageLoader == null) {
+        if (mImageLoader == null) {
             mImageLoader = new ImageLoader(this.mRequestQueue, new LruBitmapCache());
         }
         return this.mImageLoader;
@@ -60,7 +60,7 @@ public class AppController extends Application {
     }
 
     public void cancelPendingRequests(Object tag) {
-        if(mRequestQueue != null) {
+        if (mRequestQueue != null) {
             mRequestQueue.cancelAll(tag);
         }
     }

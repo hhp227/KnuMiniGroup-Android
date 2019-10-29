@@ -43,11 +43,11 @@ public class GroupGridAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        if(layoutInflater == null)
+        if (layoutInflater == null)
             layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        if(convertView == null)
+        if (convertView == null)
             convertView = layoutInflater.inflate(R.layout.group_item, null);
-        if(imageLoader == null)
+        if (imageLoader == null)
             imageLoader = app.AppController.getInstance().getImageLoader();
 
         groupName = convertView.findViewById(R.id.tvGroupName);
@@ -57,7 +57,7 @@ public class GroupGridAdapter extends BaseAdapter {
 
         groupName.setText(groupItem.getName());
 
-        if(groupItem.getImage() != null) {
+        if (groupItem.getImage() != null) {
             GroupImage.setImageUrl(groupItem.getImage(), imageLoader);
             GroupImage.setVisibility(View.VISIBLE);
             nullGroupImage.setVisibility(View.GONE);

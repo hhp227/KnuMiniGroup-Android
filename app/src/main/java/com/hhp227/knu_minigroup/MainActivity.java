@@ -42,7 +42,7 @@ public class MainActivity extends Activity {
         groupGridAdapter = new GroupGridAdapter(getApplicationContext(), groupItems);
         myGroupList.setAdapter(groupGridAdapter);
 
-        if(app.AppController.getInstance().getPreferenceManager().getUser() == null)
+        if (app.AppController.getInstance().getPreferenceManager().getUser() == null)
             logout();
 
         logout.setOnClickListener(new View.OnClickListener() {
@@ -56,9 +56,8 @@ public class MainActivity extends Activity {
             @Override
             public void onResponse(String response) {
                 source = new Source(response);
-                List<Element> list = source.getAllElements(HTMLElementName.A);
-                for(int i = 0; i < list.size(); i++) {
-                    Element elementA = list.get(i);
+                List<Element> listElementA = source.getAllElements(HTMLElementName.A);
+                for (Element elementA : listElementA) {
                     GroupItem groupItem = new GroupItem();
                     groupItem.setId(groupIdExtract(elementA.getAttributeValue("href")));
                     groupItem.setImage(EndPoint.BASE_URL + elementA.getFirstElement(HTMLElementName.IMG).getAttributeValue("src"));

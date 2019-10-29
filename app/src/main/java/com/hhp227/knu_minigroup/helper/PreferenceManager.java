@@ -36,7 +36,7 @@ public class PreferenceManager {
     }
 
     public User getUser() {
-        if(sharedPreferences.getString(KEY_USER_ID, null) != null) {
+        if (sharedPreferences.getString(KEY_USER_ID, null) != null) {
             String knuId = sharedPreferences.getString(KEY_USER_ID, null);
             String password = sharedPreferences.getString(KEY_USER_PASSWORD, null);
             User user = new User(knuId, password);

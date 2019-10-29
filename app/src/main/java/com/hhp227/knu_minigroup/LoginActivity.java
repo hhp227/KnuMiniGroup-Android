@@ -41,7 +41,7 @@ public class LoginActivity extends Activity {
         progressDialog.setCancelable(false);
 
         // 사용자가 이미 로그인되어있는지 아닌지 확인
-        if(app.AppController.getInstance().getPreferenceManager().getUser() != null) {
+        if (app.AppController.getInstance().getPreferenceManager().getUser() != null) {
             startActivity(new Intent(this, SplashActivity.class));
             finish();
         }
@@ -53,7 +53,7 @@ public class LoginActivity extends Activity {
                 final String id = inputId.getText().toString();
                 final String password = inputPassword.getText().toString();
 
-                if(!id.isEmpty() && !password.isEmpty()) {
+                if (!id.isEmpty() && !password.isEmpty()) {
                     progressDialog.setMessage("로그인중...");
                     showProgressDialog();
 
@@ -66,7 +66,7 @@ public class LoginActivity extends Activity {
                             try {
                                 JSONObject jsonObject = new JSONObject(response);
                                 boolean error = jsonObject.getBoolean("isError");
-                                if(!error) {
+                                if (!error) {
                                     User user = new User(id, password);
 
                                     app.AppController.getInstance().getPreferenceManager().storeUser(user);
@@ -77,7 +77,7 @@ public class LoginActivity extends Activity {
                                 } else {
                                     Toast.makeText(getApplicationContext(), "로그인 실패", Toast.LENGTH_LONG).show();
                                 }
-                            } catch(JSONException e) {
+                            } catch (JSONException e) {
                                 Log.e(TAG, "JSON에러 : " + e);
                                 Toast.makeText(getApplicationContext(), "로그인 실패", Toast.LENGTH_LONG).show();
                             }
@@ -93,8 +93,8 @@ public class LoginActivity extends Activity {
                         @Override
                         protected Response<String> parseNetworkResponse(NetworkResponse response) {
                             List<Header> headers = response.allHeaders;
-                            for(Header header : headers)
-                                if(header.getName().equals("Set-Cookie") && header.getValue().contains("SESSION_NEWLMS"))
+                            for (Header header : headers)
+                                if (header.getName().equals("Set-Cookie") && header.getValue().contains("SESSION_NEWLMS"))
                                     app.AppController.getInstance().getPreferenceManager().storeCookie(header.getValue());
                             return super.parseNetworkResponse(response);
                         }
@@ -117,12 +117,12 @@ public class LoginActivity extends Activity {
 
     }
     private void showProgressDialog() {
-        if(!progressDialog.isShowing())
+        if (!progressDialog.isShowing())
             progressDialog.show();
     }
 
     private void hideProgressDialog() {
-        if(progressDialog.isShowing())
+        if (progressDialog.isShowing())
             progressDialog.dismiss();
     }
 }
