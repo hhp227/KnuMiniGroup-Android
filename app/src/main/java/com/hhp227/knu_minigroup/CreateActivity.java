@@ -27,8 +27,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.hhp227.knu_minigroup.MainActivity.CREATE_CODE;
-
 public class CreateActivity extends Activity {
     private static final String TAG = CreateActivity.class.getSimpleName();
     // 인텐트값
