@@ -5,4 +5,5 @@ public interface EndPoint {
     String LOGIN = BASE_URL + "ilos/lo/login.acl";
     String GROUP_LIST = BASE_URL + "ilos/main/share_list.acl";
     String CREATE_GROUP = BASE_URL + "ilos/community/share_group_insert.acl";
+    String GROUP_IMAGE_UPDATE = BASE_URL + "ilos/community/share_group_image_update.acl";
 }

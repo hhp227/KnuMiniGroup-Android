@@ -21,7 +21,8 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends Activity {
-    private static final String TAG = "소모임";
+    public static final int CREATE_CODE = 10;
+    private static final String TAG = MainActivity.class.getSimpleName();
     private PreferenceManager preferenceManager;
     private GridView myGroupList;
     private GroupGridAdapter groupGridAdapter;
@@ -40,10 +41,19 @@ public class MainActivity extends Activity {
         preferenceManager = new PreferenceManager(getApplicationContext());
         groupItems = new ArrayList<>();
         groupGridAdapter = new GroupGridAdapter(getApplicationContext(), groupItems);
-        myGroupList.setAdapter(groupGridAdapter);
 
         if (app.AppController.getInstance().getPreferenceManager().getUser() == null)
             logout();
+
+        myGroupList.setAdapter(groupGridAdapter);
+        myGroupList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(getApplicationContext(), GroupActivity.class);
+
+                startActivity(intent);
+            }
+        });
 
         logout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -85,7 +95,7 @@ public class MainActivity extends Activity {
         createGroup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, CreateActivity.class));
+                startActivityForResult(new Intent(MainActivity.this, CreateActivity.class), CREATE_CODE);
             }
         });
     }
@@ -98,5 +108,13 @@ public class MainActivity extends Activity {
 
     private int groupIdExtract(String href) {
         return Integer.parseInt(href.split("'")[1].trim());
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == CREATE_CODE && resultCode == RESULT_OK) {
+            onCreate(new Bundle());
+        }
     }
 }

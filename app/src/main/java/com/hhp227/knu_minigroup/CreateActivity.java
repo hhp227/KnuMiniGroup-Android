@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.hhp227.knu_minigroup.MainActivity.CREATE_CODE;
+
 public class CreateActivity extends Activity {
     private static final String TAG = CreateActivity.class.getSimpleName();
     // 인텐트값
@@ -118,8 +120,12 @@ public class CreateActivity extends Activity {
                                     Toast.makeText(getApplicationContext(), response, Toast.LENGTH_LONG).show();
                                     if (bitmap != null)
                                         groupImageUpdate(jsonObject.getString("CLUB_GRP_ID"));
-                                    else
+                                    else {
+                                        Intent intent = new Intent(CreateActivity.this, GroupActivity.class);
+                                        setResult(RESULT_OK, intent);
+                                        startActivity(intent);
                                         finish();
+                                    }
                                 }
                             } catch (JSONException e) {
                                 Log.e(TAG, e.getMessage());
@@ -156,10 +162,13 @@ public class CreateActivity extends Activity {
     }
 
     private void groupImageUpdate(final String grp_id) {
-        app.AppController.getInstance().addToRequestQueue(new VolleyMultipartRequest(Request.Method.POST, "http://lms.knu.ac.kr/ilos/community/share_group_image_update.acl", new Response.Listener<NetworkResponse>() {
+        app.AppController.getInstance().addToRequestQueue(new VolleyMultipartRequest(Request.Method.POST, EndPoint.GROUP_IMAGE_UPDATE, new Response.Listener<NetworkResponse>() {
             @Override
             public void onResponse(NetworkResponse response) {
                 Toast.makeText(getApplicationContext(), new String(response.data), Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(CreateActivity.this, GroupActivity.class);
+                setResult(RESULT_OK, intent);
+                startActivity(intent);
                 finish();
             }
         }, new Response.ErrorListener() {
