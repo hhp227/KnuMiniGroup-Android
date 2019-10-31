@@ -1,8 +1,11 @@
 package com.hhp227.knu_minigroup;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.View;
 import android.widget.*;
 import com.android.volley.*;
@@ -23,11 +26,13 @@ import java.util.Map;
 public class MainActivity extends Activity {
     public static final int CREATE_CODE = 10;
     private static final String TAG = MainActivity.class.getSimpleName();
+    private ProgressDialog progressDialog;
     private PreferenceManager preferenceManager;
     private GridView myGroupList;
     private GroupGridAdapter groupGridAdapter;
     private List<GroupItem> groupItems;
     private Button logout, createGroup;
+    private SwipeRefreshLayout swipeRefreshLayout;
     private Source source;
 
     @Override
@@ -37,13 +42,18 @@ public class MainActivity extends Activity {
         logout = findViewById(R.id.bLogout);
         createGroup = findViewById(R.id.bCreate);
         myGroupList = findViewById(R.id.grMyGroupList);
+        swipeRefreshLayout = findViewById(R.id.srlGroup);
 
+        progressDialog = new ProgressDialog(this);
         preferenceManager = new PreferenceManager(getApplicationContext());
         groupItems = new ArrayList<>();
         groupGridAdapter = new GroupGridAdapter(getApplicationContext(), groupItems);
 
         if (app.AppController.getInstance().getPreferenceManager().getUser() == null)
             logout();
+
+        progressDialog.setCancelable(false);
+        progressDialog.setMessage("불러오는중...");
 
         myGroupList.setAdapter(groupGridAdapter);
         myGroupList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -55,6 +65,21 @@ public class MainActivity extends Activity {
             }
         });
 
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        groupItems.clear();
+                        fetchDataTask();
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+                }, 1000);
+            }
+        });
+        swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light, android.R.color.holo_red_light);
+
         logout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -62,6 +87,19 @@ public class MainActivity extends Activity {
             }
         });
 
+        createGroup.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivityForResult(new Intent(MainActivity.this, CreateActivity.class), CREATE_CODE);
+            }
+        });
+
+        showProgressDialog();
+
+        fetchDataTask();
+    }
+
+    private void fetchDataTask() {
         app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -69,18 +107,19 @@ public class MainActivity extends Activity {
                 List<Element> listElementA = source.getAllElements(HTMLElementName.A);
                 for (Element elementA : listElementA) {
                     GroupItem groupItem = new GroupItem();
-                    groupItem.setId(groupIdExtract(elementA.getAttributeValue("href")));
+                    groupItem.setId(groupIdExtract(elementA.getAttributeValue("onclick")));
                     groupItem.setImage(EndPoint.BASE_URL + elementA.getFirstElement(HTMLElementName.IMG).getAttributeValue("src"));
-                    groupItem.setName(elementA.getAllElements(HTMLElementName.DIV).get(3).getTextExtractor().toString());
-
+                    groupItem.setName(elementA.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString());
                     groupItems.add(groupItem);
                 }
                 groupGridAdapter.notifyDataSetChanged();
+                hideProgressDialog();
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 VolleyLog.e(error.getMessage());
+                hideProgressDialog();
             }
         }) {
             @Override
@@ -90,12 +129,16 @@ public class MainActivity extends Activity {
 
                 return headers;
             }
-        });
 
-        createGroup.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                startActivityForResult(new Intent(MainActivity.this, CreateActivity.class), CREATE_CODE);
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+                params.put("panel_id", "2");
+                params.put("start", "1");
+                params.put("display", "10");
+                params.put("encoding", "utf-8");
+
+                return params;
             }
         });
     }
@@ -107,14 +150,25 @@ public class MainActivity extends Activity {
     }
 
     private int groupIdExtract(String href) {
-        return Integer.parseInt(href.split("'")[1].trim());
+        return Integer.parseInt(href.split("'")[3].trim());
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == CREATE_CODE && resultCode == RESULT_OK) {
-            onCreate(new Bundle());
+            groupItems.clear();
+            fetchDataTask();
         }
+    }
+
+    private void showProgressDialog() {
+        if (!progressDialog.isShowing())
+            progressDialog.show();
+    }
+
+    private void hideProgressDialog() {
+        if (progressDialog.isShowing())
+            progressDialog.dismiss();
     }
 }

@@ -1,6 +1,7 @@
 package com.hhp227.knu_minigroup;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -32,6 +33,7 @@ public class CreateActivity extends Activity {
     // 인텐트값
     public static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
     public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 200;
+    private ProgressDialog progressDialog;
     private EditText groupTitle, groupDescription;
     private TextView resetTitle;
     private ImageView groupImage;
@@ -48,6 +50,11 @@ public class CreateActivity extends Activity {
         resetTitle = findViewById(R.id.tvReset);
         groupImage = findViewById(R.id.ivGroupImage);
         joinType = findViewById(R.id.rgJoinType);
+
+        progressDialog = new ProgressDialog(this);
+
+        progressDialog.setCancelable(false);
+        progressDialog.setMessage("전송중...");
 
         groupTitle.addTextChangedListener(new TextWatcher() {
             @Override
@@ -108,6 +115,7 @@ public class CreateActivity extends Activity {
                 final String title = groupTitle.getText().toString().trim();
                 final String description = groupDescription.getText().toString().trim();
                 final String join = !joinTypeCheck ? "0" : "1";
+                showProgressDialog();
                 if (!title.isEmpty() && !description.isEmpty()) {
                     app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.CREATE_GROUP, new Response.Listener<String>() {
                         @Override
@@ -115,7 +123,6 @@ public class CreateActivity extends Activity {
                             try {
                                 JSONObject jsonObject = new JSONObject(response);
                                 if (!jsonObject.getBoolean("isError")) {
-                                    Toast.makeText(getApplicationContext(), response, Toast.LENGTH_LONG).show();
                                     if (bitmap != null)
                                         groupImageUpdate(jsonObject.getString("CLUB_GRP_ID"));
                                     else {
@@ -123,16 +130,19 @@ public class CreateActivity extends Activity {
                                         setResult(RESULT_OK, intent);
                                         startActivity(intent);
                                         finish();
+                                        hideProgressDialog();
                                     }
                                 }
                             } catch (JSONException e) {
                                 Log.e(TAG, e.getMessage());
+                                hideProgressDialog();
                             }
                         }
                     }, new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             VolleyLog.e(error.getMessage());
+                            hideProgressDialog();
                         }
                     }) {
                         @Override
@@ -152,7 +162,7 @@ public class CreateActivity extends Activity {
                         }
                     });
                 } else {
-                    Toast.makeText(getApplicationContext(), "잘못되었습니다.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "그룹명 또는 그룹설명을 입력해주세요.", Toast.LENGTH_LONG).show();
                 }
                 return true;
         }
@@ -163,16 +173,17 @@ public class CreateActivity extends Activity {
         app.AppController.getInstance().addToRequestQueue(new VolleyMultipartRequest(Request.Method.POST, EndPoint.GROUP_IMAGE_UPDATE, new Response.Listener<NetworkResponse>() {
             @Override
             public void onResponse(NetworkResponse response) {
-                Toast.makeText(getApplicationContext(), new String(response.data), Toast.LENGTH_LONG).show();
                 Intent intent = new Intent(CreateActivity.this, GroupActivity.class);
                 setResult(RESULT_OK, intent);
                 startActivity(intent);
                 finish();
+                hideProgressDialog();
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 VolleyLog.e(TAG, error.getMessage());
+                hideProgressDialog();
             }
         }) {
             @Override
@@ -268,5 +279,15 @@ public class CreateActivity extends Activity {
             e.printStackTrace();
         }
         return result;
+    }
+
+    private void showProgressDialog() {
+        if (!progressDialog.isShowing())
+            progressDialog.show();
+    }
+
+    private void hideProgressDialog() {
+        if (progressDialog.isShowing())
+            progressDialog.dismiss();
     }
 }
