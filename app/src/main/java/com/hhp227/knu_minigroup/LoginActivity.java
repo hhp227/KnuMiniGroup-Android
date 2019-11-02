@@ -33,9 +33,9 @@ public class LoginActivity extends Activity {
         // 액션바 없음
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_login);
-        login = findViewById(R.id.bLogin);
-        inputId = findViewById(R.id.etId);
-        inputPassword = findViewById(R.id.etPassword);
+        login = findViewById(R.id.b_login);
+        inputId = findViewById(R.id.et_id);
+        inputPassword = findViewById(R.id.et_password);
 
         progressDialog = new ProgressDialog(this);
         progressDialog.setCancelable(false);

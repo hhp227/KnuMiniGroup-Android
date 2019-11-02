@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="FloatingActionButton">
+        <attr name="drawable" format="integer"/>
+        <attr name="color" format="color"/>
+        <attr name="shadowRadius" format="float"/>
+        <attr name="shadowDx" format="float"/>
+        <attr name="shadowDy" format="float"/>
+        <attr name="shadowColor" format="integer"/>
+    </declare-styleable>
+
+    <declare-styleable name="ScrollableLayout">
+        <attr name="scrollable_maxScroll"          format="dimension"/>
+        <attr name="scrollable_scrollerFlywheel"   format="boolean"/>
+        <attr name="scrollable_considerIdleMillis" format="integer"/>
+        <attr name="scrollable_defaultCloseUp"     format="boolean"/>
+        <attr name="scrollable_friction"           format="float"/>
+
+        <attr name="scrollable_closeUpAnimationMillis" format="integer"/>
+        <attr name="scrollable_closeUpAnimatorInterpolator" format="reference"/>
+    </declare-styleable>
+
+</resources>

@@ -24,7 +24,7 @@
                     android:layout_marginTop="2dp">
 
                 <com.android.volley.toolbox.NetworkImageView
-                        android:id="@+id/nivGroupImage"
+                        android:id="@+id/niv_group_image"
                         android:layout_width="match_parent"
                         android:layout_height="100dp"
                         android:layout_centerHorizontal="true"
@@ -32,7 +32,7 @@
                         android:scaleType="fitXY" />
 
                 <ImageView
-                        android:id="@+id/nullGroupImage"
+                        android:id="@+id/null_group_image"
                         android:layout_width="match_parent"
                         android:layout_height="100dp"
                         android:layout_centerHorizontal="true"
@@ -43,7 +43,7 @@
             </RelativeLayout>
 
                 <LinearLayout
-                        android:layout_below="@+id/nullGroupImage"
+                        android:layout_below="@+id/null_group_image"
                         android:layout_width="match_parent"
                         android:layout_height="1px"
                         android:background="@android:color/darker_gray" />
@@ -54,7 +54,7 @@
                     android:layout_marginBottom="0dp">
 
                 <TextView
-                        android:id="@+id/tvGroupName"
+                        android:id="@+id/tv_group_name"
                         android:textSize="18dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

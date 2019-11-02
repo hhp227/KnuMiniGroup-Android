@@ -17,7 +17,7 @@
             android:padding="5dp">
 
         <EditText
-                android:id="@+id/etTitle"
+                android:id="@+id/et_title"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_marginRight="5dp"
@@ -31,7 +31,7 @@
         </EditText>
 
         <TextView
-                android:id="@+id/tvReset"
+                android:id="@+id/tv_reset"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0"
@@ -47,7 +47,7 @@
             android:layout_height="wrap_content">
 
         <ImageView
-                android:id="@+id/ivGroupImage"
+                android:id="@+id/iv_group_image"
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
                 android:layout_centerHorizontal="true"
@@ -63,7 +63,7 @@
 
         <EditText
                 android:padding="10dp"
-                android:id="@+id/etDescription"
+                android:id="@+id/et_description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -75,7 +75,7 @@
                 android:divider="@null"/>
 
         <RadioGroup
-                android:id="@+id/rgJoinType"
+                android:id="@+id/rg_jointype"
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -93,14 +93,14 @@
             <RadioButton
                     android:layout_weight="2"
                     android:text="자동 승인"
-                    android:id="@+id/rbAuto"
+                    android:id="@+id/rb_auto"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"/>
 
             <RadioButton
                     android:layout_weight="2"
                     android:text="승인 확인"
-                    android:id="@+id/rbCheck"
+                    android:id="@+id/rb_check"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"/>
 

@@ -14,14 +14,14 @@
 
         <Button
                 android:layout_weight="1"
-                android:id="@+id/bLogout"
+                android:id="@+id/b_logout"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:text="로그아웃"/>
 
         <Button
                 android:layout_weight="1"
-                android:id="@+id/bCreate"
+                android:id="@+id/b_create"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:text="그룹 만들기"/>
@@ -29,14 +29,14 @@
     </LinearLayout>
 
     <android.support.v4.widget.SwipeRefreshLayout
-            android:id="@+id/srlGroup"
+            android:id="@+id/srl_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="15dp"
             android:layout_marginRight="15dp">
 
         <GridView
-                android:id="@+id/grMyGroupList"
+                android:id="@+id/gr_my_grouplist"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_alignParentLeft="true"

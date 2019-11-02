@@ -50,9 +50,9 @@ public class GroupGridAdapter extends BaseAdapter {
         if (imageLoader == null)
             imageLoader = app.AppController.getInstance().getImageLoader();
 
-        groupName = convertView.findViewById(R.id.tvGroupName);
-        NetworkImageView GroupImage = convertView.findViewById(R.id.nivGroupImage);
-        ImageView nullGroupImage = convertView.findViewById(R.id.nullGroupImage);
+        groupName = convertView.findViewById(R.id.tv_group_name);
+        NetworkImageView GroupImage = convertView.findViewById(R.id.niv_group_image);
+        ImageView nullGroupImage = convertView.findViewById(R.id.null_group_image);
         GroupItem groupItem = groupItems.get(position);
 
         groupName.setText(groupItem.getName());

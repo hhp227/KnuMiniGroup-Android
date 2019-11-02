@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -45,11 +46,11 @@ public class CreateActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create);
-        groupTitle = findViewById(R.id.etTitle);
-        groupDescription = findViewById(R.id.etDescription);
-        resetTitle = findViewById(R.id.tvReset);
-        groupImage = findViewById(R.id.ivGroupImage);
-        joinType = findViewById(R.id.rgJoinType);
+        groupTitle = findViewById(R.id.et_title);
+        groupDescription = findViewById(R.id.et_description);
+        resetTitle = findViewById(R.id.tv_reset);
+        groupImage = findViewById(R.id.iv_group_image);
+        joinType = findViewById(R.id.rg_jointype);
 
         progressDialog = new ProgressDialog(this);
 
@@ -90,11 +91,11 @@ public class CreateActivity extends Activity {
         joinType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                joinTypeCheck = checkedId == R.id.rbAuto ? false : true;
+                joinTypeCheck = checkedId == R.id.rb_auto ? false : true;
             }
         });
 
-        joinType.check(R.id.rbAuto);
+        joinType.check(R.id.rb_auto);
     }
 
     @Override
@@ -124,14 +125,9 @@ public class CreateActivity extends Activity {
                                 JSONObject jsonObject = new JSONObject(response);
                                 if (!jsonObject.getBoolean("isError")) {
                                     if (bitmap != null)
-                                        groupImageUpdate(jsonObject.getString("CLUB_GRP_ID"));
-                                    else {
-                                        Intent intent = new Intent(CreateActivity.this, GroupActivity.class);
-                                        setResult(RESULT_OK, intent);
-                                        startActivity(intent);
-                                        finish();
-                                        hideProgressDialog();
-                                    }
+                                        groupImageUpdate(jsonObject.getString("CLUB_GRP_ID").trim(), jsonObject.getString("GRP_NM"));
+                                    else
+                                        createGroupSuccess(Integer.parseInt(jsonObject.getString("CLUB_GRP_ID").trim()), jsonObject.getString("GRP_NM"));
                                 }
                             } catch (JSONException e) {
                                 Log.e(TAG, e.getMessage());
@@ -169,15 +165,11 @@ public class CreateActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void groupImageUpdate(final String grp_id) {
+    private void groupImageUpdate(final String clubGrpId, final String grpNm) {
         app.AppController.getInstance().addToRequestQueue(new VolleyMultipartRequest(Request.Method.POST, EndPoint.GROUP_IMAGE_UPDATE, new Response.Listener<NetworkResponse>() {
             @Override
             public void onResponse(NetworkResponse response) {
-                Intent intent = new Intent(CreateActivity.this, GroupActivity.class);
-                setResult(RESULT_OK, intent);
-                startActivity(intent);
-                finish();
-                hideProgressDialog();
+                createGroupSuccess(Integer.parseInt(clubGrpId), grpNm);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -196,7 +188,7 @@ public class CreateActivity extends Activity {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-                params.put("CLUB_GRP_ID", grp_id);
+                params.put("CLUB_GRP_ID", clubGrpId);
                 return params;
             }
 
@@ -228,12 +220,14 @@ public class CreateActivity extends Activity {
     public boolean onContextItemSelected(MenuItem item) {
         switch (item.getTitle().toString()) {
             case "카메라" :
+                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(cameraIntent, CAMERA_CAPTURE_IMAGE_REQUEST_CODE);
                 break;
             case "갤러리" :
-                Intent intent = new Intent(Intent.ACTION_PICK);
-                intent.setType(android.provider.MediaStore.Images.Media.CONTENT_TYPE);
-                intent.setData(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(intent, CAMERA_PICK_IMAGE_REQUEST_CODE);
+                Intent galleryIntent = new Intent(Intent.ACTION_PICK);
+                galleryIntent.setType(MediaStore.Images.Media.CONTENT_TYPE);
+                galleryIntent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(galleryIntent, CAMERA_PICK_IMAGE_REQUEST_CODE);
                 break;
             case "이미지 없음" :
                 groupImage.setImageResource(R.drawable.ic_launcher_background);
@@ -247,12 +241,26 @@ public class CreateActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == CAMERA_PICK_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
+        if (requestCode == CAMERA_CAPTURE_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
+            bitmap = (Bitmap) data.getExtras().get("data");
+            groupImage.setImageBitmap(bitmap);
+        } else if (requestCode == CAMERA_PICK_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
             Uri fileUri = data.getData();
             //bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), fileUri);
             bitmap = bitmapResize(fileUri, 200);
             groupImage.setImageBitmap(bitmap);
         }
+    }
+
+    private void createGroupSuccess(int groupId, String groupName) {
+        Intent intent = new Intent(CreateActivity.this, GroupActivity.class);
+        intent.putExtra("grp_id", groupId);
+        intent.putExtra("grp_name", groupName);
+        setResult(RESULT_OK, intent);
+        startActivity(intent);
+        finish();
+        hideProgressDialog();
+        Toast.makeText(getApplicationContext(), "그룹이 생성되었습니다.", Toast.LENGTH_LONG).show();
     }
 
     private Bitmap bitmapResize(Uri uri, int resize) {

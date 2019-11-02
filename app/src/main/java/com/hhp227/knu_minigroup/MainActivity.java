@@ -26,23 +26,23 @@ import java.util.Map;
 public class MainActivity extends Activity {
     public static final int CREATE_CODE = 10;
     private static final String TAG = MainActivity.class.getSimpleName();
-    private ProgressDialog progressDialog;
-    private PreferenceManager preferenceManager;
+    private Button logout, createGroup;
     private GridView myGroupList;
     private GroupGridAdapter groupGridAdapter;
     private List<GroupItem> groupItems;
-    private Button logout, createGroup;
-    private SwipeRefreshLayout swipeRefreshLayout;
+    private PreferenceManager preferenceManager;
+    private ProgressDialog progressDialog;
     private Source source;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        logout = findViewById(R.id.bLogout);
-        createGroup = findViewById(R.id.bCreate);
-        myGroupList = findViewById(R.id.grMyGroupList);
-        swipeRefreshLayout = findViewById(R.id.srlGroup);
+        logout = findViewById(R.id.b_logout);
+        createGroup = findViewById(R.id.b_create);
+        myGroupList = findViewById(R.id.gr_my_grouplist);
+        swipeRefreshLayout = findViewById(R.id.srl_group);
 
         progressDialog = new ProgressDialog(this);
         preferenceManager = new PreferenceManager(getApplicationContext());
@@ -59,8 +59,10 @@ public class MainActivity extends Activity {
         myGroupList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                GroupItem groupItem = groupItems.get(position);
                 Intent intent = new Intent(getApplicationContext(), GroupActivity.class);
-
+                intent.putExtra("grp_id", groupItem.getId());
+                intent.putExtra("grp_name", groupItem.getName());
                 startActivity(intent);
             }
         });
@@ -75,7 +77,7 @@ public class MainActivity extends Activity {
                         fetchDataTask();
                         swipeRefreshLayout.setRefreshing(false);
                     }
-                }, 1000);
+                }, 2000);
             }
         });
         swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light, android.R.color.holo_red_light);
@@ -110,6 +112,7 @@ public class MainActivity extends Activity {
                     groupItem.setId(groupIdExtract(elementA.getAttributeValue("onclick")));
                     groupItem.setImage(EndPoint.BASE_URL + elementA.getFirstElement(HTMLElementName.IMG).getAttributeValue("src"));
                     groupItem.setName(elementA.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString());
+
                     groupItems.add(groupItem);
                 }
                 groupGridAdapter.notifyDataSetChanged();
