@@ -54,6 +54,7 @@
                                 android:textStyle="bold"/>
 
                         <TextView
+                                android:id="@+id/tv_timestamp"
                                 android:layout_width="fill_parent"
                                 android:layout_height="wrap_content"
                                 android:textColor="#a0a3a7"
@@ -73,6 +74,7 @@
                         android:paddingTop="10dp"/>
 
                 <TextView
+                        android:id="@+id/tv_content_more"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="     ...더보기"
@@ -153,16 +155,11 @@
                         android:paddingTop="8dp">
 
                     <TextView
+                            android:id="@+id/tv_replycount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginLeft="3dp"
                             android:text="댓글"/>
-
-                    <TextView
-                            android:id="@+id/tv_replycount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="3dp"/>
 
                 </LinearLayout>
 

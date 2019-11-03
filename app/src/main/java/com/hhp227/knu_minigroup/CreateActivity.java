@@ -112,7 +112,7 @@ public class CreateActivity extends Activity {
                 setResult(RESULT_OK, intent);
                 finish();
                 return true;
-            case R.id.actionSend :
+            case R.id.action_send :
                 final String title = groupTitle.getText().toString().trim();
                 final String description = groupDescription.getText().toString().trim();
                 final String join = !joinTypeCheck ? "0" : "1";

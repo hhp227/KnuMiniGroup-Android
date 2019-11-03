@@ -2,16 +2,15 @@ package com.hhp227.knu_minigroup.dto;
 
 public class FeedItem {
     int id;
-    private String name, title, content, image, timeStamp, replyCount;
+    private String name, content, image, timeStamp, replyCount;
 
     public FeedItem() {
     }
 
-    public FeedItem(int id, String name, String title, String content, String image, String timeStamp, String replyCount) {
+    public FeedItem(int id, String name, String content, String image, String timeStamp, String replyCount) {
         super();
         this.id = id;
         this.name = name;
-        this.title = title;
         this.content = content;
         this.image = image;
         this.timeStamp = timeStamp;
@@ -32,14 +31,6 @@ public class FeedItem {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
     }
 
     public String getContent() {
