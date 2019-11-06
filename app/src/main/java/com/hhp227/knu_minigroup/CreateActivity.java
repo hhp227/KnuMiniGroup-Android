@@ -257,7 +257,6 @@ public class CreateActivity extends Activity {
         intent.putExtra("grp_id", groupId);
         intent.putExtra("grp_name", groupName);
         setResult(RESULT_OK, intent);
-        startActivity(intent);
         finish();
         hideProgressDialog();
         Toast.makeText(getApplicationContext(), "그룹이 생성되었습니다.", Toast.LENGTH_LONG).show();

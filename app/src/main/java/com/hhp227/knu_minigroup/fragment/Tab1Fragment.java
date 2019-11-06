@@ -1,6 +1,5 @@
 package com.hhp227.knu_minigroup.fragment;
 
-
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -86,6 +85,7 @@ public class Tab1Fragment extends BaseFragment {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getActivity(), WriteActivity.class);
+                intent.putExtra("grp_id", groupId);
                 startActivity(intent);
                 return;
             }
@@ -127,7 +127,9 @@ public class Tab1Fragment extends BaseFragment {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-
+                        offSet = 1;
+                        feedItems.clear();
+                        fetchDataTask();
                         swipeRefreshLayout.setRefreshing(false);
                     }
                 }, 2000);

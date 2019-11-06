@@ -7,4 +7,5 @@ public interface EndPoint {
     String CREATE_GROUP = BASE_URL + "ilos/community/share_group_insert.acl";
     String GROUP_IMAGE_UPDATE = BASE_URL + "ilos/community/share_group_image_update.acl";
     String GROUP_FEED_LIST = BASE_URL + "ilos/community/share_list.acl";
+    String WRITE_FEED = BASE_URL + "ilos/community/share_insert.acl";
 }
