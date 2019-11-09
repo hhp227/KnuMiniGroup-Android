@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -19,12 +18,12 @@ import android.widget.*;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
 import com.hhp227.knu_minigroup.app.EndPoint;
-import com.hhp227.knu_minigroup.volley.util.VolleyMultipartRequest;
+import com.hhp227.knu_minigroup.helper.BitmapUtil;
+import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -34,13 +33,13 @@ public class CreateActivity extends Activity {
     // 인텐트값
     public static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
     public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 200;
-    private ProgressDialog progressDialog;
-    private EditText groupTitle, groupDescription;
-    private TextView resetTitle;
-    private ImageView groupImage;
-    private RadioGroup joinType;
     private boolean joinTypeCheck;
     private Bitmap bitmap;
+    private EditText groupTitle, groupDescription;
+    private ImageView groupImage;
+    private ProgressDialog progressDialog;
+    private RadioGroup joinType;
+    private TextView resetTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -166,7 +165,7 @@ public class CreateActivity extends Activity {
     }
 
     private void groupImageUpdate(final String clubGrpId, final String grpNm) {
-        app.AppController.getInstance().addToRequestQueue(new VolleyMultipartRequest(Request.Method.POST, EndPoint.GROUP_IMAGE_UPDATE, new Response.Listener<NetworkResponse>() {
+        app.AppController.getInstance().addToRequestQueue(new MultipartRequest(Request.Method.POST, EndPoint.GROUP_IMAGE_UPDATE, new Response.Listener<NetworkResponse>() {
             @Override
             public void onResponse(NetworkResponse response) {
                 createGroupSuccess(Integer.parseInt(clubGrpId), grpNm);
@@ -246,8 +245,7 @@ public class CreateActivity extends Activity {
             groupImage.setImageBitmap(bitmap);
         } else if (requestCode == CAMERA_PICK_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
             Uri fileUri = data.getData();
-            //bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), fileUri);
-            bitmap = bitmapResize(fileUri, 200);
+            bitmap = new BitmapUtil(this).bitmapResize(fileUri, 200);
             groupImage.setImageBitmap(bitmap);
         }
     }
@@ -257,35 +255,10 @@ public class CreateActivity extends Activity {
         intent.putExtra("grp_id", groupId);
         intent.putExtra("grp_name", groupName);
         setResult(RESULT_OK, intent);
+        startActivity(intent);
         finish();
         hideProgressDialog();
         Toast.makeText(getApplicationContext(), "그룹이 생성되었습니다.", Toast.LENGTH_LONG).show();
-    }
-
-    private Bitmap bitmapResize(Uri uri, int resize) {
-        Bitmap result = null;
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        try {
-            BitmapFactory.decodeStream(this.getContentResolver().openInputStream(uri), null, options);
-
-            int width = options.outWidth;
-            int height = options.outHeight;
-            int sampleSize = 1;
-
-            while (true) {
-                if (width / 2 < resize || height / 2 < resize)
-                    break;
-                width /= 2;
-                height /= 2;
-                sampleSize *= 2;
-            }
-            options.inSampleSize = sampleSize;
-            Bitmap bitmap = BitmapFactory.decodeStream(this.getContentResolver().openInputStream(uri), null, options);
-            result = bitmap;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        return result;
     }
 
     private void showProgressDialog() {

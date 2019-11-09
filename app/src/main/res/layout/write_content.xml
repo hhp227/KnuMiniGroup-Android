@@ -22,7 +22,7 @@
                 android:scaleType="fitXY"
                 android:visibility="visible"/>
 
-        <com.hhp227.application.feed.FeedImageView
+        <com.hhp227.knu_minigroup.volley.util.FeedImageView
                 android:id="@+id/fiv_image_preview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

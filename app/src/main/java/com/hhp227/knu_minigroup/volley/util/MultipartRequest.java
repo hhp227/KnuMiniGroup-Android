@@ -10,7 +10,7 @@ import java.util.Map;
  * Created by Belal on 10/24/2017.
  */
 
-public class VolleyMultipartRequest extends Request<NetworkResponse> {
+public class MultipartRequest extends Request<NetworkResponse> {
 
     private final String twoHyphens = "--";
     private final String lineEnd = "\r\n";
@@ -21,9 +21,9 @@ public class VolleyMultipartRequest extends Request<NetworkResponse> {
     private Map<String, String> mHeaders;
 
 
-    public VolleyMultipartRequest(int method, String url,
-                                  Response.Listener<NetworkResponse> listener,
-                                  Response.ErrorListener errorListener) {
+    public MultipartRequest(int method, String url,
+                            Response.Listener<NetworkResponse> listener,
+                            Response.ErrorListener errorListener) {
         super(method, url, errorListener);
         this.mListener = listener;
         this.mErrorListener = errorListener;

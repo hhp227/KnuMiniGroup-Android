@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".fragment.GroupFragment">
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+        <Button
+                android:layout_weight="1"
+                android:id="@+id/b_logout"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="로그아웃"/>
+
+        <Button
+                android:layout_weight="1"
+                android:id="@+id/b_create"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="그룹 만들기"/>
+
+    </LinearLayout>
+
+    <android.support.v4.widget.SwipeRefreshLayout
+            android:id="@+id/srl_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp">
+
+        <GridView
+                android:id="@+id/gr_my_grouplist"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"
+                android:numColumns="2" >
+        </GridView>
+
+    </android.support.v4.widget.SwipeRefreshLayout>
+
+</LinearLayout>
