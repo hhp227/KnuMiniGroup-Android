@@ -15,7 +15,7 @@ public class GroupActivity extends FragmentActivity {
 
         Intent intent = getIntent();
         int groupId = intent.getIntExtra("grp_id", 0);
-        String groupName = intent.getStringExtra("grp_name");
+        String groupName = intent.getStringExtra("grp_nm");
 
         fragMain = TabHostLayoutFragment.newInstance(groupId, groupName);
 

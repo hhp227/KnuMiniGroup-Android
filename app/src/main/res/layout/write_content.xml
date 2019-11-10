@@ -20,14 +20,14 @@
                 android:layout_height="wrap_content"
                 android:adjustViewBounds="true"
                 android:scaleType="fitXY"
-                android:visibility="visible"/>
+                android:visibility="visible" />
 
-        <com.hhp227.knu_minigroup.volley.util.FeedImageView
+        <com.hhp227.knu_minigroup.volley.util.ArticleImageView
                 android:id="@+id/fiv_image_preview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:scaleType="fitXY"
-                android:visibility="visible"/>
+                android:visibility="visible" />
 
         <VideoView
                 android:id="@+id/vv_video_preview"
@@ -35,7 +35,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentLeft="true"
-                android:visibility="gone"/>
+                android:visibility="gone" />
 
     </LinearLayout>
 

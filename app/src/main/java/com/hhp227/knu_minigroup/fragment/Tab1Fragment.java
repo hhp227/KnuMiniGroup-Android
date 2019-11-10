@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,11 +16,12 @@ import android.widget.ListView;
 import android.widget.Toast;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
+import com.hhp227.knu_minigroup.ArticleActivity;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.WriteActivity;
-import com.hhp227.knu_minigroup.adapter.FeedListAdapter;
+import com.hhp227.knu_minigroup.adapter.ArticleListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
-import com.hhp227.knu_minigroup.dto.FeedItem;
+import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.ui.floatingactionbutton.FloatingActionButton;
 import com.hhp227.knu_minigroup.ui.scrollable.BaseFragment;
 import net.htmlparser.jericho.Element;
@@ -32,28 +34,30 @@ import java.util.List;
 import java.util.Map;
 
 public class Tab1Fragment extends BaseFragment {
+    public static int groupId;
+    public static String groupName;
     private static final int LIMIT = 10;
-    private FeedListAdapter feedListAdapter;
+    private ArticleListAdapter articleListAdapter;
     private FloatingActionButton floatingActionButton;
-    private List<FeedItem> feedItems;
+    private List<ArticleItem> articleItems;
     private ListView listView;
     private ProgressDialog progressDialog;
     private Source source;
     private SwipeRefreshLayout swipeRefreshLayout;
     private View footerLoading;
 
-    private int offSet;
     private boolean hasRequestedMore; // 데이터 불러올때 중복안되게 하기위한 변수
-
-    private int groupId;
+    private int offSet;
+    private long mLastClickTime; // 클릭시 걸리는 시간
 
     public Tab1Fragment() {
     }
 
-    public static Tab1Fragment newInstance(int param) {
+    public static Tab1Fragment newInstance(int grpId, String grpNm) {
         Tab1Fragment fragment = new Tab1Fragment();
         Bundle args = new Bundle();
-        args.putInt("grp_id", param);
+        args.putInt("grp_id", grpId);
+        args.putString("grp_nm", grpNm);
         fragment.setArguments(args);
         return fragment;
     }
@@ -63,21 +67,22 @@ public class Tab1Fragment extends BaseFragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             groupId = getArguments().getInt("grp_id");
+            groupName = getArguments().getString("grp_nm");
         }
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_tab1, container, false);
 
         floatingActionButton = rootView.findViewById(R.id.fab_button);
         footerLoading = View.inflate(getContext(), R.layout.load_more, null);
-        listView = rootView.findViewById(R.id.lv_feed);
-        swipeRefreshLayout = rootView.findViewById(R.id.srl_feed_list);
+        listView = rootView.findViewById(R.id.lv_article);
+        swipeRefreshLayout = rootView.findViewById(R.id.srl_article_list);
 
         offSet = 1; // offSet 초기화
-        feedItems = new ArrayList<>();
-        feedListAdapter = new FeedListAdapter(getActivity(), feedItems);
+        articleItems = new ArrayList<>();
+        articleListAdapter = new ArticleListAdapter(getActivity(), articleItems);
 
         listView.addFooterView(footerLoading);
 
@@ -86,16 +91,28 @@ public class Tab1Fragment extends BaseFragment {
             public void onClick(View v) {
                 Intent intent = new Intent(getActivity(), WriteActivity.class);
                 intent.putExtra("grp_id", groupId);
+                intent.putExtra("grp_nm", groupName);
                 startActivity(intent);
                 return;
             }
         });
-        listView.setAdapter(feedListAdapter);
+        listView.setAdapter(articleListAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                FeedItem feedItem = feedItems.get(position);
-                Toast.makeText(getContext(), "id : " + feedItem.getId(), Toast.LENGTH_LONG).show();
+                // 두번 클릭시 방지
+                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000) {
+                    return;
+                }
+                mLastClickTime = SystemClock.elapsedRealtime();
+
+                ArticleItem articleItem = articleItems.get(position);
+                Intent intent = new Intent(getContext(), ArticleActivity.class);
+                intent.putExtra("grp_id", groupId);
+                intent.putExtra("grp_nm", groupName);
+                intent.putExtra("artl_num", articleItem.getId());
+                intent.putExtra("position", position + 1);
+                startActivity(intent);
             }
         });
         listView.setOnScrollListener(new AbsListView.OnScrollListener() {
@@ -111,7 +128,7 @@ public class Tab1Fragment extends BaseFragment {
                     // 다음 데이터를 불러온다.
                     offSet += LIMIT;
                     hasRequestedMore = true;
-                    fetchDataTask();
+                    fetchArticleList();
                 }
             }
 
@@ -128,8 +145,8 @@ public class Tab1Fragment extends BaseFragment {
                     @Override
                     public void run() {
                         offSet = 1;
-                        feedItems.clear();
-                        fetchDataTask();
+                        articleItems.clear();
+                        fetchArticleList();
                         swipeRefreshLayout.setRefreshing(false);
                     }
                 }, 2000);
@@ -138,14 +155,14 @@ public class Tab1Fragment extends BaseFragment {
         swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_red_light, android.R.color.holo_orange_light, android.R.color.holo_green_light, android.R.color.holo_blue_bright);
 
         progressDialog = ProgressDialog.show(getActivity(), "", "불러오는중...");
-        fetchDataTask();
+        fetchArticleList();
 
         return rootView;
     }
 
-    private void fetchDataTask() {
-        String param = "?CLUB_GRP_ID=" + groupId + "&startL=" + offSet + "&displayL=" + LIMIT;
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, EndPoint.GROUP_FEED_LIST + param, new Response.Listener<String>() {
+    private void fetchArticleList() {
+        String params = "?CLUB_GRP_ID=" + groupId + "&startL=" + offSet + "&displayL=" + LIMIT;
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, EndPoint.GROUP_ARTICLE_LIST + params, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 source = new Source(response);
@@ -177,17 +194,17 @@ public class Tab1Fragment extends BaseFragment {
                         }
                         String replyCnt = commentWrap.getContent().getFirstElement(HTMLElementName.P).getTextExtractor().toString();
 
-                        FeedItem feedItem = new FeedItem();
-                        feedItem.setId(id);
-                        feedItem.setName(title);
-                        feedItem.setTimeStamp(timeStamp);
-                        feedItem.setContent(content.toString().trim());
-                        feedItem.setImage(imageUrl);
-                        feedItem.setReplyCount(replyCnt);
+                        ArticleItem articleItem = new ArticleItem();
+                        articleItem.setId(id);
+                        articleItem.setName(title);
+                        articleItem.setTimeStamp(timeStamp);
+                        articleItem.setContent(content.toString().trim());
+                        articleItem.setImage(imageUrl);
+                        articleItem.setReplyCount(replyCnt);
 
-                        feedItems.add(feedItem);
+                        articleItems.add(articleItem);
                     }
-                    feedListAdapter.notifyDataSetChanged();
+                    articleListAdapter.notifyDataSetChanged();
                     // 중복 로딩 체크하는 Lock을 했던 HasRequestedMore변수를 풀어준다.
                     hasRequestedMore = false;
                 } catch (Exception e) {

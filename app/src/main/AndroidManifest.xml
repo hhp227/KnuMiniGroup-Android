@@ -22,6 +22,18 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             android:usesCleartextTraffic="true">
+        <activity android:name=".PictureActivity">
+        </activity>
+        <activity android:name=".ModifyActivity">
+        </activity>
+        <activity
+                android:name=".WebViewActivity"
+                android:label="@string/title_activity_web_view">
+        </activity>
+        <activity
+                android:name=".ArticleActivity"
+                android:label="@string/title_activity_detail">
+        </activity>
         <activity android:name=".WriteActivity">
         </activity>
         <activity android:name=".GroupActivity">

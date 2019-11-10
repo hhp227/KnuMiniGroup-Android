@@ -25,7 +25,7 @@
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="1px"
-            android:background="@android:color/darker_gray"/>
+            android:background="@android:color/darker_gray" />
 
     <EditText
             android:padding="10dp"
@@ -37,6 +37,6 @@
             android:gravity="top"
             android:background="@null"
             android:hint="내용을 입력하세요."
-            android:divider="@null"/>
+            android:divider="@null" />
 
 </LinearLayout>

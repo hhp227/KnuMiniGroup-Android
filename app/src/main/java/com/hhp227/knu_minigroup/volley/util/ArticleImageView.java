@@ -8,7 +8,7 @@ import android.widget.LinearLayout;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 
-public class FeedImageView extends ImageView {
+public class ArticleImageView extends ImageView {
 
     public interface ResponseObserver {
         void onError();
@@ -48,15 +48,15 @@ public class FeedImageView extends ImageView {
      */
     private ImageLoader.ImageContainer mImageContainer;
 
-    public FeedImageView(Context context) {
+    public ArticleImageView(Context context) {
         this(context, null);
     }
 
-    public FeedImageView(Context context, AttributeSet attrs) {
+    public ArticleImageView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public FeedImageView(Context context, AttributeSet attrs, int defStyle) {
+    public ArticleImageView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
     }
 

@@ -1,6 +1,7 @@
 package com.hhp227.knu_minigroup;
 
 import android.app.ActionBar;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -9,8 +10,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
-import com.hhp227.knu_minigroup.fragment.GroupFragment;
-import com.hhp227.knu_minigroup.fragment.UnivNoticeFragment;
+import com.hhp227.knu_minigroup.fragment.*;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.ActionBarDrawerToggle;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
@@ -26,10 +26,14 @@ public class MainActivity extends FragmentActivity {
     private PreferenceManager preferenceManager;
     private TextView knuId;
 
-    String[] menu = {"메인화면", "본관게시판"};
+    String[] menu = {"메인화면", "본관게시판", "시간표", "통학버스시간표", "식단보기", "도서관좌석", "로그아웃"};
 
     GroupFragment fragMain;
     UnivNoticeFragment fragUnivNotice;
+    TimetableFragment fragTimetable;
+    BusFragment fragBus;
+    MealFragment fragMeal;
+    SeatFragment fragSeat;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +48,10 @@ public class MainActivity extends FragmentActivity {
 
         fragMain = GroupFragment.newInstance();
         fragUnivNotice = UnivNoticeFragment.newInstance();
+        fragTimetable = TimetableFragment.newInstance();
+        fragBus = BusFragment.newInstance();
+        fragMeal = MealFragment.newInstance();
+        fragSeat = SeatFragment.newInstance();
 
         preferenceManager = new PreferenceManager(getApplicationContext());
         titleSection = "메인화면";
@@ -89,6 +97,21 @@ public class MainActivity extends FragmentActivity {
                     case 1 :
                         getSupportFragmentManager().beginTransaction().replace(R.id.fl_content, fragUnivNotice).commit();
                         break;
+                    case 2 :
+                        getSupportFragmentManager().beginTransaction().replace(R.id.fl_content, fragTimetable).commit();
+                        break;
+                    case 3 :
+                        getSupportFragmentManager().beginTransaction().replace(R.id.fl_content, fragBus).commit();
+                        break;
+                    case 4 :
+                        getSupportFragmentManager().beginTransaction().replace(R.id.fl_content, fragMeal).commit();
+                        break;
+                    case 5 :
+                        getSupportFragmentManager().beginTransaction().replace(R.id.fl_content, fragSeat).commit();
+                        break;
+                    case 6 :
+                        logoutUser();
+                        break;
                 }
                 drawerList.setItemChecked(position, true);
                 titleSection = menu[position];
@@ -118,5 +141,12 @@ public class MainActivity extends FragmentActivity {
             default :
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void logoutUser() {
+        preferenceManager.clear();
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

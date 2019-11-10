@@ -10,7 +10,7 @@ import com.android.volley.toolbox.ImageLoader;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.WriteItem;
-import com.hhp227.knu_minigroup.volley.util.FeedImageView;
+import com.hhp227.knu_minigroup.volley.util.ArticleImageView;
 
 import java.util.List;
 
@@ -18,7 +18,7 @@ public class WriteListAdapter extends ArrayAdapter<WriteItem> {
     private Context context;
     private LayoutInflater layoutInflater;
     private int resource;
-    private FeedImageView feedImageView;
+    private ArticleImageView articleImageView;
     private ImageView imageView;
     private ImageLoader imageLoader;
 
@@ -41,7 +41,7 @@ public class WriteListAdapter extends ArrayAdapter<WriteItem> {
             imageLoader = app.AppController.getInstance().getImageLoader();
 
         imageView = convertView.findViewById(R.id.iv_image_preview);
-        feedImageView = convertView.findViewById(R.id.fiv_image_preview);
+        articleImageView = convertView.findViewById(R.id.fiv_image_preview);
 
         WriteItem writeItem = getItem(position);
 
@@ -52,10 +52,10 @@ public class WriteListAdapter extends ArrayAdapter<WriteItem> {
             imageView.setVisibility(View.GONE);
 
         if (writeItem.getImage() != null) {
-            feedImageView.setImageUrl(EndPoint.BASE_URL + writeItem.getImage(), imageLoader);
-            feedImageView.setVisibility(View.VISIBLE);
+            articleImageView.setImageUrl(EndPoint.BASE_URL + writeItem.getImage(), imageLoader);
+            articleImageView.setVisibility(View.VISIBLE);
         } else
-            feedImageView.setVisibility(View.GONE);
+            articleImageView.setVisibility(View.GONE);
 
         return convertView;
     }

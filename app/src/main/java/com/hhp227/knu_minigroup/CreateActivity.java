@@ -16,7 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
 import com.android.volley.*;
-import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
 import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
@@ -24,6 +24,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -33,13 +35,15 @@ public class CreateActivity extends Activity {
     // 인텐트값
     public static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
     public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 200;
-    private boolean joinTypeCheck;
     private Bitmap bitmap;
     private EditText groupTitle, groupDescription;
     private ImageView groupImage;
     private ProgressDialog progressDialog;
     private RadioGroup joinType;
     private TextView resetTitle;
+
+    private boolean joinTypeCheck;
+    private String cookie;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +54,7 @@ public class CreateActivity extends Activity {
         resetTitle = findViewById(R.id.tv_reset);
         groupImage = findViewById(R.id.iv_group_image);
         joinType = findViewById(R.id.rg_jointype);
-
+        cookie = app.AppController.getInstance().getPreferenceManager().getCookie();
         progressDialog = new ProgressDialog(this);
 
         progressDialog.setCancelable(false);
@@ -117,16 +121,15 @@ public class CreateActivity extends Activity {
                 final String join = !joinTypeCheck ? "0" : "1";
                 showProgressDialog();
                 if (!title.isEmpty() && !description.isEmpty()) {
-                    app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.CREATE_GROUP, new Response.Listener<String>() {
+                    app.AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, EndPoint.CREATE_GROUP, null, new Response.Listener<JSONObject>() {
                         @Override
-                        public void onResponse(String response) {
+                        public void onResponse(JSONObject response) {
                             try {
-                                JSONObject jsonObject = new JSONObject(response);
-                                if (!jsonObject.getBoolean("isError")) {
+                                if (!response.getBoolean("isError")) {
                                     if (bitmap != null)
-                                        groupImageUpdate(jsonObject.getString("CLUB_GRP_ID").trim(), jsonObject.getString("GRP_NM"));
+                                        groupImageUpdate(response.getString("CLUB_GRP_ID").trim(), response.getString("GRP_NM"));
                                     else
-                                        createGroupSuccess(Integer.parseInt(jsonObject.getString("CLUB_GRP_ID").trim()), jsonObject.getString("GRP_NM"));
+                                        createGroupSuccess(Integer.parseInt(response.getString("CLUB_GRP_ID").trim()), response.getString("GRP_NM"));
                                 }
                             } catch (JSONException e) {
                                 Log.e(TAG, e.getMessage());
@@ -143,17 +146,36 @@ public class CreateActivity extends Activity {
                         @Override
                         public Map<String, String> getHeaders() {
                             Map<String, String> headers = new HashMap<>();
-                            headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+                            headers.put("Cookie", cookie);
                             return headers;
                         }
 
                         @Override
-                        protected Map<String, String> getParams() {
+                        public String getBodyContentType() {
+                            return "application/x-www-form-urlencoded; charset=" + getParamsEncoding();
+                        }
+
+                        @Override
+                        public byte[] getBody() {
                             Map<String, String> params = new HashMap<>();
                             params.put("GRP_NM", title);
                             params.put("TXT", description);
                             params.put("JOIN_DIV", join);
-                            return params;
+                            if (params != null && params.size() > 0) {
+                                StringBuilder encodedParams = new StringBuilder();
+                                try {
+                                    for (Map.Entry<String, String> entry : params.entrySet()) {
+                                        encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));
+                                        encodedParams.append('=');
+                                        encodedParams.append(URLEncoder.encode(entry.getValue(), getParamsEncoding()));
+                                        encodedParams.append('&');
+                                    }
+                                    return encodedParams.toString().getBytes(getParamsEncoding());
+                                } catch (UnsupportedEncodingException uee) {
+                                    throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), uee);
+                                }
+                            }
+                            return null;
                         }
                     });
                 } else {
@@ -180,7 +202,7 @@ public class CreateActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+                headers.put("Cookie", cookie);
                 return headers;
             }
 
@@ -253,7 +275,7 @@ public class CreateActivity extends Activity {
     private void createGroupSuccess(int groupId, String groupName) {
         Intent intent = new Intent(CreateActivity.this, GroupActivity.class);
         intent.putExtra("grp_id", groupId);
-        intent.putExtra("grp_name", groupName);
+        intent.putExtra("grp_nm", groupName);
         setResult(RESULT_OK, intent);
         startActivity(intent);
         finish();

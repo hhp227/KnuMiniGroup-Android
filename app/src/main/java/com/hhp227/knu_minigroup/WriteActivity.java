@@ -39,17 +39,18 @@ public class WriteActivity extends Activity {
     public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 100;
     public static final int REQUEST_IMAGE_CAPTURE = 200;
     private static final String TAG = WriteActivity.class.getSimpleName();
-    private int contextMenuRequest;
     private EditText inputTitle, inputContent;
     private LinearLayout buttonImage;
     private List<WriteItem> contents;
     private ListView listView;
     private ProgressDialog progressDialog;
-    private String currentPhotoPath;
     private StringBuilder makeHtmlImages;
     private Uri photoUri;
     private View headerView;
     private WriteListAdapter listAdapter;
+
+    private int contextMenuRequest;
+    private String currentPhotoPath, cookie;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +63,7 @@ public class WriteActivity extends Activity {
         inputTitle = headerView.findViewById(R.id.et_title);
         inputContent = headerView.findViewById(R.id.et_content);
         contents = new ArrayList<>();
+        cookie = app.AppController.getInstance().getPreferenceManager().getCookie();
         listAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, contents);
         progressDialog = new ProgressDialog(this);
 
@@ -248,7 +250,7 @@ public class WriteActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+                headers.put("Cookie", cookie);
                 return headers;
             }
 
@@ -271,7 +273,7 @@ public class WriteActivity extends Activity {
     private void sendSuccess(final int grpId, final String title, final String content) {
         String tagStringReq = "req_send";
 
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.WRITE_FEED, new Response.Listener<String>() {
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.WRITE_ARTICLE, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 hideProgressDialog();
@@ -283,6 +285,7 @@ public class WriteActivity extends Activity {
                         Toast.makeText(getApplicationContext(), "전송완료", Toast.LENGTH_LONG).show();
                         Intent intent = new Intent(WriteActivity.this, GroupActivity.class);
                         intent.putExtra("grp_id", grpId);
+                        intent.putExtra("grp_nm", getIntent().getStringExtra("grp_nm"));
                         // 이전 Activity 초기화
                         intent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         startActivity(intent);
@@ -302,7 +305,7 @@ public class WriteActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+                headers.put("Cookie", cookie);
                 return headers;
             }
 

@@ -85,7 +85,7 @@ public class TabHostLayoutFragment extends Fragment {
         });
 
         List<BaseFragment> fragments = new Vector<>();
-        fragments.add(Tab1Fragment.newInstance(groupId));
+        fragments.add(Tab1Fragment.newInstance(groupId, groupName));
         fragments.add(new Tab2Fragment());
         fragments.add(new Tab3Fragment());
         fragments.add(new Tab4Fragment());

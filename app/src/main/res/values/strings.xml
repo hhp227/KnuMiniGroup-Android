@@ -3,6 +3,15 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_activity_temp">TempActivity</string>
     <string name="action_settings">Settings</string>
+    <!-- 날짜 -->
+    <string name="format_date1">y년 M월 d일</string>
+    <string name="format_date2">M월 d일</string>
+    <string name="day">일전</string>
+    <string name="hour">시간전</string>
+    <string name="minute">분전</string>
+    <string name="second">초전</string>
+    <string name="afew">지금</string>
+    <string name="title_activity_detail">DetailActivity</string>
+    <string name="title_activity_web_view">WebViewActivity</string>
 </resources>

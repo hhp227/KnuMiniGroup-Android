@@ -8,15 +8,15 @@
         tools:context=".fragment.Tab1Fragment">
 
     <android.support.v4.widget.SwipeRefreshLayout
-            android:id="@+id/srl_feed_list"
+            android:id="@+id/srl_article_list"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
         <ListView
-                android:id="@+id/lv_feed"
+                android:id="@+id/lv_article"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:divider="@null"/>
+                android:divider="@null" />
 
     </android.support.v4.widget.SwipeRefreshLayout>
 
@@ -29,6 +29,6 @@
             android:layout_marginEnd="16dp"
             android:layout_marginRight="16dp"
             app:color="#9f49d1"
-            app:drawable="@drawable/ic_content_new"/>
+            app:drawable="@drawable/ic_content_new" />
 
 </FrameLayout>

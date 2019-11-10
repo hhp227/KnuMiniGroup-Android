@@ -21,7 +21,7 @@
         <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="아이디"/>
+                android:text="아이디" />
 
         <EditText
                 android:id="@+id/et_id"
@@ -37,7 +37,7 @@
         <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="암호"/>
+                android:text="암호" />
 
         <EditText
                 android:id="@+id/et_password"
@@ -46,7 +46,7 @@
                 android:layout_marginBottom="10dp"
                 android:hint="Password"
                 android:inputType="textPassword"
-                android:singleLine="true"/>
+                android:singleLine="true" />
     </LinearLayout>
 
     <TextView
@@ -56,7 +56,7 @@
             android:layout_above="@+id/linear_layout"
             android:layout_centerHorizontal="true"
             android:text="ID와 Password는 통합정보시스템과 동일합니다."
-            android:textSize="14dp"/>
+            android:textSize="14dp" />
 
     <Button
             android:id="@+id/b_login"
@@ -64,7 +64,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/linear_layout"
             android:layout_centerHorizontal="true"
-            android:text="로그인"/>
+            android:text="로그인" />
 
     <TextView
             android:id="@+id/register"
@@ -74,7 +74,7 @@
             android:layout_centerHorizontal="true"
             android:textSize="13dp"
             android:padding="5dp"
-            android:text="경북대학교 통합정보시스템으로 \n로그인 가능합니다."/>
+            android:text="경북대학교 통합정보시스템으로 \n로그인 가능합니다." />
 
     <ImageView
             android:id="@+id/image_view"
@@ -82,7 +82,7 @@
             android:layout_height="100dp"
             android:layout_alignLeft="@+id/b_login"
             android:layout_alignParentTop="true"
-            android:src="@drawable/knu_minigroup"/>
+            android:src="@drawable/knu_minigroup" />
 
     <TextView
             android:layout_width="wrap_content"
@@ -91,6 +91,6 @@
             android:layout_centerHorizontal="true"
             android:text="경북대 소셜네트워크"
             android:textSize="15dp"
-            android:textStyle="italic"/>
+            android:textStyle="italic" />
 
 </RelativeLayout>

@@ -14,7 +14,7 @@
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="5dp"
                 android:background="@drawable/bg_parent_rounded_corner"
-                android:orientation="vertical" >
+                android:orientation="vertical">
 
             <RelativeLayout
                     android:layout_width="match_parent"
@@ -61,7 +61,7 @@
                         android:layout_marginLeft="10dp"
                         android:layout_marginRight="10dp"
                         android:layout_marginTop="10dp"
-                        android:text="제목"/>
+                        android:text="제목" />
 
             </RelativeLayout>
 

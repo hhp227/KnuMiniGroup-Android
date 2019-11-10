@@ -80,7 +80,7 @@ public class GroupFragment extends Fragment {
                 GroupItem groupItem = groupItems.get(position);
                 Intent intent = new Intent(getContext(), GroupActivity.class);
                 intent.putExtra("grp_id", groupItem.getId());
-                intent.putExtra("grp_name", groupItem.getName());
+                intent.putExtra("grp_nm", groupItem.getName());
                 startActivity(intent);
             }
         });

@@ -17,6 +17,8 @@ import com.hhp227.knu_minigroup.user.User;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,12 +102,30 @@ public class LoginActivity extends Activity {
                         }
 
                         @Override
-                        protected Map<String, String> getParams() {
+                        public String getBodyContentType() {
+                            return "application/x-www-form-urlencoded; charset=" + getParamsEncoding();
+                        }
+
+                        @Override
+                        public byte[] getBody() {
                             Map<String, String> params = new HashMap<>();
                             params.put("usr_id", id);
                             params.put("usr_pwd", password);
-
-                            return params;
+                            if (params != null && params.size() > 0) {
+                                StringBuilder encodedParams = new StringBuilder();
+                                try {
+                                    for (Map.Entry<String, String> entry : params.entrySet()) {
+                                        encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));
+                                        encodedParams.append('=');
+                                        encodedParams.append(URLEncoder.encode(entry.getValue(), getParamsEncoding()));
+                                        encodedParams.append('&');
+                                    }
+                                    return encodedParams.toString().getBytes(getParamsEncoding());
+                                } catch (UnsupportedEncodingException uee) {
+                                    throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), uee);
+                                }
+                            }
+                            return null;
                         }
                     };
                     app.AppController.getInstance().addToRequestQueue(stringRequest);
@@ -114,8 +134,8 @@ public class LoginActivity extends Activity {
                 }
             }
         });
-
     }
+
     private void showProgressDialog() {
         if (!progressDialog.isShowing())
             progressDialog.show();

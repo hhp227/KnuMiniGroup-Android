@@ -39,7 +39,7 @@
                         android:layout_marginBottom="55dp"
                         android:paddingLeft="15dp"
                         android:text="모임명"
-                        android:textColor="@android:color/white"/>
+                        android:textColor="@android:color/white" />
 
                 <TabWidget
                         android:id="@android:id/tabs"
@@ -47,7 +47,7 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentBottom="true"
                         android:background="@null"
-                        android:orientation="horizontal"/>
+                        android:orientation="horizontal" />
 
             </RelativeLayout>
 

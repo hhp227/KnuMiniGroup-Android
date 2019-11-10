@@ -1,13 +1,13 @@
 package com.hhp227.knu_minigroup.dto;
 
-public class FeedItem {
+public class ArticleItem {
     int id;
     private String name, content, image, timeStamp, replyCount;
 
-    public FeedItem() {
+    public ArticleItem() {
     }
 
-    public FeedItem(int id, String name, String content, String image, String timeStamp, String replyCount) {
+    public ArticleItem(int id, String name, String content, String image, String timeStamp, String replyCount) {
         super();
         this.id = id;
         this.name = name;
