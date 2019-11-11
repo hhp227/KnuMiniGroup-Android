@@ -223,7 +223,7 @@ public class WriteActivity extends Activity {
                 try {
                     String imageSrc = new String(response.data);
                     imageSrc = EndPoint.BASE_URL + imageSrc.substring(imageSrc.lastIndexOf("/ilosfiles2/"), imageSrc.lastIndexOf("\""));
-                    makeHtmlImages.append("<p><img src=\"" + imageSrc + "\" width=\"488\"><p>");
+                    makeHtmlImages.append("<p><img src=\"" + imageSrc + "\" width=\"488\"><p>" + (count < contents.size() - 1 ? "<br>": ""));
                     if (count < contents.size() - 1) {
                         count++;
                         Thread.sleep(700);
