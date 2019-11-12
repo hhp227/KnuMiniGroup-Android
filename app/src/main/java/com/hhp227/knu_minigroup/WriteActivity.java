@@ -110,7 +110,7 @@ public class WriteActivity extends Activity {
                 int grpId = getIntent().getIntExtra("grp_id", 0);
                 String title = inputTitle.getEditableText().toString();
                 String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(inputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(inputContent.getText());
-                if (!title.isEmpty()) {
+                if (!title.isEmpty() && !(TextUtils.isEmpty(content) && contents.size() == 0)) {
                     progressDialog.setMessage("전송중...");
                     progressDialog.setProgressStyle(contents.size() > 0 ? ProgressDialog.STYLE_HORIZONTAL : ProgressDialog.STYLE_SPINNER);
                     showProgressDialog();
@@ -121,7 +121,7 @@ public class WriteActivity extends Activity {
                     } else
                         sendSuccess(grpId, title, content);
                 } else
-                    Toast.makeText(getApplicationContext(), "제목을 입력하세요", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), (title.isEmpty() ? "제목" : "내용") + "을 입력하세요.", Toast.LENGTH_LONG).show();
                 return true;
         }
         return super.onOptionsItemSelected(item);

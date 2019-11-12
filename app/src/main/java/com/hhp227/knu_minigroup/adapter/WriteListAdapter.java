@@ -52,7 +52,7 @@ public class WriteListAdapter extends ArrayAdapter<WriteItem> {
             imageView.setVisibility(View.GONE);
 
         if (writeItem.getImage() != null) {
-            articleImageView.setImageUrl(EndPoint.BASE_URL + writeItem.getImage(), imageLoader);
+            articleImageView.setImageUrl(writeItem.getImage(), imageLoader);
             articleImageView.setVisibility(View.VISIBLE);
         } else
             articleImageView.setVisibility(View.GONE);

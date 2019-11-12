@@ -39,6 +39,7 @@ public class ArticleActivity extends Activity {
     private ImageLoader imageLoader;
     private LinearLayout articleImages;
     private List<ReplyItem> replyItemList;
+    private List<String> imageList;
     private ListView listView;
     private ProgressDialog progressDialog;
     private ReplyListAdapter replyListAdapter;
@@ -73,6 +74,7 @@ public class ArticleActivity extends Activity {
         articleId = intent.getIntExtra("artl_num", 0);
         position = intent.getIntExtra("position", 0);
         isBottom = intent.getBooleanExtra("isbottom", false);
+        imageList = new ArrayList<>();
         replyItemList = new ArrayList<>();
         replyListAdapter = new ReplyListAdapter(this, replyItemList);
         progressDialog = new ProgressDialog(this);
@@ -147,6 +149,11 @@ public class ArticleActivity extends Activity {
                 return true;
             case 1 :
                 Intent intent = new Intent(this, ModifyActivity.class);
+                intent.putExtra("grp_id", groupId);
+                intent.putExtra("artl_num", articleId);
+                intent.putExtra("sbjt", articleTitle.getText().toString().substring(0, articleTitle.getText().toString().lastIndexOf("-")).trim());
+                intent.putExtra("txt", articleContent.getText().toString());
+                intent.putStringArrayListExtra("img", (ArrayList<String>) imageList);
                 startActivity(intent);
                 return true;
             case 2 :
@@ -235,9 +242,9 @@ public class ArticleActivity extends Activity {
 
                     if (images.size() > 0) {
                         for (Element image : images) {
-                            final String imageUrl = image.getAttributeValue("src");
+                            final String imageUrl = !image.getAttributeValue("src").contains("http") ? EndPoint.BASE_URL + image.getAttributeValue("src") : image.getAttributeValue("src");
                             articleImageView = new ArticleImageView(getApplicationContext());
-                            articleImageView.setImageUrl(!imageUrl.contains("http") ? EndPoint.BASE_URL + imageUrl : imageUrl, imageLoader);
+                            articleImageView.setImageUrl(imageUrl, imageLoader);
                             articleImageView.setPadding(0, 0, 0, 30);
                             articleImageView.setScaleType(ImageView.ScaleType.FIT_XY);
                             articleImageView.setErrorImageResId(R.drawable.ic_launcher_background);
@@ -245,12 +252,12 @@ public class ArticleActivity extends Activity {
                                 @Override
                                 public void onClick(View v) {
                                     Intent intent = new Intent(getApplicationContext(), PictureActivity.class);
-                                    intent.putExtra("image_url", !imageUrl.contains("http") ? EndPoint.BASE_URL + imageUrl : imageUrl);
+                                    intent.putExtra("image_url", imageUrl);
                                     startActivity(intent);
                                 }
                             });
-
                             articleImages.addView(articleImageView);
+                            imageList.add(imageUrl);
                         }
                         articleImages.setVisibility(View.VISIBLE);
                     } else
