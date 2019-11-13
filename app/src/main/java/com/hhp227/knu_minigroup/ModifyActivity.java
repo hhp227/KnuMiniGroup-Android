@@ -10,21 +10,27 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
+import android.text.Html;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
+import com.android.volley.*;
+import com.android.volley.toolbox.StringRequest;
 import com.hhp227.knu_minigroup.adapter.WriteListAdapter;
+import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.WriteItem;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
+import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static com.hhp227.knu_minigroup.WriteActivity.CAMERA_PICK_IMAGE_REQUEST_CODE;
 import static com.hhp227.knu_minigroup.WriteActivity.REQUEST_IMAGE_CAPTURE;
@@ -35,13 +41,14 @@ public class ModifyActivity extends Activity {
     private LinearLayout buttonImage;
     private List<WriteItem> contents;
     private ProgressDialog progressDialog;
+    private StringBuilder makeHtmlImages;
     private Uri photoUri;
     private List<String> imageList;
     private ListView listView;
     private View headerView;
     private WriteListAdapter listAdapter;
 
-    private int contextMenuRequest;
+    private int contextMenuRequest, grpId, artlNum;
     private String currentPhotoPath, cookie, title, content;
 
     @Override
@@ -59,8 +66,8 @@ public class ModifyActivity extends Activity {
         progressDialog = new ProgressDialog(this);
 
         Intent intent = getIntent();
-        //Toast.makeText(getApplicationContext(), "grpId : " + intent.getIntExtra("grp_id", 0), Toast.LENGTH_LONG).show();
-        //Toast.makeText(getApplicationContext(), "artlNum : " + intent.getIntExtra("artl_num", 0), Toast.LENGTH_LONG).show();
+        grpId = intent.getIntExtra("grp_id", 0);
+        artlNum = intent.getIntExtra("artl_num", 0);
         title = intent.getStringExtra("sbjt");
         content = intent.getStringExtra("txt");
         imageList = intent.getStringArrayListExtra("img");
@@ -91,7 +98,7 @@ public class ModifyActivity extends Activity {
                 WriteItem writeItem = new WriteItem(null, null, imageUrl);
                 contents.add(writeItem);
             }
-            //listAdapter.notifyDataSetChanged();
+            listAdapter.notifyDataSetChanged();
         }
         registerForContextMenu(listView);
     }
@@ -105,7 +112,27 @@ public class ModifyActivity extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case android.R.id.home :
+                Intent intent = new Intent();
+                setResult(RESULT_OK, intent);
+                finish();
+                return true;
+            case R.id.action_send :
+                String title = inputTitle.getEditableText().toString();
+                String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(inputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(inputContent.getText());
+                if (!inputTitle.getText().toString().isEmpty() && !(TextUtils.isEmpty(inputContent.getText()) && contents.size() == 0)) {
+                    makeHtmlImages = new StringBuilder();
+                    progressDialog.setMessage("전송중...");
+                    progressDialog.setProgressStyle(contents.size() > 0 ? ProgressDialog.STYLE_HORIZONTAL : ProgressDialog.STYLE_SPINNER);
+                    showProgressDialog();
 
+                    if (contents.size() > 0) {
+                        int position = 0;
+                        uploadImage(position, contents.get(0));
+                    } else
+                        actionSend(title, content);
+                } else
+                    Toast.makeText(getApplicationContext(), (TextUtils.isEmpty(inputTitle.getText()) ? "제목" : "내용") + "을 입력하세요.", Toast.LENGTH_LONG).show();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -195,6 +222,107 @@ public class ModifyActivity extends Activity {
                 e.printStackTrace();
             }
         }
+    }
+
+    private void uploadImage(final int position, final WriteItem writeItem) {
+        if (writeItem.getImage() != null)
+            imageUploadProcess(position, writeItem.getImage(), false);
+        else {
+            MultipartRequest multipartRequest = new MultipartRequest(Request.Method.POST, EndPoint.IMAGE_UPLOAD, new Response.Listener<NetworkResponse>() {
+                @Override
+                public void onResponse(NetworkResponse response) {
+                    String imageSrc = new String(response.data);
+                    imageSrc = EndPoint.BASE_URL + imageSrc.substring(imageSrc.lastIndexOf("/ilosfiles2/"), imageSrc.lastIndexOf("\""));
+                    imageUploadProcess(position, imageSrc, true);
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    VolleyLog.e(error.getMessage());
+                    hideProgressDialog();
+                }
+            }) {
+                @Override
+                public Map<String, String> getHeaders() {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Cookie", cookie);
+                    return headers;
+                }
+
+                @Override
+                protected Map<String, DataPart> getByteData() {
+                    Map<String, DataPart> params = new HashMap<>();
+                    params.put("file", new DataPart(System.currentTimeMillis() + position + ".jpg", getFileDataFromDrawable(writeItem.getBitmap())));
+                    return params;
+                }
+
+                private byte[] getFileDataFromDrawable(Bitmap bitmap) {
+                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 80, byteArrayOutputStream);
+                    return byteArrayOutputStream.toByteArray();
+                }
+            };
+            app.AppController.getInstance().addToRequestQueue(multipartRequest);
+        }
+    }
+
+    private void imageUploadProcess(int count, String imageUrl, boolean isFlag) {
+        progressDialog.setProgress((int) ((double) (count) / contents.size() * 100));
+        try {
+            makeHtmlImages.append("<p><img src=\"" + imageUrl + "\" width=\"488\"><p>" + (count < contents.size() - 1 ? "<br>": ""));
+            if (count < contents.size() - 1) {
+                count++;
+                Thread.sleep(isFlag ? 700 : 0);
+                uploadImage(count, contents.get(count));
+            } else {
+                String title = inputTitle.getEditableText().toString();
+                String content = (!TextUtils.isEmpty(inputContent.getText()) ? Html.toHtml(inputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) + "<p><br data-mce-bogus=\"1\"></p>" : "") + makeHtmlImages.toString();
+                actionSend(title, content);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Toast.makeText(getApplicationContext(), "이미지 업로드 실패", Toast.LENGTH_LONG).show();
+            hideProgressDialog();
+        }
+    }
+
+    private void actionSend(final String title, final String content) {
+        String tagStringReq = "req_send";
+
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.MODIFY_ARTICLE, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                hideProgressDialog();
+
+                Toast.makeText(getApplicationContext(), "수정완료", Toast.LENGTH_LONG).show();
+                finish();
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e(error.getMessage());
+                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
+                hideProgressDialog();
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Cookie", cookie);
+                return headers;
+            }
+
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+                params.put("CLUB_GRP_ID", String.valueOf(grpId));
+                params.put("ARTL_NUM", String.valueOf(artlNum));
+                params.put("SBJT", title);
+                params.put("TXT", content);
+                return params;
+            }
+        };
+        app.AppController.getInstance().addToRequestQueue(stringRequest, tagStringReq);
     }
 
     private File createImageFile() throws IOException {

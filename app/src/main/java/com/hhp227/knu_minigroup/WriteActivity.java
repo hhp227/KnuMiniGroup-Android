@@ -49,7 +49,7 @@ public class WriteActivity extends Activity {
     private View headerView;
     private WriteListAdapter listAdapter;
 
-    private int contextMenuRequest;
+    private int contextMenuRequest, grpId;
     private String currentPhotoPath, cookie;
 
     @Override
@@ -66,6 +66,7 @@ public class WriteActivity extends Activity {
         cookie = app.AppController.getInstance().getPreferenceManager().getCookie();
         listAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, contents);
         progressDialog = new ProgressDialog(this);
+        grpId = getIntent().getIntExtra("grp_id", 0);
 
         buttonImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -105,12 +106,10 @@ public class WriteActivity extends Activity {
                 finish();
                 return true;
             case R.id.action_send :
-                makeHtmlImages = new StringBuilder();
-
-                int grpId = getIntent().getIntExtra("grp_id", 0);
                 String title = inputTitle.getEditableText().toString();
                 String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(inputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(inputContent.getText());
                 if (!title.isEmpty() && !(TextUtils.isEmpty(content) && contents.size() == 0)) {
+                    makeHtmlImages = new StringBuilder();
                     progressDialog.setMessage("전송중...");
                     progressDialog.setProgressStyle(contents.size() > 0 ? ProgressDialog.STYLE_HORIZONTAL : ProgressDialog.STYLE_SPINNER);
                     showProgressDialog();
@@ -119,7 +118,7 @@ public class WriteActivity extends Activity {
                         int position = 0;
                         uploadImage(position, contents.get(position).getBitmap());
                     } else
-                        sendSuccess(grpId, title, content);
+                        actionSend(grpId, title, content);
                 } else
                     Toast.makeText(getApplicationContext(), (title.isEmpty() ? "제목" : "내용") + "을 입력하세요.", Toast.LENGTH_LONG).show();
                 return true;
@@ -229,10 +228,9 @@ public class WriteActivity extends Activity {
                         Thread.sleep(700);
                         uploadImage(count, contents.get(count).getBitmap());
                     } else {
-                        int grpId = getIntent().getIntExtra("grp_id", 0);
                         String title = inputTitle.getEditableText().toString();
                         String content = (!TextUtils.isEmpty(inputContent.getText()) ? Html.toHtml(inputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) + "<p><br data-mce-bogus=\"1\"></p>" : "") + makeHtmlImages.toString();
-                        sendSuccess(grpId, title, content);
+                        actionSend(grpId, title, content);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -270,7 +268,7 @@ public class WriteActivity extends Activity {
         Volley.newRequestQueue(this).add(multipartRequest);
     }
 
-    private void sendSuccess(final int grpId, final String title, final String content) {
+    private void actionSend(final int grpId, final String title, final String content) {
         String tagStringReq = "req_send";
 
         StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.WRITE_ARTICLE, new Response.Listener<String>() {
