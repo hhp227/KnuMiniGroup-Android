@@ -295,6 +295,8 @@ public class ModifyActivity extends Activity {
                 hideProgressDialog();
 
                 Toast.makeText(getApplicationContext(), "수정완료", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(ModifyActivity.this, ArticleActivity.class);
+                setResult(RESULT_OK, intent);
                 finish();
             }
         }, new Response.ErrorListener() {

@@ -19,6 +19,7 @@ public class GroupActivity extends FragmentActivity {
 
         fragMain = TabHostLayoutFragment.newInstance(groupId, groupName);
 
+        getActionBar().setTitle(groupName);
         getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, fragMain).commit();
     }
 }

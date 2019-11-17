@@ -17,6 +17,8 @@ import com.hhp227.knu_minigroup.volley.util.ArticleImageView;
 
 import java.util.List;
 
+import static com.hhp227.knu_minigroup.fragment.Tab1Fragment.UPDATE_ARTICLE;
+
 public class ArticleListAdapter extends BaseAdapter {
     public static boolean LIKED;
     private static final int CONTENT_MAX_LINE = 4;
@@ -114,7 +116,7 @@ public class ArticleListAdapter extends BaseAdapter {
                 intent.putExtra("artl_num", articleItem.getId());
                 intent.putExtra("position", position + 1);
                 intent.putExtra("isbottom", true);
-                activity.startActivity(intent);
+                activity.startActivityForResult(intent, UPDATE_ARTICLE);
             }
         });
 

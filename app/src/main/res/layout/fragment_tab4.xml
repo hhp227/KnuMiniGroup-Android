@@ -43,8 +43,8 @@
 
             <com.hhp227.knu_minigroup.volley.util.CircularNetworkImageView
                     android:id="@+id/cniv_profile_image"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
                     android:src="@drawable/profile_img_circle"
                     android:scaleType="fitCenter" />
 

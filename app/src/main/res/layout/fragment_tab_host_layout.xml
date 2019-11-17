@@ -30,17 +30,6 @@
                     android:layout_weight="0"
                     android:background="@drawable/ic_launcher_background">
 
-                <TextView
-                        android:id="@+id/tv_group_title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentBottom="true"
-                        android:layout_centerHorizontal="false"
-                        android:layout_marginBottom="55dp"
-                        android:paddingLeft="15dp"
-                        android:text="모임명"
-                        android:textColor="@android:color/white" />
-
                 <TabWidget
                         android:id="@android:id/tabs"
                         android:layout_width="match_parent"

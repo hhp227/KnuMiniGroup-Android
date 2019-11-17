@@ -1,5 +1,6 @@
 package com.hhp227.knu_minigroup.fragment;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -34,9 +35,10 @@ import java.util.List;
 import java.util.Map;
 
 public class Tab1Fragment extends BaseFragment {
+    public static final int LIMIT = 10;
+    public static final int UPDATE_ARTICLE = 20;
     public static int groupId;
     public static String groupName;
-    private static final int LIMIT = 10;
     private ArticleListAdapter articleListAdapter;
     private FloatingActionButton floatingActionButton;
     private List<ArticleItem> articleItems;
@@ -101,9 +103,8 @@ public class Tab1Fragment extends BaseFragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 // 두번 클릭시 방지
-                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000) {
+                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
                     return;
-                }
                 mLastClickTime = SystemClock.elapsedRealtime();
 
                 ArticleItem articleItem = articleItems.get(position);
@@ -112,7 +113,7 @@ public class Tab1Fragment extends BaseFragment {
                 intent.putExtra("grp_nm", groupName);
                 intent.putExtra("artl_num", articleItem.getId());
                 intent.putExtra("position", position + 1);
-                startActivity(intent);
+                startActivityForResult(intent, UPDATE_ARTICLE);
             }
         });
         listView.setOnScrollListener(new AbsListView.OnScrollListener() {
@@ -189,9 +190,9 @@ public class Tab1Fragment extends BaseFragment {
                             imageUrl = null;
                         }
                         StringBuilder content = new StringBuilder();
-                        for (Element p : viewArt.getFirstElementByClass("list_cont").getAllElements(HTMLElementName.P)) {
+                        for (Element p : viewArt.getFirstElementByClass("list_cont").getAllElements(HTMLElementName.P))
                             content.append(p.getTextExtractor().toString().concat("\n"));
-                        }
+
                         String replyCnt = commentWrap.getContent().getFirstElement(HTMLElementName.P).getTextExtractor().toString();
 
                         ArticleItem articleItem = new ArticleItem();
@@ -228,6 +229,21 @@ public class Tab1Fragment extends BaseFragment {
             }
         };
         app.AppController.getInstance().addToRequestQueue(stringRequest);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == UPDATE_ARTICLE && resultCode == Activity.RESULT_OK) {
+            int position = data.getIntExtra("position", 0) - 1;
+            ArticleItem articleItem = articleItems.get(position);
+            articleItem.setName(data.getStringExtra("sbjt"));
+            articleItem.setContent(data.getStringExtra("txt"));
+            articleItem.setImage(data.getStringExtra("img"));
+            articleItem.setReplyCount(data.getStringExtra("cmmt_cnt"));
+            articleItems.set(position, articleItem);
+            articleListAdapter.notifyDataSetChanged();
+        }
     }
 
     @Override

@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
@@ -43,6 +44,7 @@ public class GroupFragment extends Fragment {
     private ProgressDialog progressDialog;
     private Source source;
     private SwipeRefreshLayout swipeRefreshLayout;
+    private long mLastClickTime; // 클릭시 걸리는 시간
 
     public GroupFragment() {
     }
@@ -77,6 +79,10 @@ public class GroupFragment extends Fragment {
         myGroupList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // 두번 클릭시 방지
+                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
+                    return;
+                mLastClickTime = SystemClock.elapsedRealtime();
                 GroupItem groupItem = groupItems.get(position);
                 Intent intent = new Intent(getContext(), GroupActivity.class);
                 intent.putExtra("grp_id", groupItem.getId());
@@ -140,12 +146,16 @@ public class GroupFragment extends Fragment {
                 source = new Source(response);
                 List<Element> listElementA = source.getAllElements(HTMLElementName.A);
                 for (Element elementA : listElementA) {
-                    GroupItem groupItem = new GroupItem();
-                    groupItem.setId(groupIdExtract(elementA.getAttributeValue("onclick")));
-                    groupItem.setImage(EndPoint.BASE_URL + elementA.getFirstElement(HTMLElementName.IMG).getAttributeValue("src"));
-                    groupItem.setName(elementA.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString());
+                    try {
+                        GroupItem groupItem = new GroupItem();
+                        groupItem.setId(groupIdExtract(elementA.getAttributeValue("onclick")));
+                        groupItem.setImage(EndPoint.BASE_URL + elementA.getFirstElement(HTMLElementName.IMG).getAttributeValue("src"));
+                        groupItem.setName(elementA.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString());
 
-                    groupItems.add(groupItem);
+                        groupItems.add(groupItem);
+                    } catch (NullPointerException e) {
+                        e.printStackTrace();
+                    }
                 }
                 groupGridAdapter.notifyDataSetChanged();
                 hideProgressDialog();

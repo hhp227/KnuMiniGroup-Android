@@ -11,6 +11,7 @@ public interface EndPoint {
     String IMAGE_UPLOAD = BASE_URL + "/ilos/tinymce/file_upload_pop.acl";
     String DELETE_ARTICLE = BASE_URL + "/ilos/community/share_delete.acl";
     String MODIFY_ARTICLE = BASE_URL + "/ilos/community/share_update.acl";
+    String INSERT_REPLY = BASE_URL + "/ilos/community/share_comment_insert.acl";
 
     String URL_KNU = "http://www.knu.ac.kr";
     String URL_KNU_NOTICE = URL_KNU + "/wbbs/wbbs/bbs/btin/list.action?bbs_cde=1&btin.page={PAGE}&popupDeco=false&btin.search_type=&btin.search_text=&menu_idx=67";

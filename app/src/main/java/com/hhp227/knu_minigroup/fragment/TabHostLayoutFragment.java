@@ -23,11 +23,10 @@ import java.util.Vector;
 
 public class TabHostLayoutFragment extends Fragment {
     private static final String GROUP_ID = "grp_id";
-    private static final String GROUP_NAME = "grp_name";
+    private static final String GROUP_NAME = "grp_nm";
     private static final String[] TAB_NAMES = {"소식", "일정", "맴버", "설정"};
     private TabHost tabHost;
     private TabsPagerAdapter tabsPagerAdapter;
-    private TextView groupTitle;
     private ViewPager viewPager;
 
     private int groupId;
@@ -36,11 +35,11 @@ public class TabHostLayoutFragment extends Fragment {
     public TabHostLayoutFragment() {
     }
 
-    public static TabHostLayoutFragment newInstance(int groupId, String GroupName) {
+    public static TabHostLayoutFragment newInstance(int groupId, String groupName) {
         TabHostLayoutFragment fragment = new TabHostLayoutFragment();
         Bundle args = new Bundle();
         args.putInt(GROUP_ID, groupId);
-        args.putString(GROUP_NAME, GroupName);
+        args.putString(GROUP_NAME, groupName);
         fragment.setArguments(args);
         return fragment;
     }
@@ -58,11 +57,9 @@ public class TabHostLayoutFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_tab_host_layout, container, false);
         ScrollableLayout scrollableLayout = rootView.findViewById(R.id.scrollable_layout);
-        groupTitle = rootView.findViewById(R.id.tv_group_title);
         tabHost = rootView.findViewById(android.R.id.tabhost);
         viewPager = rootView.findViewById(R.id.view_pager);
 
-        groupTitle.setText(groupName);
         viewPager.setOffscreenPageLimit(TAB_NAMES.length);
         tabHost.setup();
 

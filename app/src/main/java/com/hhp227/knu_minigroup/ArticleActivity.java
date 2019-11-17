@@ -20,6 +20,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.hhp227.knu_minigroup.adapter.ReplyListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ReplyItem;
+import com.hhp227.knu_minigroup.fragment.Tab1Fragment;
 import com.hhp227.knu_minigroup.volley.util.ArticleImageView;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
@@ -31,6 +32,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.hhp227.knu_minigroup.fragment.Tab1Fragment.UPDATE_ARTICLE;
 
 public class ArticleActivity extends Activity {
     private static final String TAG = ArticleActivity.class.getSimpleName();
@@ -48,7 +51,7 @@ public class ArticleActivity extends Activity {
     private TextView articleTitle, articleTimeStamp, articleContent, buttonSend;
     private View articleDetail;
 
-    private boolean isBottom;
+    private boolean isBottom, isUpdate;
     private int groupId, articleId, position;
     private String cookie, groupName;
 
@@ -83,7 +86,7 @@ public class ArticleActivity extends Activity {
             @Override
             public void onClick(View v) {
                 if (inputReply.getText().toString().trim().length() > 0) {
-                    Toast.makeText(getApplicationContext(), "전송", Toast.LENGTH_LONG).show();
+                    actionSend(inputReply.getText().toString());
                     // 전송하면 텍스트 초기화
                     inputReply.setText("");
                     if (v != null) {
@@ -154,7 +157,7 @@ public class ArticleActivity extends Activity {
                 intent.putExtra("sbjt", articleTitle.getText().toString().substring(0, articleTitle.getText().toString().lastIndexOf("-")).trim());
                 intent.putExtra("txt", articleContent.getText().toString());
                 intent.putStringArrayListExtra("img", (ArrayList<String>) imageList);
-                startActivity(intent);
+                startActivityForResult(intent, UPDATE_ARTICLE);
                 return true;
             case 2 :
                 String tag_string_req = "req_delete";
@@ -195,7 +198,7 @@ public class ArticleActivity extends Activity {
                     @Override
                     public Map<String, String> getHeaders() {
                         Map<String, String> headers = new HashMap<>();
-                        headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+                        headers.put("Cookie", cookie);
                         return headers;
                     }
 
@@ -213,6 +216,15 @@ public class ArticleActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == UPDATE_ARTICLE && resultCode == RESULT_OK) {
+            isUpdate = true;
+            onCreate(new Bundle());
+        }
+    }
+
     private void fetchArticleData() {
         String params = "?CLUB_GRP_ID=" + groupId + "&startL=" + position + "&displayL=1";
         StringRequest stringRequest = new StringRequest(Request.Method.GET, EndPoint.GROUP_ARTICLE_LIST + params, new Response.Listener<String>() {
@@ -222,20 +234,20 @@ public class ArticleActivity extends Activity {
                 try {
                     Element element = source.getFirstElementByClass("listbox2");
                     Element viewArt = element.getFirstElementByClass("view_art");
+                    Element commentWrap = element.getFirstElementByClass("comment_wrap");
                     List<Element> commentList = element.getAllElementsByClass("comment-list");
 
                     String title = viewArt.getFirstElementByClass("list_title").getTextExtractor().toString();
                     String timeStamp = viewArt.getFirstElement(HTMLElementName.TD).getTextExtractor().toString();
-                    StringBuilder content = new StringBuilder();
-                    for (Element childElement : viewArt.getFirstElementByClass("list_cont").getChildElements())
-                        content.append(childElement.getTextExtractor().toString().concat("\n"));
+                    String content = contentExtractor(viewArt.getFirstElementByClass("list_cont"), true);
 
                     List<Element> images = viewArt.getAllElements(HTMLElementName.IMG);
+                    String replyCnt = commentWrap.getContent().getFirstElement(HTMLElementName.P).getTextExtractor().toString();
 
                     articleTitle.setText(title);
                     articleTimeStamp.setText(timeStamp);
-                    if (!TextUtils.isEmpty(content.toString().trim())) {
-                        articleContent.setText(content.toString().trim());
+                    if (!TextUtils.isEmpty(content)) {
+                        articleContent.setText(content);
                         articleContent.setVisibility(View.VISIBLE);
                     } else
                         articleContent.setVisibility(View.GONE);
@@ -264,6 +276,8 @@ public class ArticleActivity extends Activity {
                         articleImages.setVisibility(View.GONE);
 
                     fetchReplyData(commentList);
+                    if (isUpdate)
+                        deliveryUpdate(title, contentExtractor(viewArt.getFirstElementByClass("list_cont"), false), imageList, replyCnt);
                 } catch (Exception e) {
                     Toast.makeText(getApplicationContext(), "값이 없습니다.", Toast.LENGTH_LONG).show();
                 } finally {
@@ -306,6 +320,48 @@ public class ArticleActivity extends Activity {
             setListViewBottom();
     }
 
+    private void actionSend(final String text) {
+        String tag_string_req = "req_send";
+        progressDialog.setMessage("전송중...");
+        showProgressDialog();
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.INSERT_REPLY, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                source = new Source(response);
+                replyItemList.clear();
+                List<Element> commentList = source.getAllElementsByClass("comment-list");
+                fetchReplyData(commentList);
+                hideProgressDialog();
+                // 전송할때마다 리스트뷰 아래로
+                setListViewBottom();
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e(error.getMessage());
+                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
+                hideProgressDialog();
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Cookie", cookie);
+                return headers;
+            }
+
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+                params.put("CLUB_GRP_ID", String.valueOf(groupId));
+                params.put("ARTL_NUM", String.valueOf(articleId));
+                params.put("CMT", text);
+                return params;
+            }
+        };
+        app.AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
+    }
+
     /**
      * 리스트뷰 하단으로 간다.
      */
@@ -317,6 +373,24 @@ public class ArticleActivity extends Activity {
                 listView.setSelection(articleHeight);
             }
         }, 300);
+    }
+
+    private void deliveryUpdate(String title, String content, List<String> imageList, String replyCnt) {
+        Intent intent = new Intent(getApplicationContext(), Tab1Fragment.class);
+        intent.putExtra("position", position);
+        intent.putExtra("sbjt", title);
+        intent.putExtra("txt", content);
+        intent.putExtra("img", imageList.size() > 0 ? imageList.get(0) : null);
+        intent.putExtra("cmmt_cnt", replyCnt);
+
+        setResult(RESULT_OK, intent);
+    }
+
+    private String contentExtractor(Element listCont, boolean isFlag) {
+        StringBuilder sb = new StringBuilder();
+        for (Element childElement : isFlag ? listCont.getChildElements() : listCont.getAllElements(HTMLElementName.P))
+            sb.append(childElement.getTextExtractor().toString().concat("\n"));
+        return sb.toString().trim();
     }
 
     private void showProgressDialog() {
