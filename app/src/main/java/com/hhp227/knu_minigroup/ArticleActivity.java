@@ -9,9 +9,7 @@ import android.os.Handler;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.text.*;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
+import android.view.*;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
 import com.android.volley.*;
@@ -82,6 +80,13 @@ public class ArticleActivity extends Activity {
         replyListAdapter = new ReplyListAdapter(this, replyItemList);
         progressDialog = new ProgressDialog(this);
 
+        articleDetail.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                v.showContextMenu();
+                return true;
+            }
+        });
         buttonSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -112,6 +117,19 @@ public class ArticleActivity extends Activity {
             public void afterTextChanged(Editable s) {
             }
         });
+        inputReply.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus)
+                    setListViewBottom();
+            }
+        });
+        inputReply.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setListViewBottom();
+            }
+        });
 
         listView.addHeaderView(articleDetail);
         listView.setAdapter(replyListAdapter);
@@ -131,9 +149,12 @@ public class ArticleActivity extends Activity {
                 handler.postDelayed(runnable, 1000);
             }
         });
-
+        registerForContextMenu(listView); // 콘텍스트메뉴
         showProgressDialog();
         fetchArticleData();
+        // isBotoom이 참이면 화면 아래로 이동
+        if (isBottom)
+            setListViewBottom();
     }
 
     @Override
@@ -225,6 +246,76 @@ public class ArticleActivity extends Activity {
         }
     }
 
+    /**
+     * 댓글을 길게 클릭하면 콘텍스트 메뉴가 뜸
+     */
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        menu.setHeaderTitle("작업선택");
+        //replyItemList.get(((AdapterView.AdapterContextMenuInfo) menuInfo).position);
+        menu.add(Menu.NONE, 1, Menu.NONE, "내용 복사");
+        if (((AdapterView.AdapterContextMenuInfo) menuInfo).position != 0) {
+            menu.add(Menu.NONE, 2, Menu.NONE, "댓글 수정");
+            menu.add(Menu.NONE, 3, Menu.NONE, "댓글 삭제");
+        }
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        switch (item.getItemId()) {
+            case 1 :
+                return true;
+            case 2 :
+                return true;
+            case 3 :
+                ReplyItem replyItem = replyItemList.get(info.position - 1); // 헤더가 있기때문에 포지션에서 -1을 해준다.
+                final int replyId = replyItem.getId();
+                String tag_string_req = "req_delete";
+
+                progressDialog.setMessage("요청중...");
+                showProgressDialog();
+                StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.DELETE_REPLY, new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        source = new Source(response);
+                        if (!response.contains("처리를 실패했습니다")) {
+                            replyItemList.clear();
+                            List<Element> commentList = source.getAllElementsByClass("comment-list");
+                            fetchReplyData(commentList);
+                        }
+                        hideProgressDialog();
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        VolleyLog.e(TAG, error.getMessage());
+                        hideProgressDialog();
+                    }
+                }) {
+                    @Override
+                    public Map<String, String> getHeaders() {
+                        Map<String, String> headers = new HashMap<>();
+                        headers.put("Cookie", cookie);
+                        return headers;
+                    }
+
+                    @Override
+                    protected Map<String, String> getParams() {
+                        Map<String, String> params = new HashMap<>();
+                        params.put("CLUB_GRP_ID", String.valueOf(groupId));
+                        params.put("CMMT_NUM", String.valueOf(replyId));
+                        params.put("ARTL_NUM", String.valueOf(articleId));
+                        return params;
+                    }
+                };
+                app.AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
+                return true;
+        }
+        return false;
+    }
+
     private void fetchArticleData() {
         String params = "?CLUB_GRP_ID=" + groupId + "&startL=" + position + "&displayL=1";
         StringRequest stringRequest = new StringRequest(Request.Method.GET, EndPoint.GROUP_ARTICLE_LIST + params, new Response.Listener<String>() {
@@ -304,24 +395,25 @@ public class ArticleActivity extends Activity {
     private void fetchReplyData(List<Element> commentList) {
         for (Element comment : commentList) {
             Element commentName = comment.getFirstElementByClass("comment-name");
+            Element commentAddr = comment.getFirstElementByClass("comment-addr");
+            int replyId = Integer.parseInt(commentAddr.getAttributeValue("id").replace("cmt_txt_", ""));
             String name = commentName.getTextExtractor().toString().trim();
             String timeStamp = commentName.getFirstElement(HTMLElementName.SPAN).getContent().toString().trim();
-            String replyContent = comment.getFirstElementByClass("comment-addr").getContent().toString().trim();
+            String replyContent = commentAddr.getContent().toString().trim();
 
             ReplyItem replyItem = new ReplyItem();
+            replyItem.setId(replyId);
             replyItem.setName(name.substring(0, name.lastIndexOf("(")));
             replyItem.setReply(Html.fromHtml(replyContent).toString());
             replyItem.setTimestamp(timeStamp.replaceAll("[(]|[)]", ""));
             replyItemList.add(replyItem);
         }
         replyListAdapter.notifyDataSetChanged();
-        // isBotoom이 참이면 화면 아래로 이동
-        if (isBottom)
-            setListViewBottom();
     }
 
     private void actionSend(final String text) {
         String tag_string_req = "req_send";
+
         progressDialog.setMessage("전송중...");
         showProgressDialog();
         StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.INSERT_REPLY, new Response.Listener<String>() {
@@ -338,7 +430,7 @@ public class ArticleActivity extends Activity {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(error.getMessage());
+                VolleyLog.e(TAG, error.getMessage());
                 Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
                 hideProgressDialog();
             }
@@ -369,7 +461,7 @@ public class ArticleActivity extends Activity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                int articleHeight = articleDetail.getMeasuredHeight();
+                final int articleHeight = articleDetail.getMeasuredHeight();
                 listView.setSelection(articleHeight);
             }
         }, 300);
