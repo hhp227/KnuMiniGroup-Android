@@ -12,7 +12,6 @@ import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 import android.text.Html;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;

@@ -34,6 +34,7 @@ import java.util.Map;
 import static com.hhp227.knu_minigroup.fragment.Tab1Fragment.UPDATE_ARTICLE;
 
 public class ArticleActivity extends Activity {
+    private static final int UPDATE_REPLY = 10;
     private static final String TAG = ArticleActivity.class.getSimpleName();
     private ArticleImageView articleImageView;
     private EditText inputReply;
@@ -121,16 +122,9 @@ public class ArticleActivity extends Activity {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus)
-                    setListViewBottom();
+                    listView.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
             }
         });
-        inputReply.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setListViewBottom();
-            }
-        });
-
         listView.addHeaderView(articleDetail);
         listView.setAdapter(replyListAdapter);
         progressDialog.setCancelable(false);
@@ -243,6 +237,11 @@ public class ArticleActivity extends Activity {
         if (requestCode == UPDATE_ARTICLE && resultCode == RESULT_OK) {
             isUpdate = true;
             onCreate(new Bundle());
+        } else if (requestCode == UPDATE_REPLY && resultCode == RESULT_OK && data != null) {
+            source = new Source(data.getStringExtra("update_reply"));
+            replyItemList.clear();
+            List<Element> commentList = source.getAllElementsByClass("comment-list");
+            fetchReplyData(commentList);
         }
     }
 
@@ -264,14 +263,21 @@ public class ArticleActivity extends Activity {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        ReplyItem replyItem = replyItemList.get(info.position - 1); // 헤더가 있기때문에 포지션에서 -1을 해준다.
+        final int replyId = replyItem.getId();
         switch (item.getItemId()) {
             case 1 :
                 return true;
             case 2 :
+                Intent intent = new Intent(getBaseContext(), ReplyModifyActivity.class);
+                String reply = replyItem.getReply();
+                intent.putExtra("grp_id", groupId);
+                intent.putExtra("artl_num", articleId);
+                intent.putExtra("cmt", reply);
+                intent.putExtra("cmmt_num", replyId);
+                startActivityForResult(intent, UPDATE_REPLY);
                 return true;
             case 3 :
-                ReplyItem replyItem = replyItemList.get(info.position - 1); // 헤더가 있기때문에 포지션에서 -1을 해준다.
-                final int replyId = replyItem.getId();
                 String tag_string_req = "req_delete";
 
                 progressDialog.setMessage("요청중...");
