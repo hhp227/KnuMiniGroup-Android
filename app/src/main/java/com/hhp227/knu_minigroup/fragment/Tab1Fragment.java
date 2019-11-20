@@ -113,6 +113,7 @@ public class Tab1Fragment extends BaseFragment {
                 intent.putExtra("grp_nm", groupName);
                 intent.putExtra("artl_num", articleItem.getId());
                 intent.putExtra("position", position + 1);
+                intent.putExtra("auth", articleItem.isAuth());
                 startActivityForResult(intent, UPDATE_ARTICLE);
             }
         });
@@ -194,6 +195,7 @@ public class Tab1Fragment extends BaseFragment {
                             content.append(p.getTextExtractor().toString().concat("\n"));
 
                         String replyCnt = commentWrap.getContent().getFirstElement(HTMLElementName.P).getTextExtractor().toString();
+                        boolean auth = viewArt.getAllElementsByClass("btn-small-gray").size() > 0;
 
                         ArticleItem articleItem = new ArticleItem();
                         articleItem.setId(id);
@@ -202,6 +204,7 @@ public class Tab1Fragment extends BaseFragment {
                         articleItem.setContent(content.toString().trim());
                         articleItem.setImage(imageUrl);
                         articleItem.setReplyCount(replyCnt);
+                        articleItem.setAuth(auth);
 
                         articleItems.add(articleItem);
                     }

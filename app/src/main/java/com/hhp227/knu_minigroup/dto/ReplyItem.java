@@ -2,18 +2,20 @@ package com.hhp227.knu_minigroup.dto;
 
 public class ReplyItem {
     private int id, user_id;
+    private boolean auth;
     private String name, profile_img, timestamp, reply;
 
     public ReplyItem() {
     }
 
-    public ReplyItem(int id, int user_id, String name, String profile_img, String timestamp, String reply) {
+    public ReplyItem(int id, int user_id, String name, String profile_img, String timestamp, String reply, boolean auth) {
         this.id = id;
         this.user_id = user_id;
         this.name = name;
         this.profile_img = profile_img;
         this.timestamp = timestamp;
         this.reply = reply;
+        this.auth = auth;
     }
 
     public int getId() {
@@ -62,5 +64,13 @@ public class ReplyItem {
 
     public void setReply(String reply) {
         this.reply = reply;
+    }
+
+    public boolean isAuth() {
+        return auth;
+    }
+
+    public void setAuth(boolean auth) {
+        this.auth = auth;
     }
 }

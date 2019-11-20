@@ -1,13 +1,14 @@
 package com.hhp227.knu_minigroup.dto;
 
 public class ArticleItem {
-    int id;
+    private int id;
+    private boolean auth;
     private String name, content, image, timeStamp, replyCount;
 
     public ArticleItem() {
     }
 
-    public ArticleItem(int id, String name, String content, String image, String timeStamp, String replyCount) {
+    public ArticleItem(int id, String name, String content, String image, String timeStamp, String replyCount, boolean auth) {
         super();
         this.id = id;
         this.name = name;
@@ -15,6 +16,7 @@ public class ArticleItem {
         this.image = image;
         this.timeStamp = timeStamp;
         this.replyCount = replyCount;
+        this.auth = auth;
     }
 
     public int getId() {
@@ -63,5 +65,13 @@ public class ArticleItem {
 
     public void setReplyCount(String replyCount) {
         this.replyCount = replyCount;
+    }
+
+    public boolean isAuth() {
+        return auth;
+    }
+
+    public void setAuth(boolean auth) {
+        this.auth = auth;
     }
 }

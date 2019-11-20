@@ -50,7 +50,7 @@ public class ArticleActivity extends Activity {
     private TextView articleTitle, articleTimeStamp, articleContent, buttonSend;
     private View articleDetail;
 
-    private boolean isBottom, isUpdate;
+    private boolean isBottom, isUpdate, isAuthorized;
     private int groupId, articleId, position;
     private String cookie, groupName;
 
@@ -75,6 +75,7 @@ public class ArticleActivity extends Activity {
         groupName = intent.getStringExtra("grp_nm");
         articleId = intent.getIntExtra("artl_num", 0);
         position = intent.getIntExtra("position", 0);
+        isAuthorized = intent.getBooleanExtra("auth", false);
         isBottom = intent.getBooleanExtra("isbottom", false);
         imageList = new ArrayList<>();
         replyItemList = new ArrayList<>();
@@ -153,8 +154,10 @@ public class ArticleActivity extends Activity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(Menu.NONE, 1, Menu.NONE, "수정하기");
-        menu.add(Menu.NONE, 2, Menu.NONE, "삭제하기");
+        if (isAuthorized) {
+            menu.add(Menu.NONE, 1, Menu.NONE, "수정하기");
+            menu.add(Menu.NONE, 2, Menu.NONE, "삭제하기");
+        }
         return true;
     }
 
@@ -252,9 +255,9 @@ public class ArticleActivity extends Activity {
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         menu.setHeaderTitle("작업선택");
-        //replyItemList.get(((AdapterView.AdapterContextMenuInfo) menuInfo).position);
+        boolean auth = replyItemList.get((((AdapterView.AdapterContextMenuInfo) menuInfo).position - 1)).isAuth();
         menu.add(Menu.NONE, 1, Menu.NONE, "내용 복사");
-        if (((AdapterView.AdapterContextMenuInfo) menuInfo).position != 0) {
+        if (((AdapterView.AdapterContextMenuInfo) menuInfo).position != 0 && auth) {
             menu.add(Menu.NONE, 2, Menu.NONE, "댓글 수정");
             menu.add(Menu.NONE, 3, Menu.NONE, "댓글 삭제");
         }
@@ -406,12 +409,14 @@ public class ArticleActivity extends Activity {
             String name = commentName.getTextExtractor().toString().trim();
             String timeStamp = commentName.getFirstElement(HTMLElementName.SPAN).getContent().toString().trim();
             String replyContent = commentAddr.getContent().toString().trim();
+            boolean authorization = commentName.getAllElements(HTMLElementName.INPUT).size() > 0;
 
             ReplyItem replyItem = new ReplyItem();
             replyItem.setId(replyId);
             replyItem.setName(name.substring(0, name.lastIndexOf("(")));
             replyItem.setReply(Html.fromHtml(replyContent).toString());
             replyItem.setTimestamp(timeStamp.replaceAll("[(]|[)]", ""));
+            replyItem.setAuth(authorization);
             replyItemList.add(replyItem);
         }
         replyListAdapter.notifyDataSetChanged();

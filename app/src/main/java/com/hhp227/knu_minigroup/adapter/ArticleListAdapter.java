@@ -115,6 +115,7 @@ public class ArticleListAdapter extends BaseAdapter {
                 intent.putExtra("grp_nm", Tab1Fragment.groupName);
                 intent.putExtra("artl_num", articleItem.getId());
                 intent.putExtra("position", position + 1);
+                intent.putExtra("auth", articleItem.isAuth());
                 intent.putExtra("isbottom", true);
                 activity.startActivityForResult(intent, UPDATE_ARTICLE);
             }
