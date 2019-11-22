@@ -237,7 +237,7 @@ public class ModifyActivity extends Activity {
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    VolleyLog.e(error.getMessage());
+                    VolleyLog.e(TAG, error.getMessage());
                     hideProgressDialog();
                 }
             }) {
