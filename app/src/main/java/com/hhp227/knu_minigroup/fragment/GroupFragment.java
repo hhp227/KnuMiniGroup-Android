@@ -36,7 +36,7 @@ import static android.app.Activity.RESULT_OK;
 
 public class GroupFragment extends Fragment {
     public static final int CREATE_CODE = 10;
-    private Button logout, createGroup;
+    private Button findGroup, createGroup;
     private GridView myGroupList;
     private GroupGridAdapter groupGridAdapter;
     private List<GroupItem> groupItems;
@@ -62,7 +62,7 @@ public class GroupFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_group, container, false);
-        logout = rootView.findViewById(R.id.b_logout);
+        findGroup = rootView.findViewById(R.id.b_find);
         createGroup = rootView.findViewById(R.id.b_create);
         myGroupList = rootView.findViewById(R.id.gr_my_grouplist);
         swipeRefreshLayout = rootView.findViewById(R.id.srl_group);
@@ -106,10 +106,10 @@ public class GroupFragment extends Fragment {
         });
         swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light, android.R.color.holo_red_light);
 
-        logout.setOnClickListener(new View.OnClickListener() {
+        findGroup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                logout();
+                startActivity(new Intent(getContext(), FindActivity.class));
             }
         });
 

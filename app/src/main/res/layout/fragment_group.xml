@@ -14,10 +14,10 @@
 
         <Button
                 android:layout_weight="1"
-                android:id="@+id/b_logout"
+                android:id="@+id/b_find"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:text="로그아웃" />
+                android:text="그룹찾기" />
 
         <Button
                 android:layout_weight="1"

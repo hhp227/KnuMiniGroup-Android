@@ -14,14 +14,14 @@ import com.hhp227.knu_minigroup.dto.GroupItem;
 
 import java.util.List;
 
-public class GroupGridAdapter extends BaseAdapter {
+public class GroupListAdapter extends BaseAdapter {
     private Context context;
     private LayoutInflater layoutInflater;
     private List<GroupItem> groupItems;
     private TextView groupName;
     private ImageLoader imageLoader;
 
-    public GroupGridAdapter(Context context, List<GroupItem> groupItems) {
+    public GroupListAdapter(Context context, List<GroupItem> groupItems) {
         this.context = context;
         this.groupItems = groupItems;
     }
@@ -46,7 +46,7 @@ public class GroupGridAdapter extends BaseAdapter {
         if (layoutInflater == null)
             layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (convertView == null)
-            convertView = layoutInflater.inflate(R.layout.group_grid_item, null);
+            convertView = layoutInflater.inflate(R.layout.group_list_item, null);
         if (imageLoader == null)
             imageLoader = app.AppController.getInstance().getImageLoader();
 
