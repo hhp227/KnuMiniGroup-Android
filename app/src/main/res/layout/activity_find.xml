@@ -20,15 +20,4 @@
 
     </android.support.v4.widget.SwipeRefreshLayout>
 
-    <com.hhp227.knu_minigroup.ui.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fab_button"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
-            android:layout_gravity="bottom|end"
-            android:layout_marginBottom="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginRight="16dp"
-            app:color="#9f49d1"
-            app:drawable="@drawable/ic_content_new" />
-
 </FrameLayout>

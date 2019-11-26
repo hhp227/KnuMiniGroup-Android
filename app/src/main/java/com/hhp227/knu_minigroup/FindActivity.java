@@ -14,6 +14,7 @@ import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
+import net.htmlparser.jericho.HTMLElements;
 import net.htmlparser.jericho.Source;
 
 import java.io.UnsupportedEncodingException;
@@ -63,17 +64,16 @@ public class FindActivity extends Activity {
             @Override
             public void onResponse(String response) {
                 source = new Source(response);
-                List<Element> listElementA = source.getAllElements(HTMLElementName.A);
-                for (Element elementA : listElementA) {
-                    try {
+                List<Element> list = source.getAllElements("id", "accordion", false);
+                for (Element element : list) {
+                    Element menuList = element.getFirstElementByClass("menu_list");
+                    if (element.getAttributeValue("class").equals("accordion")) {
                         GroupItem groupItem = new GroupItem();
-                        groupItem.setId(groupIdExtract(elementA.getAttributeValue("onclick")));
-                        groupItem.setImage(EndPoint.BASE_URL + elementA.getFirstElement(HTMLElementName.IMG).getAttributeValue("src"));
-                        groupItem.setName(elementA.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString());
-
+                        groupItem.setId(groupIdExtract(menuList.getFirstElementByClass("button").getAttributeValue("onclick")));
+                        groupItem.setImage(EndPoint.BASE_URL + element.getFirstElement(HTMLElementName.IMG).getAttributeValue("src"));
+                        groupItem.setName(element.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString());
+                        groupItem.setInfo(menuList.getAllElementsByClass("info").get(1).getContent().toString());
                         groupItems.add(groupItem);
-                    } catch (NullPointerException e) {
-                        e.printStackTrace();
                     }
                 }
                 listAdapter.notifyDataSetChanged();
@@ -95,7 +95,7 @@ public class FindActivity extends Activity {
 
             @Override
             public String getBodyContentType() {
-                return "application/x-www-form-urlencoded; charset=" + getParamsEncoding();
+                return "multipart/form-data; charset=" + getParamsEncoding();
             }
 
             @Override
@@ -124,8 +124,8 @@ public class FindActivity extends Activity {
         });
     }
 
-    private int groupIdExtract(String href) {
-        return Integer.parseInt(href.split("'")[3].trim());
+    private int groupIdExtract(String onclick) {
+        return Integer.parseInt(onclick.split("[(]|[)]|[,]")[1].trim());
     }
 
     private void showProgressDialog() {

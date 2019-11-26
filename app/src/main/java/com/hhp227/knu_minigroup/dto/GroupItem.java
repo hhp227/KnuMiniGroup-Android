@@ -2,15 +2,16 @@ package com.hhp227.knu_minigroup.dto;
 
 public class GroupItem {
     private int id;
-    private String image, name;
+    private String image, name, info;
 
     public GroupItem() {
     }
 
-    public GroupItem(int id, String image, String name) {
+    public GroupItem(int id, String image, String name, String info) {
         this.id = id;
         this.image = image;
         this.name = name;
+        this.info = info;
     }
 
     public int getId() {
@@ -35,5 +36,13 @@ public class GroupItem {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getInfo() {
+        return info;
+    }
+
+    public void setInfo(String info) {
+        this.info = info;
     }
 }

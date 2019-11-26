@@ -18,7 +18,7 @@ public class GroupListAdapter extends BaseAdapter {
     private Context context;
     private LayoutInflater layoutInflater;
     private List<GroupItem> groupItems;
-    private TextView groupName;
+    private TextView groupName, groupInfo;
     private ImageLoader imageLoader;
 
     public GroupListAdapter(Context context, List<GroupItem> groupItems) {
@@ -51,11 +51,13 @@ public class GroupListAdapter extends BaseAdapter {
             imageLoader = app.AppController.getInstance().getImageLoader();
 
         groupName = convertView.findViewById(R.id.tv_group_name);
+        groupInfo = convertView.findViewById(R.id.tv_info);
         NetworkImageView GroupImage = convertView.findViewById(R.id.niv_group_image);
         ImageView nullGroupImage = convertView.findViewById(R.id.null_group_image);
         GroupItem groupItem = groupItems.get(position);
 
         groupName.setText(groupItem.getName());
+        groupInfo.setText(groupItem.getInfo());
 
         if (groupItem.getImage() != null) {
             GroupImage.setImageUrl(groupItem.getImage(), imageLoader);
