@@ -22,6 +22,8 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             android:usesCleartextTraffic="true">
+        <activity android:name=".RequestActivity">
+        </activity>
         <activity android:name=".FindActivity">
         </activity>
         <activity android:name=".ReplyModifyActivity">

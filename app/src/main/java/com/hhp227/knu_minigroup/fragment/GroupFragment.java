@@ -36,7 +36,7 @@ import static android.app.Activity.RESULT_OK;
 
 public class GroupFragment extends Fragment {
     public static final int CREATE_CODE = 10;
-    private Button findGroup, createGroup;
+    private Button findGroup, requestGroup, createGroup;
     private GridView myGroupList;
     private GroupGridAdapter groupGridAdapter;
     private List<GroupItem> groupItems;
@@ -63,6 +63,7 @@ public class GroupFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_group, container, false);
         findGroup = rootView.findViewById(R.id.b_find);
+        requestGroup = rootView.findViewById(R.id.b_request);
         createGroup = rootView.findViewById(R.id.b_create);
         myGroupList = rootView.findViewById(R.id.gr_my_grouplist);
         swipeRefreshLayout = rootView.findViewById(R.id.srl_group);
@@ -109,13 +110,29 @@ public class GroupFragment extends Fragment {
         findGroup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
+                    return;
+                mLastClickTime = SystemClock.elapsedRealtime();
                 startActivity(new Intent(getContext(), FindActivity.class));
+            }
+        });
+
+        requestGroup.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
+                    return;
+                mLastClickTime = SystemClock.elapsedRealtime();
+                startActivity(new Intent(getActivity(), RequestActivity.class));
             }
         });
 
         createGroup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
+                    return;
+                mLastClickTime = SystemClock.elapsedRealtime();
                 startActivityForResult(new Intent(getContext(), CreateActivity.class), CREATE_CODE);
             }
         });

@@ -15,6 +15,7 @@ import com.hhp227.knu_minigroup.dto.GroupItem;
 import java.util.List;
 
 public class GroupListAdapter extends BaseAdapter {
+    private static final int NAME_MAX_LINE = 2;
     private Context context;
     private LayoutInflater layoutInflater;
     private List<GroupItem> groupItems;
@@ -57,6 +58,7 @@ public class GroupListAdapter extends BaseAdapter {
         GroupItem groupItem = groupItems.get(position);
 
         groupName.setText(groupItem.getName());
+        groupName.setMaxLines(NAME_MAX_LINE);
         groupInfo.setText(groupItem.getInfo());
 
         if (groupItem.getImage() != null) {
