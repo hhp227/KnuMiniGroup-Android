@@ -9,6 +9,7 @@ import android.view.Window;
 import android.widget.Toast;
 import com.android.volley.toolbox.ImageLoader;
 import com.hhp227.knu_minigroup.helper.ZoomImageView;
+import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 
 public class PictureActivity extends Activity {
     private ZoomImageView zoomImageView;
@@ -30,6 +31,12 @@ public class PictureActivity extends Activity {
         actionBar.setDisplayShowHomeEnabled(false);
         // 액션바 투명
         actionBar.setBackgroundDrawable(getResources().getDrawable(R.drawable.transparent));
+        actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
+            @Override
+            public boolean isLayoutRtl() {
+                return false;
+            }
+        });
 
         zoomImageView.setAdjustViewBounds(false);
 

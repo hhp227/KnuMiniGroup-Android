@@ -72,7 +72,7 @@ public class BTLDormMealFragment extends Fragment {
                     e.printStackTrace();
                 }
                 for (int i = 0; i < menuView.length; i++)
-                    menuView[i].setText(arrayList.get(i));
+                    menuView[i].setText(arrayList.size() > 0 ? arrayList.get(i) : "등록된 식단이 없습니다.");
             }
         }, new Response.ErrorListener() {
             @Override

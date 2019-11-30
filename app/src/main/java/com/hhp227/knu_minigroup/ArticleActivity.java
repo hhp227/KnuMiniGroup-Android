@@ -2,6 +2,7 @@ package com.hhp227.knu_minigroup;
 
 import android.app.ActionBar;
 import android.app.ProgressDialog;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -85,6 +86,7 @@ public class ArticleActivity extends Activity {
         replyListAdapter = new ReplyListAdapter(this, replyItemList);
         progressDialog = new ProgressDialog(this);
         actionBar = getActionBar();
+        actionBar.setTitle(groupName);
         actionBar.setDisplayShowHomeEnabled(false);
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
@@ -266,10 +268,11 @@ public class ArticleActivity extends Activity {
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
+        int position = ((AdapterView.AdapterContextMenuInfo) menuInfo).position;
         menu.setHeaderTitle("작업선택");
-        boolean auth = replyItemList.get((((AdapterView.AdapterContextMenuInfo) menuInfo).position - 1)).isAuth();
+        boolean auth = replyItemList.isEmpty() || position == 0 ? false : replyItemList.get((position - 1)).isAuth();
         menu.add(Menu.NONE, 1, Menu.NONE, "내용 복사");
-        if (((AdapterView.AdapterContextMenuInfo) menuInfo).position != 0 && auth) {
+        if (position != 0 && auth) {
             menu.add(Menu.NONE, 2, Menu.NONE, "댓글 수정");
             menu.add(Menu.NONE, 3, Menu.NONE, "댓글 삭제");
         }
@@ -278,10 +281,13 @@ public class ArticleActivity extends Activity {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        ReplyItem replyItem = replyItemList.get(info.position - 1); // 헤더가 있기때문에 포지션에서 -1을 해준다.
-        final int replyId = replyItem.getId();
+        ReplyItem replyItem = replyItemList.isEmpty() || info.position == 0 ? null : replyItemList.get(info.position - 1); // 헤더가 있기때문에 포지션에서 -1을 해준다.
+        final int replyId = replyItem == null ? 0 : replyItem.getId();
         switch (item.getItemId()) {
             case 1 :
+                android.content.ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                clipboard.setText(info.position == 0 ? articleContent.getText().toString() : replyItem.getReply());
+                Toast.makeText(getApplicationContext(), "클립보드에 복사되었습니다!", Toast.LENGTH_SHORT).show();
                 return true;
             case 2 :
                 Intent intent = new Intent(getBaseContext(), ReplyModifyActivity.class);
