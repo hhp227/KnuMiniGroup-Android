@@ -1,11 +1,13 @@
 package com.hhp227.knu_minigroup;
 
+import android.app.ActionBar;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
 import com.android.volley.Request;
@@ -17,6 +19,7 @@ import com.hhp227.knu_minigroup.adapter.GroupListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.fragment.GroupInfoFragment;
+import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
@@ -31,6 +34,7 @@ import java.util.Map;
 public class RequestActivity extends FragmentActivity {
     private static final int LIMIT = 50;
     private static final String TAG = RequestActivity.class.getSimpleName();
+    private ActionBar actionBar;
     private GroupListAdapter listAdapter;
     private List<GroupItem> groupItems;
     private ListView listView;
@@ -54,7 +58,15 @@ public class RequestActivity extends FragmentActivity {
         groupItems = new ArrayList<>();
         listAdapter = new GroupListAdapter(getBaseContext(), groupItems);
         progressDialog = new ProgressDialog(this);
-
+        actionBar = getActionBar();
+        actionBar.setDisplayShowHomeEnabled(false);
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
+            @Override
+            public boolean isLayoutRtl() {
+                return false;
+            }
+        });
         listView.addFooterView(footerLoading);
         listView.setAdapter(listAdapter);
         listView.setOnScrollListener(new AbsListView.OnScrollListener() {
@@ -109,6 +121,13 @@ public class RequestActivity extends FragmentActivity {
         });
         showProgressDialog();
         fetchGroupList();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home)
+            finish();
+        return super.onOptionsItemSelected(item);
     }
 
     private void fetchGroupList() {

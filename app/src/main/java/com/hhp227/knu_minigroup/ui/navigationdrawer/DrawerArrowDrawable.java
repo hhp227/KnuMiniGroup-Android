@@ -13,7 +13,7 @@ public abstract class DrawerArrowDrawable extends Drawable {
     protected float mMiddleArrowSize;
     protected final Paint mPaint = new Paint();
     protected final Path mPath = new Path();
-    protected float mProgress;
+    protected float mProgress = 1.f; //디폴트로 화살표 모양으로 초기화
     protected int mSize;
     protected float mVerticalMirror = 1f;
     protected float mTopBottomArrowSize;

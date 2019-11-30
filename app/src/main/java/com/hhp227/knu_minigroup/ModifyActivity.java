@@ -1,5 +1,6 @@
 package com.hhp227.knu_minigroup;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -23,6 +24,7 @@ import com.hhp227.knu_minigroup.adapter.WriteListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.WriteItem;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
+import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 
 import java.io.ByteArrayOutputStream;
@@ -36,6 +38,7 @@ import static com.hhp227.knu_minigroup.WriteActivity.REQUEST_IMAGE_CAPTURE;
 
 public class ModifyActivity extends Activity {
     private static final String TAG = ModifyActivity.class.getSimpleName();
+    private ActionBar actionBar;
     private EditText inputTitle, inputContent;
     private LinearLayout buttonImage;
     private List<WriteItem> contents;
@@ -70,7 +73,16 @@ public class ModifyActivity extends Activity {
         title = intent.getStringExtra("sbjt");
         content = intent.getStringExtra("txt");
         imageList = intent.getStringArrayListExtra("img");
+        actionBar = getActionBar();
 
+        actionBar.setDisplayShowHomeEnabled(false);
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
+            @Override
+            public boolean isLayoutRtl() {
+                return false;
+            }
+        });
         buttonImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -112,8 +124,6 @@ public class ModifyActivity extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home :
-                Intent intent = new Intent();
-                setResult(RESULT_OK, intent);
                 finish();
                 return true;
             case R.id.action_send :

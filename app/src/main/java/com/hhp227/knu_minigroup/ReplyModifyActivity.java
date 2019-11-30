@@ -1,5 +1,6 @@
 package com.hhp227.knu_minigroup;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -16,12 +17,14 @@ import android.widget.Toast;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class ReplyModifyActivity extends Activity {
     private static final String TAG = "댓글수정";
+    private ActionBar actionBar;
     private EditText inputReply;
     private ListView listView;
     private ProgressDialog progressDialog;
@@ -44,7 +47,16 @@ public class ReplyModifyActivity extends Activity {
         replyId = intent.getIntExtra("cmmt_num", 0);
         reply = intent.getStringExtra("cmt");
         reply = reply.contains("※") ? reply.substring(0, reply.lastIndexOf("※")).trim() : reply;
+        actionBar = getActionBar();
 
+        actionBar.setDisplayShowHomeEnabled(false);
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
+            @Override
+            public boolean isLayoutRtl() {
+                return false;
+            }
+        });
         listView.addHeaderView(headerView);
         listView.setAdapter(null);
         inputReply.setText(reply);

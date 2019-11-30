@@ -83,7 +83,7 @@ public class MainActivity extends FragmentActivity {
         knuId.setText("임시");
 
         drawerLayout.setDrawerListener(actionBarDrawerToggle);
-        drawerList.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, menu));
+        drawerList.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, menu));
 
         getSupportFragmentManager().beginTransaction().replace(R.id.fl_content, fragMain).commit();
 

@@ -1,11 +1,13 @@
 package com.hhp227.knu_minigroup;
 
+import android.app.ActionBar;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
@@ -17,6 +19,7 @@ import com.hhp227.knu_minigroup.adapter.GroupListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.fragment.GroupInfoFragment;
+import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
@@ -31,6 +34,7 @@ import java.util.Map;
 public class FindActivity extends FragmentActivity {
     private static final int LIMIT = 15;
     private static final String TAG = FindActivity.class.getSimpleName();
+    private ActionBar actionBar;
     private GroupListAdapter listAdapter;
     private List<GroupItem> groupItems;
     private ListView listView;
@@ -54,6 +58,15 @@ public class FindActivity extends FragmentActivity {
         groupItems = new ArrayList<>();
         listAdapter = new GroupListAdapter(getBaseContext(), groupItems);
         progressDialog = new ProgressDialog(this);
+        actionBar = getActionBar();
+        actionBar.setDisplayShowHomeEnabled(false);
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
+            @Override
+            public boolean isLayoutRtl() {
+                return false;
+            }
+        });
 
         listView.addFooterView(footerLoading);
         listView.setAdapter(listAdapter);
@@ -111,6 +124,13 @@ public class FindActivity extends FragmentActivity {
         });
         showProgressDialog();
         fetchGroupList();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home)
+            finish();
+        return super.onOptionsItemSelected(item);
     }
 
     private void fetchGroupList() {

@@ -117,23 +117,11 @@
                         android:paddingRight="12dp"
                         android:paddingTop="8dp">
 
-                    <ImageView
-                            android:id="@+id/favorites"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:src="@drawable/favorite" />
-
                     <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginLeft="3dp"
-                            android:text="좋아요" />
-
-                    <TextView
-                            android:id="@+id/likecount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="3dp" />
+                            android:text="공유하기" />
 
                 </LinearLayout>
 

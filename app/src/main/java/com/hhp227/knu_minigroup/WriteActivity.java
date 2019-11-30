@@ -1,5 +1,6 @@
 package com.hhp227.knu_minigroup;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -25,6 +26,7 @@ import com.hhp227.knu_minigroup.adapter.WriteListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.WriteItem;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
+import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,6 +41,7 @@ public class WriteActivity extends Activity {
     public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 100;
     public static final int REQUEST_IMAGE_CAPTURE = 200;
     private static final String TAG = WriteActivity.class.getSimpleName();
+    private ActionBar actionBar;
     private EditText inputTitle, inputContent;
     private LinearLayout buttonImage;
     private List<WriteItem> contents;
@@ -67,7 +70,16 @@ public class WriteActivity extends Activity {
         listAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, contents);
         progressDialog = new ProgressDialog(this);
         grpId = getIntent().getIntExtra("grp_id", 0);
+        actionBar = getActionBar();
 
+        actionBar.setDisplayShowHomeEnabled(false);
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
+            @Override
+            public boolean isLayoutRtl() {
+                return false;
+            }
+        });
         buttonImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -101,8 +113,6 @@ public class WriteActivity extends Activity {
         int id = item.getItemId();
         switch (id) {
             case android.R.id.home :
-                Intent intent = new Intent();
-                setResult(RESULT_OK, intent);
                 finish();
                 return true;
             case R.id.action_send :

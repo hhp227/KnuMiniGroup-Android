@@ -1,12 +1,15 @@
 package com.hhp227.knu_minigroup;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.annotation.RequiresApi;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -19,6 +22,7 @@ import com.android.volley.*;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
+import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,7 +39,9 @@ public class CreateActivity extends Activity {
     // 인텐트값
     public static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
     public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 200;
+    private ActionBar actionBar;
     private Bitmap bitmap;
+    private DrawerArrowDrawable drawerArrow;
     private EditText groupTitle, groupDescription;
     private ImageView groupImage;
     private ProgressDialog progressDialog;
@@ -56,7 +62,15 @@ public class CreateActivity extends Activity {
         joinType = findViewById(R.id.rg_jointype);
         cookie = app.AppController.getInstance().getPreferenceManager().getCookie();
         progressDialog = new ProgressDialog(this);
-
+        actionBar = getActionBar();
+        actionBar.setDisplayShowHomeEnabled(false);
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
+            @Override
+            public boolean isLayoutRtl() {
+                return false;
+            }
+        });
         progressDialog.setCancelable(false);
         progressDialog.setMessage("전송중...");
 
@@ -111,8 +125,6 @@ public class CreateActivity extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home :
-                Intent intent = new Intent();
-                setResult(RESULT_OK, intent);
                 finish();
                 return true;
             case R.id.action_send :

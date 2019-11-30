@@ -1,5 +1,6 @@
 package com.hhp227.knu_minigroup;
 
+import android.app.ActionBar;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -19,6 +20,7 @@ import com.hhp227.knu_minigroup.adapter.ReplyListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ReplyItem;
 import com.hhp227.knu_minigroup.fragment.Tab1Fragment;
+import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import com.hhp227.knu_minigroup.volley.util.ArticleImageView;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
@@ -36,6 +38,7 @@ import static com.hhp227.knu_minigroup.fragment.Tab1Fragment.UPDATE_ARTICLE;
 public class ArticleActivity extends Activity {
     private static final int UPDATE_REPLY = 10;
     private static final String TAG = ArticleActivity.class.getSimpleName();
+    private ActionBar actionBar;
     private ArticleImageView articleImageView;
     private EditText inputReply;
     private ImageLoader imageLoader;
@@ -81,7 +84,15 @@ public class ArticleActivity extends Activity {
         replyItemList = new ArrayList<>();
         replyListAdapter = new ReplyListAdapter(this, replyItemList);
         progressDialog = new ProgressDialog(this);
-
+        actionBar = getActionBar();
+        actionBar.setDisplayShowHomeEnabled(false);
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
+            @Override
+            public boolean isLayoutRtl() {
+                return false;
+            }
+        });
         articleDetail.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
