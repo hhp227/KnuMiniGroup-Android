@@ -89,7 +89,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/image_view"
             android:layout_centerHorizontal="true"
-            android:text="경북대 소셜네트워크"
+            android:text="경북대 LMS소셜네트워크"
             android:textSize="15dp"
             android:textStyle="italic" />
 

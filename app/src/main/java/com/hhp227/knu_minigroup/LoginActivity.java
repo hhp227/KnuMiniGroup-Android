@@ -13,7 +13,7 @@ import android.widget.Toast;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
 import com.hhp227.knu_minigroup.app.EndPoint;
-import com.hhp227.knu_minigroup.user.User;
+import com.hhp227.knu_minigroup.dto.User;
 import org.json.JSONException;
 import org.json.JSONObject;
 

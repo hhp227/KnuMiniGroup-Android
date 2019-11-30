@@ -193,6 +193,7 @@ public class ArticleActivity extends Activity {
                             if (!error) {
                                 Toast.makeText(getApplicationContext(), "삭제완료", Toast.LENGTH_LONG).show();
                                 Intent intent = new Intent(ArticleActivity.this, GroupActivity.class);
+                                intent.putExtra("admin", getIntent().getBooleanExtra("admin", false));
                                 intent.putExtra("grp_id", groupId);
                                 intent.putExtra("grp_nm", groupName);
                                 // 모든 이전 activity 초기화
@@ -360,6 +361,15 @@ public class ArticleActivity extends Activity {
                             articleImageView.setPadding(0, 0, 0, 30);
                             articleImageView.setScaleType(ImageView.ScaleType.FIT_XY);
                             articleImageView.setErrorImageResId(R.drawable.ic_launcher_background);
+                            articleImageView.setResponseObserver(new ArticleImageView.ResponseObserver() {
+                                @Override
+                                public void onError() {
+                                }
+
+                                @Override
+                                public void onSuccess() {
+                                }
+                            });
                             articleImageView.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {

@@ -10,7 +10,7 @@ import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
+import android.widget.RelativeLayout;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
 import com.hhp227.knu_minigroup.adapter.GroupListAdapter;
@@ -29,12 +29,13 @@ import java.util.List;
 import java.util.Map;
 
 public class FindActivity extends FragmentActivity {
-    private static final int LIMIT = 10;
+    private static final int LIMIT = 15;
     private static final String TAG = FindActivity.class.getSimpleName();
     private GroupListAdapter listAdapter;
     private List<GroupItem> groupItems;
     private ListView listView;
     private ProgressDialog progressDialog;
+    private RelativeLayout relativeLayout;
     private Source source;
     private SwipeRefreshLayout swipeRefreshLayout;
     private View footerLoading;
@@ -44,9 +45,10 @@ public class FindActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_find);
+        setContentView(R.layout.activity_list);
         footerLoading = View.inflate(this, R.layout.load_more, null);
         listView = findViewById(R.id.lv_group);
+        relativeLayout = findViewById(R.id.rl_group);
         swipeRefreshLayout = findViewById(R.id.srl_group_list);
         offSet = 1;
         groupItems = new ArrayList<>();
@@ -76,7 +78,15 @@ public class FindActivity extends FragmentActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                GroupItem groupItem = groupItems.get(position);
+
                 Bundle args = new Bundle();
+                args.putInt("type", 0);
+                args.putInt("grp_id", groupItem.getId());
+                args.putString("grp_nm", groupItem.getName());
+                args.putString("img", groupItem.getImage());
+                args.putString("info", groupItem.getInfo());
+                args.putString("desc", groupItem.getDescription());
 
                 GroupInfoFragment newFragment = GroupInfoFragment.newInstance();
                 newFragment.setArguments(args);
@@ -91,7 +101,9 @@ public class FindActivity extends FragmentActivity {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(getApplicationContext(), "새로고침", Toast.LENGTH_LONG).show();
+                        offSet = 1;
+                        groupItems.clear();
+                        fetchGroupList();
                         swipeRefreshLayout.setRefreshing(false);
                     }
                 }, 1000);
@@ -106,26 +118,40 @@ public class FindActivity extends FragmentActivity {
             @Override
             public void onResponse(String response) {
                 source = new Source(response);
-                try {
-                    List<Element> list = source.getAllElements("id", "accordion", false);
-                    for (Element element : list) {
+                List<Element> list = source.getAllElements("id", "accordion", false);
+                for (Element element : list) {
+                    try {
                         Element menuList = element.getFirstElementByClass("menu_list");
                         if (element.getAttributeValue("class").equals("accordion")) {
+                            int id = groupIdExtract(menuList.getFirstElementByClass("button").getAttributeValue("onclick"));
+                            String imageUrl = EndPoint.BASE_URL + element.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
+                            String name = element.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
+                            StringBuilder info = new StringBuilder();
+                            String description = menuList.getAllElementsByClass("info").get(0).getContent().toString();
+                            String subscription = menuList.getAllElementsByClass("info").get(1).getContent().toString();
+                            for (Element span : element.getFirstElement(HTMLElementName.A).getAllElementsByClass("info")) {
+                                String extractedText = span.getTextExtractor().toString();
+                                info.append(extractedText.contains("회원수") ?
+                                        extractedText.substring(0, extractedText.lastIndexOf("생성일")).trim() + "\n" :
+                                        extractedText + "\n");
+                            }
                             GroupItem groupItem = new GroupItem();
-                            groupItem.setId(groupIdExtract(menuList.getFirstElementByClass("button").getAttributeValue("onclick")));
-                            groupItem.setImage(EndPoint.BASE_URL + element.getFirstElement(HTMLElementName.IMG).getAttributeValue("src"));
-                            groupItem.setName(element.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString());
-                            groupItem.setInfo(menuList.getAllElementsByClass("info").get(1).getContent().toString());
+                            groupItem.setId(id);
+                            groupItem.setImage(imageUrl);
+                            groupItem.setName(name);
+                            groupItem.setInfo(info.toString());
+                            groupItem.setDescription(description);
+                            groupItem.setSubscription(subscription);
                             groupItems.add(groupItem);
                         }
+                    } catch (Exception e) {
+                        Log.e(TAG, e.getMessage());
                     }
-                    listAdapter.notifyDataSetChanged();
-                    hasRequestedMore = false;
-                } catch (Exception e) {
-                    Log.e(TAG, e.getMessage());
-                } finally {
-                    hideProgressDialog();
                 }
+                listAdapter.notifyDataSetChanged();
+                hasRequestedMore = false;
+                hideProgressDialog();
+                relativeLayout.setVisibility(groupItems.isEmpty() ? View.VISIBLE : View.GONE);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -152,7 +178,7 @@ public class FindActivity extends FragmentActivity {
                 params.put("panel_id", "1");
                 params.put("gubun", "select_share_total");
                 params.put("start", String.valueOf(offSet));
-                params.put("display", "10");
+                params.put("display", String.valueOf(LIMIT));
                 params.put("encoding", "utf-8");
                 if (params != null && params.size() > 0) {
                     StringBuilder encodedParams = new StringBuilder();

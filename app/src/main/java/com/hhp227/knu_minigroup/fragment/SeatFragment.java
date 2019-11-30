@@ -17,7 +17,7 @@ import java.util.Vector;
 public class SeatFragment extends Fragment {
     private ViewPager viewPager;
     private TabsPagerAdapter mAdapter;
-    private android.widget.TabHost TabHost;
+    private android.widget.TabHost tabHost;
 
     public SeatFragment() {
     }
@@ -34,31 +34,26 @@ public class SeatFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_tabs, container, false);
-        String[] Tabnames = {"대구 열람실", "상주 열람실"};
-
-        TabHost = root.findViewById(android.R.id.tabhost);
-        viewPager = root.findViewById(R.id.view_pager);
-
-        TabHost.setup();
-
-        for (int i = 0; i < Tabnames.length; i++) {
+        View rootView = inflater.inflate(R.layout.fragment_tabs, container, false);
+        String[] tabNames = {"대구 열람실", "상주 열람실"};
+        tabHost = rootView.findViewById(android.R.id.tabhost);
+        viewPager = rootView.findViewById(R.id.view_pager);
+        tabHost.setup();
+        for (int i = 0; i < tabNames.length; i++) {
             TabHost.TabSpec tabSpec;
-            tabSpec = TabHost.newTabSpec(Tabnames [i]);
-            tabSpec.setIndicator(Tabnames [i]);
+            tabSpec = tabHost.newTabSpec(tabNames[i]);
+            tabSpec.setIndicator(tabNames[i]);
             tabSpec.setContent(new FakeContent(getActivity()));
-            TabHost.addTab(tabSpec);
+            tabHost.addTab(tabSpec);
         }
-
-        TabHost.setOnTabChangedListener(new android.widget.TabHost.OnTabChangeListener() {
+        tabHost.setOnTabChangedListener(new android.widget.TabHost.OnTabChangeListener() {
             // 탭호스트 리스너
             @Override
             public void onTabChanged(String tabId) {
-                int selectedItem = TabHost.getCurrentTab();
+                int selectedItem = tabHost.getCurrentTab();
                 viewPager.setCurrentItem(selectedItem);
             }
         });
-
         List<Fragment> fragments = new Vector<>();
         fragments.add(new DaeguSeatFragment());
         fragments.add(new SangjuSeatFragment());
@@ -80,10 +75,10 @@ public class SeatFragment extends Fragment {
 
             @Override
             public void onPageSelected(int selectedItem) {
-                TabHost.setCurrentTab(selectedItem);
+                tabHost.setCurrentTab(selectedItem);
             }
         });
 
-        return root;
+        return rootView;
     }
 }

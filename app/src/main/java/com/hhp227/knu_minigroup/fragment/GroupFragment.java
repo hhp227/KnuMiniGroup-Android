@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.GridView;
+import android.widget.Toast;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -36,6 +37,8 @@ import static android.app.Activity.RESULT_OK;
 
 public class GroupFragment extends Fragment {
     public static final int CREATE_CODE = 10;
+    public static final int REGISTER_CODE = 20;
+    public static final int DELETE_CODE = 30;
     private Button findGroup, requestGroup, createGroup;
     private GridView myGroupList;
     private GroupGridAdapter groupGridAdapter;
@@ -85,10 +88,15 @@ public class GroupFragment extends Fragment {
                     return;
                 mLastClickTime = SystemClock.elapsedRealtime();
                 GroupItem groupItem = groupItems.get(position);
-                Intent intent = new Intent(getContext(), GroupActivity.class);
-                intent.putExtra("grp_id", groupItem.getId());
-                intent.putExtra("grp_nm", groupItem.getName());
-                startActivity(intent);
+                if (groupItem.isAd()) {
+                    Toast.makeText(getContext(), "광고", Toast.LENGTH_LONG).show();
+                } else {
+                    Intent intent = new Intent(getContext(), GroupActivity.class);
+                    intent.putExtra("admin", groupItem.isAdmin());
+                    intent.putExtra("grp_id", groupItem.getId());
+                    intent.putExtra("grp_nm", groupItem.getName());
+                    startActivityForResult(intent, DELETE_CODE);
+                }
             }
         });
 
@@ -113,7 +121,7 @@ public class GroupFragment extends Fragment {
                 if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
                     return;
                 mLastClickTime = SystemClock.elapsedRealtime();
-                startActivity(new Intent(getContext(), FindActivity.class));
+                startActivityForResult(new Intent(getContext(), FindActivity.class), REGISTER_CODE);
             }
         });
 
@@ -150,7 +158,7 @@ public class GroupFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == CREATE_CODE && resultCode == RESULT_OK) {
+        if ((requestCode == CREATE_CODE || requestCode == REGISTER_CODE || requestCode == DELETE_CODE) && resultCode == RESULT_OK) {
             groupItems.clear();
             fetchDataTask();
         }
@@ -166,6 +174,7 @@ public class GroupFragment extends Fragment {
                     try {
                         GroupItem groupItem = new GroupItem();
                         groupItem.setId(groupIdExtract(elementA.getAttributeValue("onclick")));
+                        groupItem.setAdmin(adminCheck(elementA.getAttributeValue("onclick")));
                         groupItem.setImage(EndPoint.BASE_URL + elementA.getFirstElement(HTMLElementName.IMG).getAttributeValue("src"));
                         groupItem.setName(elementA.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString());
 
@@ -175,7 +184,7 @@ public class GroupFragment extends Fragment {
                     }
                 }
                 groupGridAdapter.notifyDataSetChanged();
-                hideProgressDialog();
+                insertAdvertisement();
             }
         }, new Response.ErrorListener() {
             @Override
@@ -211,8 +220,22 @@ public class GroupFragment extends Fragment {
         getActivity().finish();
     }
 
+    private void insertAdvertisement() {
+        if (groupItems.size() % 2 != 0) {
+            GroupItem ad = new GroupItem();
+            ad.setAd(true);
+            ad.setName("광고");
+            groupItems.add(ad);
+        }
+        hideProgressDialog();
+    }
+
     private int groupIdExtract(String href) {
         return Integer.parseInt(href.split("'")[3].trim());
+    }
+
+    private boolean adminCheck(String onClick) {
+        return onClick.split("'")[1].trim().equals("0");
     }
 
     private void showProgressDialog() {

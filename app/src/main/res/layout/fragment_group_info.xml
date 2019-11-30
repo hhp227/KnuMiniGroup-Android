@@ -4,31 +4,33 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-    <ImageView
-            android:id="@+id/image"
+    <com.android.volley.toolbox.NetworkImageView
+            android:id="@+id/niv_group_image"
             android:layout_width="match_parent"
-            android:layout_height="170dip"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_launcher_background" />
+            android:layout_height="200dip"
+            android:scaleType="centerCrop"/>
 
     <TextView
+            android:id="@+id/tv_name"
+            android:singleLine="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/image"
+            android:layout_alignBottom="@+id/niv_group_image"
             android:background="#77000000"
             android:paddingBottom="14dip"
             android:paddingLeft="8dip"
             android:paddingTop="14dip"
-            android:text="소모임 정보"
+            android:text="소모임 이름"
             android:textColor="#FFFFFFFF"
             android:textSize="18sp" />
 
     <LinearLayout
+            android:id="@+id/ll_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="left"
             android:background="#FFFFFF"
-            android:layout_below="@+id/image"
+            android:layout_below="@+id/niv_group_image"
             android:orientation="horizontal"
             android:paddingBottom="5dp"
             android:paddingLeft="10dp"
@@ -41,13 +43,13 @@
                 android:orientation="vertical">
 
             <TextView
-                    android:id="@+id/name"
+                    android:id="@+id/tv_desciption"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingBottom="10dip"
                     android:paddingLeft="5dip"
                     android:paddingTop="10dip"
-                    android:text="이름"
+                    android:text="설명"
                     android:textSize="16dp" />
 
             <LinearLayout
@@ -56,21 +58,81 @@
                     android:orientation="horizontal">
 
                 <TextView
+                        android:id="@+id/tv_info"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:paddingLeft="5dip"
-                        android:text="생성일"
-                        android:textSize="13dp" />
-
-                <TextView
-                        android:id="@+id/created_at"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingLeft="5dip"
-                        android:text="날짜"
+                        android:text="정보"
                         android:textSize="13dp" />
 
             </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+            android:id="@+id/ll_line"
+            android:layout_width="match_parent"
+            android:layout_height="1px"
+            android:layout_below="@+id/ll_container"
+            android:background="@android:color/darker_gray"
+            android:orientation="horizontal"/>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="0dp"
+            android:background="#FFFFFF"
+            android:layout_weight="0"
+            android:layout_below="@+id/ll_line"
+            android:orientation="horizontal">
+
+        <LinearLayout
+                android:id="@+id/ll_request"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingBottom="8dp"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:paddingTop="8dp">
+
+            <TextView
+                    android:id="@+id/tv_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="3dp"
+                    android:text="버튼" />
+
+        </LinearLayout>
+
+        <LinearLayout
+                android:layout_width="1px"
+                android:layout_height="match_parent"
+                android:background="@android:color/darker_gray" />
+
+        <LinearLayout
+                android:id="@+id/ll_close"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingBottom="8dp"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:paddingTop="8dp">
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="3dp"
+                    android:text="닫기" />
 
         </LinearLayout>
 

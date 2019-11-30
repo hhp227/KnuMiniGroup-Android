@@ -11,10 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.Toast;
+import android.widget.*;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
 import com.hhp227.knu_minigroup.ArticleActivity;
@@ -37,6 +34,7 @@ import java.util.Map;
 public class Tab1Fragment extends BaseFragment {
     public static final int LIMIT = 10;
     public static final int UPDATE_ARTICLE = 20;
+    public static boolean isAdmin;
     public static int groupId;
     public static String groupName;
     private ArticleListAdapter articleListAdapter;
@@ -44,6 +42,7 @@ public class Tab1Fragment extends BaseFragment {
     private List<ArticleItem> articleItems;
     private ListView listView;
     private ProgressDialog progressDialog;
+    private RelativeLayout relativeLayout;
     private Source source;
     private SwipeRefreshLayout swipeRefreshLayout;
     private View footerLoading;
@@ -55,9 +54,10 @@ public class Tab1Fragment extends BaseFragment {
     public Tab1Fragment() {
     }
 
-    public static Tab1Fragment newInstance(int grpId, String grpNm) {
+    public static Tab1Fragment newInstance(boolean isAdmin, int grpId, String grpNm) {
         Tab1Fragment fragment = new Tab1Fragment();
         Bundle args = new Bundle();
+        args.putBoolean("admin", isAdmin);
         args.putInt("grp_id", grpId);
         args.putString("grp_nm", grpNm);
         fragment.setArguments(args);
@@ -68,6 +68,7 @@ public class Tab1Fragment extends BaseFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
+            isAdmin = getArguments().getBoolean("admin");
             groupId = getArguments().getInt("grp_id");
             groupName = getArguments().getString("grp_nm");
         }
@@ -80,6 +81,7 @@ public class Tab1Fragment extends BaseFragment {
         floatingActionButton = rootView.findViewById(R.id.fab_button);
         footerLoading = View.inflate(getContext(), R.layout.load_more, null);
         listView = rootView.findViewById(R.id.lv_article);
+        relativeLayout = rootView.findViewById(R.id.rl_write);
         swipeRefreshLayout = rootView.findViewById(R.id.srl_article_list);
 
         offSet = 1; // offSet 초기화
@@ -92,6 +94,7 @@ public class Tab1Fragment extends BaseFragment {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getActivity(), WriteActivity.class);
+                intent.putExtra("admin", isAdmin);
                 intent.putExtra("grp_id", groupId);
                 intent.putExtra("grp_nm", groupName);
                 startActivity(intent);
@@ -109,6 +112,7 @@ public class Tab1Fragment extends BaseFragment {
 
                 ArticleItem articleItem = articleItems.get(position);
                 Intent intent = new Intent(getContext(), ArticleActivity.class);
+                intent.putExtra("admin", isAdmin);
                 intent.putExtra("grp_id", groupId);
                 intent.putExtra("grp_nm", groupName);
                 intent.putExtra("artl_num", articleItem.getId());
@@ -139,7 +143,20 @@ public class Tab1Fragment extends BaseFragment {
                 lastItemVisibleFlag = totalItemCount > 0 && firstVisibleItem + visibleItemCount >= totalItemCount;
             }
         });
-
+        relativeLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
+                    return;
+                mLastClickTime = SystemClock.elapsedRealtime();
+                Intent intent = new Intent(getActivity(), WriteActivity.class);
+                intent.putExtra("admin", isAdmin);
+                intent.putExtra("grp_id", groupId);
+                intent.putExtra("grp_nm", groupName);
+                startActivity(intent);
+                return;
+            }
+        });
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -212,9 +229,13 @@ public class Tab1Fragment extends BaseFragment {
                     // 중복 로딩 체크하는 Lock을 했던 HasRequestedMore변수를 풀어준다.
                     hasRequestedMore = false;
                 } catch (Exception e) {
-                    Toast.makeText(getContext(), "값이 없습니다.", Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
                 } finally {
                     hideProgressDialog();
+                    if (!articleItems.isEmpty())
+                        relativeLayout.setVisibility(View.GONE);
+                    else
+                        floatingActionButton.setVisibility(View.GONE);
                 }
             }
         }, new Response.ErrorListener() {

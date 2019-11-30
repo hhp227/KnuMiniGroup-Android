@@ -282,6 +282,7 @@ public class WriteActivity extends Activity {
                     if (!error) {
                         Toast.makeText(getApplicationContext(), "전송완료", Toast.LENGTH_LONG).show();
                         Intent intent = new Intent(WriteActivity.this, GroupActivity.class);
+                        intent.putExtra("admin", getIntent().getBooleanExtra("admin", false));
                         intent.putExtra("grp_id", grpId);
                         intent.putExtra("grp_nm", getIntent().getStringExtra("grp_nm"));
                         // 이전 Activity 초기화

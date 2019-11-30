@@ -119,8 +119,8 @@ public class CreateActivity extends Activity {
                 final String title = groupTitle.getText().toString().trim();
                 final String description = groupDescription.getText().toString().trim();
                 final String join = !joinTypeCheck ? "0" : "1";
-                showProgressDialog();
                 if (!title.isEmpty() && !description.isEmpty()) {
+                    showProgressDialog();
                     app.AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, EndPoint.CREATE_GROUP, null, new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
@@ -274,6 +274,7 @@ public class CreateActivity extends Activity {
 
     private void createGroupSuccess(int groupId, String groupName) {
         Intent intent = new Intent(CreateActivity.this, GroupActivity.class);
+        intent.putExtra("admin", true);
         intent.putExtra("grp_id", groupId);
         intent.putExtra("grp_nm", groupName);
         setResult(RESULT_OK, intent);

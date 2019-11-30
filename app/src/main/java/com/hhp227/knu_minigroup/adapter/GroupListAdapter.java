@@ -59,7 +59,7 @@ public class GroupListAdapter extends BaseAdapter {
 
         groupName.setText(groupItem.getName());
         groupName.setMaxLines(NAME_MAX_LINE);
-        groupInfo.setText(groupItem.getInfo());
+        groupInfo.setText(groupItem.getSubscription());
 
         if (groupItem.getImage() != null) {
             GroupImage.setImageUrl(groupItem.getImage(), imageLoader);

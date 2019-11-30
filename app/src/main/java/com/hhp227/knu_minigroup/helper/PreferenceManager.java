@@ -3,7 +3,7 @@ package com.hhp227.knu_minigroup.helper;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
-import com.hhp227.knu_minigroup.user.User;
+import com.hhp227.knu_minigroup.dto.User;
 
 public class PreferenceManager {
     private static String TAG = "세션메니져";

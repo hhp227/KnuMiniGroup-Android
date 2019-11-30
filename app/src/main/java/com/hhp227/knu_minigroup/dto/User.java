@@ -1,4 +1,4 @@
-package com.hhp227.knu_minigroup.user;
+package com.hhp227.knu_minigroup.dto;
 
 import java.io.Serializable;
 
