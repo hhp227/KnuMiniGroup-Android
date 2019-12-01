@@ -19,6 +19,9 @@ public interface EndPoint {
     String DELETE_REPLY = BASE_URL + "/ilos/community/share_comment_delete.acl";
     String MODIFY_REPLY = BASE_URL + "/ilos/community/share_comment_update.acl";
 
+    // 로그기록
+    String CREATE_LOG = "http://knu.dothome.co.kr/knu/v1/register";
+
     // 학교 URL
     String URL_KNU = "http://www.knu.ac.kr";
     String URL_SCHEDULE = URL_KNU + "/wbbs/wbbs/user/yearSchedule/xmlResponse.action?schedule.search_date={YEAR-MONTH}";

@@ -80,7 +80,7 @@ public class MainActivity extends FragmentActivity {
         actionBar.setHomeButtonEnabled(true);
         actionBar.setTitle(titleSection);
 
-        knuId.setText("임시");
+        knuId.setText(app.AppController.getInstance().getPreferenceManager().getUser().getUserId());
 
         drawerLayout.setDrawerListener(actionBarDrawerToggle);
         drawerList.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, menu));

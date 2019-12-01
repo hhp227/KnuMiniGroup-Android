@@ -50,7 +50,6 @@ public class Tab2Fragment extends BaseFragment {
         extendedCalendarView = headerView.findViewById(R.id.calendar);
         listView = rootView.findViewById(R.id.lv_cal);
         calendar = Calendar.getInstance();
-
         extendedCalendarView.setOnDayClickListener(new ExtendedCalendarView.OnDayClickListener() {
             @Override
             public void onDayClicked(AdapterView<?> adapter, View view, int position, long id, Day day) {
@@ -99,11 +98,11 @@ public class Tab2Fragment extends BaseFragment {
         app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, endPoint, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                list = new ArrayList<>();
-                arrayAdapter = new SimpleAdapter(getContext(), list, R.layout.schedule_item, new String[] {"날짜", "내용"}, new int[] {R.id.date, R.id.content});
-                listView.setAdapter(arrayAdapter);
-
                 try {
+                    list = new ArrayList<>();
+                    arrayAdapter = new SimpleAdapter(getContext(), list, R.layout.schedule_item, new String[] {"날짜", "내용"}, new int[] {R.id.date, R.id.content});
+
+                    listView.setAdapter(arrayAdapter);
                     XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
                     XmlPullParser parser = factory.newPullParser();
                     parser.setInput(new StringReader(response));
@@ -134,9 +133,7 @@ public class Tab2Fragment extends BaseFragment {
                         }
                         eventType = parser.next();
                     }
-                } catch (XmlPullParserException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 arrayAdapter.notifyDataSetChanged();

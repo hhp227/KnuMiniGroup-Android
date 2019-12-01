@@ -68,7 +68,7 @@ public class GroupFragment extends Fragment {
         findGroup = rootView.findViewById(R.id.b_find);
         requestGroup = rootView.findViewById(R.id.b_request);
         createGroup = rootView.findViewById(R.id.b_create);
-        myGroupList = rootView.findViewById(R.id.gr_my_grouplist);
+        myGroupList = rootView.findViewById(R.id.gv_my_grouplist);
         swipeRefreshLayout = rootView.findViewById(R.id.srl_group);
 
         progressDialog = new ProgressDialog(getContext());

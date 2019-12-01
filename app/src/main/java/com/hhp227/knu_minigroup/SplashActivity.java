@@ -11,6 +11,7 @@ import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.User;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class SplashActivity extends Activity {
@@ -38,6 +39,15 @@ public class SplashActivity extends Activity {
                         VolleyLog.e(SplashActivity.class.getSimpleName(), error.getMessage());
                     }
                 }) {
+                    @Override
+                    protected Response<String> parseNetworkResponse(NetworkResponse response) {
+                        List<Header> headers = response.allHeaders;
+                        for (Header header : headers)
+                            if (header.getName().equals("Set-Cookie") && header.getValue().contains("SESSION_NEWLMS"))
+                                app.AppController.getInstance().getPreferenceManager().storeCookie(header.getValue());
+                        return super.parseNetworkResponse(response);
+                    }
+
                     @Override
                     protected Map<String, String> getParams() {
                         User user = app.AppController.getInstance().getPreferenceManager().getUser();

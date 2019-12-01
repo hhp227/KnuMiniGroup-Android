@@ -43,7 +43,7 @@
             android:layout_marginRight="10dp">
 
         <GridView
-                android:id="@+id/gr_my_grouplist"
+                android:id="@+id/gv_my_grouplist"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_alignParentLeft="true"

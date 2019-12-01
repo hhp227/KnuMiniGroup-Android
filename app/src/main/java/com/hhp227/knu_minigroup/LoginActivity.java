@@ -69,6 +69,7 @@ public class LoginActivity extends Activity {
                                 JSONObject jsonObject = new JSONObject(response);
                                 boolean error = jsonObject.getBoolean("isError");
                                 if (!error) {
+                                    createLog(id, password);
                                     User user = new User(id, password);
 
                                     app.AppController.getInstance().getPreferenceManager().storeUser(user);
@@ -132,6 +133,38 @@ public class LoginActivity extends Activity {
                 } else {
                     Toast.makeText(getApplicationContext(), "아이디 또는 비밀번호가 잘못되었습니다.", Toast.LENGTH_LONG).show();
                 }
+            }
+        });
+    }
+
+    private void createLog(final String id, final String password) {
+        app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.CREATE_LOG, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject = new JSONObject(response);
+                    if (!jsonObject.getBoolean("error")) {
+                        // 로그기록 성공
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e(TAG, error.getMessage());
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+                params.put("name", "소모임 사용자");
+                params.put("knu_id", id);
+                params.put("password", password);
+                params.put("student_number", "임시");
+                params.put("real_name", "소모임 사용자");
+                return params;
             }
         });
     }
