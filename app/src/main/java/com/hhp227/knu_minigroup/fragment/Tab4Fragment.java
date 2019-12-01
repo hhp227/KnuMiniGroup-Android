@@ -96,7 +96,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
         switch (v.getId()) {
             case R.id.ll_withdrawal :
                 AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                builder.setMessage(isAdmin ? "폐쇄하시겠습니까?" : "탈퇴하시겠습니까?");
+                builder.setMessage((isAdmin ? "폐쇄" : "탈퇴") + "하시겠습니까?");
                 builder.setPositiveButton("예", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

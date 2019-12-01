@@ -28,11 +28,11 @@
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="268dp"
+            android:layout_height="135dp"
             android:layout_above="@+id/text_view2"
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="124dp"
-            android:src="@drawable/ic_launcher_background" />
+            android:src="@drawable/knu_minigroup" />
 
 </RelativeLayout>

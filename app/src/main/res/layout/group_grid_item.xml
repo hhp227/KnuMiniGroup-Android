@@ -37,7 +37,7 @@
                         android:layout_height="100dp"
                         android:layout_centerHorizontal="true"
                         android:layout_centerVertical="true"
-                        android:src="@drawable/ic_launcher_background"
+                        android:src="@drawable/knu_minigroup"
                         android:scaleType="fitXY" />
 
             </RelativeLayout>

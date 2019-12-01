@@ -7,4 +7,11 @@
         tools:context=".SplashActivity"
         android:background="@drawable/splash">
 
+    <ImageView
+            android:id="@+id/ImageView1"
+            android:layout_width="186dp"
+            android:layout_height="110dp"
+            android:src="@drawable/knu_minigroup"
+            android:layout_centerInParent="true"/>
+
 </RelativeLayout>

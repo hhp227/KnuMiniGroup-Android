@@ -65,7 +65,7 @@ public class Tab2Fragment extends BaseFragment {
                 } else {
                     calendar.set(Calendar.MONTH, calendar.get(Calendar.MONTH) - 1);
                 }
-                fetchData();
+                fetchDataTask();
             }
         });
         extendedCalendarView.next.setOnClickListener(new View.OnClickListener() {
@@ -77,11 +77,11 @@ public class Tab2Fragment extends BaseFragment {
                 } else {
                     calendar.set(Calendar.MONTH, calendar.get(Calendar.MONTH) + 1);
                 }
-                fetchData();
+                fetchDataTask();
             }
         });
         listView.addHeaderView(headerView);
-        fetchData();
+        fetchDataTask();
         return rootView;
     }
 
@@ -90,7 +90,7 @@ public class Tab2Fragment extends BaseFragment {
         return listView != null && listView.canScrollVertically(direction);
     }
 
-    private void fetchData() {
+    private void fetchDataTask() {
         year = String.valueOf(calendar.get(Calendar.YEAR));
         month = String.format("%02d", calendar.get(Calendar.MONTH) + 1);
 

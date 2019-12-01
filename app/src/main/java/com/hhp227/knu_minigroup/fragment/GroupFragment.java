@@ -10,10 +10,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.Button;
-import android.widget.GridView;
-import android.widget.Toast;
+import android.widget.*;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -45,6 +42,7 @@ public class GroupFragment extends Fragment {
     private List<GroupItem> groupItems;
     private PreferenceManager preferenceManager;
     private ProgressDialog progressDialog;
+    private RelativeLayout relativeLayout;
     private Source source;
     private SwipeRefreshLayout swipeRefreshLayout;
     private long mLastClickTime; // 클릭시 걸리는 시간
@@ -70,6 +68,7 @@ public class GroupFragment extends Fragment {
         createGroup = rootView.findViewById(R.id.b_create);
         myGroupList = rootView.findViewById(R.id.gv_my_grouplist);
         swipeRefreshLayout = rootView.findViewById(R.id.srl_group);
+        relativeLayout = rootView.findViewById(R.id.rl_group);
 
         progressDialog = new ProgressDialog(getContext());
         preferenceManager = new PreferenceManager(getActivity());
@@ -224,10 +223,11 @@ public class GroupFragment extends Fragment {
         if (groupItems.size() % 2 != 0) {
             GroupItem ad = new GroupItem();
             ad.setAd(true);
-            ad.setName("광고");
+            ad.setName("광고 : 소모임앱이 출시되었습니다.");
             groupItems.add(ad);
         }
         hideProgressDialog();
+        relativeLayout.setVisibility(groupItems.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
     private int groupIdExtract(String href) {
