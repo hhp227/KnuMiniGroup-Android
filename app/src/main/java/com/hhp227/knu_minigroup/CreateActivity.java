@@ -6,10 +6,8 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.annotation.RequiresApi;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -41,7 +39,6 @@ public class CreateActivity extends Activity {
     public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 200;
     private ActionBar actionBar;
     private Bitmap bitmap;
-    private DrawerArrowDrawable drawerArrow;
     private EditText groupTitle, groupDescription;
     private ImageView groupImage;
     private ProgressDialog progressDialog;
