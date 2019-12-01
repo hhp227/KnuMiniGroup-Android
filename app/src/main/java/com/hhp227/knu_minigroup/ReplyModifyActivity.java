@@ -87,7 +87,7 @@ public class ReplyModifyActivity extends Activity {
                         public void onResponse(String response) {
                             // 입력 자판 숨기기
                             View view = ReplyModifyActivity.this.getCurrentFocus();
-                            if(view != null) {
+                            if (view != null) {
                                 InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                                 inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
                             }
