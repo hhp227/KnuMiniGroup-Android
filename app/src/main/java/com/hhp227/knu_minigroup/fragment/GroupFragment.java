@@ -42,7 +42,6 @@ public class GroupFragment extends Fragment {
     private PreferenceManager preferenceManager;
     private ProgressDialog progressDialog;
     private RelativeLayout relativeLayout;
-    private Source source;
     private SwipeRefreshLayout swipeRefreshLayout;
     private long mLastClickTime; // 클릭시 걸리는 시간
 
@@ -166,7 +165,7 @@ public class GroupFragment extends Fragment {
         app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                source = new Source(response);
+                Source source = new Source(response);
                 List<Element> listElementA = source.getAllElements(HTMLElementName.A);
                 for (Element elementA : listElementA) {
                     try {

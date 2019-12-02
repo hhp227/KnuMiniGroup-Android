@@ -31,8 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static android.app.Activity.RESULT_FIRST_USER;
-
 public class Tab1Fragment extends BaseFragment {
     public static final int LIMIT = 10;
     public static final int UPDATE_ARTICLE = 20;
@@ -46,7 +44,6 @@ public class Tab1Fragment extends BaseFragment {
     private ListView listView;
     private ProgressDialog progressDialog;
     private RelativeLayout relativeLayout;
-    private Source source;
     private SwipeRefreshLayout swipeRefreshLayout;
     private View footerLoading;
 
@@ -187,7 +184,7 @@ public class Tab1Fragment extends BaseFragment {
         StringRequest stringRequest = new StringRequest(Request.Method.GET, EndPoint.GROUP_ARTICLE_LIST + params, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                source = new Source(response);
+                Source source = new Source(response);
                 try {
                     List<Element> list = source.getAllElementsByClass("listbox2");
                     Element paging = source.getFirstElementByClass("paging");

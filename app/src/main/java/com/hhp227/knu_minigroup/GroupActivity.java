@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.MenuItem;
-import android.widget.Toast;
 import com.hhp227.knu_minigroup.fragment.TabHostLayoutFragment;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 

@@ -88,7 +88,7 @@ public class TabHostLayoutFragment extends Fragment {
         List<BaseFragment> fragments = new Vector<>();
         fragments.add(Tab1Fragment.newInstance(isAdmin, groupId, groupName));
         fragments.add(new Tab2Fragment());
-        fragments.add(new Tab3Fragment());
+        fragments.add(Tab3Fragment.newInstance(groupId));
         fragments.add(Tab4Fragment.newInstance(isAdmin, groupId));
         tabsPagerAdapter = new TabsPagerAdapter(getChildFragmentManager(), fragments);
         viewPager.setAdapter(tabsPagerAdapter);

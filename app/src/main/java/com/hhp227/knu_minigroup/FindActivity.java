@@ -40,7 +40,6 @@ public class FindActivity extends FragmentActivity {
     private ListView listView;
     private ProgressDialog progressDialog;
     private RelativeLayout relativeLayout;
-    private Source source;
     private SwipeRefreshLayout swipeRefreshLayout;
     private View footerLoading;
     private boolean hasRequestedMore;
@@ -137,7 +136,7 @@ public class FindActivity extends FragmentActivity {
         app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                source = new Source(response);
+                Source source = new Source(response);
                 List<Element> list = source.getAllElements("id", "accordion", false);
                 for (Element element : list) {
                     try {
