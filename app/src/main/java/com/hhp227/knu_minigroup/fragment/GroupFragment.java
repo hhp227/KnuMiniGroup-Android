@@ -35,7 +35,6 @@ import static android.app.Activity.RESULT_OK;
 public class GroupFragment extends Fragment {
     public static final int CREATE_CODE = 10;
     public static final int REGISTER_CODE = 20;
-    public static final int DELETE_CODE = 30;
     private Button findGroup, requestGroup, createGroup;
     private GridView myGroupList;
     private GroupGridAdapter groupGridAdapter;
@@ -94,7 +93,7 @@ public class GroupFragment extends Fragment {
                     intent.putExtra("admin", groupItem.isAdmin());
                     intent.putExtra("grp_id", groupItem.getId());
                     intent.putExtra("grp_nm", groupItem.getName());
-                    startActivityForResult(intent, DELETE_CODE);
+                    startActivity(intent);
                 }
             }
         });
@@ -157,7 +156,7 @@ public class GroupFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if ((requestCode == CREATE_CODE || requestCode == REGISTER_CODE || requestCode == DELETE_CODE) && resultCode == RESULT_OK) {
+        if ((requestCode == CREATE_CODE || requestCode == REGISTER_CODE) && resultCode == RESULT_OK) {
             groupItems.clear();
             fetchDataTask();
         }

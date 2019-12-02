@@ -31,9 +31,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static android.app.Activity.RESULT_FIRST_USER;
+
 public class Tab1Fragment extends BaseFragment {
     public static final int LIMIT = 10;
     public static final int UPDATE_ARTICLE = 20;
+
     public static boolean isAdmin;
     public static int groupId;
     public static String groupName;

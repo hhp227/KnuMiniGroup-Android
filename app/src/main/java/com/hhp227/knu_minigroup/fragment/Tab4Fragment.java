@@ -16,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import com.android.volley.*;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.hhp227.knu_minigroup.MainActivity;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.VerInfoActivity;
 import com.hhp227.knu_minigroup.app.EndPoint;
@@ -106,14 +107,11 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                             @Override
                             public void onResponse(JSONObject response) {
                                 try {
-                                    if (isAdmin && !response.getBoolean("isError")) {
-                                        Toast.makeText(getContext(), "소모임 폐쇄 완료", Toast.LENGTH_LONG).show();
-                                        getActivity().setResult(Activity.RESULT_OK);
-                                        getActivity().finish();
-                                    } else if (!isAdmin && !response.getBoolean("isError")) {
-                                        Toast.makeText(getContext(), "소모임 탈퇴 완료", Toast.LENGTH_LONG).show();
-                                        getActivity().setResult(Activity.RESULT_OK);
-                                        getActivity().finish();
+                                    if (!response.getBoolean("isError")) {
+                                        Toast.makeText(getContext(), "소모임 " + (isAdmin ? "폐쇄" : "탈퇴") + " 완료", Toast.LENGTH_LONG).show();
+                                        Intent intent = new Intent(getContext(), MainActivity.class);
+                                        intent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                        startActivity(intent);
                                     }
                                 } catch (JSONException e) {
                                     e.printStackTrace();
