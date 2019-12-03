@@ -6,14 +6,11 @@ import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.MenuItem;
 import android.view.Window;
-import android.widget.Toast;
-import com.android.volley.toolbox.ImageLoader;
 import com.hhp227.knu_minigroup.helper.ZoomImageView;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 
 public class PictureActivity extends Activity {
     private ZoomImageView zoomImageView;
-    private ImageLoader imageLoader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,7 +19,6 @@ public class PictureActivity extends Activity {
         this.requestWindowFeature(Window.FEATURE_ACTION_BAR_OVERLAY);
         setContentView(R.layout.activity_picture);
         zoomImageView = findViewById(R.id.ziv_image);
-        imageLoader = app.AppController.getInstance().getImageLoader();
         ActionBar actionBar = getActionBar();
 
         // 뒤로가기버튼
@@ -51,16 +47,7 @@ public class PictureActivity extends Activity {
         int mScreenWidth = metrics.widthPixels;
         int mScreenHeight = metrics.heightPixels;
 
-        try {
-            imageLoader.get(imageUrl,
-                    ImageLoader.getImageListener(zoomImageView,
-                            R.drawable.bg_no_image, // default image resId
-                            R.drawable.bg_no_image), // error image resId
-                    mScreenWidth, mScreenHeight - 50);
-        } catch (Exception e) {
-            e.printStackTrace();
-            zoomImageView.setImageResource(R.drawable.bg_no_image);
-        }
+        zoomImageView.setImageResource(R.drawable.bg_no_image);
     }
 
     @Override

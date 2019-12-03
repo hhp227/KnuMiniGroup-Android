@@ -17,6 +17,7 @@ import android.widget.*;
 import com.android.volley.*;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.StringRequest;
+import com.bumptech.glide.Glide;
 import com.hhp227.knu_minigroup.adapter.ReplyListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ReplyItem;
@@ -40,9 +41,7 @@ public class ArticleActivity extends Activity {
     private static final int UPDATE_REPLY = 10;
     private static final String TAG = ArticleActivity.class.getSimpleName();
     private ActionBar actionBar;
-    private ArticleImageView articleImageView;
     private EditText inputReply;
-    private ImageLoader imageLoader;
     private LinearLayout articleImages;
     private List<ReplyItem> replyItemList;
     private List<String> imageList;
@@ -68,7 +67,6 @@ public class ArticleActivity extends Activity {
         articleTimeStamp = articleDetail.findViewById(R.id.tv_timestamp);
         articleContent = articleDetail.findViewById(R.id.tv_content);
         articleImages = articleDetail.findViewById(R.id.ll_image);
-        imageLoader = app.AppController.getInstance().getImageLoader();
         inputReply = findViewById(R.id.et_reply);
         listView = findViewById(R.id.lv_article);
         swipeRefreshLayout = findViewById(R.id.srl_article);
@@ -373,21 +371,11 @@ public class ArticleActivity extends Activity {
                     if (images.size() > 0) {
                         for (Element image : images) {
                             final String imageUrl = !image.getAttributeValue("src").contains("http") ? EndPoint.BASE_URL + image.getAttributeValue("src") : image.getAttributeValue("src");
-                            articleImageView = new ArticleImageView(getApplicationContext());
-                            articleImageView.setImageUrl(imageUrl, imageLoader);
-                            articleImageView.setPadding(0, 0, 0, 30);
-                            articleImageView.setScaleType(ImageView.ScaleType.FIT_XY);
-                            articleImageView.setErrorImageResId(R.drawable.ic_launcher_background);
-                            articleImageView.setResponseObserver(new ArticleImageView.ResponseObserver() {
-                                @Override
-                                public void onError() {
-                                }
-
-                                @Override
-                                public void onSuccess() {
-                                }
-                            });
-                            articleImageView.setOnClickListener(new View.OnClickListener() {
+                            ImageView articleImage = new ImageView(getApplicationContext());
+                            articleImage.setAdjustViewBounds(true);
+                            articleImage.setPadding(0, 0, 0, 30);
+                            articleImage.setScaleType(ImageView.ScaleType.FIT_XY);
+                            articleImage.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
                                     Intent intent = new Intent(getApplicationContext(), PictureActivity.class);
@@ -395,7 +383,8 @@ public class ArticleActivity extends Activity {
                                     startActivity(intent);
                                 }
                             });
-                            articleImages.addView(articleImageView);
+                            Glide.with(getApplicationContext()).load(imageUrl).into(articleImage);
+                            articleImages.addView(articleImage);
                             imageList.add(imageUrl);
                         }
                         articleImages.setVisibility(View.VISIBLE);

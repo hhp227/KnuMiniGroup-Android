@@ -82,12 +82,13 @@
                         android:textColor="@android:color/darker_gray"
                         android:visibility="gone" />
 
-                <com.hhp227.knu_minigroup.volley.util.ArticleImageView
-                        android:id="@+id/fiv_article_image"
+                <ImageView
+                        android:id="@+id/iv_article_image"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:scaleType="fitXY"
                         android:visibility="invisible"
+                        android:adjustViewBounds="true"
                         android:paddingTop="10dp" />
 
             </LinearLayout>

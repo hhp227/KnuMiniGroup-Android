@@ -4,15 +4,12 @@ import android.app.Application;
 import android.text.TextUtils;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
-import com.hhp227.knu_minigroup.volley.util.LruBitmapCache;
 
 public class AppController extends Application {
     public static final String TAG = AppController.class.getSimpleName();
     private RequestQueue mRequestQueue;
-    private ImageLoader mImageLoader;
     private static AppController mInstance;
     private PreferenceManager preferenceManager;
 
@@ -38,14 +35,6 @@ public class AppController extends Application {
             preferenceManager = new PreferenceManager(this);
         }
         return preferenceManager;
-    }
-
-    public ImageLoader getImageLoader() {
-        getRequestQueue();
-        if (mImageLoader == null) {
-            mImageLoader = new ImageLoader(this.mRequestQueue, new LruBitmapCache());
-        }
-        return this.mImageLoader;
     }
 
     public <T> void addToRequestQueue(Request<T> req, String tag) {

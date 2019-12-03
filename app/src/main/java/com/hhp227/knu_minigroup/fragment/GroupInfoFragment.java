@@ -3,23 +3,21 @@ package com.hhp227.knu_minigroup.fragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.NetworkImageView;
-import com.android.volley.toolbox.StringRequest;
+import com.bumptech.glide.Glide;
 import com.hhp227.knu_minigroup.MainActivity;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.RequestActivity;
@@ -39,7 +37,7 @@ public class GroupInfoFragment extends DialogFragment {
     private static int joinType, groupId;
     private static String groupName, groupImage, groupInfo, groupDesc;
     private LinearLayout button, close;
-    private NetworkImageView image;
+    private ImageView image;
     private ProgressDialog progressDialog;
     private TextView name, info, desc, join;
 
@@ -73,7 +71,7 @@ public class GroupInfoFragment extends DialogFragment {
         View rootView = inflater.inflate(R.layout.fragment_group_info, container, false);
         button = rootView.findViewById(R.id.ll_request);
         close = rootView.findViewById(R.id.ll_close);
-        image = rootView.findViewById(R.id.niv_group_image);
+        image = rootView.findViewById(R.id.iv_group_image);
         name = rootView.findViewById(R.id.tv_name);
         info = rootView.findViewById(R.id.tv_info);
         desc = rootView.findViewById(R.id.tv_desciption);
@@ -154,14 +152,12 @@ public class GroupInfoFragment extends DialogFragment {
                 GroupInfoFragment.this.dismiss();
             }
         });
-        image.setImageUrl(groupImage, app.AppController.getInstance().getImageLoader());
-        image.setDefaultImageResId(R.drawable.ic_launcher_background);
-        image.setErrorImageResId(R.drawable.ic_launcher_background);
         name.setText(groupName);
         info.setText(groupInfo);
         desc.setText(groupDesc);
         desc.setMaxLines(6);
         join.setText(joinType == 0 ? "가입신청" : "신청취소");
+        Glide.with(this).load(groupImage).placeholder(R.drawable.ic_launcher_background).error(R.drawable.ic_launcher_background).crossFade(100).into(image);
         return rootView;
     }
 

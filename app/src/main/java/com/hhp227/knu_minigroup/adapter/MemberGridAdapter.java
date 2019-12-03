@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
-import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.dto.MemberItem;
@@ -20,7 +19,6 @@ public class MemberGridAdapter extends BaseAdapter {
     private LayoutInflater inflater;
     private List<MemberItem> memberItems;
     private TextView name;
-    private ImageLoader imageLoader;
 
     public MemberGridAdapter(Activity activity, List<MemberItem> memberItems) {
         this.activity = activity;
@@ -48,8 +46,6 @@ public class MemberGridAdapter extends BaseAdapter {
             inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (convertView == null)
             convertView = inflater.inflate(R.layout.member_item, null);
-        if (imageLoader == null)
-            imageLoader = app.AppController.getInstance().getImageLoader();
 
         name = convertView.findViewById(R.id.tv_name);
         NetworkImageView profileImg = convertView.findViewById(R.id.niv_profile);

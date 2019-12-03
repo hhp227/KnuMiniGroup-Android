@@ -20,10 +20,8 @@ import com.hhp227.knu_minigroup.calendar.Day;
 import com.hhp227.knu_minigroup.calendar.ExtendedCalendarView;
 import com.hhp227.knu_minigroup.ui.scrollable.BaseFragment;
 import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-import java.io.IOException;
 import java.io.StringReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

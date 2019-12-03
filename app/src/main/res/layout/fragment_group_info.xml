@@ -4,8 +4,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-    <com.android.volley.toolbox.NetworkImageView
-            android:id="@+id/niv_group_image"
+    <ImageView
+            android:id="@+id/iv_group_image"
             android:layout_width="match_parent"
             android:layout_height="200dip"
             android:scaleType="centerCrop"/>
@@ -15,7 +15,7 @@
             android:singleLine="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/niv_group_image"
+            android:layout_alignBottom="@+id/iv_group_image"
             android:background="#77000000"
             android:paddingBottom="14dip"
             android:paddingLeft="8dip"
@@ -30,7 +30,7 @@
             android:layout_height="wrap_content"
             android:gravity="left"
             android:background="#FFFFFF"
-            android:layout_below="@+id/niv_group_image"
+            android:layout_below="@+id/iv_group_image"
             android:orientation="horizontal"
             android:paddingBottom="5dp"
             android:paddingLeft="10dp"

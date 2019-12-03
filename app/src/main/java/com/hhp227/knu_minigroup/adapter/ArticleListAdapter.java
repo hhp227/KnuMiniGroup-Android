@@ -8,12 +8,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
-import com.android.volley.toolbox.ImageLoader;
+import com.bumptech.glide.Glide;
 import com.hhp227.knu_minigroup.ArticleActivity;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.fragment.Tab1Fragment;
-import com.hhp227.knu_minigroup.volley.util.ArticleImageView;
 
 import java.util.List;
 
@@ -23,8 +22,7 @@ public class ArticleListAdapter extends BaseAdapter {
     public static boolean LIKED;
     private static final int CONTENT_MAX_LINE = 4;
     private Activity activity;
-    private ImageLoader imageLoader;
-    private ImageView favorite;
+    private ImageView articleImage;
     private LayoutInflater inflater;
     private LinearLayout replyButton, likeButton;
     private List<ArticleItem> articleItems;
@@ -58,14 +56,11 @@ public class ArticleListAdapter extends BaseAdapter {
         if (convertView == null)
             convertView = inflater.inflate(R.layout.article_item, null);
 
-        if (imageLoader == null)
-            imageLoader = app.AppController.getInstance().getImageLoader();
-
         name = convertView.findViewById(R.id.tv_name);
         timestamp = convertView.findViewById(R.id.tv_timestamp);
         content = convertView.findViewById(R.id.tv_content);
         contentMore = convertView.findViewById(R.id.tv_content_more);
-        ArticleImageView articleImageView = convertView.findViewById(R.id.fiv_article_image);
+        articleImage = convertView.findViewById(R.id.iv_article_image);
         replyCount = convertView.findViewById(R.id.tv_replycount);
         replyButton = convertView.findViewById(R.id.ll_reply);
 
@@ -86,20 +81,10 @@ public class ArticleListAdapter extends BaseAdapter {
 
         // 피드 이미지
         if (articleItem.getImage() != null) {
-            articleImageView.setImageUrl(articleItem.getImage(), imageLoader);
-            articleImageView.setErrorImageResId(R.drawable.ic_launcher_background);
-            articleImageView.setVisibility(View.VISIBLE);
-            articleImageView.setResponseObserver(new ArticleImageView.ResponseObserver() {
-                @Override
-                public void onError() {
-                }
-
-                @Override
-                public void onSuccess() {
-                }
-            });
+            articleImage.setVisibility(View.VISIBLE);
+            Glide.with(activity).load(articleItem.getImage()).crossFade(150).error(R.drawable.ic_launcher_background).into(articleImage);
         } else
-            articleImageView.setVisibility(View.GONE);
+            articleImage.setVisibility(View.GONE);
         replyCount.setText(articleItem.getReplyCount());
 
         // 댓글 버튼을 누르면 댓글쓰는곳으로 이동

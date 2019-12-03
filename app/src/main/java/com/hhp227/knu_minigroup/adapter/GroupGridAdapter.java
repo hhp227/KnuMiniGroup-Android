@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
+import com.bumptech.glide.Glide;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 
@@ -19,7 +20,6 @@ public class GroupGridAdapter extends BaseAdapter {
     private LayoutInflater layoutInflater;
     private List<GroupItem> groupItems;
     private TextView groupName;
-    private ImageLoader imageLoader;
 
     public GroupGridAdapter(Context context, List<GroupItem> groupItems) {
         this.context = context;
@@ -47,24 +47,13 @@ public class GroupGridAdapter extends BaseAdapter {
             layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (convertView == null)
             convertView = layoutInflater.inflate(R.layout.group_grid_item, null);
-        if (imageLoader == null)
-            imageLoader = app.AppController.getInstance().getImageLoader();
 
         groupName = convertView.findViewById(R.id.tv_group_name);
-        NetworkImageView GroupImage = convertView.findViewById(R.id.niv_group_image);
-        ImageView nullGroupImage = convertView.findViewById(R.id.null_group_image);
+        ImageView groupImage = convertView.findViewById(R.id.iv_group_image);
         GroupItem groupItem = groupItems.get(position);
 
         groupName.setText(groupItem.getName());
-
-        if (groupItem.getImage() != null) {
-            GroupImage.setImageUrl(groupItem.getImage(), imageLoader);
-            GroupImage.setVisibility(View.VISIBLE);
-            nullGroupImage.setVisibility(View.GONE);
-        } else {
-            nullGroupImage.setVisibility(View.VISIBLE);
-            GroupImage.setVisibility(View.GONE);
-        }
+        Glide.with(context).load(groupItem.getImage()).crossFade(150).into(groupImage);
 
         return convertView;
     }

@@ -6,11 +6,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import com.android.volley.toolbox.ImageLoader;
+import com.bumptech.glide.Glide;
 import com.hhp227.knu_minigroup.R;
-import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.WriteItem;
-import com.hhp227.knu_minigroup.volley.util.ArticleImageView;
 
 import java.util.List;
 
@@ -18,10 +16,7 @@ public class WriteListAdapter extends ArrayAdapter<WriteItem> {
     private Context context;
     private LayoutInflater layoutInflater;
     private int resource;
-    private ArticleImageView articleImageView;
     private ImageView imageView;
-    private ImageLoader imageLoader;
-
 
     public WriteListAdapter(Context context, int resource, List<WriteItem> objects) {
         super(context, resource, objects);
@@ -37,25 +32,15 @@ public class WriteListAdapter extends ArrayAdapter<WriteItem> {
         if (convertView == null)
             convertView = layoutInflater.inflate(resource, null);
 
-        if (imageLoader == null)
-            imageLoader = app.AppController.getInstance().getImageLoader();
-
         imageView = convertView.findViewById(R.id.iv_image_preview);
-        articleImageView = convertView.findViewById(R.id.fiv_image_preview);
 
         WriteItem writeItem = getItem(position);
 
-        if (writeItem.getFileUri() != null) {
+        imageView.setVisibility(writeItem.getImage() != null || writeItem.getBitmap() != null ? View.VISIBLE : View.GONE);
+        if (writeItem.getFileUri() != null)
             imageView.setImageBitmap(writeItem.getBitmap());
-            imageView.setVisibility(View.VISIBLE);
-        } else
-            imageView.setVisibility(View.GONE);
-
-        if (writeItem.getImage() != null) {
-            articleImageView.setImageUrl(writeItem.getImage(), imageLoader);
-            articleImageView.setVisibility(View.VISIBLE);
-        } else
-            articleImageView.setVisibility(View.GONE);
+        if (writeItem.getImage() != null)
+            Glide.with(context).load(writeItem.getImage()).into(imageView);
 
         return convertView;
     }
