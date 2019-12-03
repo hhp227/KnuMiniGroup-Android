@@ -3,17 +3,26 @@ package com.hhp227.knu_minigroup;
 import android.app.ActionBar;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
+import com.android.volley.AuthFailureError;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageRequest;
 import com.hhp227.knu_minigroup.fragment.*;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.ActionBarDrawerToggle;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends FragmentActivity {
     private ActionBar actionBar;
@@ -21,6 +30,7 @@ public class MainActivity extends FragmentActivity {
     private CharSequence titleSection;
     private DrawerArrowDrawable drawerArrow;
     private DrawerLayout drawerLayout;
+    private ImageView profileImage;
     private RelativeLayout drawerRelativeLayout;
     private ListView drawerList;
     private PreferenceManager preferenceManager;
@@ -45,6 +55,7 @@ public class MainActivity extends FragmentActivity {
         drawerRelativeLayout = findViewById(R.id.rl_left_drawer);
         drawerList = findViewById(R.id.lv_drawer);
         knuId = findViewById(R.id.tv_knu_id);
+        profileImage = findViewById(R.id.iv_profile_image);
 
         fragMain = GroupFragment.newInstance();
         fragUnivNotice = UnivNoticeFragment.newInstance();

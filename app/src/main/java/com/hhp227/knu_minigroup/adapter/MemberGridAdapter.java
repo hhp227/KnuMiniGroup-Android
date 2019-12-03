@@ -2,12 +2,15 @@ package com.hhp227.knu_minigroup.adapter;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import com.android.volley.Response;
+import com.android.volley.toolbox.ImageRequest;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
@@ -17,6 +20,7 @@ import java.util.List;
 
 public class MemberGridAdapter extends BaseAdapter {
     private Activity activity;
+    private ImageView profileImg;
     private LayoutInflater inflater;
     private List<MemberItem> memberItems;
     private TextView name;
@@ -49,11 +53,11 @@ public class MemberGridAdapter extends BaseAdapter {
             convertView = inflater.inflate(R.layout.member_item, null);
 
         name = convertView.findViewById(R.id.tv_name);
-        ImageView profileImg = convertView.findViewById(R.id.iv_profile_image);
+        profileImg = convertView.findViewById(R.id.iv_profile_image);
         MemberItem memberItem = memberItems.get(position);
 
-        name.setText(memberItem.getName());
-        Glide.with(activity).load(memberItem.getProfileImg()).apply(new RequestOptions().circleCrop()).into(profileImg);
+        name.setText(memberItem.name);
+        profileImg.setImageBitmap(memberItem.profileImg);
         return convertView;
     }
 }
