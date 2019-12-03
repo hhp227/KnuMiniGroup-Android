@@ -18,6 +18,7 @@ import com.android.volley.*;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.StringRequest;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.adapter.ReplyListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ReplyItem;
@@ -383,7 +384,7 @@ public class ArticleActivity extends Activity {
                                     startActivity(intent);
                                 }
                             });
-                            Glide.with(getApplicationContext()).load(imageUrl).into(articleImage);
+                            Glide.with(getApplicationContext()).load(imageUrl).apply(RequestOptions.errorOf(R.drawable.ic_launcher_background)).into(articleImage);
                             articleImages.addView(articleImage);
                             imageList.add(imageUrl);
                         }
