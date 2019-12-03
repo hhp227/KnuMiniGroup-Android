@@ -18,6 +18,8 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
+import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.MainActivity;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.RequestActivity;
@@ -157,7 +159,11 @@ public class GroupInfoFragment extends DialogFragment {
         desc.setText(groupDesc);
         desc.setMaxLines(6);
         join.setText(joinType == 0 ? "가입신청" : "신청취소");
-        Glide.with(this).load(groupImage).placeholder(R.drawable.ic_launcher_background).error(R.drawable.ic_launcher_background).crossFade(100).into(image);
+        Glide.with(this)
+                .load(groupImage)
+                .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background).error(R.drawable.ic_launcher_background))
+                .transition(DrawableTransitionOptions.withCrossFade(150))
+                .into(image);
         return rootView;
     }
 

@@ -8,7 +8,8 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
-import com.android.volley.toolbox.NetworkImageView;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.dto.MemberItem;
 
@@ -48,11 +49,11 @@ public class MemberGridAdapter extends BaseAdapter {
             convertView = inflater.inflate(R.layout.member_item, null);
 
         name = convertView.findViewById(R.id.tv_name);
-        NetworkImageView profileImg = convertView.findViewById(R.id.niv_profile);
-        ImageView nullProfileImg = convertView.findViewById(R.id.null_profile_img);
+        ImageView profileImg = convertView.findViewById(R.id.iv_profile_image);
         MemberItem memberItem = memberItems.get(position);
 
         name.setText(memberItem.getName());
+        Glide.with(activity).load(memberItem.getProfileImg()).apply(new RequestOptions().circleCrop()).into(profileImg);
         return convertView;
     }
 }

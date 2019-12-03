@@ -75,6 +75,8 @@ public class Tab3Fragment extends BaseFragment {
                     /*memberItems.add(new MemberItem(memberValueElements.get(i).getParentElement().getFirstElement(HTMLElementName.SPAN).getTextExtractor().toString(),
                             null));*/
                 }
+                // Test
+                memberItems.add(new MemberItem("DeadPool", "https://api.androidhive.info/images/glide/small/deadpool.jpg"));
                 memberGridAdapter.notifyDataSetChanged();
                 hideProgressDialog();
             }

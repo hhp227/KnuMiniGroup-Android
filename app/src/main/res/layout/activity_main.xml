@@ -24,8 +24,8 @@
                 android:scaleType="centerCrop"
                 android:background="#888888">
 
-            <com.hhp227.knu_minigroup.volley.util.CircularNetworkImageView
-                    android:id="@+id/cniv_profile_image"
+            <ImageView
+                    android:id="@+id/iv_profile_image"
                     android:layout_width="90dp"
                     android:layout_height="90dp"
                     android:layout_alignParentBottom="true"

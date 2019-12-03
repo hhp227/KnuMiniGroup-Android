@@ -10,6 +10,7 @@ import android.widget.TextView;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 
@@ -53,7 +54,7 @@ public class GroupGridAdapter extends BaseAdapter {
         GroupItem groupItem = groupItems.get(position);
 
         groupName.setText(groupItem.getName());
-        Glide.with(context).load(groupItem.getImage()).crossFade(150).into(groupImage);
+        Glide.with(context).load(groupItem.getImage()).transition(new DrawableTransitionOptions().crossFade(150)).into(groupImage);
 
         return convertView;
     }

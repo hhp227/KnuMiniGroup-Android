@@ -9,6 +9,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
+import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.ArticleActivity;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
@@ -82,7 +84,11 @@ public class ArticleListAdapter extends BaseAdapter {
         // 피드 이미지
         if (articleItem.getImage() != null) {
             articleImage.setVisibility(View.VISIBLE);
-            Glide.with(activity).load(articleItem.getImage()).crossFade(150).error(R.drawable.ic_launcher_background).into(articleImage);
+            Glide.with(activity)
+                    .load(articleItem.getImage())
+                    .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
+                    .transition(DrawableTransitionOptions.withCrossFade(150))
+                    .into(articleImage);
         } else
             articleImage.setVisibility(View.GONE);
         replyCount.setText(articleItem.getReplyCount());

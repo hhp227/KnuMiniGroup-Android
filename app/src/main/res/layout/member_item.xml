@@ -12,17 +12,8 @@
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true">
 
-        <com.android.volley.toolbox.NetworkImageView
-                android:id="@+id/niv_profile"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:padding="5dp"
-                android:layout_centerHorizontal="true"
-                android:layout_centerVertical="true"
-                android:scaleType="fitCenter" />
-
         <ImageView
-                android:id="@+id/null_profile_img"
+                android:id="@+id/iv_profile_image"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
                 android:padding="5dp"
