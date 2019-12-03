@@ -232,10 +232,8 @@ public class Tab1Fragment extends BaseFragment {
                     e.printStackTrace();
                 } finally {
                     hideProgressDialog();
-                    if (!articleItems.isEmpty())
-                        relativeLayout.setVisibility(View.GONE);
-                    else
-                        floatingActionButton.setVisibility(View.GONE);
+                    relativeLayout.setVisibility(!articleItems.isEmpty() ? View.GONE : View.VISIBLE);
+                    floatingActionButton.setVisibility(!articleItems.isEmpty() ? View.VISIBLE : View.GONE);
                 }
             }
         }, new Response.ErrorListener() {

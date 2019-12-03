@@ -40,19 +40,20 @@
     <RelativeLayout
             android:id="@+id/rl_write"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:visibility="invisible">
 
         <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_content_new"
+                android:src="@drawable/ic_library_add_black_72dp"
                 android:layout_centerHorizontal="true"
-                android:layout_marginBottom="30dp"
+                android:layout_marginBottom="20dp"
                 android:layout_above="@+id/tv_write"/>
 
         <TextView
                 android:id="@+id/tv_write"
-                android:text="첫 게시글을 작성하세요."
+                android:text="등록된 글이 없습니다.\n게시글을 작성하세요."
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
