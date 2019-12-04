@@ -10,11 +10,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.android.volley.*;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
+import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.MainActivity;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.VerInfoActivity;
@@ -33,6 +38,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     private static int groupId;
     private static boolean isAdmin;
     private static final String TAG = Tab4Fragment.class.getSimpleName();
+    ImageView profile;
     LinearLayout withdrawal, settings, appStore, share, version;
     ProgressDialog progressDialog;
     TextView name, knuId, withdrawalText;
@@ -61,6 +67,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_tab4, container, false);
+        profile = rootView.findViewById(R.id.iv_profile_image);
         name = rootView.findViewById(R.id.tv_name);
         knuId = rootView.findViewById(R.id.tv_knu_id);
         withdrawal = rootView.findViewById(R.id.ll_withdrawal);
@@ -74,6 +81,10 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
         User user = app.AppController.getInstance().getPreferenceManager().getUser();
         String strKnuId = user.getUserId();
         progressDialog.setCancelable(false);
+        Glide.with(getContext())
+                .load(new GlideUrl(EndPoint.USER_IMAGE, new LazyHeaders.Builder().addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie()).build()))
+                .apply(RequestOptions.circleCropTransform())
+                .into(profile);
         knuId.setText(strKnuId);
         withdrawal.setOnClickListener(this);
         if (isAdmin) {

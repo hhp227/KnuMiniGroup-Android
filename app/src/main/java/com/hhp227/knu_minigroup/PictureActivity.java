@@ -5,9 +5,9 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
 import android.widget.TextView;
-import android.widget.Toast;
 import com.hhp227.knu_minigroup.adapter.PicturePagerAdapter;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 
@@ -63,6 +63,7 @@ public class PictureActivity extends Activity {
                 return false;
             }
         });
+        count.setVisibility(images.size() > 1 ? View.VISIBLE : View.GONE);
         count.setText((position + 1) + " / " + images.size());
     }
 
