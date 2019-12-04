@@ -17,21 +17,37 @@
                 android:id="@+id/b_find"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:text="그룹찾기" />
+                android:background="@drawable/main_button"
+                android:text="그룹찾기"
+                android:textColor="@android:color/white"/>
+
+        <LinearLayout
+                android:layout_width="1px"
+                android:layout_height="match_parent"
+                android:background="@android:color/darker_gray" />
 
         <Button
                 android:layout_weight="1"
                 android:id="@+id/b_request"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:text="가입 신청중\n그룹" />
+                android:background="@drawable/main_button"
+                android:text="가입 신청중\n그룹"
+                android:textColor="@android:color/white"/>
+
+        <LinearLayout
+                android:layout_width="1px"
+                android:layout_height="match_parent"
+                android:background="@android:color/darker_gray" />
 
         <Button
                 android:layout_weight="1"
                 android:id="@+id/b_create"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:text="그룹 만들기" />
+                android:background="@drawable/main_button"
+                android:text="그룹 만들기"
+                android:textColor="@android:color/white"/>
 
     </LinearLayout>
 
