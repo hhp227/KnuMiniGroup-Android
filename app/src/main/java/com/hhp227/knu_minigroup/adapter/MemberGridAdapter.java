@@ -9,6 +9,8 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.dto.MemberItem;
@@ -52,8 +54,13 @@ public class MemberGridAdapter extends BaseAdapter {
         ImageView profileImg = convertView.findViewById(R.id.iv_profile_image);
         MemberItem memberItem = memberItems.get(position);
 
-        name.setText(memberItem.getName());
-        Glide.with(activity).load(memberItem.getProfileImg()).apply(new RequestOptions().circleCrop()).into(profileImg);
+        name.setText(memberItem.name);
+        Glide.with(activity)
+                .load(new GlideUrl(memberItem.imgUrl, new LazyHeaders.Builder()
+                        .addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie())
+                        .build()))
+                .apply(new RequestOptions().centerCrop())
+                .into(profileImg);
         return convertView;
     }
 }

@@ -10,6 +10,11 @@ import android.support.v4.widget.DrawerLayout;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
+import com.bumptech.glide.request.RequestOptions;
+import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.fragment.*;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.ActionBarDrawerToggle;
@@ -21,9 +26,10 @@ public class MainActivity extends FragmentActivity {
     private CharSequence titleSection;
     private DrawerArrowDrawable drawerArrow;
     private DrawerLayout drawerLayout;
-    private RelativeLayout drawerRelativeLayout;
+    private ImageView profileImage;
     private ListView drawerList;
     private PreferenceManager preferenceManager;
+    private RelativeLayout drawerRelativeLayout;
     private TextView knuId;
 
     String[] menu = {"메인화면", "본관게시판", "시간표", "통학버스시간표", "식단보기", "도서관좌석", "로그아웃"};
@@ -44,6 +50,7 @@ public class MainActivity extends FragmentActivity {
         drawerLayout = findViewById(R.id.dl_group);
         drawerRelativeLayout = findViewById(R.id.rl_left_drawer);
         drawerList = findViewById(R.id.lv_drawer);
+        profileImage = findViewById(R.id.iv_profile_image);
         knuId = findViewById(R.id.tv_knu_id);
 
         fragMain = GroupFragment.newInstance();
@@ -53,7 +60,7 @@ public class MainActivity extends FragmentActivity {
         fragMeal = MealFragment.newInstance();
         fragSeat = SeatFragment.newInstance();
 
-        preferenceManager = new PreferenceManager(getApplicationContext());
+        preferenceManager = app.AppController.getInstance().getPreferenceManager();
         titleSection = "메인화면";
         drawerArrow = new DrawerArrowDrawable(this) {
             @Override
@@ -80,7 +87,11 @@ public class MainActivity extends FragmentActivity {
         actionBar.setHomeButtonEnabled(true);
         actionBar.setTitle(titleSection);
 
-        knuId.setText(app.AppController.getInstance().getPreferenceManager().getUser().getUserId());
+        Glide.with(this)
+                .load(new GlideUrl(EndPoint.USER_IMAGE, new LazyHeaders.Builder().addHeader("Cookie", preferenceManager.getCookie()).build()))
+                .apply(new RequestOptions().circleCrop())
+                .into(profileImage);
+        knuId.setText(preferenceManager.getUser().getUserId());
 
         drawerLayout.setDrawerListener(actionBarDrawerToggle);
         drawerList.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, menu));
