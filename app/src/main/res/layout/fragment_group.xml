@@ -15,11 +15,16 @@
         <Button
                 android:layout_weight="1"
                 android:id="@+id/b_find"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:paddingTop="7dp"
+                android:paddingBottom="7dp"
+                android:drawableTop="@drawable/ic_search_gray_36dp"
+                android:drawablePadding="-5dp"
                 android:background="@drawable/main_button"
+                android:textAppearance="@style/TextAppearance.Compat.Notification"
                 android:text="그룹찾기"
-                android:textColor="@android:color/white"/>
+                android:textColor="#444444" />
 
         <LinearLayout
                 android:layout_width="1px"
@@ -29,11 +34,18 @@
         <Button
                 android:layout_weight="1"
                 android:id="@+id/b_request"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:paddingTop="7dp"
+                android:paddingBottom="7dp"
+                android:drawableTop="@drawable/ic_group_gray_36dp"
+                android:drawablePadding="-5dp"
                 android:background="@drawable/main_button"
-                android:text="가입 신청중\n그룹"
-                android:textColor="@android:color/white"/>
+                android:textAppearance="@style/TextAppearance.Compat.Notification"
+                android:text="가입신청중 그룹"
+                android:textColor="#444444">
+
+        </Button>
 
         <LinearLayout
                 android:layout_width="1px"
@@ -43,13 +55,25 @@
         <Button
                 android:layout_weight="1"
                 android:id="@+id/b_create"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:paddingTop="7dp"
+                android:paddingBottom="7dp"
+                android:drawableTop="@drawable/ic_add_gray_36dp"
+                android:drawablePadding="-5dp"
                 android:background="@drawable/main_button"
+                android:textAppearance="@style/TextAppearance.Compat.Notification"
                 android:text="그룹 만들기"
-                android:textColor="@android:color/white"/>
+                android:textColor="#444444">
+
+        </Button>
 
     </LinearLayout>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="1px"
+            android:background="@android:color/darker_gray" />
 
     <RelativeLayout
             android:layout_width="match_parent"

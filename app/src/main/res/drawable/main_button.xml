@@ -4,14 +4,14 @@
         <shape>
             <!-- 배경 색깔 -->
             <solid
-                    android:color="#90ffffff" />
+                    android:color="@android:color/darker_gray" />
         </shape>
     </item>
     <item>
         <shape>
             <!-- 배경 색깔 -->
             <solid
-                    android:color="#bc1c1e" />
+                    android:color="#FAFAFA" />
         </shape>
     </item>
 </selector>
