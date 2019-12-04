@@ -371,7 +371,8 @@ public class ArticleActivity extends Activity {
 
                     if (images.size() > 0) {
                         for (Element image : images) {
-                            final String imageUrl = !image.getAttributeValue("src").contains("http") ? EndPoint.BASE_URL + image.getAttributeValue("src") : image.getAttributeValue("src");
+                            final int position = imageList.size();
+                            String imageUrl = !image.getAttributeValue("src").contains("http") ? EndPoint.BASE_URL + image.getAttributeValue("src") : image.getAttributeValue("src");
                             ImageView articleImage = new ImageView(getApplicationContext());
                             articleImage.setAdjustViewBounds(true);
                             articleImage.setPadding(0, 0, 0, 30);
@@ -380,7 +381,8 @@ public class ArticleActivity extends Activity {
                                 @Override
                                 public void onClick(View v) {
                                     Intent intent = new Intent(getApplicationContext(), PictureActivity.class);
-                                    intent.putExtra("image_url", imageUrl);
+                                    intent.putStringArrayListExtra("images", (ArrayList<String>) imageList);
+                                    intent.putExtra("position", position);
                                     startActivity(intent);
                                 }
                             });

@@ -3,14 +3,21 @@ package com.hhp227.knu_minigroup;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
+import android.support.v4.view.ViewPager;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
-import com.hhp227.knu_minigroup.helper.ZoomImageView;
+import android.widget.TextView;
+import com.hhp227.knu_minigroup.adapter.PicturePagerAdapter;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 
+import java.util.List;
+
 public class PictureActivity extends Activity {
-    private ZoomImageView zoomImageView;
+    private TextView count;
+    private ViewPager viewPager;
+    private PicturePagerAdapter pagerAdapter;
+    private List<String> images;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,9 +25,32 @@ public class PictureActivity extends Activity {
         // 상단 타이틀바를 투명하게
         this.requestWindowFeature(Window.FEATURE_ACTION_BAR_OVERLAY);
         setContentView(R.layout.activity_picture);
-        zoomImageView = findViewById(R.id.ziv_image);
         ActionBar actionBar = getActionBar();
+        viewPager = findViewById(R.id.view_pager);
+        count = findViewById(R.id.tv_count);
+        int position = 0;
+        Bundle b = getIntent().getExtras();
+        if (b != null) {
+            images = b.getStringArrayList("images");
+            position = b.getInt("position");
+        }
+        pagerAdapter = new PicturePagerAdapter(this, images);
+        viewPager.setAdapter(pagerAdapter);
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
 
+            @Override
+            public void onPageSelected(int position) {
+                count.setText((position + 1) + " / " + images.size());
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+            }
+        });
+        viewPager.setCurrentItem(position, false);
         // 뒤로가기버튼
         actionBar.setDisplayHomeAsUpEnabled(true);
         // 앱 아이콘 숨기기
@@ -33,21 +63,8 @@ public class PictureActivity extends Activity {
                 return false;
             }
         });
-
-        zoomImageView.setAdjustViewBounds(false);
-
-        String imageUrl = null;
-        Bundle b = getIntent().getExtras();
-        if (b != null) {
-            imageUrl = b.getString("image_url");
-        }
-
-        DisplayMetrics metrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        int mScreenWidth = metrics.widthPixels;
-        int mScreenHeight = metrics.heightPixels;
-
-        zoomImageView.setImageResource(R.drawable.bg_no_image);
+        count.setVisibility(images.size() > 1 ? View.VISIBLE : View.GONE);
+        count.setText((position + 1) + " / " + images.size());
     }
 
     @Override

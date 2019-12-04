@@ -1,14 +1,11 @@
 package com.hhp227.knu_minigroup.dto;
 
-import android.graphics.Bitmap;
-
 public class MemberItem {
-    public String name, messageValue;
-    public Bitmap profileImg;
+    public String name, imgUrl, value;
 
-    public MemberItem(String name, Bitmap profileImg, String messageValue) {
+    public MemberItem(String name, String imgUrl, String value) {
         this.name = name;
-        this.profileImg = profileImg;
-        this.messageValue = messageValue;
+        this.imgUrl = imgUrl;
+        this.value = value;
     }
 }

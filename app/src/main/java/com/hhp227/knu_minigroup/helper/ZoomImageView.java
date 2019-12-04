@@ -9,6 +9,7 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 public class ZoomImageView extends ImageView implements View.OnTouchListener {
     private Matrix matrix = new Matrix();
