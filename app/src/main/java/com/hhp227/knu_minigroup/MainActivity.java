@@ -141,6 +141,12 @@ public class MainActivity extends FragmentActivity {
                     .load(new GlideUrl(EndPoint.USER_IMAGE, new LazyHeaders.Builder().addHeader("Cookie", preferenceManager.getCookie()).build()))
                     .apply(new RequestOptions().circleCrop())
                     .into(profileImage);
+        profileImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(), preferenceManager.getProfile().getImageId(), Toast.LENGTH_LONG).show();
+            }
+        });
         knuId.setText(preferenceManager.getUser().getUserId());
         Toast.makeText(getApplicationContext(), preferenceManager.getProfile().getImageId(), Toast.LENGTH_LONG).show();
     }
