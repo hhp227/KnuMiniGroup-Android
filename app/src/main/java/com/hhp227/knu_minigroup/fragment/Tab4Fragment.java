@@ -82,7 +82,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
         String strKnuId = user.getUserId();
         progressDialog.setCancelable(false);
         Glide.with(getContext())
-                .load(new GlideUrl(EndPoint.USER_IMAGE, new LazyHeaders.Builder().addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie()).build()))
+                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{IMAGE_ID}", user.getImageId()), new LazyHeaders.Builder().addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie()).build()))
                 .apply(RequestOptions.circleCropTransform())
                 .into(profile);
         knuId.setText(strKnuId);

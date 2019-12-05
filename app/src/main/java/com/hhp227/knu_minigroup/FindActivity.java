@@ -1,7 +1,6 @@
 package com.hhp227.knu_minigroup;
 
 import android.app.ActionBar;
-import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
@@ -9,10 +8,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
+import android.widget.*;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
 import com.hhp227.knu_minigroup.adapter.GroupListAdapter;
@@ -38,7 +34,7 @@ public class FindActivity extends FragmentActivity {
     private GroupListAdapter listAdapter;
     private List<GroupItem> groupItems;
     private ListView listView;
-    private ProgressDialog progressDialog;
+    private ProgressBar progressBar;
     private RelativeLayout relativeLayout;
     private SwipeRefreshLayout swipeRefreshLayout;
     private View footerLoading;
@@ -52,11 +48,11 @@ public class FindActivity extends FragmentActivity {
         footerLoading = View.inflate(this, R.layout.load_more, null);
         listView = findViewById(R.id.lv_group);
         relativeLayout = findViewById(R.id.rl_group);
+        progressBar = findViewById(R.id.pb_group);
         swipeRefreshLayout = findViewById(R.id.srl_group_list);
         offSet = 1;
         groupItems = new ArrayList<>();
         listAdapter = new GroupListAdapter(getBaseContext(), groupItems);
-        progressDialog = new ProgressDialog(this);
         actionBar = getActionBar();
         actionBar.setDisplayShowHomeEnabled(false);
         actionBar.setDisplayHomeAsUpEnabled(true);
@@ -66,7 +62,7 @@ public class FindActivity extends FragmentActivity {
                 return false;
             }
         });
-
+        footerLoading.setVisibility(View.GONE);
         listView.addFooterView(footerLoading);
         listView.setAdapter(listAdapter);
         listView.setOnScrollListener(new AbsListView.OnScrollListener() {
@@ -105,8 +101,6 @@ public class FindActivity extends FragmentActivity {
                 newFragment.show(getSupportFragmentManager(), "dialog");
             }
         });
-        progressDialog.setCancelable(false);
-        progressDialog.setMessage("불러오는중...");
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -121,7 +115,7 @@ public class FindActivity extends FragmentActivity {
                 }, 1000);
             }
         });
-        showProgressDialog();
+        progressBar.setVisibility(View.VISIBLE);
         fetchGroupList();
     }
 
@@ -169,14 +163,15 @@ public class FindActivity extends FragmentActivity {
                 }
                 listAdapter.notifyDataSetChanged();
                 hasRequestedMore = false;
-                hideProgressDialog();
+                footerLoading.setVisibility(View.GONE);
+                progressBar.setVisibility(View.GONE);
                 relativeLayout.setVisibility(groupItems.isEmpty() ? View.VISIBLE : View.GONE);
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 VolleyLog.e(TAG, error.getMessage());
-                hideProgressDialog();
+                progressBar.setVisibility(View.GONE);
             }
         }) {
             @Override
@@ -220,16 +215,5 @@ public class FindActivity extends FragmentActivity {
 
     private int groupIdExtract(String onclick) {
         return Integer.parseInt(onclick.split("[(]|[)]|[,]")[1].trim());
-    }
-
-    private void showProgressDialog() {
-        if (!progressDialog.isShowing())
-            progressDialog.show();
-    }
-
-    private void hideProgressDialog() {
-        if (progressDialog.isShowing())
-            progressDialog.dismiss();
-        footerLoading.setVisibility(View.GONE);
     }
 }

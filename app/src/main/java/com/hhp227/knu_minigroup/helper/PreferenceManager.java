@@ -3,7 +3,6 @@ package com.hhp227.knu_minigroup.helper;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
-import com.hhp227.knu_minigroup.dto.UserProfile;
 import com.hhp227.knu_minigroup.dto.User;
 
 public class PreferenceManager {
@@ -20,8 +19,8 @@ public class PreferenceManager {
 
     private static final String KEY_USER_ID = "usr_id";
     private static final String KEY_USER_PASSWORD = "usr_pwd";
-    private static final String KEY_COOKIE = "cookie";
     private static final String KEY_USER_IMAGE_ID = "usr_img_id";
+    private static final String KEY_COOKIE = "cookie";
 
     public PreferenceManager(Context context) {
         this.context = context;
@@ -32,6 +31,7 @@ public class PreferenceManager {
     public void storeUser(User user) {
         editor.putString(KEY_USER_ID, user.getUserId());
         editor.putString(KEY_USER_PASSWORD, user.getPassword());
+        editor.putString(KEY_USER_IMAGE_ID, user.getImageId());
         editor.commit();
 
         Log.i(TAG, "사용자 Session 저장 : " + user.getUserId());
@@ -41,7 +41,8 @@ public class PreferenceManager {
         if (sharedPreferences.getString(KEY_USER_ID, null) != null) {
             String knuId = sharedPreferences.getString(KEY_USER_ID, null);
             String password = sharedPreferences.getString(KEY_USER_PASSWORD, null);
-            User user = new User(knuId, password);
+            String imageId = sharedPreferences.getString(KEY_USER_IMAGE_ID, null);
+            User user = new User(knuId, password, imageId);
 
             return user;
         }
@@ -55,14 +56,6 @@ public class PreferenceManager {
 
     public String getCookie() {
         return sharedPreferences.getString(KEY_COOKIE, null);
-    }
-
-    public void storeProfile(UserProfile profile) {
-        editor.putString(KEY_USER_IMAGE_ID, profile.getImageId());
-    }
-
-    public UserProfile getProfile() {
-        return new UserProfile(sharedPreferences.getString(KEY_USER_IMAGE_ID, null), null);
     }
 
     public void clear() {

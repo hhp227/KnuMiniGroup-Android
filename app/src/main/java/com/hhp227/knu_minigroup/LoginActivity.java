@@ -14,6 +14,7 @@ import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.User;
+import net.htmlparser.jericho.Source;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -70,13 +71,7 @@ public class LoginActivity extends Activity {
                                 boolean error = jsonObject.getBoolean("isError");
                                 if (!error) {
                                     createLog(id, password);
-                                    User user = new User(id, password);
-
-                                    app.AppController.getInstance().getPreferenceManager().storeUser(user);
-                                    // 화면이동
-                                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                                    startActivity(intent);
-                                    finish();
+                                    getUserImageId(id, password);
                                 } else {
                                     Toast.makeText(getApplicationContext(), "로그인 실패", Toast.LENGTH_LONG).show();
                                 }
@@ -165,6 +160,37 @@ public class LoginActivity extends Activity {
                 params.put("student_number", "임시");
                 params.put("real_name", "소모임 사용자");
                 return params;
+            }
+        });
+    }
+
+    private void getUserImageId(final String id, final String password) {
+        app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.GET_USER_IMAGE, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Source source = new Source(response);
+                String imageUrl = source.getElementById("photo").getAttributeValue("src");
+                String imageId = imageUrl.substring(imageUrl.indexOf("id=") + "id=".length(), imageUrl.lastIndexOf("&size"));
+
+                User user = new User(id, password, imageId);
+
+                app.AppController.getInstance().getPreferenceManager().storeUser(user);
+                // 화면이동
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e(error.getMessage());
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+                return headers;
             }
         });
     }

@@ -131,10 +131,10 @@ public class Tab2Fragment extends BaseFragment {
                         }
                         eventType = parser.next();
                     }
+                    arrayAdapter.notifyDataSetChanged();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                arrayAdapter.notifyDataSetChanged();
             }
         }, new Response.ErrorListener() {
             @Override
