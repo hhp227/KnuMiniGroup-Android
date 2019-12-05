@@ -10,15 +10,25 @@ import android.support.v4.widget.DrawerLayout;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.StringRequest;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.dto.Profile;
 import com.hhp227.knu_minigroup.fragment.*;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.ActionBarDrawerToggle;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
+import net.htmlparser.jericho.Source;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends FragmentActivity {
     private ActionBar actionBar;
@@ -87,12 +97,6 @@ public class MainActivity extends FragmentActivity {
         actionBar.setHomeButtonEnabled(true);
         actionBar.setTitle(titleSection);
 
-        Glide.with(this)
-                .load(new GlideUrl(EndPoint.USER_IMAGE, new LazyHeaders.Builder().addHeader("Cookie", preferenceManager.getCookie()).build()))
-                .apply(new RequestOptions().circleCrop())
-                .into(profileImage);
-        knuId.setText(preferenceManager.getUser().getUserId());
-
         drawerLayout.setDrawerListener(actionBarDrawerToggle);
         drawerList.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, menu));
 
@@ -130,6 +134,16 @@ public class MainActivity extends FragmentActivity {
             }
         });
         drawerList.setItemChecked(0, true);
+        if (preferenceManager.getProfile().imageId == null)
+            getUserImageId();
+        else {
+            Glide.with(getApplicationContext())
+                    .load(new GlideUrl(EndPoint.USER_IMAGE, new LazyHeaders.Builder().addHeader("Cookie", preferenceManager.getCookie()).build()))
+                    .apply(new RequestOptions().circleCrop())
+                    .into(profileImage);
+        }
+        knuId.setText(preferenceManager.getUser().getUserId());
+        Toast.makeText(getApplicationContext(), preferenceManager.getProfile().imageId, Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -159,5 +173,33 @@ public class MainActivity extends FragmentActivity {
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
         finish();
+    }
+
+    private void getUserImageId() {
+        app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.GET_USER_IMAGE, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Source source = new Source(response);
+                String img = source.getElementById("photo").getAttributeValue("src");
+                String imageId = img.substring(img.indexOf("id=") + "id=".length(), img.lastIndexOf("&size"));
+                preferenceManager.storeProfile(new Profile(imageId, null));
+                Glide.with(getApplicationContext())
+                        .load(new GlideUrl(EndPoint.BASE_URL + img, new LazyHeaders.Builder().addHeader("Cookie", preferenceManager.getCookie()).build()))
+                        .apply(new RequestOptions().circleCrop())
+                        .into(profileImage);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e(error.getMessage());
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+                return headers;
+            }
+        });
     }
 }

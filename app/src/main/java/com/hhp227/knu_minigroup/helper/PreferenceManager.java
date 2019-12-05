@@ -3,6 +3,7 @@ package com.hhp227.knu_minigroup.helper;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
+import com.hhp227.knu_minigroup.dto.Profile;
 import com.hhp227.knu_minigroup.dto.User;
 
 public class PreferenceManager {
@@ -20,6 +21,7 @@ public class PreferenceManager {
     private static final String KEY_USER_ID = "usr_id";
     private static final String KEY_USER_PASSWORD = "usr_pwd";
     private static final String KEY_COOKIE = "cookie";
+    private static final String KEY_USER_IMAGE_ID = "usr_img_id";
 
     public PreferenceManager(Context context) {
         this.context = context;
@@ -53,6 +55,14 @@ public class PreferenceManager {
 
     public String getCookie() {
         return sharedPreferences.getString(KEY_COOKIE, null);
+    }
+
+    public void storeProfile(Profile profile) {
+        editor.putString(KEY_USER_IMAGE_ID, profile.imageId);
+    }
+
+    public Profile getProfile() {
+        return new Profile(sharedPreferences.getString(KEY_USER_IMAGE_ID, null), null);
     }
 
     public void clear() {
