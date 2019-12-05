@@ -136,12 +136,11 @@ public class MainActivity extends FragmentActivity {
         drawerList.setItemChecked(0, true);
         if (preferenceManager.getProfile().imageId == null)
             getUserImageId();
-        else {
+        else 
             Glide.with(getApplicationContext())
                     .load(new GlideUrl(EndPoint.USER_IMAGE, new LazyHeaders.Builder().addHeader("Cookie", preferenceManager.getCookie()).build()))
                     .apply(new RequestOptions().circleCrop())
                     .into(profileImage);
-        }
         knuId.setText(preferenceManager.getUser().getUserId());
         Toast.makeText(getApplicationContext(), preferenceManager.getProfile().imageId, Toast.LENGTH_LONG).show();
     }
