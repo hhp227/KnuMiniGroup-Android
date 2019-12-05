@@ -40,7 +40,7 @@ public class GroupFragment extends Fragment {
     private GroupGridAdapter groupGridAdapter;
     private List<GroupItem> groupItems;
     private PreferenceManager preferenceManager;
-    private ProgressDialog progressDialog;
+    private ProgressBar progressBar;
     private RelativeLayout relativeLayout;
     private SwipeRefreshLayout swipeRefreshLayout;
     private long mLastClickTime; // 클릭시 걸리는 시간
@@ -65,16 +65,13 @@ public class GroupFragment extends Fragment {
         requestGroup = rootView.findViewById(R.id.b_request);
         createGroup = rootView.findViewById(R.id.b_create);
         myGroupList = rootView.findViewById(R.id.gv_my_grouplist);
-        swipeRefreshLayout = rootView.findViewById(R.id.srl_group);
+        progressBar = rootView.findViewById(R.id.pb_group);
         relativeLayout = rootView.findViewById(R.id.rl_group);
+        swipeRefreshLayout = rootView.findViewById(R.id.srl_group);
 
-        progressDialog = new ProgressDialog(getContext());
         preferenceManager = new PreferenceManager(getActivity());
         groupItems = new ArrayList<>();
         groupGridAdapter = new GroupGridAdapter(getContext(), groupItems);
-
-        progressDialog.setCancelable(false);
-        progressDialog.setMessage("불러오는중...");
 
         myGroupList.setAdapter(groupGridAdapter);
         myGroupList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -145,8 +142,7 @@ public class GroupFragment extends Fragment {
         if (app.AppController.getInstance().getPreferenceManager().getUser() == null)
             logout();
 
-        showProgressDialog();
-
+        progressBar.setVisibility(View.VISIBLE);
         fetchDataTask();
 
         return rootView;
@@ -187,7 +183,7 @@ public class GroupFragment extends Fragment {
             @Override
             public void onErrorResponse(VolleyError error) {
                 VolleyLog.e(error.getMessage());
-                hideProgressDialog();
+                progressBar.setVisibility(View.GONE);
             }
         }) {
             @Override
@@ -224,7 +220,7 @@ public class GroupFragment extends Fragment {
             ad.setName("광고 : 소모임앱이 출시되었습니다.");
             groupItems.add(ad);
         }
-        hideProgressDialog();
+        progressBar.setVisibility(View.GONE);
         relativeLayout.setVisibility(groupItems.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
@@ -234,15 +230,5 @@ public class GroupFragment extends Fragment {
 
     private boolean adminCheck(String onClick) {
         return onClick.split("'")[1].trim().equals("0");
-    }
-
-    private void showProgressDialog() {
-        if (!progressDialog.isShowing())
-            progressDialog.show();
-    }
-
-    private void hideProgressDialog() {
-        if (progressDialog.isShowing())
-            progressDialog.dismiss();
     }
 }
