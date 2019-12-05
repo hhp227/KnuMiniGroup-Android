@@ -3,7 +3,7 @@ package com.hhp227.knu_minigroup.helper;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
-import com.hhp227.knu_minigroup.dto.Profile;
+import com.hhp227.knu_minigroup.dto.UserProfile;
 import com.hhp227.knu_minigroup.dto.User;
 
 public class PreferenceManager {
@@ -57,12 +57,12 @@ public class PreferenceManager {
         return sharedPreferences.getString(KEY_COOKIE, null);
     }
 
-    public void storeProfile(Profile profile) {
-        editor.putString(KEY_USER_IMAGE_ID, profile.imageId);
+    public void storeProfile(UserProfile profile) {
+        editor.putString(KEY_USER_IMAGE_ID, profile.getImageId());
     }
 
-    public Profile getProfile() {
-        return new Profile(sharedPreferences.getString(KEY_USER_IMAGE_ID, null), null);
+    public UserProfile getProfile() {
+        return new UserProfile(sharedPreferences.getString(KEY_USER_IMAGE_ID, null), null);
     }
 
     public void clear() {

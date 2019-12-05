@@ -20,7 +20,7 @@ import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.app.EndPoint;
-import com.hhp227.knu_minigroup.dto.Profile;
+import com.hhp227.knu_minigroup.dto.UserProfile;
 import com.hhp227.knu_minigroup.fragment.*;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.ActionBarDrawerToggle;
@@ -134,15 +134,15 @@ public class MainActivity extends FragmentActivity {
             }
         });
         drawerList.setItemChecked(0, true);
-        if (preferenceManager.getProfile().imageId == null)
+        if (preferenceManager.getProfile().getImageId() == null)
             getUserImageId();
-        else 
+        else
             Glide.with(getApplicationContext())
                     .load(new GlideUrl(EndPoint.USER_IMAGE, new LazyHeaders.Builder().addHeader("Cookie", preferenceManager.getCookie()).build()))
                     .apply(new RequestOptions().circleCrop())
                     .into(profileImage);
         knuId.setText(preferenceManager.getUser().getUserId());
-        Toast.makeText(getApplicationContext(), preferenceManager.getProfile().imageId, Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), preferenceManager.getProfile().getImageId(), Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -179,11 +179,13 @@ public class MainActivity extends FragmentActivity {
             @Override
             public void onResponse(String response) {
                 Source source = new Source(response);
-                String img = source.getElementById("photo").getAttributeValue("src");
-                String imageId = img.substring(img.indexOf("id=") + "id=".length(), img.lastIndexOf("&size"));
-                preferenceManager.storeProfile(new Profile(imageId, null));
+                String imageUrl = source.getElementById("photo").getAttributeValue("src");
+                String imageId = imageUrl.substring(imageUrl.indexOf("id=") + "id=".length(), imageUrl.lastIndexOf("&size"));
+                UserProfile profile = new UserProfile();
+                profile.setImageId(imageId);
+                preferenceManager.storeProfile(profile);
                 Glide.with(getApplicationContext())
-                        .load(new GlideUrl(EndPoint.BASE_URL + img, new LazyHeaders.Builder().addHeader("Cookie", preferenceManager.getCookie()).build()))
+                        .load(new GlideUrl(EndPoint.BASE_URL + imageUrl, new LazyHeaders.Builder().addHeader("Cookie", preferenceManager.getCookie()).build()))
                         .apply(new RequestOptions().circleCrop())
                         .into(profileImage);
             }
