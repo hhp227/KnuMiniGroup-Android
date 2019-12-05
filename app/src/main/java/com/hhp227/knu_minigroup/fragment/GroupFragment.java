@@ -1,6 +1,5 @@
 package com.hhp227.knu_minigroup.fragment;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
