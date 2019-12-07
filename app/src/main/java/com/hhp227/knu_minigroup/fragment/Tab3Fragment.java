@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.widget.AbsListView;
 import android.widget.GridView;
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -32,6 +33,8 @@ public class Tab3Fragment extends BaseFragment {
     private GridView gridView;
     private MemberGridAdapter memberGridAdapter;
     private List<MemberItem> memberItems;
+    private boolean hasRequestedMore;
+    private int offSet;
 
     public Tab3Fragment() {
     }
@@ -59,26 +62,63 @@ public class Tab3Fragment extends BaseFragment {
         memberItems = new ArrayList<>();
         memberGridAdapter = new MemberGridAdapter(getActivity(), memberItems);
         progressDialog = new ProgressDialog(getActivity());
+        offSet = 1;
         progressDialog.setMessage("불러오는중...");
         progressDialog.setCancelable(false);
         gridView.setAdapter(memberGridAdapter);
+        gridView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            boolean lastItemVisibleFlag = false;
+
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                if (scrollState == SCROLL_STATE_IDLE && lastItemVisibleFlag && hasRequestedMore == false) {
+                    offSet += LIMIT;
+                    hasRequestedMore = true;
+                    fetchMemberList();
+                }
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                lastItemVisibleFlag = totalItemCount > 0 && firstVisibleItem + visibleItemCount >= totalItemCount;
+            }
+        });
         showProgressDialog();
-        String params = "?CLUB_GRP_ID=" + groupId + "&startM=" + "1" + "&displayM=" + LIMIT;
+        fetchMemberList();
+
+        return rootView;
+    }
+
+    @Override
+    public boolean canScrollVertically(int direction) {
+        return gridView != null && gridView.canScrollVertically(direction);
+    }
+
+    private void fetchMemberList() {
+        String params = "?CLUB_GRP_ID=" + groupId + "&startM=" + offSet + "&displayM=" + LIMIT;
         app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.MEMBER_LIST + params, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Source source = new Source(response);
-                Element memberList = source.getElementById("member_list");
-                List<Element> inputElements = memberList.getAllElements("name", "memberIdCheck", false);
-                List<Element> imgElements = memberList.getAllElements("title", "프로필", false);
-                List<Element> spanElements = memberList.getAllElements(HTMLElementName.SPAN);
-                for (int i = 0; i < inputElements.size(); i++) {
-                    String name = spanElements.get(i).getContent().toString();
-                    String url = imgElements.get(i).getAttributeValue("src");
-                    String value = inputElements.get(i).getAttributeValue("value");
-                    memberItems.add(new MemberItem(name, EndPoint.BASE_URL + url.substring(0, url.lastIndexOf("&size")), value));
+                try {
+                    Source source = new Source(response);
+                    Element memberList = source.getElementById("member_list");
+                    // 페이징 처리
+                    String page = memberList.getFirstElementByClass("paging").getFirstElement("title", "현재 선택 목록", false).getTextExtractor().toString();
+                    List<Element> inputElements = memberList.getAllElements("name", "memberIdCheck", false);
+                    List<Element> imgElements = memberList.getAllElements("title", "프로필", false);
+                    List<Element> spanElements = memberList.getAllElements(HTMLElementName.SPAN);
+
+                    for (int i = 0; i < inputElements.size(); i++) {
+                        String name = spanElements.get(i).getContent().toString();
+                        String url = imgElements.get(i).getAttributeValue("src");
+                        String value = inputElements.get(i).getAttributeValue("value");
+                        memberItems.add(new MemberItem(name, EndPoint.BASE_URL + url.substring(0, url.lastIndexOf("&size")), value));
+                    }
+                    memberGridAdapter.notifyDataSetChanged();
+                } catch (NullPointerException e) {
+                    e.printStackTrace();
                 }
-                memberGridAdapter.notifyDataSetChanged();
+                hasRequestedMore = false;
                 hideProgressDialog();
             }
         }, new Response.ErrorListener() {
@@ -88,13 +128,6 @@ public class Tab3Fragment extends BaseFragment {
                 hideProgressDialog();
             }
         }));
-
-        return rootView;
-    }
-
-    @Override
-    public boolean canScrollVertically(int direction) {
-        return gridView != null && gridView.canScrollVertically(direction);
     }
 
     private void showProgressDialog() {

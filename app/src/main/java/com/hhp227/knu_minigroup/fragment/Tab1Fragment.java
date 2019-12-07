@@ -83,11 +83,9 @@ public class Tab1Fragment extends BaseFragment {
         listView = rootView.findViewById(R.id.lv_article);
         relativeLayout = rootView.findViewById(R.id.rl_write);
         swipeRefreshLayout = rootView.findViewById(R.id.srl_article_list);
-
-        offSet = 1; // offSet 초기화
         articleItems = new ArrayList<>();
         articleListAdapter = new ArticleListAdapter(getActivity(), articleItems);
-
+        offSet = 1; // offSet 초기화
         listView.addFooterView(footerLoading);
 
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
@@ -186,11 +184,9 @@ public class Tab1Fragment extends BaseFragment {
             public void onResponse(String response) {
                 Source source = new Source(response);
                 try {
-                    List<Element> list = source.getAllElementsByClass("listbox2");
-                    Element paging = source.getFirstElementByClass("paging");
-
                     // 페이징 처리
-                    String page = paging.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
+                    String page = source.getFirstElementByClass("paging").getFirstElement("title", "현재 선택 목록", false).getTextExtractor().toString();
+                    List<Element> list = source.getAllElementsByClass("listbox2");
 
                     for (Element element : list) {
                         Element viewArt = element.getFirstElementByClass("view_art");
