@@ -3,14 +3,15 @@ package com.hhp227.knu_minigroup.dto;
 public class ArticleItem {
     private int id;
     private boolean auth;
-    private String name, content, image, timeStamp, replyCount;
+    private String profileImg, name, content, image, timeStamp, replyCount;
 
     public ArticleItem() {
     }
 
-    public ArticleItem(int id, String name, String content, String image, String timeStamp, String replyCount, boolean auth) {
+    public ArticleItem(int id, String profileImg, String name, String content, String image, String timeStamp, String replyCount, boolean auth) {
         super();
         this.id = id;
+        this.profileImg = profileImg;
         this.name = name;
         this.content = content;
         this.image = image;
@@ -25,6 +26,14 @@ public class ArticleItem {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getProfileImg() {
+        return profileImg;
+    }
+
+    public void setProfileImg(String profileImg) {
+        this.profileImg = profileImg;
     }
 
     public String getName() {

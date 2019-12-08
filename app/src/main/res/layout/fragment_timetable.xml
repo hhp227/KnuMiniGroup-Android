@@ -1,14 +1,232 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             tools:context=".fragment.TimetableFragment">
+<ScrollView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#eeeeee">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="@string/hello_blank_fragment"/>
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_parent_rounded_corner">
 
-</FrameLayout>
+        <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+            <LinearLayout
+                    android:id="@+id/lay_0"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingBottom="2dp"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:paddingTop="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_1"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_6"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_7"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_8"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_9"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_10"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_11"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_12"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_13"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_14"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_15"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_16"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_17"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_18"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_19"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_20"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+            <LinearLayout
+                    android:id="@+id/lay_21"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:paddingLeft="2dp"
+                    android:paddingRight="2dp"
+                    android:orientation="horizontal" />
+
+        </LinearLayout>
+
+        <ProgressBar
+                android:id="@+id/pb_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true" />
+
+    </RelativeLayout>
+
+</ScrollView>

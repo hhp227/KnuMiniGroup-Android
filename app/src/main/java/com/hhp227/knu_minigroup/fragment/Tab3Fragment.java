@@ -1,5 +1,6 @@
 package com.hhp227.knu_minigroup.fragment;
 
+import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -7,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.GridView;
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -81,6 +83,24 @@ public class Tab3Fragment extends BaseFragment {
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
                 lastItemVisibleFlag = totalItemCount > 0 && firstVisibleItem + visibleItemCount >= totalItemCount;
+            }
+        });
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                MemberItem memberItem = memberItems.get(position);
+                String name = memberItem.name;
+                String image = memberItem.imgUrl;
+                String value = memberItem.value;
+
+                Bundle args = new Bundle();
+                args.putString("name", name);
+                args.putString("image", image);
+                args.putString("value", value);
+
+                UserFragment newFragment = UserFragment.newInstance();
+                newFragment.setArguments(args);
+                newFragment.show(getChildFragmentManager(), "dialog");
             }
         });
         showProgressDialog();

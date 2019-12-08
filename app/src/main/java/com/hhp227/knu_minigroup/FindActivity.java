@@ -66,7 +66,7 @@ public class FindActivity extends FragmentActivity {
         listView.addFooterView(footerLoading);
         listView.setAdapter(listAdapter);
         listView.setOnScrollListener(new AbsListView.OnScrollListener() {
-            boolean lastItemVisibleFlag = false;
+            boolean lastItemVisibleFlag;
 
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {

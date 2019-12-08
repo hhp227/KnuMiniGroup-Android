@@ -120,7 +120,7 @@ public class Tab1Fragment extends BaseFragment {
             }
         });
         listView.setOnScrollListener(new AbsListView.OnScrollListener() {
-            boolean lastItemVisibleFlag = false;
+            boolean lastItemVisibleFlag;
 
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
@@ -192,7 +192,9 @@ public class Tab1Fragment extends BaseFragment {
                         Element viewArt = element.getFirstElementByClass("view_art");
                         Element commentWrap = element.getFirstElementByClass("comment_wrap");
 
+                        boolean auth = viewArt.getAllElementsByClass("btn-small-gray").size() > 0;
                         int id = Integer.parseInt(commentWrap.getAttributeValue("num"));
+                        String profileImage = auth ? EndPoint.USER_IMAGE.replace("{IMAGE_ID}", app.AppController.getInstance().getPreferenceManager().getUser().getImageId()) : null;
                         String title = viewArt.getFirstElementByClass("list_title").getTextExtractor().toString();
                         String timeStamp = viewArt.getFirstElement(HTMLElementName.TD).getTextExtractor().toString();
                         String imageUrl;
@@ -208,10 +210,10 @@ public class Tab1Fragment extends BaseFragment {
                             content.append(p.getTextExtractor().toString().concat("\n"));
 
                         String replyCnt = commentWrap.getContent().getFirstElement(HTMLElementName.P).getTextExtractor().toString();
-                        boolean auth = viewArt.getAllElementsByClass("btn-small-gray").size() > 0;
 
                         ArticleItem articleItem = new ArticleItem();
                         articleItem.setId(id);
+                        articleItem.setProfileImg(profileImage);
                         articleItem.setName(title);
                         articleItem.setTimeStamp(timeStamp);
                         articleItem.setContent(content.toString().trim());

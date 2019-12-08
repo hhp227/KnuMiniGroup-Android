@@ -24,7 +24,7 @@ public class ArticleListAdapter extends BaseAdapter {
     public static boolean LIKED;
     private static final int CONTENT_MAX_LINE = 4;
     private Activity activity;
-    private ImageView articleImage;
+    private ImageView profileImage, articleImage;
     private LayoutInflater inflater;
     private LinearLayout replyButton, likeButton;
     private List<ArticleItem> articleItems;
@@ -58,6 +58,7 @@ public class ArticleListAdapter extends BaseAdapter {
         if (convertView == null)
             convertView = inflater.inflate(R.layout.article_item, null);
 
+        profileImage = convertView.findViewById(R.id.iv_profile_image);
         name = convertView.findViewById(R.id.tv_name);
         timestamp = convertView.findViewById(R.id.tv_timestamp);
         content = convertView.findViewById(R.id.tv_content);
@@ -68,6 +69,10 @@ public class ArticleListAdapter extends BaseAdapter {
 
         ArticleItem articleItem = articleItems.get(position);
 
+        Glide.with(activity)
+                .load(articleItem.getProfileImg())
+                .apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop())
+                .into(profileImage);
         name.setText(articleItem.getName());
         timestamp.setText(articleItem.getTimeStamp());
         // 피드의 메시지가 비었는지 확인

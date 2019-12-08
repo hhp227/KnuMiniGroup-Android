@@ -6,7 +6,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.dto.ReplyItem;
 
@@ -16,7 +19,6 @@ public class ReplyListAdapter extends BaseAdapter {
     private Activity activity;
     private LayoutInflater inflater;
     private List<ReplyItem> replyItems;
-    private String date;
 
     public ReplyListAdapter(Activity activity, List<ReplyItem> replyItems) {
         this.activity = activity;
@@ -45,6 +47,7 @@ public class ReplyListAdapter extends BaseAdapter {
         if (convertView == null)
             convertView = inflater.inflate(R.layout.reply_item, null);
 
+        ImageView profileImage = convertView.findViewById(R.id.iv_profile_image);
         TextView name = convertView.findViewById(R.id.tv_name);
         TextView reply = convertView.findViewById(R.id.tv_reply);
         TextView timeStamp = convertView.findViewById(R.id.tv_timestamp);
@@ -52,9 +55,14 @@ public class ReplyListAdapter extends BaseAdapter {
         // 댓글 데이터 얻기
         ReplyItem replyItem = replyItems.get(position);
 
+        Glide.with(activity)
+                .load(replyItem.getProfileImg())
+                .apply(new RequestOptions().circleCrop().error(R.drawable.profile_img_circle))
+                .into(profileImage);
         name.setText(replyItem.getName());
         reply.setText(replyItem.getReply());
-        timeStamp.setText(replyItem.getTimestamp());
+        timeStamp.setText(replyItem.getTimeStamp());
+
 
         return convertView;
     }

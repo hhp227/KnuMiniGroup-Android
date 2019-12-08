@@ -22,6 +22,7 @@ import com.hhp227.knu_minigroup.adapter.ReplyListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ReplyItem;
 import com.hhp227.knu_minigroup.fragment.Tab1Fragment;
+import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
@@ -41,10 +42,12 @@ public class ArticleActivity extends Activity {
     private static final String TAG = ArticleActivity.class.getSimpleName();
     private ActionBar actionBar;
     private EditText inputReply;
+    private ImageView articleProfile;
     private LinearLayout articleImages;
     private List<ReplyItem> replyItemList;
     private List<String> imageList;
     private ListView listView;
+    private PreferenceManager preferenceManager;
     private ProgressDialog progressDialog;
     private ReplyListAdapter replyListAdapter;
     private Source source;
@@ -54,7 +57,7 @@ public class ArticleActivity extends Activity {
 
     private boolean isBottom, isUpdate, isAuthorized;
     private int groupId, articleId, position;
-    private String cookie, groupName;
+    private String groupName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +65,7 @@ public class ArticleActivity extends Activity {
         setContentView(R.layout.activity_article);
         articleDetail = getLayoutInflater().inflate(R.layout.article_detail, null, false);
         buttonSend = findViewById(R.id.tv_btn_send);
+        articleProfile = articleDetail.findViewById(R.id.iv_profile_image);
         articleTitle = articleDetail.findViewById(R.id.tv_title);
         articleTimeStamp = articleDetail.findViewById(R.id.tv_timestamp);
         articleContent = articleDetail.findViewById(R.id.tv_content);
@@ -71,7 +75,7 @@ public class ArticleActivity extends Activity {
         swipeRefreshLayout = findViewById(R.id.srl_article);
 
         final Intent intent = getIntent();
-        cookie = app.AppController.getInstance().getPreferenceManager().getCookie();
+        preferenceManager = app.AppController.getInstance().getPreferenceManager();
         groupId = intent.getIntExtra("grp_id", 0);
         groupName = intent.getStringExtra("grp_nm");
         articleId = intent.getIntExtra("artl_num", 0);
@@ -227,7 +231,7 @@ public class ArticleActivity extends Activity {
                     @Override
                     public Map<String, String> getHeaders() {
                         Map<String, String> headers = new HashMap<>();
-                        headers.put("Cookie", cookie);
+                        headers.put("Cookie", preferenceManager.getCookie());
                         return headers;
                     }
 
@@ -321,7 +325,7 @@ public class ArticleActivity extends Activity {
                     @Override
                     public Map<String, String> getHeaders() {
                         Map<String, String> headers = new HashMap<>();
-                        headers.put("Cookie", cookie);
+                        headers.put("Cookie", preferenceManager.getCookie());
                         return headers;
                     }
 
@@ -352,6 +356,7 @@ public class ArticleActivity extends Activity {
                     Element commentWrap = element.getFirstElementByClass("comment_wrap");
                     List<Element> commentList = element.getAllElementsByClass("comment-list");
 
+                    String profileImg = isAuthorized ? EndPoint.USER_IMAGE.replace("{IMAGE_ID}", preferenceManager.getUser().getImageId()) : null;
                     String title = viewArt.getFirstElementByClass("list_title").getTextExtractor().toString();
                     String timeStamp = viewArt.getFirstElement(HTMLElementName.TD).getTextExtractor().toString();
                     String content = contentExtractor(viewArt.getFirstElementByClass("list_cont"), true);
@@ -359,6 +364,10 @@ public class ArticleActivity extends Activity {
                     List<Element> images = viewArt.getAllElements(HTMLElementName.IMG);
                     String replyCnt = commentWrap.getContent().getFirstElement(HTMLElementName.P).getTextExtractor().toString();
 
+                    Glide.with(getApplicationContext())
+                            .load(profileImg)
+                            .apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop())
+                            .into(articleProfile);
                     articleTitle.setText(title);
                     articleTimeStamp.setText(timeStamp);
                     if (!TextUtils.isEmpty(content)) {
@@ -411,7 +420,7 @@ public class ArticleActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", cookie);
+                headers.put("Cookie", preferenceManager.getCookie());
                 return headers;
             }
         };
@@ -432,8 +441,9 @@ public class ArticleActivity extends Activity {
             replyItem.setId(replyId);
             replyItem.setName(name.substring(0, name.lastIndexOf("(")));
             replyItem.setReply(Html.fromHtml(replyContent).toString());
-            replyItem.setTimestamp(timeStamp.replaceAll("[(]|[)]", ""));
+            replyItem.setTimeStamp(timeStamp.replaceAll("[(]|[)]", ""));
             replyItem.setAuth(authorization);
+            replyItem.setProfileImg(authorization ? EndPoint.USER_IMAGE.replace("{IMAGE_ID}", preferenceManager.getUser().getImageId()) : null);
             replyItemList.add(replyItem);
         }
         replyListAdapter.notifyDataSetChanged();
@@ -466,7 +476,7 @@ public class ArticleActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", cookie);
+                headers.put("Cookie", preferenceManager.getCookie());
                 return headers;
             }
 

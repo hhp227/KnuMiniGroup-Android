@@ -9,10 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -38,10 +35,10 @@ public class GroupInfoFragment extends DialogFragment {
     private static final String TAG = "정보창";
     private static int joinType, groupId;
     private static String groupName, groupImage, groupInfo, groupDesc;
-    private LinearLayout button, close;
+    private Button button, close;
     private ImageView image;
     private ProgressDialog progressDialog;
-    private TextView name, info, desc, join;
+    private TextView name, info, desc;
 
     public static GroupInfoFragment newInstance() {
         Bundle args = new Bundle();
@@ -71,13 +68,12 @@ public class GroupInfoFragment extends DialogFragment {
             getDialog().getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
         View rootView = inflater.inflate(R.layout.fragment_group_info, container, false);
-        button = rootView.findViewById(R.id.ll_request);
-        close = rootView.findViewById(R.id.ll_close);
+        button = rootView.findViewById(R.id.b_request);
+        close = rootView.findViewById(R.id.b_close);
         image = rootView.findViewById(R.id.iv_group_image);
         name = rootView.findViewById(R.id.tv_name);
         info = rootView.findViewById(R.id.tv_info);
         desc = rootView.findViewById(R.id.tv_desciption);
-        join = rootView.findViewById(R.id.tv_button);
         progressDialog = new ProgressDialog(getContext());
         progressDialog.setCancelable(false);
         button.setOnClickListener(new View.OnClickListener() {
@@ -158,7 +154,7 @@ public class GroupInfoFragment extends DialogFragment {
         info.setText(groupInfo);
         desc.setText(groupDesc);
         desc.setMaxLines(6);
-        join.setText(joinType == 0 ? "가입신청" : "신청취소");
+        button.setText(joinType == 0 ? "가입신청" : "신청취소");
         Glide.with(this)
                 .load(groupImage)
                 .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background).error(R.drawable.ic_launcher_background))
