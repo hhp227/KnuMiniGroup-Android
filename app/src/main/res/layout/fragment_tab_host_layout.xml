@@ -28,7 +28,13 @@
                     android:layout_width="match_parent"
                     android:layout_height="134dp"
                     android:layout_weight="0"
-                    android:background="@drawable/knu_sotong_title">
+                    android:background="#bc1c1e">
+
+                <ImageView
+                        android:paddingTop="15dp"
+                        android:layout_width="170dp"
+                        android:layout_height="80dp"
+                        android:src="@drawable/knu_sotong"/>
 
                 <TabWidget
                         android:id="@android:id/tabs"
