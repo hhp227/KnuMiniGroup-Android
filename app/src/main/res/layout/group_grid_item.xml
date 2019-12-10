@@ -30,7 +30,7 @@
                         android:layout_centerHorizontal="true"
                         android:layout_centerVertical="true"
                         android:src="@drawable/knu_minigroup"
-                        android:scaleType="fitXY" />
+                        android:scaleType="fitXY"/>
 
             </RelativeLayout>
 
@@ -38,7 +38,7 @@
                         android:layout_below="@+id/iv_group_image"
                         android:layout_width="match_parent"
                         android:layout_height="1px"
-                        android:background="@android:color/darker_gray" />
+                        android:background="@android:color/darker_gray"/>
 
             <RelativeLayout
                     android:layout_width="match_parent"
@@ -53,7 +53,7 @@
                         android:layout_marginLeft="10dp"
                         android:layout_marginRight="10dp"
                         android:layout_marginTop="10dp"
-                        android:text="제목" />
+                        android:text="제목"/>
 
             </RelativeLayout>
 

@@ -38,7 +38,7 @@
                             android:id="@+id/iv_profile_image"
                             android:layout_width="45dp"
                             android:layout_height="45dp"
-                            android:src="@drawable/profile_img_circle" />
+                            android:src="@drawable/profile_img_circle"/>
 
                     <LinearLayout
                             android:layout_width="fill_parent"
@@ -52,14 +52,14 @@
                                 android:layout_height="wrap_content"
                                 android:textSize="15dp"
                                 android:textStyle="bold"
-                                android:singleLine="true" />
+                                android:singleLine="true"/>
 
                         <TextView
                                 android:id="@+id/tv_timestamp"
                                 android:layout_width="fill_parent"
                                 android:layout_height="wrap_content"
                                 android:textColor="#a0a3a7"
-                                android:textSize="13dp" />
+                                android:textSize="13dp"/>
 
                     </LinearLayout>
 
@@ -72,7 +72,7 @@
                         android:paddingBottom="5dp"
                         android:paddingLeft="15dp"
                         android:paddingRight="15dp"
-                        android:paddingTop="10dp" />
+                        android:paddingTop="10dp"/>
 
                 <TextView
                         android:id="@+id/tv_content_more"
@@ -80,7 +80,7 @@
                         android:layout_height="wrap_content"
                         android:text="     ...더보기"
                         android:textColor="@android:color/darker_gray"
-                        android:visibility="gone" />
+                        android:visibility="gone"/>
 
                 <ImageView
                         android:id="@+id/iv_article_image"
@@ -89,14 +89,14 @@
                         android:scaleType="fitXY"
                         android:visibility="invisible"
                         android:adjustViewBounds="true"
-                        android:paddingTop="10dp" />
+                        android:paddingTop="10dp"/>
 
             </LinearLayout>
 
             <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="1px"
-                    android:background="@android:color/darker_gray" />
+                    android:background="@android:color/darker_gray"/>
 
             <LinearLayout
                     android:layout_width="match_parent"
@@ -122,14 +122,14 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginLeft="3dp"
-                            android:text="공유하기" />
+                            android:text="공유하기"/>
 
                 </LinearLayout>
 
                 <LinearLayout
                         android:layout_width="1px"
                         android:layout_height="match_parent"
-                        android:background="@android:color/darker_gray" />
+                        android:background="@android:color/darker_gray"/>
 
                 <LinearLayout
                         android:id="@+id/ll_reply"
@@ -149,7 +149,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginLeft="3dp"
-                            android:text="댓글" />
+                            android:text="댓글"/>
 
                 </LinearLayout>
 

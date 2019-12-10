@@ -24,7 +24,7 @@
                     android:layout_centerHorizontal="true"
                     android:layout_centerVertical="true"
                     android:src="@drawable/ic_launcher_background"
-                    android:scaleType="fitXY" />
+                    android:scaleType="fitXY"/>
 
         </RelativeLayout>
 
@@ -47,7 +47,7 @@
                     android:layout_marginLeft="10dp"
                     android:layout_marginRight="10dp"
                     android:layout_marginTop="10dp"
-                    android:text="제목" />
+                    android:text="제목"/>
 
             <TextView
                     android:id="@+id/tv_info"
@@ -57,7 +57,7 @@
                     android:layout_alignStart="@+id/tv_group_name"
                     android:layout_below="@+id/tv_group_name"
                     android:text="가입방식"
-                    android:textSize="15dp" />
+                    android:textSize="15dp"/>
 
         </RelativeLayout>
 

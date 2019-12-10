@@ -22,7 +22,7 @@
                     android:id="@+id/lv_article"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:divider="#d9d9d9" />
+                    android:divider="#d9d9d9"/>
 
         </android.support.v4.widget.SwipeRefreshLayout>
 
@@ -31,7 +31,7 @@
     <View
             android:layout_width="match_parent"
             android:layout_height="1px"
-            android:background="@android:color/darker_gray" />
+            android:background="@android:color/darker_gray"/>
 
     <LinearLayout
             android:layout_width="match_parent"
@@ -52,7 +52,7 @@
                 android:hint="댓글을 입력하세요."
                 android:inputType="textNoSuggestions"
                 android:paddingLeft="5dp"
-                android:textAppearance="?android:attr/textAppearanceMedium" />
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
 
         <TextView
                 android:id="@+id/tv_btn_send"
@@ -63,7 +63,7 @@
                 android:padding="10dp"
                 android:text="전송"
                 android:textColor="@android:color/darker_gray"
-                android:textStyle="bold" />
+                android:textStyle="bold"/>
 
     </LinearLayout>
 

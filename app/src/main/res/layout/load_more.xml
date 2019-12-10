@@ -8,7 +8,7 @@
 
     <ProgressBar
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"/>
 
     <TextView
             android:id="@+id/tv_list_footer"
@@ -16,6 +16,6 @@
             android:layout_height="30dip"
             android:gravity="center"
             android:text="불러오는중..."
-            android:textAppearance="?android:attr/textAppearanceLarge" />
+            android:textAppearance="?android:attr/textAppearanceLarge"/>
 
 </LinearLayout>

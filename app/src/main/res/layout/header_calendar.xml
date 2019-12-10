@@ -8,6 +8,6 @@
     <com.hhp227.knu_minigroup.calendar.ExtendedCalendarView
             android:id="@+id/calendar"
             android:layout_width="match_parent"
-            android:layout_height="266dp" />
+            android:layout_height="266dp"/>
 
 </LinearLayout>

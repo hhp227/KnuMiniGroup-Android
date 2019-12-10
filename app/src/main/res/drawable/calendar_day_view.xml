@@ -4,18 +4,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:minHeight="32.5dp"
-    android:minWidth="32.5dp" >
+    android:minWidth="32.5dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="match_parent">
 
         <FrameLayout
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_centerInParent="true"
             android:id="@+id/today_frame"
-            android:background="@drawable/calendar_today" />
+            android:background="@drawable/calendar_today"/>
 
         <TextView
             android:id="@+id/textView1"
@@ -26,7 +26,7 @@
             android:gravity="center"
             android:text="31"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="@drawable/calendar_date_number_text_color" />
+            android:textColor="@drawable/calendar_date_number_text_color"/>
 
         <ImageView
             android:id="@+id/imageView1"
@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
-            android:src="@drawable/calendar_quickcontact_badge_overlay_normal_light" />
+            android:src="@drawable/calendar_quickcontact_badge_overlay_normal_light"/>
 
         <ImageView
             android:id="@+id/imageView4"
@@ -44,7 +44,7 @@
             android:layout_marginBottom="3dp"
             android:layout_marginLeft="2dp"
             android:layout_toRightOf="@+id/imageView3"
-            android:src="@drawable/calendar_green" />
+            android:src="@drawable/calendar_green"/>
 
         <ImageView
             android:id="@+id/imageView5"
@@ -54,7 +54,7 @@
             android:layout_marginBottom="3dp"
             android:layout_marginLeft="2dp"
             android:layout_toRightOf="@+id/imageView4"
-            android:src="@drawable/calendar_orange" />
+            android:src="@drawable/calendar_orange"/>
 
         <ImageView
             android:id="@+id/imageView6"
@@ -64,7 +64,7 @@
             android:layout_marginBottom="3dp"
             android:layout_marginLeft="2dp"
             android:layout_toRightOf="@+id/imageView5"
-            android:src="@drawable/calendar_red" />
+            android:src="@drawable/calendar_red"/>
 
         <ImageView
             android:id="@+id/imageView2"
@@ -74,7 +74,7 @@
             android:layout_alignParentLeft="true"
             android:layout_marginBottom="3dp"
             android:layout_marginLeft="2dp"
-            android:src="@drawable/calendar_blue" />
+            android:src="@drawable/calendar_blue"/>
 
         <ImageView
             android:id="@+id/imageView3"
@@ -84,7 +84,7 @@
             android:layout_marginBottom="3dp"
             android:layout_marginLeft="2dp"
             android:layout_toRightOf="@+id/imageView2"
-            android:src="@drawable/calendar_purple" />
+            android:src="@drawable/calendar_purple"/>
     </RelativeLayout>
 
 </RelativeLayout>

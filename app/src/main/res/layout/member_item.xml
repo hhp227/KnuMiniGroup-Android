@@ -20,7 +20,7 @@
                 android:layout_centerHorizontal="true"
                 android:layout_centerVertical="true"
                 android:src="@drawable/profile_img_square"
-                android:scaleType="fitCenter" />
+                android:scaleType="fitCenter"/>
 
     </RelativeLayout>
 
@@ -31,7 +31,7 @@
             android:layout_below="@+id/rl_profile"
             android:layout_centerHorizontal="true"
             android:text="이름"
-            android:textSize="8dp" />
+            android:textSize="8dp"/>
 
     <LinearLayout
             android:layout_width="match_parent"
@@ -40,6 +40,6 @@
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
             android:layout_below="@+id/tv_name"
-            android:background="@android:color/white" />
+            android:background="@android:color/white"/>
 
 </RelativeLayout>

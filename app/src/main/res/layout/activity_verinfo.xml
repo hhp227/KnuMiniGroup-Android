@@ -16,7 +16,7 @@
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="123dp"
-            android:text="Ver Beta" />
+            android:text="Ver Beta"/>
 
     <TextView
             android:layout_width="wrap_content"
@@ -25,7 +25,7 @@
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="33dp"
             android:text="copyright 2015 - 2019 hhp227"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:textAppearance="?android:attr/textAppearanceSmall"/>
 
     <ImageView
             android:layout_width="268dp"
@@ -33,6 +33,6 @@
             android:layout_above="@+id/text_view2"
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="124dp"
-            android:src="@drawable/knu_minigroup" />
+            android:src="@drawable/knu_minigroup"/>
 
 </RelativeLayout>

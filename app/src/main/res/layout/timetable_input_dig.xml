@@ -20,7 +20,7 @@
                 android:layout_height="wrap_content"
                 android:text="강 의 명  :"
                 android:textColor="#000000"
-                android:textSize="15dp" />
+                android:textSize="15dp"/>
 
         <EditText
                 android:id="@+id/input_subject"
@@ -28,7 +28,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ems="10"
-                android:hint="강의명을 입력하세요." />
+                android:hint="강의명을 입력하세요."/>
+
     </LinearLayout>
 
     <LinearLayout
@@ -41,7 +42,7 @@
                 android:layout_height="wrap_content"
                 android:text="강 의 실  :"
                 android:textColor="#000000"
-                android:textSize="15dp" />
+                android:textSize="15dp"/>
 
         <EditText
                 android:id="@+id/input_classroom"
@@ -49,7 +50,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ems="10"
-                android:hint="강의실을 입력하세요." />
+                android:hint="강의실을 입력하세요."/>
+
     </LinearLayout>
 
 </LinearLayout>

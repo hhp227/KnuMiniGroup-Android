@@ -20,7 +20,7 @@
                     android:id="@+id/lv_article"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:divider="@null" />
+                    android:divider="@null"/>
 
         </android.support.v4.widget.SwipeRefreshLayout>
 
@@ -33,7 +33,7 @@
                 android:layout_marginEnd="16dp"
                 android:layout_marginRight="16dp"
                 app:color="#9f49d1"
-                app:drawable="@drawable/ic_content_new" />
+                app:drawable="@drawable/ic_content_new"/>
 
     </FrameLayout>
 
@@ -57,7 +57,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
-                android:layout_centerVertical="true" />
+                android:layout_centerVertical="true"/>
 
     </RelativeLayout>
 

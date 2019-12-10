@@ -35,14 +35,14 @@
                 <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="구분" />
+                        android:text="구분"/>
 
             </LinearLayout>
 
             <LinearLayout
                     android:layout_width="1px"
                     android:layout_height="match_parent"
-                    android:background="@android:color/darker_gray" />
+                    android:background="@android:color/darker_gray"/>
 
             <LinearLayout
                     android:layout_width="match_parent"
@@ -59,13 +59,13 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="상주
-캠퍼스" />
+캠퍼스"/>
             </LinearLayout>
 
             <LinearLayout
                     android:layout_width="1px"
                     android:layout_height="match_parent"
-                    android:background="@android:color/darker_gray" />
+                    android:background="@android:color/darker_gray"/>
 
             <LinearLayout
                     android:layout_width="match_parent"
@@ -82,13 +82,13 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="낙양
-주유소" />
+주유소"/>
             </LinearLayout>
 
             <LinearLayout
                     android:layout_width="1px"
                     android:layout_height="match_parent"
-                    android:background="@android:color/darker_gray" />
+                    android:background="@android:color/darker_gray"/>
 
             <LinearLayout
                     android:layout_width="match_parent"
@@ -104,14 +104,14 @@
                 <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="가미 앞" />
+                        android:text="가미 앞"/>
 
             </LinearLayout>
 
             <LinearLayout
                     android:layout_width="1px"
                     android:layout_height="match_parent"
-                    android:background="@android:color/darker_gray" />
+                    android:background="@android:color/darker_gray"/>
 
             <LinearLayout
                     android:layout_width="match_parent"
@@ -128,13 +128,13 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="풍물
-거리" />
+거리"/>
             </LinearLayout>
 
             <LinearLayout
                     android:layout_width="1px"
                     android:layout_height="match_parent"
-                    android:background="@android:color/darker_gray" />
+                    android:background="@android:color/darker_gray"/>
 
             <LinearLayout
                     android:layout_width="match_parent"
@@ -151,7 +151,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="상주
-캠퍼스" />
+캠퍼스"/>
 
             </LinearLayout>
 
@@ -160,7 +160,7 @@
         <View
                 android:layout_width="match_parent"
                 android:layout_height="1px"
-                android:background="@android:color/darker_gray" />
+                android:background="@android:color/darker_gray"/>
 
         <android.support.v4.widget.SwipeRefreshLayout
                 android:id="@+id/srl_shuttle"
@@ -175,7 +175,7 @@
                     android:layout_below="@+id/linearLayout1"
                     android:layout_weight="1"
                     android:divider="@null"
-                    android:scrollbars="none" />
+                    android:scrollbars="none"/>
 
         </android.support.v4.widget.SwipeRefreshLayout>
 

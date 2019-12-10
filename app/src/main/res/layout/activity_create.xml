@@ -27,7 +27,7 @@
                 android:inputType="textNoSuggestions"
                 android:paddingLeft="5dp"
                 android:textAppearance="?android:attr/textAppearanceMedium">
-            <requestFocus />
+            <requestFocus/>
         </EditText>
 
         <TextView
@@ -38,7 +38,7 @@
                 android:padding="10dp"
                 android:text="X"
                 android:textColor="@android:color/darker_gray"
-                android:textStyle="bold" />
+                android:textStyle="bold"/>
 
     </LinearLayout>
 
@@ -73,7 +73,7 @@
                 android:gravity="top"
                 android:background="@null"
                 android:hint="그룹 설명을 입력하세요."
-                android:divider="@null" />
+                android:divider="@null"/>
 
         <RadioGroup
                 android:id="@+id/rg_jointype"
@@ -96,14 +96,14 @@
                     android:text="자동 승인"
                     android:id="@+id/rb_auto"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"/>
 
             <RadioButton
                     android:layout_weight="2"
                     android:text="승인 확인"
                     android:id="@+id/rb_check"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"/>
 
         </RadioGroup>
 

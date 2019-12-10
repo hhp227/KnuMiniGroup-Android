@@ -45,14 +45,14 @@
                         android:singleLine="true"
                         android:text="열람실"
                         android:textAppearance="?android:attr/textAppearanceMedium"
-                        android:textSize="18dp" />
+                        android:textSize="18dp"/>
 
                 <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="2px"
                         android:layout_below="@+id/name"
                         android:background="@android:color/darker_gray"
-                        android:orientation="vertical" />
+                        android:orientation="vertical"/>
 
                 <TextView
                         android:id="@+id/text"
@@ -62,7 +62,7 @@
                         android:layout_alignStart="@+id/name"
                         android:layout_below="@+id/name"
                         android:text="사용중 좌석"
-                        android:textSize="15dp" />
+                        android:textSize="15dp"/>
 
                 <TextView
                         android:id="@+id/seat"
@@ -72,7 +72,7 @@
                         android:layout_alignRight="@+id/name"
                         android:layout_alignTop="@+id/text"
                         android:text="[?/?]"
-                        android:textSize="12dp" />
+                        android:textSize="12dp"/>
 
             </RelativeLayout>
 

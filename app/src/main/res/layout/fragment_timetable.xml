@@ -27,7 +27,7 @@
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
                     android:paddingTop="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_1"
@@ -36,7 +36,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_2"
@@ -45,7 +45,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_3"
@@ -54,7 +54,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_4"
@@ -63,7 +63,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_5"
@@ -72,7 +72,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_6"
@@ -81,7 +81,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_7"
@@ -90,7 +90,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_8"
@@ -99,7 +99,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_9"
@@ -108,7 +108,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_10"
@@ -117,7 +117,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_11"
@@ -126,7 +126,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_12"
@@ -135,7 +135,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_13"
@@ -144,7 +144,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_14"
@@ -153,7 +153,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_15"
@@ -162,7 +162,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_16"
@@ -171,7 +171,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_17"
@@ -180,7 +180,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_18"
@@ -189,7 +189,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_19"
@@ -198,7 +198,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_20"
@@ -207,7 +207,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
             <LinearLayout
                     android:id="@+id/lay_21"
@@ -216,7 +216,7 @@
                     android:layout_gravity="left"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"/>
 
         </LinearLayout>
 
@@ -225,7 +225,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
-                android:layout_centerVertical="true" />
+                android:layout_centerVertical="true"/>
 
     </RelativeLayout>
 

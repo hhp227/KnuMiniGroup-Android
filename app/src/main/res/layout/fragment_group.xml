@@ -24,12 +24,12 @@
                 android:background="@drawable/main_button"
                 android:textAppearance="@style/TextAppearance.Compat.Notification"
                 android:text="그룹찾기"
-                android:textColor="#444444" />
+                android:textColor="#444444"/>
 
         <LinearLayout
                 android:layout_width="1px"
                 android:layout_height="match_parent"
-                android:background="@android:color/darker_gray" />
+                android:background="@android:color/darker_gray"/>
 
         <Button
                 android:layout_weight="1"
@@ -50,7 +50,7 @@
         <LinearLayout
                 android:layout_width="1px"
                 android:layout_height="match_parent"
-                android:background="@android:color/darker_gray" />
+                android:background="@android:color/darker_gray"/>
 
         <Button
                 android:layout_weight="1"
@@ -73,7 +73,7 @@
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="1px"
-            android:background="@android:color/darker_gray" />
+            android:background="@android:color/darker_gray"/>
 
     <RelativeLayout
             android:layout_width="match_parent"
@@ -108,7 +108,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerHorizontal="true"
-                    android:layout_centerVertical="true" />
+                    android:layout_centerVertical="true"/>
 
         </RelativeLayout>
 
@@ -118,7 +118,7 @@
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
                 android:layout_centerVertical="true"
-                android:visibility="gone" />
+                android:visibility="gone"/>
 
     </RelativeLayout>
 
