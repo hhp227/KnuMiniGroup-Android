@@ -8,6 +8,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 
@@ -56,7 +57,7 @@ public class GroupListAdapter extends BaseAdapter {
         groupName.setMaxLines(NAME_MAX_LINE);
         groupInfo.setText(groupItem.getSubscription());
 
-        Glide.with(context).load(groupItem.getImage()).into(groupImage);
+        Glide.with(context).load(groupItem.getImage()).apply(RequestOptions.errorOf(R.drawable.bg_no_image)).into(groupImage);
 
         return convertView;
     }
