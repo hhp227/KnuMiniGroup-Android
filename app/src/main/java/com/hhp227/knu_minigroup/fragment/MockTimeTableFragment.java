@@ -7,12 +7,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.*;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import androidx.fragment.app.Fragment;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.helper.TimetableHelper;
 

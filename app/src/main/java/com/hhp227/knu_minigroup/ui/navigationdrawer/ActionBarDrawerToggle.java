@@ -5,18 +5,18 @@ import android.app.Activity;
 import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import com.hhp227.knu_minigroup.R;
 
 import java.lang.reflect.Method;
 
-public class ActionBarDrawerToggle extends android.support.v4.app.ActionBarDrawerToggle {
+public class ActionBarDrawerToggle extends androidx.legacy.app.ActionBarDrawerToggle {
     private static final String TAG = ActionBarDrawerToggle.class.getName();
     protected Activity mActivity;
     protected DrawerLayout mDrawerLayout;

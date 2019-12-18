@@ -2,16 +2,16 @@ package com.hhp227.knu_minigroup.fragment;
 
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.TabHost;
 import android.widget.TextView;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.ui.scrollable.BaseFragment;
 import com.hhp227.knu_minigroup.ui.scrollable.CanScrollVerticallyDelegate;

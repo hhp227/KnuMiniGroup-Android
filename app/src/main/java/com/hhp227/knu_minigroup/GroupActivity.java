@@ -3,8 +3,8 @@ package com.hhp227.knu_minigroup;
 import android.app.ActionBar;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.view.MenuItem;
+import androidx.fragment.app.FragmentActivity;
 import com.hhp227.knu_minigroup.fragment.TabHostLayoutFragment;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 

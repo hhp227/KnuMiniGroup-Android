@@ -60,7 +60,7 @@
         </activity>
 
         <provider
-                android:name="android.support.v4.content.FileProvider"
+                android:name="androidx.core.content.FileProvider"
                 android:authorities="com.hhp227.knu_minigroup"
                 android:exported="false"
                 android:grantUriPermissions="true">
@@ -68,6 +68,10 @@
                     android:name="android.support.FILE_PROVIDER_PATHS"
                     android:resource="@xml/file_paths"/>
         </provider>
+
+        <meta-data
+                android:name="com.google.android.gms.ads.APPLICATION_ID"
+                android:value="ca-app-pub-6359051986076073~2419334882"/>
     </application>
 
 </manifest>

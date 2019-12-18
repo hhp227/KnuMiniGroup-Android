@@ -3,11 +3,11 @@ package com.hhp227.knu_minigroup;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.v4.view.ViewPager;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.TextView;
+import androidx.viewpager.widget.ViewPager;
 import com.hhp227.knu_minigroup.adapter.PicturePagerAdapter;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 
