@@ -9,14 +9,12 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
-import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 
 public class ProfileActivity extends Activity {
-    private static final String TAG = ProfileActivity.class.getSimpleName();
     private ActionBar actionBar;
     private ImageView profileImage;
     private PreferenceManager preferenceManager;

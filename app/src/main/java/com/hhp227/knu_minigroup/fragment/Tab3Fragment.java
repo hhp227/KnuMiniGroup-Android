@@ -1,6 +1,5 @@
 package com.hhp227.knu_minigroup.fragment;
 
-import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -90,7 +89,7 @@ public class Tab3Fragment extends BaseFragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 MemberItem memberItem = memberItems.get(position);
                 String name = memberItem.name;
-                String image = memberItem.imgUrl;
+                String image = memberItem.imageId;
                 String value = memberItem.value;
 
                 Bundle args = new Bundle();
@@ -130,9 +129,9 @@ public class Tab3Fragment extends BaseFragment {
 
                     for (int i = 0; i < inputElements.size(); i++) {
                         String name = spanElements.get(i).getContent().toString();
-                        String url = imgElements.get(i).getAttributeValue("src");
+                        String imageUrl = imgElements.get(i).getAttributeValue("src");
                         String value = inputElements.get(i).getAttributeValue("value");
-                        memberItems.add(new MemberItem(name, EndPoint.BASE_URL + url.substring(0, url.lastIndexOf("&size")), value));
+                        memberItems.add(new MemberItem(name, imageUrl.substring(imageUrl.indexOf("id=") + "id=".length(), imageUrl.lastIndexOf("&ext")), value));
                     }
                     memberGridAdapter.notifyDataSetChanged();
                 } catch (NullPointerException e) {

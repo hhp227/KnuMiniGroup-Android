@@ -1,5 +1,6 @@
 package com.hhp227.knu_minigroup.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,16 +9,17 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.fragment.app.DialogFragment;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.hhp227.knu_minigroup.ChatActivity;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.app.EndPoint;
 
 public class UserFragment extends DialogFragment {
     private Button send, close;
     private ImageView profileImage;
-    private String name, image, value;
+    private String name, imageId, value;
     private TextView userName;
 
     public static UserFragment newInstance() {
@@ -40,17 +42,18 @@ public class UserFragment extends DialogFragment {
         Bundle bundle = getArguments();
         if (bundle != null) {
             name = bundle.getString("name");
-            image = bundle.getString("image");
+            imageId = bundle.getString("image");
             value = bundle.getString("value");
         }
-
-        Glide.with(getActivity()).load(image).apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop()).into(profileImage);
+        Glide.with(getActivity()).load(EndPoint.USER_IMAGE.replace("{IMAGE_ID}", imageId)).apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop()).into(profileImage);
         userName.setText(name);
         send.setText("메시지 보내기");
         send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getContext(), "준비중입니다.", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(getContext(), ChatActivity.class);
+                intent.putExtra("image", imageId);
+                startActivity(intent);
             }
         });
         close.setOnClickListener(new View.OnClickListener() {

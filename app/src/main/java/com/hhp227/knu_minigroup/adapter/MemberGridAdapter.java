@@ -13,6 +13,7 @@ import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.MemberItem;
 
 import java.util.List;
@@ -56,7 +57,7 @@ public class MemberGridAdapter extends BaseAdapter {
 
         name.setText(memberItem.name);
         Glide.with(activity)
-                .load(new GlideUrl(memberItem.imgUrl, new LazyHeaders.Builder()
+                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{IMAGE_ID}", memberItem.imageId), new LazyHeaders.Builder()
                         .addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie())
                         .build()))
                 .apply(new RequestOptions().centerCrop())
