@@ -21,6 +21,8 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             android:usesCleartextTraffic="true">
+        <activity android:name=".ProfileActivity">
+        </activity>
         <activity android:name=".VerInfoActivity">
         </activity>
         <activity android:name=".RequestActivity">

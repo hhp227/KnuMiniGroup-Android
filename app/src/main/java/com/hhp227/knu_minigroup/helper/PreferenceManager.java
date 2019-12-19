@@ -19,6 +19,11 @@ public class PreferenceManager {
 
     private static final String KEY_USER_ID = "usr_id";
     private static final String KEY_USER_PASSWORD = "usr_pwd";
+    private static final String KEY_USER_NAME = "usr_nm";
+    private static final String KEY_USER_DEPT_NAME = "usr_dept_nm";
+    private static final String KEY_USER_NUMBER = "usr_stu_id";
+    private static final String KEY_USER_GRADE = "usr_grade";
+    private static final String KEY_USER_EMAIL = "usr_mail";
     private static final String KEY_USER_IMAGE_ID = "usr_img_id";
     private static final String KEY_COOKIE = "cookie";
 
@@ -31,6 +36,11 @@ public class PreferenceManager {
     public void storeUser(User user) {
         editor.putString(KEY_USER_ID, user.getUserId());
         editor.putString(KEY_USER_PASSWORD, user.getPassword());
+        editor.putString(KEY_USER_NAME, user.getName());
+        editor.putString(KEY_USER_DEPT_NAME, user.getDepartment());
+        editor.putString(KEY_USER_NUMBER, user.getNumber());
+        editor.putString(KEY_USER_GRADE, user.getGrade());
+        editor.putString(KEY_USER_EMAIL, user.getEmail());
         editor.putString(KEY_USER_IMAGE_ID, user.getImageId());
         editor.commit();
 
@@ -41,8 +51,13 @@ public class PreferenceManager {
         if (sharedPreferences.getString(KEY_USER_ID, null) != null) {
             String knuId = sharedPreferences.getString(KEY_USER_ID, null);
             String password = sharedPreferences.getString(KEY_USER_PASSWORD, null);
+            String name = sharedPreferences.getString(KEY_USER_NAME, null);
+            String deptName = sharedPreferences.getString(KEY_USER_DEPT_NAME, null);
+            String number = sharedPreferences.getString(KEY_USER_NUMBER, null);
+            String grade = sharedPreferences.getString(KEY_USER_GRADE, null);
+            String email = sharedPreferences.getString(KEY_USER_EMAIL, null);
             String imageId = sharedPreferences.getString(KEY_USER_IMAGE_ID, null);
-            User user = new User(knuId, password, imageId);
+            User user = new User(knuId, password, name, deptName, number, grade, email, imageId);
 
             return user;
         }

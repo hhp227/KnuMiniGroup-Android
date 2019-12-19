@@ -35,6 +35,7 @@
                 android:background="@android:color/darker_gray"/>
 
         <LinearLayout
+                android:id="@+id/ll_profile"
                 android:layout_width="fill_parent"
                 android:layout_height="50dp"
                 android:orientation="horizontal"
@@ -49,7 +50,6 @@
                     android:scaleType="fitCenter"/>
 
             <LinearLayout
-                    android:id="@+id/profile"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"

@@ -21,6 +21,7 @@ import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.MainActivity;
+import com.hhp227.knu_minigroup.ProfileActivity;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.VerInfoActivity;
 import com.hhp227.knu_minigroup.app.EndPoint;
@@ -38,8 +39,8 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     private static int groupId;
     private static boolean isAdmin;
     private static final String TAG = Tab4Fragment.class.getSimpleName();
-    ImageView profile;
-    LinearLayout withdrawal, settings, appStore, share, version;
+    ImageView profileImage;
+    LinearLayout profile, withdrawal, settings, appStore, share, version;
     ProgressDialog progressDialog;
     TextView name, knuId, withdrawalText;
 
@@ -67,9 +68,10 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_tab4, container, false);
-        profile = rootView.findViewById(R.id.iv_profile_image);
+        profileImage = rootView.findViewById(R.id.iv_profile_image);
         name = rootView.findViewById(R.id.tv_name);
         knuId = rootView.findViewById(R.id.tv_knu_id);
+        profile = rootView.findViewById(R.id.ll_profile);
         withdrawal = rootView.findViewById(R.id.ll_withdrawal);
         withdrawalText = rootView.findViewById(R.id.tv_withdrawal);
         settings = rootView.findViewById(R.id.ll_settings);
@@ -79,13 +81,16 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
         progressDialog = new ProgressDialog(getContext());
 
         User user = app.AppController.getInstance().getPreferenceManager().getUser();
-        String strKnuId = user.getUserId();
+        String stuKnuId = user.getUserId();
+        String userName = user.getName();
         progressDialog.setCancelable(false);
         Glide.with(getContext())
                 .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{IMAGE_ID}", user.getImageId()), new LazyHeaders.Builder().addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie()).build()))
                 .apply(RequestOptions.circleCropTransform())
-                .into(profile);
-        knuId.setText(strKnuId);
+                .into(profileImage);
+        name.setText(userName);
+        knuId.setText(stuKnuId);
+        profile.setOnClickListener(this);
         withdrawal.setOnClickListener(this);
         if (isAdmin) {
             withdrawalText.setText("소모임 폐쇄");
@@ -105,6 +110,9 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            case R.id.ll_profile :
+                startActivity(new Intent(getContext(), ProfileActivity.class));
+                break;
             case R.id.ll_withdrawal :
                 AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                 builder.setMessage((isAdmin ? "폐쇄" : "탈퇴") + "하시겠습니까?");

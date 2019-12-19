@@ -131,7 +131,7 @@ public class MainActivity extends FragmentActivity {
         profileImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                startActivity(new Intent(getApplicationContext(), ProfileActivity.class));
             }
         });
         knuId.setText(preferenceManager.getUser().getUserId());

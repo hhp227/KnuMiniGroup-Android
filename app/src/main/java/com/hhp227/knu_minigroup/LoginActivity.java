@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import com.android.volley.*;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.User;
@@ -64,14 +65,13 @@ public class LoginActivity extends Activity {
                         @Override
                         public void onResponse(String response) {
                             Log.d(TAG, "로그인 응답: " + response);
-                            hideProgressDialog();
 
                             try {
                                 JSONObject jsonObject = new JSONObject(response);
                                 boolean error = jsonObject.getBoolean("isError");
                                 if (!error) {
                                     createLog(id, password);
-                                    getUserImageId(id, password);
+                                    getUserInfo(id, password);
                                 } else {
                                     Toast.makeText(getApplicationContext(), "로그인 실패", Toast.LENGTH_LONG).show();
                                 }
@@ -85,7 +85,6 @@ public class LoginActivity extends Activity {
                         public void onErrorResponse(VolleyError error) {
                             Log.e(TAG, "로그인 에러: " + error.getMessage());
                             Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-                            hideProgressDialog();
                         }
                     }) {
                         @Override
@@ -164,7 +163,52 @@ public class LoginActivity extends Activity {
         });
     }
 
-    private void getUserImageId(final String id, final String password) {
+    private void getUserInfo(final String id, final String password) {
+        app.AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.GET, EndPoint.NEW_MESSAGE, null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    if (!response.getBoolean("isError")) {
+                        JSONObject param = response.getJSONObject("param");
+                        String name = param.getString("session.origin_nm");
+                        String department = param.getString("session.dept_nm");
+                        String number = param.getString("session.stu_id");
+                        String grade = param.getString("session.grade");
+                        String email = param.getString("session.email");
+
+                        User user = new User();
+                        user.setUserId(id);
+                        user.setPassword(password);
+                        user.setName(name);
+                        user.setDepartment(department);
+                        user.setNumber(number);
+                        user.setGrade(grade);
+                        user.setEmail(email);
+
+                        getUserImageId(user);
+                    } else
+                        Toast.makeText(getApplicationContext(), "에러 발생", Toast.LENGTH_LONG).show();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e(TAG, error.getMessage());
+                Toast.makeText(getApplicationContext(), "에러 : " + error.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+                return headers;
+            }
+        });
+    }
+
+    private void getUserImageId(final User user) {
         app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.GET_USER_IMAGE, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -172,18 +216,20 @@ public class LoginActivity extends Activity {
                 String imageUrl = source.getElementById("photo").getAttributeValue("src");
                 String imageId = imageUrl.substring(imageUrl.indexOf("id=") + "id=".length(), imageUrl.lastIndexOf("&size"));
 
-                User user = new User(id, password, imageId);
+                user.setImageId(imageId);
 
                 app.AppController.getInstance().getPreferenceManager().storeUser(user);
                 // 화면이동
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);
                 finish();
+                hideProgressDialog();
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 VolleyLog.e(error.getMessage());
+                hideProgressDialog();
             }
         }) {
             @Override
