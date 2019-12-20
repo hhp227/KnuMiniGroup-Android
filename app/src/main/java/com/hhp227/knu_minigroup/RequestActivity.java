@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 public class RequestActivity extends FragmentActivity {
-    private static final int LIMIT = 50;
+    private static final int LIMIT = 100;
     private static final String TAG = RequestActivity.class.getSimpleName();
     private ActionBar actionBar;
     private GroupListAdapter listAdapter;

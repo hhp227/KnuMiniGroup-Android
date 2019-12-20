@@ -83,7 +83,9 @@ public class ChatActivity extends Activity {
                 messageItemList.clear();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     MessageItem message = snapshot.getValue(MessageItem.class);
+                    messageItemList.add(message);
                 }
+                messageListAdapter.notifyDataSetChanged();
             }
 
             @Override
