@@ -11,7 +11,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.annotation.NonNull;
 import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.adapter.MessageListAdapter;
 import com.hhp227.knu_minigroup.dto.MessageItem;
@@ -29,6 +28,7 @@ public class ChatActivity extends Activity {
     private List<MessageItem> messageItemList;
     private ListView listView;
     private MessageListAdapter messageListAdapter;
+    private String sender, receiver;
     private TextView buttonSend;
     private User user;
 
@@ -42,7 +42,9 @@ public class ChatActivity extends Activity {
         databaseReference = FirebaseDatabase.getInstance().getReference("Messages");
         messageItemList = new ArrayList<>();
         user = app.AppController.getInstance().getPreferenceManager().getUser();
-        messageListAdapter = new MessageListAdapter(this, messageItemList, user.getImageId());
+        sender = user.getImageId();
+        receiver = getIntent().getStringExtra("image");
+        messageListAdapter = new MessageListAdapter(this, messageItemList, sender);
         actionBar = getActionBar();
         actionBar.setDisplayShowHomeEnabled(false);
         actionBar.setDisplayHomeAsUpEnabled(true);
@@ -83,7 +85,8 @@ public class ChatActivity extends Activity {
                 messageItemList.clear();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     MessageItem message = snapshot.getValue(MessageItem.class);
-                    messageItemList.add(message);
+                    if (message.getFrom().equals(sender) && message.getTo().equals(receiver) || message.getFrom().equals(receiver) && message.getTo().equals(sender))
+                        messageItemList.add(message);
                 }
                 messageListAdapter.notifyDataSetChanged();
             }
@@ -109,8 +112,8 @@ public class ChatActivity extends Activity {
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
 
         HashMap<String, Object> map = new HashMap<>();
-        map.put("from", user.getImageId());
-        map.put("to", getIntent().getStringExtra("image"));
+        map.put("from", sender);
+        map.put("to", receiver);
         map.put("name", user.getName());
         map.put("message", inputMessage.getText().toString());
         map.put("time", System.currentTimeMillis());
