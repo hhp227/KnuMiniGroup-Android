@@ -31,6 +31,7 @@ public class ChatActivity extends Activity {
     private String sender, receiver;
     private TextView buttonSend;
     private User user;
+    private boolean isGroupChat;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,8 +43,9 @@ public class ChatActivity extends Activity {
         databaseReference = FirebaseDatabase.getInstance().getReference("Messages");
         messageItemList = new ArrayList<>();
         user = app.AppController.getInstance().getPreferenceManager().getUser();
-        sender = user.getImageId();
-        receiver = getIntent().getStringExtra("image");
+        sender = user.getUid();
+        receiver = getIntent().getStringExtra("uid");
+        isGroupChat = getIntent().getBooleanExtra("grp_chat", false);
         messageListAdapter = new MessageListAdapter(this, messageItemList, sender);
         actionBar = getActionBar();
         actionBar.setDisplayShowHomeEnabled(false);
@@ -85,7 +87,7 @@ public class ChatActivity extends Activity {
                 messageItemList.clear();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     MessageItem message = snapshot.getValue(MessageItem.class);
-                    if (message.getFrom().equals(sender) && message.getTo().equals(receiver) || message.getFrom().equals(receiver) && message.getTo().equals(sender))
+                    if (!isGroupChat && message.getFrom().equals(sender) && message.getTo().equals(receiver) || !isGroupChat && message.getFrom().equals(receiver) && message.getTo().equals(sender) || isGroupChat && message.getTo().equals(receiver))
                         messageItemList.add(message);
                 }
                 messageListAdapter.notifyDataSetChanged();

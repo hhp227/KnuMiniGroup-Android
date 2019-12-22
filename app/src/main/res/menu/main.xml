@@ -1,0 +1,11 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context=".GroupActivity">
+
+    <!-- Chat -->
+    <item android:id="@+id/action_chat"
+          android:icon="@drawable/ic_action_chat"
+          android:title="채팅방"
+          android:showAsAction="ifRoom"/>
+
+</menu>

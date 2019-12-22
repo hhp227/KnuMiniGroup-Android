@@ -356,7 +356,7 @@ public class ArticleActivity extends Activity {
                     Element commentWrap = element.getFirstElementByClass("comment_wrap");
                     List<Element> commentList = element.getAllElementsByClass("comment-list");
 
-                    String profileImg = isAuthorized ? EndPoint.USER_IMAGE.replace("{IMAGE_ID}", preferenceManager.getUser().getImageId()) : null;
+                    String profileImg = isAuthorized ? EndPoint.USER_IMAGE.replace("{UID}", preferenceManager.getUser().getUid()) : null;
                     String title = viewArt.getFirstElementByClass("list_title").getTextExtractor().toString();
                     String timeStamp = viewArt.getFirstElement(HTMLElementName.TD).getTextExtractor().toString();
                     String content = contentExtractor(viewArt.getFirstElementByClass("list_cont"), true);
@@ -443,7 +443,7 @@ public class ArticleActivity extends Activity {
             replyItem.setReply(Html.fromHtml(replyContent).toString());
             replyItem.setTimeStamp(timeStamp.replaceAll("[(]|[)]", ""));
             replyItem.setAuth(authorization);
-            replyItem.setProfileImg(authorization ? EndPoint.USER_IMAGE.replace("{IMAGE_ID}", preferenceManager.getUser().getImageId()) : null);
+            replyItem.setProfileImg(authorization ? EndPoint.USER_IMAGE.replace("{UID}", preferenceManager.getUser().getUid()) : null);
             replyItemList.add(replyItem);
         }
         replyListAdapter.notifyDataSetChanged();

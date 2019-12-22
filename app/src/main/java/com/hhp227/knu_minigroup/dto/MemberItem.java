@@ -1,11 +1,11 @@
 package com.hhp227.knu_minigroup.dto;
 
 public class MemberItem {
-    public String name, imageId, value;
+    public String uid, name, value;
 
-    public MemberItem(String name, String imageId, String value) {
+    public MemberItem(String uid, String name, String value) {
+        this.uid = uid;
         this.name = name;
-        this.imageId = imageId;
         this.value = value;
     }
 }

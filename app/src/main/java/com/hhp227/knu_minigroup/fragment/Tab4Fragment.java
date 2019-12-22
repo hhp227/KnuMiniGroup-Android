@@ -85,7 +85,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
         String userName = user.getName();
         progressDialog.setCancelable(false);
         Glide.with(getContext())
-                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{IMAGE_ID}", user.getImageId()), new LazyHeaders.Builder().addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie()).build()))
+                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", user.getUid()), new LazyHeaders.Builder().addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie()).build()))
                 .apply(RequestOptions.circleCropTransform())
                 .into(profileImage);
         name.setText(userName);

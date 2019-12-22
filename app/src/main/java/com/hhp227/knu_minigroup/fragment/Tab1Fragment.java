@@ -194,7 +194,7 @@ public class Tab1Fragment extends BaseFragment {
 
                         boolean auth = viewArt.getAllElementsByClass("btn-small-gray").size() > 0;
                         int id = Integer.parseInt(commentWrap.getAttributeValue("num"));
-                        String profileImage = auth ? EndPoint.USER_IMAGE.replace("{IMAGE_ID}", app.AppController.getInstance().getPreferenceManager().getUser().getImageId()) : null;
+                        String profileImage = auth ? EndPoint.USER_IMAGE.replace("{UID}", app.AppController.getInstance().getPreferenceManager().getUser().getUid()) : null;
                         String title = viewArt.getFirstElementByClass("list_title").getTextExtractor().toString();
                         String timeStamp = viewArt.getFirstElement(HTMLElementName.TD).getTextExtractor().toString();
                         String imageUrl;

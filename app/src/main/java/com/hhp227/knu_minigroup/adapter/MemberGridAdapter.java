@@ -57,7 +57,7 @@ public class MemberGridAdapter extends BaseAdapter {
 
         name.setText(memberItem.name);
         Glide.with(activity)
-                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{IMAGE_ID}", memberItem.imageId), new LazyHeaders.Builder()
+                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", memberItem.uid), new LazyHeaders.Builder()
                         .addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie())
                         .build()))
                 .apply(new RequestOptions().centerCrop())

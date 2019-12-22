@@ -24,7 +24,7 @@ public class PreferenceManager {
     private static final String KEY_USER_NUMBER = "usr_stu_id";
     private static final String KEY_USER_GRADE = "usr_grade";
     private static final String KEY_USER_EMAIL = "usr_mail";
-    private static final String KEY_USER_IMAGE_ID = "usr_img_id";
+    private static final String KEY_USER_UNIQUE_ID = "usr_uid";
     private static final String KEY_COOKIE = "cookie";
 
     public PreferenceManager(Context context) {
@@ -41,7 +41,7 @@ public class PreferenceManager {
         editor.putString(KEY_USER_NUMBER, user.getNumber());
         editor.putString(KEY_USER_GRADE, user.getGrade());
         editor.putString(KEY_USER_EMAIL, user.getEmail());
-        editor.putString(KEY_USER_IMAGE_ID, user.getImageId());
+        editor.putString(KEY_USER_UNIQUE_ID, user.getUid());
         editor.commit();
 
         Log.i(TAG, "사용자 Session 저장 : " + user.getUserId());
@@ -56,8 +56,8 @@ public class PreferenceManager {
             String number = sharedPreferences.getString(KEY_USER_NUMBER, null);
             String grade = sharedPreferences.getString(KEY_USER_GRADE, null);
             String email = sharedPreferences.getString(KEY_USER_EMAIL, null);
-            String imageId = sharedPreferences.getString(KEY_USER_IMAGE_ID, null);
-            User user = new User(knuId, password, name, deptName, number, grade, email, imageId);
+            String uid = sharedPreferences.getString(KEY_USER_UNIQUE_ID, null);
+            User user = new User(knuId, password, name, deptName, number, grade, email, uid);
 
             return user;
         }

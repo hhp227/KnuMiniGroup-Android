@@ -185,7 +185,7 @@ public class LoginActivity extends Activity {
                         user.setGrade(grade);
                         user.setEmail(email);
 
-                        getUserImageId(user);
+                        getUserUniqueId(user);
                     } else
                         Toast.makeText(getApplicationContext(), "에러 발생", Toast.LENGTH_LONG).show();
                 } catch (JSONException e) {
@@ -208,15 +208,15 @@ public class LoginActivity extends Activity {
         });
     }
 
-    private void getUserImageId(final User user) {
+    private void getUserUniqueId(final User user) {
         app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.GET_USER_IMAGE, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 Source source = new Source(response);
                 String imageUrl = source.getElementById("photo").getAttributeValue("src");
-                String imageId = imageUrl.substring(imageUrl.indexOf("id=") + "id=".length(), imageUrl.lastIndexOf("&size"));
+                String uid = imageUrl.substring(imageUrl.indexOf("id=") + "id=".length(), imageUrl.lastIndexOf("&size"));
 
-                user.setImageId(imageId);
+                user.setUid(uid);
 
                 app.AppController.getInstance().getPreferenceManager().storeUser(user);
                 // 화면이동

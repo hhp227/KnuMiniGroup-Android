@@ -125,7 +125,7 @@ public class MainActivity extends FragmentActivity {
         });
         drawerList.setItemChecked(0, true);
         Glide.with(getApplicationContext())
-                    .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{IMAGE_ID}", preferenceManager.getUser().getImageId()), new LazyHeaders.Builder().addHeader("Cookie", preferenceManager.getCookie()).build()))
+                    .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", preferenceManager.getUser().getUid()), new LazyHeaders.Builder().addHeader("Cookie", preferenceManager.getCookie()).build()))
                     .apply(new RequestOptions().circleCrop())
                     .into(profileImage);
         profileImage.setOnClickListener(new View.OnClickListener() {

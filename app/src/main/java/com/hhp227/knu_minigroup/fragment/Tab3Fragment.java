@@ -88,13 +88,13 @@ public class Tab3Fragment extends BaseFragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 MemberItem memberItem = memberItems.get(position);
+                String uid = memberItem.uid;
                 String name = memberItem.name;
-                String image = memberItem.imageId;
                 String value = memberItem.value;
 
                 Bundle args = new Bundle();
+                args.putString("uid", uid);
                 args.putString("name", name);
-                args.putString("image", image);
                 args.putString("value", value);
 
                 UserFragment newFragment = UserFragment.newInstance();
@@ -131,7 +131,7 @@ public class Tab3Fragment extends BaseFragment {
                         String name = spanElements.get(i).getContent().toString();
                         String imageUrl = imgElements.get(i).getAttributeValue("src");
                         String value = inputElements.get(i).getAttributeValue("value");
-                        memberItems.add(new MemberItem(name, imageUrl.substring(imageUrl.indexOf("id=") + "id=".length(), imageUrl.lastIndexOf("&ext")), value));
+                        memberItems.add(new MemberItem(imageUrl.substring(imageUrl.indexOf("id=") + "id=".length(), imageUrl.lastIndexOf("&ext")), name, value));
                     }
                     memberGridAdapter.notifyDataSetChanged();
                 } catch (NullPointerException e) {

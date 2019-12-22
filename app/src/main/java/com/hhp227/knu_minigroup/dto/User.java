@@ -3,12 +3,12 @@ package com.hhp227.knu_minigroup.dto;
 import java.io.Serializable;
 
 public class User implements Serializable {
-    String userId, password, name, department, number, grade, email, imageId;
+    String userId, password, name, department, number, grade, email, uid;
 
     public User() {
     }
 
-    public User(String userId, String password, String name, String department, String number, String grade, String email, String imageId) {
+    public User(String userId, String password, String name, String department, String number, String grade, String email, String uid) {
         this.userId = userId;
         this.password = password;
         this.name = name;
@@ -16,7 +16,7 @@ public class User implements Serializable {
         this.number = number;
         this.grade = grade;
         this.email = email;
-        this.imageId = imageId;
+        this.uid = uid;
     }
 
     public String getUserId() {
@@ -75,11 +75,11 @@ public class User implements Serializable {
         this.email = email;
     }
 
-    public String getImageId() {
-        return imageId;
+    public String getUid() {
+        return uid;
     }
 
-    public void setImageId(String imageId) {
-        this.imageId = imageId;
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 }

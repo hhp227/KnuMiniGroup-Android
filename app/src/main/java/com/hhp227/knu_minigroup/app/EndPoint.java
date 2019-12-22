@@ -19,7 +19,7 @@ public interface EndPoint {
     String DELETE_REPLY = BASE_URL + "/ilos/community/share_comment_delete.acl";
     String MODIFY_REPLY = BASE_URL + "/ilos/community/share_comment_update.acl";
     String MEMBER_LIST = BASE_URL + "/ilos/community/share_member_list.acl";
-    String USER_IMAGE = BASE_URL + "/ilos/mp/user_image_view.acl?id={IMAGE_ID}&ext=.jpg";
+    String USER_IMAGE = BASE_URL + "/ilos/mp/user_image_view.acl?id={UID}&ext=.jpg";
     String GET_USER_IMAGE = BASE_URL + "/ilos/mp/myinfo_update_photo.acl";
     String TIMETABLE = BASE_URL + "/ilos/st/main/pop_academic_timetable_form.acl";
     String NEW_MESSAGE = BASE_URL + "/ilos/message/received_new_message_check.acl";

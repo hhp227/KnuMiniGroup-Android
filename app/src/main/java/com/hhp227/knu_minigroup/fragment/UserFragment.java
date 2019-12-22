@@ -19,7 +19,7 @@ import com.hhp227.knu_minigroup.app.EndPoint;
 public class UserFragment extends DialogFragment {
     private Button send, close;
     private ImageView profileImage;
-    private String name, imageId, value;
+    private String uid, name, value;
     private TextView userName;
 
     public static UserFragment newInstance() {
@@ -41,21 +41,26 @@ public class UserFragment extends DialogFragment {
 
         Bundle bundle = getArguments();
         if (bundle != null) {
+            uid = bundle.getString("uid");
             name = bundle.getString("name");
-            imageId = bundle.getString("image");
             value = bundle.getString("value");
         }
-        Glide.with(getActivity()).load(EndPoint.USER_IMAGE.replace("{IMAGE_ID}", imageId)).apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop()).into(profileImage);
+        Glide.with(getActivity()).load(EndPoint.USER_IMAGE.replace("{UID}", uid)).apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop()).into(profileImage);
         userName.setText(name);
-        send.setText("메시지 보내기");
-        send.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getContext(), ChatActivity.class);
-                intent.putExtra("image", imageId);
-                startActivity(intent);
-            }
-        });
+        if (uid.equals(app.AppController.getInstance().getPreferenceManager().getUser().getUid()))
+            send.setVisibility(View.GONE);
+        else {
+            send.setText("메시지 보내기");
+            send.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getContext(), ChatActivity.class);
+                    intent.putExtra("grp_chat", false);
+                    intent.putExtra("uid", uid);
+                    startActivity(intent);
+                }
+            });
+        }
         close.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

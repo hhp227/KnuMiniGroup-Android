@@ -44,7 +44,7 @@ public class ProfileActivity extends Activity {
             }
         });
         Glide.with(getApplicationContext())
-                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{IMAGE_ID}", user.getImageId()), new LazyHeaders.Builder().addHeader("Cookie", preferenceManager.getCookie()).build()))
+                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", user.getUid()), new LazyHeaders.Builder().addHeader("Cookie", preferenceManager.getCookie()).build()))
                 .into(profileImage);
         name.setText(user.getName());
         knuId.setText(user.getUserId());
