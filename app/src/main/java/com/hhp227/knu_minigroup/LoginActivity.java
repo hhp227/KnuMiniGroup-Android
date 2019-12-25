@@ -77,12 +77,14 @@ public class LoginActivity extends Activity {
                                 Log.e(TAG, "JSON에러 : " + e);
                                 Toast.makeText(getApplicationContext(), "로그인 실패", Toast.LENGTH_LONG).show();
                             }
+                            hideProgressDialog();
                         }
                     }, new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             Log.e(TAG, "로그인 에러: " + error.getMessage());
                             Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
+                            hideProgressDialog();
                         }
                     }) {
                         @Override
