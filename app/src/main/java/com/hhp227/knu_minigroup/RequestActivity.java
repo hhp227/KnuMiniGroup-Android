@@ -73,7 +73,7 @@ public class RequestActivity extends FragmentActivity {
 
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
-                if (scrollState == SCROLL_STATE_IDLE && lastItemVisibleFlag && hasRequestedMore == false) {
+                if (scrollState == SCROLL_STATE_IDLE && lastItemVisibleFlag && !hasRequestedMore) {
                     footerLoading.setVisibility(View.VISIBLE);
                     offSet += LIMIT;
                     hasRequestedMore = true;
@@ -195,7 +195,7 @@ public class RequestActivity extends FragmentActivity {
                 params.put("start", String.valueOf(offSet));
                 params.put("display", String.valueOf(LIMIT));
                 params.put("encoding", "utf-8");
-                if (params != null && params.size() > 0) {
+                if (params.size() > 0) {
                     StringBuilder encodedParams = new StringBuilder();
                     try {
                         for (Map.Entry<String, String> entry : params.entrySet()) {

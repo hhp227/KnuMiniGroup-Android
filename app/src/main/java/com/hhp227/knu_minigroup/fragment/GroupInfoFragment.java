@@ -124,7 +124,7 @@ public class GroupInfoFragment extends DialogFragment {
                     public byte[] getBody() {
                         Map<String, String> params = new HashMap<>();
                         params.put("CLUB_GRP_ID", String.valueOf(groupId));
-                        if (params != null && params.size() > 0) {
+                        if (params.size() > 0) {
                             StringBuilder encodedParams = new StringBuilder();
                             try {
                                 for (Map.Entry<String, String> entry : params.entrySet()) {

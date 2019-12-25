@@ -106,7 +106,7 @@ public class LoginActivity extends Activity {
                             Map<String, String> params = new HashMap<>();
                             params.put("usr_id", id);
                             params.put("usr_pwd", password);
-                            if (params != null && params.size() > 0) {
+                            if (params.size() > 0) {
                                 StringBuilder encodedParams = new StringBuilder();
                                 try {
                                     for (Map.Entry<String, String> entry : params.entrySet()) {

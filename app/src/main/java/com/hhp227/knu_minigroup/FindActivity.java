@@ -194,7 +194,7 @@ public class FindActivity extends FragmentActivity {
                 params.put("start", String.valueOf(offSet));
                 params.put("display", String.valueOf(LIMIT));
                 params.put("encoding", "utf-8");
-                if (params != null && params.size() > 0) {
+                if (params.size() > 0) {
                     StringBuilder encodedParams = new StringBuilder();
                     try {
                         for (Map.Entry<String, String> entry : params.entrySet()) {
