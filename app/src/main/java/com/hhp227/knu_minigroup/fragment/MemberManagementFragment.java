@@ -1,0 +1,120 @@
+package com.hhp227.knu_minigroup.fragment;
+
+import android.os.Bundle;
+import android.os.Handler;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import android.widget.ListView;
+import android.widget.Toast;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import com.android.volley.*;
+import com.android.volley.toolbox.StringRequest;
+import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.adapter.MemberListAdapter;
+import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.dto.MemberItem;
+import net.htmlparser.jericho.Element;
+import net.htmlparser.jericho.HTMLElementName;
+import net.htmlparser.jericho.Source;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class MemberManagementFragment extends Fragment {
+    private static int groupId;
+    private ListView listView;
+    private List<MemberItem> memberItems;
+    private MemberListAdapter memberListAdapter;
+    private SwipeRefreshLayout swipeRefreshLayout;
+
+    public MemberManagementFragment() {
+        // Required empty public constructor
+    }
+
+    public static MemberManagementFragment newInstance(int grpId) {
+        MemberManagementFragment fragment = new MemberManagementFragment();
+        Bundle args = new Bundle();
+        args.putInt("grp_id", grpId);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            groupId = getArguments().getInt("grp_id");
+        }
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View rootView = inflater.inflate(R.layout.fragment_member, container, false);
+        listView = rootView.findViewById(R.id.lv_member);
+        swipeRefreshLayout = rootView.findViewById(R.id.srl_member);
+        memberItems = new ArrayList<>();
+        memberListAdapter = new MemberListAdapter(getContext(), memberItems);
+
+        listView.setAdapter(memberListAdapter);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(getContext(), "새로고침", Toast.LENGTH_LONG).show();
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+                }, 1500);
+            }
+        });
+        app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_MEMBER_LIST, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Source source = new Source(response);
+                List<Element> listZone = source.getElementById("listZone").getChildElements();
+                for (Element element : listZone) {
+                    List<Element> tdList = element.getAllElements(HTMLElementName.TD);
+                    String studentNumber = tdList.get(0).getContent().getFirstElement().getAttributeValue("value");
+                    String imageUrl = tdList.get(1).getContent().getFirstElement().getAttributeValue("src");
+                    String uid = imageUrl.substring(imageUrl.indexOf("id=") + "id=".length(), imageUrl.lastIndexOf("&ext"));
+                    String name = tdList.get(2).getContent().toString();
+                    String deptName = tdList.get(3).getTextExtractor().toString();
+                    String division = tdList.get(5).getContent().toString();
+                    String date = tdList.get(6).getContent().toString();
+
+                    MemberItem memberItem = new MemberItem(uid, name, null, studentNumber, deptName, division, date);
+                    memberItems.add(memberItem);
+                }
+                memberListAdapter.notifyDataSetChanged();
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e(error.getMessage());
+                Toast.makeText(getContext(), "에러 : " + error.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+                return headers;
+            }
+
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+                params.put("CLUB_GRP_ID", String.valueOf(groupId));
+                return params;
+            }
+        });
+        return rootView;
+    }
+}

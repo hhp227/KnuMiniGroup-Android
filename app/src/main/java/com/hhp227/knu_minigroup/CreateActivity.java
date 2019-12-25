@@ -40,10 +40,9 @@ public class CreateActivity extends Activity {
     private ActionBar actionBar;
     private Bitmap bitmap;
     private EditText groupTitle, groupDescription;
-    private ImageView groupImage;
+    private ImageView groupImage, resetTitle;
     private ProgressDialog progressDialog;
     private RadioGroup joinType;
-    private TextView resetTitle;
 
     private boolean joinTypeCheck;
     private String cookie;
@@ -54,7 +53,7 @@ public class CreateActivity extends Activity {
         setContentView(R.layout.activity_create);
         groupTitle = findViewById(R.id.et_title);
         groupDescription = findViewById(R.id.et_description);
-        resetTitle = findViewById(R.id.tv_reset);
+        resetTitle = findViewById(R.id.iv_reset);
         groupImage = findViewById(R.id.iv_group_image);
         joinType = findViewById(R.id.rg_jointype);
         cookie = app.AppController.getInstance().getPreferenceManager().getCookie();
@@ -78,7 +77,7 @@ public class CreateActivity extends Activity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                resetTitle.setTextColor(getResources().getColor(s.length() > 0 ? android.R.color.black : android.R.color.darker_gray));
+                resetTitle.setImageResource(s.length() > 0 ? R.drawable.ic_clear_black_24dp : R.drawable.ic_clear_gray_24dp);
             }
 
             @Override
@@ -105,7 +104,7 @@ public class CreateActivity extends Activity {
         joinType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                joinTypeCheck = checkedId == R.id.rb_auto ? false : true;
+                joinTypeCheck = checkedId != R.id.rb_auto;
             }
         });
 

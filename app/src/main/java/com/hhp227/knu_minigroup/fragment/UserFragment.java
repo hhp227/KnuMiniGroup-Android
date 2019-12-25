@@ -56,6 +56,7 @@ public class UserFragment extends DialogFragment {
                 public void onClick(View v) {
                     Intent intent = new Intent(getContext(), ChatActivity.class);
                     intent.putExtra("grp_chat", false);
+                    intent.putExtra("chat_nm", name);
                     intent.putExtra("uid", uid);
                     startActivity(intent);
                 }

@@ -26,7 +26,7 @@ public class MessageListAdapter extends BaseAdapter {
     private LayoutInflater inflater;
     private List<MessageItem> messageItems;
     private String imageId;
-    private ViewHoler viewHoler;
+    private ViewHolder viewHolder;
 
     public MessageListAdapter(Context context, List<MessageItem> messageItems, String imageId) {
         this.context = context;
@@ -55,26 +55,26 @@ public class MessageListAdapter extends BaseAdapter {
             inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (convertView == null) {
             convertView = inflater.inflate(getItemViewType(position) == MSG_TYPE_RIGHT ? R.layout.message_item_right : R.layout.message_item_left, null);
-            viewHoler = new ViewHoler(convertView);
-            convertView.setTag(viewHoler);
+            viewHolder = new ViewHolder(convertView);
+            convertView.setTag(viewHolder);
         } else
-            viewHoler = (ViewHoler) convertView.getTag();
+            viewHolder = (ViewHolder) convertView.getTag();
         MessageItem messageItem = messageItems.get(position);
-        viewHoler.name.setText(messageItem.getName());
-        viewHoler.message.setText(messageItem.getMessage());
-        viewHoler.timeStamp.setText(getTimeStamp(messageItem.getTime()));
+        viewHolder.name.setText(messageItem.getName());
+        viewHolder.message.setText(messageItem.getMessage());
+        viewHolder.timeStamp.setText(getTimeStamp(messageItem.getTime()));
         if (position > 0 && getTimeStamp(messageItems.get(position - 1).getTime()).equals(getTimeStamp(messageItem.getTime())) && messageItems.get(position - 1).getFrom().equals(messageItem.getFrom())) {
-            viewHoler.name.setVisibility(View.GONE);
-            viewHoler.messageBox.setPadding(viewHoler.messageBox.getPaddingLeft(), 0, viewHoler.messageBox.getPaddingRight(), viewHoler.messageBox.getPaddingBottom());
-            viewHoler.profileImage.setVisibility(View.INVISIBLE);
+            viewHolder.name.setVisibility(View.GONE);
+            viewHolder.messageBox.setPadding(viewHolder.messageBox.getPaddingLeft(), 0, viewHolder.messageBox.getPaddingRight(), viewHolder.messageBox.getPaddingBottom());
+            viewHolder.profileImage.setVisibility(View.INVISIBLE);
         } else {
-            viewHoler.name.setVisibility(getItemViewType(position) == MSG_TYPE_RIGHT ? View.GONE : View.VISIBLE);
-            viewHoler.profileImage.setVisibility(View.VISIBLE);
-            viewHoler.messageBox.setPadding(10, 10, 10, 10);
-            Glide.with(context).load(EndPoint.USER_IMAGE.replace("{UID}", messageItem.getFrom())).apply(new RequestOptions().circleCrop()).into(viewHoler.profileImage);
+            viewHolder.name.setVisibility(getItemViewType(position) == MSG_TYPE_RIGHT ? View.GONE : View.VISIBLE);
+            viewHolder.profileImage.setVisibility(View.VISIBLE);
+            viewHolder.messageBox.setPadding(10, 10, 10, 10);
+            Glide.with(context).load(EndPoint.USER_IMAGE.replace("{UID}", messageItem.getFrom())).apply(new RequestOptions().circleCrop()).into(viewHolder.profileImage);
         }
         if (position + 1 != messageItems.size() && getTimeStamp(messageItem.getTime()).equals(getTimeStamp(messageItems.get(position + 1).getTime())) && messageItem.getFrom().equals(messageItems.get(position + 1).getFrom()))
-            viewHoler.timeStamp.setText("");
+            viewHolder.timeStamp.setText("");
 
         return convertView;
     }
@@ -93,12 +93,12 @@ public class MessageListAdapter extends BaseAdapter {
         return new SimpleDateFormat("a h:mm", Locale.getDefault()).format(time);
     }
 
-    public class ViewHoler {
+    public class ViewHolder {
         public ImageView profileImage;
         public LinearLayout messageBox;
         public TextView name, message, timeStamp;
 
-        public ViewHoler(View itemView) {
+        public ViewHolder(View itemView) {
             profileImage = itemView.findViewById(R.id.iv_profile_image);
             messageBox = itemView.findViewById(R.id.ll_message);
             name = itemView.findViewById(R.id.tv_name);

@@ -2,15 +2,13 @@ package com.hhp227.knu_minigroup;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.EditText;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.adapter.MessageListAdapter;
 import com.hhp227.knu_minigroup.dto.MessageItem;
@@ -44,12 +42,14 @@ public class ChatActivity extends Activity {
         messageItemList = new ArrayList<>();
         user = app.AppController.getInstance().getPreferenceManager().getUser();
         sender = user.getUid();
-        receiver = getIntent().getStringExtra("uid");
-        isGroupChat = getIntent().getBooleanExtra("grp_chat", false);
+        Intent intent = getIntent();
+        receiver = intent.getStringExtra("uid");
+        isGroupChat = intent.getBooleanExtra("grp_chat", false);
         messageListAdapter = new MessageListAdapter(this, messageItemList, sender);
         actionBar = getActionBar();
         actionBar.setDisplayShowHomeEnabled(false);
         actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setTitle(intent.getStringExtra("chat_nm") + (isGroupChat ? " 그룹채팅방" : ""));
         actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
             @Override
             public boolean isLayoutRtl() {
@@ -79,6 +79,13 @@ public class ChatActivity extends Activity {
 
             @Override
             public void afterTextChanged(Editable s) {
+            }
+        });
+        inputMessage.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus)
+                    listView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_NORMAL);
             }
         });
         databaseReference.addValueEventListener(new ValueEventListener() {

@@ -55,6 +55,7 @@ public class GroupActivity extends FragmentActivity {
         else if (item.getItemId() == R.id.action_chat) {
             Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
             intent.putExtra("grp_chat", true);
+            intent.putExtra("chat_nm", groupName);
             intent.putExtra("uid", String.valueOf(groupId));
             startActivity(intent);
         }

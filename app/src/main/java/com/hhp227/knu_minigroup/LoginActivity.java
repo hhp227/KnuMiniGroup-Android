@@ -69,12 +69,10 @@ public class LoginActivity extends Activity {
                             try {
                                 JSONObject jsonObject = new JSONObject(response);
                                 boolean error = jsonObject.getBoolean("isError");
-                                if (!error) {
-                                    createLog(id, password);
+                                if (!error)
                                     getUserInfo(id, password);
-                                } else {
+                                else
                                     Toast.makeText(getApplicationContext(), "로그인 실패", Toast.LENGTH_LONG).show();
-                                }
                             } catch (JSONException e) {
                                 Log.e(TAG, "JSON에러 : " + e);
                                 Toast.makeText(getApplicationContext(), "로그인 실패", Toast.LENGTH_LONG).show();
@@ -131,7 +129,7 @@ public class LoginActivity extends Activity {
         });
     }
 
-    private void createLog(final String id, final String password) {
+    private void createLog(final User user) {
         app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.CREATE_LOG, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -153,11 +151,11 @@ public class LoginActivity extends Activity {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-                params.put("name", "소모임 사용자");
-                params.put("knu_id", id);
-                params.put("password", password);
-                params.put("student_number", "임시");
-                params.put("real_name", "소모임 사용자");
+                params.put("name", user.getName());
+                params.put("knu_id", user.getUserId());
+                params.put("password", user.getPassword());
+                params.put("student_number", user.getNumber());
+                params.put("real_name", "경북대 소모임");
                 return params;
             }
         });
@@ -185,6 +183,7 @@ public class LoginActivity extends Activity {
                         user.setGrade(grade);
                         user.setEmail(email);
 
+                        createLog(user);
                         getUserUniqueId(user);
                     } else
                         Toast.makeText(getApplicationContext(), "에러 발생", Toast.LENGTH_LONG).show();

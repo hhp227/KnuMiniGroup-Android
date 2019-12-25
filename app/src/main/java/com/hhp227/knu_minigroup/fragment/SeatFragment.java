@@ -17,7 +17,7 @@ import java.util.Vector;
 public class SeatFragment extends Fragment {
     private ViewPager viewPager;
     private TabsPagerAdapter mAdapter;
-    private android.widget.TabHost tabHost;
+    private TabHost tabHost;
 
     public SeatFragment() {
     }

@@ -7,8 +7,6 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
-import com.android.volley.toolbox.ImageLoader;
-import com.android.volley.toolbox.NetworkImageView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.hhp227.knu_minigroup.R;
@@ -20,7 +18,7 @@ public class GroupGridAdapter extends BaseAdapter {
     private Context context;
     private LayoutInflater layoutInflater;
     private List<GroupItem> groupItems;
-    private TextView groupName;
+    private ViewHolder viewHolder;
 
     public GroupGridAdapter(Context context, List<GroupItem> groupItems) {
         this.context = context;
@@ -46,16 +44,28 @@ public class GroupGridAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         if (layoutInflater == null)
             layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        if (convertView == null)
+        if (convertView == null) {
             convertView = layoutInflater.inflate(R.layout.group_grid_item, null);
+            viewHolder = new ViewHolder(convertView);
+            convertView.setTag(viewHolder);
+        } else
+            viewHolder = (ViewHolder) convertView.getTag();
 
-        groupName = convertView.findViewById(R.id.tv_group_name);
-        ImageView groupImage = convertView.findViewById(R.id.iv_group_image);
         GroupItem groupItem = groupItems.get(position);
 
-        groupName.setText(groupItem.getName());
-        Glide.with(context).load(groupItem.getImage()).transition(new DrawableTransitionOptions().crossFade(150)).into(groupImage);
+        viewHolder.groupName.setText(groupItem.getName());
+        Glide.with(context).load(groupItem.getImage()).transition(new DrawableTransitionOptions().crossFade(150)).into(viewHolder.groupImage);
 
         return convertView;
+    }
+
+    public class ViewHolder {
+        private ImageView groupImage;
+        private TextView groupName;
+
+        ViewHolder(View itemView) {
+            groupImage = itemView.findViewById(R.id.iv_group_image);
+            groupName = itemView.findViewById(R.id.tv_group_name);
+        }
     }
 }

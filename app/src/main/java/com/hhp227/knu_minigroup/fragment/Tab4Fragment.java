@@ -1,32 +1,33 @@
 package com.hhp227.knu_minigroup.fragment;
 
+
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.android.volley.*;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
-import com.hhp227.knu_minigroup.MainActivity;
-import com.hhp227.knu_minigroup.ProfileActivity;
-import com.hhp227.knu_minigroup.R;
-import com.hhp227.knu_minigroup.VerInfoActivity;
+import com.hhp227.knu_minigroup.*;
 import com.hhp227.knu_minigroup.app.EndPoint;
-import com.hhp227.knu_minigroup.ui.scrollable.BaseFragment;
 import com.hhp227.knu_minigroup.dto.User;
+import com.hhp227.knu_minigroup.ui.scrollable.BaseFragment;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -39,6 +40,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     private static int groupId;
     private static boolean isAdmin;
     private static final String TAG = Tab4Fragment.class.getSimpleName();
+    private long mLastClickTime;
     ImageView profileImage;
     LinearLayout profile, withdrawal, settings, appStore, share, version;
     ProgressDialog progressDialog;
@@ -109,6 +111,9 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
+        if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
+            return;
+        mLastClickTime = SystemClock.elapsedRealtime();
         switch (v.getId()) {
             case R.id.ll_profile :
                 startActivity(new Intent(getContext(), ProfileActivity.class));
@@ -188,7 +193,9 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                 builder.show();
                 break;
             case R.id.ll_settings :
-                Toast.makeText(getContext(), "설정", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(getContext(), SettingsActivity.class);
+                intent.putExtra("grp_id", groupId);
+                startActivity(intent);
                 break;
             case R.id.ll_appstore :
                 String appUrl = "https://play.google.com/store/apps/details?id=" + getContext().getPackageName();
