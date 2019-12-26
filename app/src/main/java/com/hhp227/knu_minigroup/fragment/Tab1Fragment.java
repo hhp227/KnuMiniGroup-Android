@@ -124,7 +124,7 @@ public class Tab1Fragment extends BaseFragment {
 
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
-                if (scrollState == SCROLL_STATE_IDLE && lastItemVisibleFlag && hasRequestedMore == false) {
+                if (scrollState == SCROLL_STATE_IDLE && lastItemVisibleFlag && !hasRequestedMore) {
                     // 화면이 바닦에 닿을때 처리
                     // 로딩중을 알리는 프로그레스바를 보인다.
                     footerLoading.setVisibility(View.VISIBLE);

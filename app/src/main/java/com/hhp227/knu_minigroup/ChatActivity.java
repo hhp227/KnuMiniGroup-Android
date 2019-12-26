@@ -6,9 +6,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
+import androidx.annotation.NonNull;
 import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.adapter.MessageListAdapter;
 import com.hhp227.knu_minigroup.dto.MessageItem;
@@ -20,16 +22,19 @@ import java.util.HashMap;
 import java.util.List;
 
 public class ChatActivity extends Activity {
-    private ActionBar actionBar;
+    private static final int LIMIT = 20;
     private DatabaseReference databaseReference;
     private EditText inputMessage;
     private List<MessageItem> messageItemList;
     private ListView listView;
     private MessageListAdapter messageListAdapter;
+    private Query query;
     private String sender, receiver;
     private TextView buttonSend;
     private User user;
-    private boolean isGroupChat;
+    private boolean hasRequestedMore, isGroupChat;
+    private int currentScrollState;
+    private String cursor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +51,8 @@ public class ChatActivity extends Activity {
         receiver = intent.getStringExtra("uid");
         isGroupChat = intent.getBooleanExtra("grp_chat", false);
         messageListAdapter = new MessageListAdapter(this, messageItemList, sender);
-        actionBar = getActionBar();
+        query = databaseReference.orderByKey().limitToLast(LIMIT);
+        ActionBar actionBar = getActionBar();
         actionBar.setDisplayShowHomeEnabled(false);
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setTitle(intent.getStringExtra("chat_nm") + (isGroupChat ? " 그룹채팅방" : ""));
@@ -88,20 +94,38 @@ public class ChatActivity extends Activity {
                     listView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_NORMAL);
             }
         });
-        databaseReference.addValueEventListener(new ValueEventListener() {
+        query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 messageItemList.clear();
+                cursor = dataSnapshot.getChildren().iterator().next().getKey();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     MessageItem message = snapshot.getValue(MessageItem.class);
-                    if (!isGroupChat && message.getFrom().equals(sender) && message.getTo().equals(receiver) || !isGroupChat && message.getFrom().equals(receiver) && message.getTo().equals(sender) || isGroupChat && message.getTo().equals(receiver))
-                        messageItemList.add(message);
+                    //if (!isGroupChat && message.getFrom().equals(sender) && message.getTo().equals(receiver) || !isGroupChat && message.getFrom().equals(receiver) && message.getTo().equals(sender) || isGroupChat && message.getTo().equals(receiver))
+                    messageItemList.add(message);
                 }
                 messageListAdapter.notifyDataSetChanged();
+                setFocusMessage(messageItemList.size());
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+        listView.setOnScrollListener(new AbsListView.OnScrollListener() {
+
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                currentScrollState = scrollState;
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                boolean loadMore = firstVisibleItem == 0;
+                if (!hasRequestedMore && loadMore && currentScrollState != SCROLL_STATE_IDLE) {
+                    hasRequestedMore = true;
+                    fetchMessageList();
+                }
             }
         });
         listView.setAdapter(messageListAdapter);
@@ -115,6 +139,41 @@ public class ChatActivity extends Activity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void fetchMessageList() {
+        final List<MessageItem> messageList = new ArrayList<>();
+        query = databaseReference.orderByKey().endAt(cursor).limitToLast(LIMIT);
+        query.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Toast.makeText(getApplicationContext(), cursor, Toast.LENGTH_LONG).show();
+                cursor = dataSnapshot.getChildren().iterator().next().getKey();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    MessageItem message = snapshot.getValue(MessageItem.class);
+                    messageList.add(message);
+                }
+                messageList.remove(messageList.size() - 1);
+                messageItemList.addAll(0, messageList);
+                messageListAdapter.notifyDataSetChanged();
+                setFocusMessage(messageList.size() - 1);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+    }
+
+    private void setFocusMessage(int count) {
+        if (hasRequestedMore) {
+            int firstPosition = listView.getFirstVisiblePosition();
+            View firstView = listView.getChildAt(0);
+            int top = firstView != null ? firstView.getTop() : 0;
+            listView.setSelectionFromTop(firstPosition + count, top);
+        } else
+            listView.setSelection(listView.getCount());
+        hasRequestedMore = false;
     }
 
     private void sendMessage() {
