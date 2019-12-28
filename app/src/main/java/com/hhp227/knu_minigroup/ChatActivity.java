@@ -6,15 +6,24 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
+import app.AppController;
+import com.android.volley.*;
 import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.adapter.MessageListAdapter;
+import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.MessageItem;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
+import com.hhp227.knu_minigroup.volley.util.JsonObjectRequest;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,12 +36,11 @@ public class ChatActivity extends Activity {
     private List<MessageItem> messageItemList;
     private ListView listView;
     private MessageListAdapter messageListAdapter;
-    private String sender, receiver;
+    private String cursor, sender, receiver, value;
     private TextView buttonSend;
     private User user;
     private boolean hasRequestedMore, hasSelection, isGroupChat;
     private int currentScrollState;
-    private String cursor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +55,7 @@ public class ChatActivity extends Activity {
         sender = user.getUid();
         Intent intent = getIntent();
         receiver = intent.getStringExtra("uid");
+        value = intent.getStringExtra("value");
         isGroupChat = intent.getBooleanExtra("grp_chat", false);
         messageListAdapter = new MessageListAdapter(this, messageItemList, sender);
         ActionBar actionBar = getActionBar();
@@ -64,6 +73,8 @@ public class ChatActivity extends Activity {
             public void onClick(View v) {
                 if (inputMessage.getText().toString().trim().length() > 0) {
                     sendMessage();
+                    if (!isGroupChat)
+                        sendLMSMessage();
                     inputMessage.setText("");
                 } else
                     Toast.makeText(getApplicationContext(), "메시지를 입력하세요.", Toast.LENGTH_LONG).show();
@@ -109,7 +120,6 @@ public class ChatActivity extends Activity {
             public void onCancelled(DatabaseError databaseError) {
             }
         });*/
-        fetchMessageList(isGroupChat ? databaseReference.child(receiver).orderByKey().limitToLast(LIMIT) : databaseReference.child(sender).child(receiver).orderByKey().limitToLast(LIMIT), 0, "");
         listView.setOnScrollListener(new AbsListView.OnScrollListener() {
 
             @Override
@@ -128,6 +138,7 @@ public class ChatActivity extends Activity {
             }
         });
         listView.setAdapter(messageListAdapter);
+        fetchMessageList(isGroupChat ? databaseReference.child(receiver).orderByKey().limitToLast(LIMIT) : databaseReference.child(sender).child(receiver).orderByKey().limitToLast(LIMIT), 0, "");
     }
 
     @Override
@@ -206,6 +217,7 @@ public class ChatActivity extends Activity {
         map.put("from", sender);
         map.put("name", user.getName());
         map.put("message", inputMessage.getText().toString());
+        map.put("type", "text");
         map.put("seen", false);
         map.put("timestamp", System.currentTimeMillis());
         if (isGroupChat) {
@@ -221,5 +233,60 @@ public class ChatActivity extends Activity {
 
             databaseReference.updateChildren(messageMap);
         }
+    }
+
+    private void sendLMSMessage() {
+        app.AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, EndPoint.SEND_MESSAGE, null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    if (!response.getBoolean("isError"))
+                        Log.d("채팅", response.getString("message"));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e(error.getMessage());
+                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Cookie", AppController.getInstance().getPreferenceManager().getCookie());
+                return headers;
+            }
+
+            @Override
+            public String getBodyContentType() {
+                return "application/x-www-form-urlencoded; charset=" + getParamsEncoding();
+            }
+
+            @Override
+            public byte[] getBody() {
+                Map<String, String> params = new HashMap<>();
+                params.put("TXT", inputMessage.getText().toString());
+                params.put("send_msg", "Y");
+                params.put("USERS", value);
+                if (params.size() > 0) {
+                    StringBuilder encodedParams = new StringBuilder();
+                    try {
+                        for (Map.Entry<String, String> entry : params.entrySet()) {
+                            encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));
+                            encodedParams.append('=');
+                            encodedParams.append(URLEncoder.encode(entry.getValue(), getParamsEncoding()));
+                            encodedParams.append('&');
+                        }
+                        return encodedParams.toString().getBytes(getParamsEncoding());
+                    } catch (UnsupportedEncodingException uee) {
+                        throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), uee);
+                    }
+                }
+                return null;
+            }
+        }, "req_send_msg");
     }
 }

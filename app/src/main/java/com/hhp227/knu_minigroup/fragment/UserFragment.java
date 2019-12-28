@@ -28,7 +28,7 @@ public class UserFragment extends DialogFragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (getDialog() != null) {
             getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
             getDialog().getWindow().setBackgroundDrawableResource(android.R.color.transparent);
@@ -58,6 +58,7 @@ public class UserFragment extends DialogFragment {
                     intent.putExtra("grp_chat", false);
                     intent.putExtra("chat_nm", name);
                     intent.putExtra("uid", uid);
+                    intent.putExtra("value", value);
                     startActivity(intent);
                 }
             });
