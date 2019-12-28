@@ -18,6 +18,7 @@ import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ChatActivity extends Activity {
     private static final int LIMIT = 20;
@@ -29,7 +30,7 @@ public class ChatActivity extends Activity {
     private String sender, receiver;
     private TextView buttonSend;
     private User user;
-    private boolean hasRequestedMore, isGroupChat;
+    private boolean hasRequestedMore, hasSelection, isGroupChat;
     private int currentScrollState;
     private String cursor;
 
@@ -108,7 +109,7 @@ public class ChatActivity extends Activity {
             public void onCancelled(DatabaseError databaseError) {
             }
         });*/
-        fetchMessageList(databaseReference.orderByKey().limitToLast(LIMIT), true);
+        fetchMessageList(isGroupChat ? databaseReference.child(receiver).orderByKey().limitToLast(LIMIT) : databaseReference.child(sender).child(receiver).orderByKey().limitToLast(LIMIT), 0, "");
         listView.setOnScrollListener(new AbsListView.OnScrollListener() {
 
             @Override
@@ -118,10 +119,11 @@ public class ChatActivity extends Activity {
 
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                boolean loadMore = firstVisibleItem == 0;
-                if (!hasRequestedMore && loadMore && currentScrollState != SCROLL_STATE_IDLE) {
+                hasSelection = firstVisibleItem + visibleItemCount > totalItemCount - 20;
+                if (!hasRequestedMore && firstVisibleItem == 0 && currentScrollState != SCROLL_STATE_IDLE) {
                     hasRequestedMore = true;
-                    fetchMessageList(databaseReference.orderByKey().endAt(cursor).limitToLast(LIMIT), false);
+                    fetchMessageList(isGroupChat ? databaseReference.child(receiver).orderByKey().endAt(cursor).limitToLast(LIMIT) : databaseReference.child(sender).child(receiver).orderByKey().endAt(cursor).limitToLast(LIMIT), messageItemList.size(), cursor);
+                    cursor = null;
                 }
             }
         });
@@ -138,8 +140,41 @@ public class ChatActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void fetchMessageList(Query query, final boolean init) {
-        query.addValueEventListener(new ValueEventListener() {
+    private void fetchMessageList(Query query, final int prevCnt, final String prevCursor) {
+        query.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                //Toast.makeText(getApplicationContext(), "여부 : " + hasSelection + " 커서 : " + cursor + " 이전 커서" + prevCursor + " 이전갯수 : " + prevCnt, Toast.LENGTH_LONG).show();
+                if (cursor == null)
+                    cursor = s;
+                else if (prevCursor.equals(dataSnapshot.getKey())) {
+                    hasRequestedMore = false;
+                    return;
+                }
+                MessageItem messageItem = dataSnapshot.getValue(MessageItem.class);
+                messageItemList.add(messageItemList.size() - prevCnt, messageItem);
+                messageListAdapter.notifyDataSetChanged();
+                if (hasSelection || hasRequestedMore)
+                    listView.setSelection(prevCnt == 0 ? messageItemList.size() : messageItemList.size() - prevCnt + 1);
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+        /*query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (!init && dataSnapshot.getChildrenCount() <= 1 || !dataSnapshot.hasChildren())
@@ -163,19 +198,28 @@ public class ChatActivity extends Activity {
             @Override
             public void onCancelled(DatabaseError databaseError) {
             }
-        });
+        });*/
     }
 
     private void sendMessage() {
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
-
-        HashMap<String, Object> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>();
         map.put("from", sender);
-        map.put("to", receiver);
         map.put("name", user.getName());
         map.put("message", inputMessage.getText().toString());
-        map.put("time", System.currentTimeMillis());
+        map.put("seen", false);
+        map.put("timestamp", System.currentTimeMillis());
+        if (isGroupChat) {
+            databaseReference.child(receiver).push().setValue(map);
+        } else {
+            String receiverPath = receiver + "/" + sender + "/";
+            String senderPath = sender + "/" + receiver + "/";
+            String pushId = databaseReference.child(sender).child(receiver).push().getKey();
 
-        reference.child("Messages").push().setValue(map);
+            Map<String, Object> messageMap = new HashMap<>();
+            messageMap.put(receiverPath.concat(pushId), map);
+            messageMap.put(senderPath.concat(pushId), map);
+
+            databaseReference.updateChildren(messageMap);
+        }
     }
 }

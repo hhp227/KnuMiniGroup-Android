@@ -1,7 +1,6 @@
 package com.hhp227.knu_minigroup.adapter;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,13 +24,13 @@ public class MessageListAdapter extends BaseAdapter {
     private Context context;
     private LayoutInflater inflater;
     private List<MessageItem> messageItems;
-    private String imageId;
+    private String uid;
     private ViewHolder viewHolder;
 
-    public MessageListAdapter(Context context, List<MessageItem> messageItems, String imageId) {
+    public MessageListAdapter(Context context, List<MessageItem> messageItems, String uid) {
         this.context = context;
         this.messageItems = messageItems;
-        this.imageId = imageId;
+        this.uid = uid;
     }
 
     @Override
@@ -62,8 +61,8 @@ public class MessageListAdapter extends BaseAdapter {
         MessageItem messageItem = messageItems.get(position);
         viewHolder.name.setText(messageItem.getName());
         viewHolder.message.setText(messageItem.getMessage());
-        viewHolder.timeStamp.setText(getTimeStamp(messageItem.getTime()));
-        if (position > 0 && getTimeStamp(messageItems.get(position - 1).getTime()).equals(getTimeStamp(messageItem.getTime())) && messageItems.get(position - 1).getFrom().equals(messageItem.getFrom())) {
+        viewHolder.timeStamp.setText(getTimeStamp(messageItem.getTimeStamp()));
+        if (position > 0 && getTimeStamp(messageItems.get(position - 1).getTimeStamp()).equals(getTimeStamp(messageItem.getTimeStamp())) && messageItems.get(position - 1).getFrom().equals(messageItem.getFrom())) {
             viewHolder.name.setVisibility(View.GONE);
             viewHolder.messageBox.setPadding(viewHolder.messageBox.getPaddingLeft(), 0, viewHolder.messageBox.getPaddingRight(), viewHolder.messageBox.getPaddingBottom());
             viewHolder.profileImage.setVisibility(View.INVISIBLE);
@@ -73,7 +72,7 @@ public class MessageListAdapter extends BaseAdapter {
             viewHolder.messageBox.setPadding(10, 10, 10, 10);
             Glide.with(context).load(EndPoint.USER_IMAGE.replace("{UID}", messageItem.getFrom())).apply(new RequestOptions().circleCrop()).into(viewHolder.profileImage);
         }
-        if (position + 1 != messageItems.size() && getTimeStamp(messageItem.getTime()).equals(getTimeStamp(messageItems.get(position + 1).getTime())) && messageItem.getFrom().equals(messageItems.get(position + 1).getFrom()))
+        if (position + 1 != messageItems.size() && getTimeStamp(messageItem.getTimeStamp()).equals(getTimeStamp(messageItems.get(position + 1).getTimeStamp())) && messageItem.getFrom().equals(messageItems.get(position + 1).getFrom()))
             viewHolder.timeStamp.setText("");
 
         return convertView;
@@ -86,19 +85,19 @@ public class MessageListAdapter extends BaseAdapter {
 
     @Override
     public int getItemViewType(int position) {
-        return !messageItems.get(position).getFrom().equals(imageId) ? MSG_TYPE_LEFT : MSG_TYPE_RIGHT;
+        return !messageItems.get(position).getFrom().equals(uid) ? MSG_TYPE_LEFT : MSG_TYPE_RIGHT;
     }
 
-    public String getTimeStamp(long time) {
+    private String getTimeStamp(long time) {
         return new SimpleDateFormat("a h:mm", Locale.getDefault()).format(time);
     }
 
-    public class ViewHolder {
-        public ImageView profileImage;
-        public LinearLayout messageBox;
-        public TextView name, message, timeStamp;
+    private static class ViewHolder {
+        private ImageView profileImage;
+        private LinearLayout messageBox;
+        private TextView name, message, timeStamp;
 
-        public ViewHolder(View itemView) {
+        private ViewHolder(View itemView) {
             profileImage = itemView.findViewById(R.id.iv_profile_image);
             messageBox = itemView.findViewById(R.id.ll_message);
             name = itemView.findViewById(R.id.tv_name);

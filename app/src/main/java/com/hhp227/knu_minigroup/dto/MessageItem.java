@@ -2,20 +2,20 @@ package com.hhp227.knu_minigroup.dto;
 
 public class MessageItem {
     private String from;
-    private String to;
     private String name;
     private String message;
-    private long time;
+    private boolean seen;
+    private long timestamp;
 
     public MessageItem() {
     }
 
-    public MessageItem(String from, String to, String name, String message, long time) {
+    public MessageItem(String from, String name, String message, boolean seen, long timestamp) {
         this.from = from;
-        this.to = to;
         this.name = name;
         this.message = message;
-        this.time = time;
+        this.seen = seen;
+        this.timestamp = timestamp;
     }
 
     public String getFrom() {
@@ -24,14 +24,6 @@ public class MessageItem {
 
     public void setFrom(String from) {
         this.from = from;
-    }
-
-    public String getTo() {
-        return to;
-    }
-
-    public void setTo(String to) {
-        this.to = to;
     }
 
     public String getName() {
@@ -50,11 +42,19 @@ public class MessageItem {
         this.message = message;
     }
 
-    public long getTime() {
-        return time;
+    public boolean isSeen() {
+        return seen;
     }
 
-    public void setTime(long time) {
-        this.time = time;
+    public void setSeen(boolean seen) {
+        this.seen = seen;
+    }
+
+    public long getTimeStamp() {
+        return timestamp;
+    }
+
+    public void setTimeStamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 }
