@@ -169,7 +169,7 @@ public class CreateActivity extends Activity {
                             params.put("GRP_NM", title);
                             params.put("TXT", description);
                             params.put("JOIN_DIV", join);
-                            if (params != null && params.size() > 0) {
+                            if (params.size() > 0) {
                                 StringBuilder encodedParams = new StringBuilder();
                                 try {
                                     for (Map.Entry<String, String> entry : params.entrySet()) {
@@ -228,7 +228,7 @@ public class CreateActivity extends Activity {
                 return params;
             }
 
-            public byte[] getFileDataFromDrawable(Bitmap bitmap) {
+            private byte[] getFileDataFromDrawable(Bitmap bitmap) {
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 bitmap.compress(Bitmap.CompressFormat.PNG, 80, byteArrayOutputStream);
                 return byteArrayOutputStream.toByteArray();
@@ -259,7 +259,7 @@ public class CreateActivity extends Activity {
                 startActivityForResult(galleryIntent, CAMERA_PICK_IMAGE_REQUEST_CODE);
                 break;
             case "이미지 없음" :
-                groupImage.setImageResource(R.drawable.ic_launcher_background);
+                groupImage.setImageResource(R.drawable.add_photo);
                 bitmap = null;
                 Toast.makeText(getBaseContext(), "이미지 없음 선택", Toast.LENGTH_LONG).show();
                 break;

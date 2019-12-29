@@ -142,7 +142,8 @@ public class ActionBarDrawerToggle extends androidx.legacy.app.ActionBarDrawerTo
             try {
                 Method setHomeActionContentDescription = ActionBar.class.getDeclaredMethod("setHomeActionContentDescription", Integer.TYPE);
                 setHomeActionContentDescription.invoke(mActivity.getActionBar(), mDrawerLayout.isDrawerOpen(GravityCompat.START) ? mOpenDrawerContentDescRes : mCloseDrawerContentDescRes);
-                if (Build.VERSION.SDK_INT <= 19) mActivity.getActionBar().setSubtitle(mActivity.getActionBar().getSubtitle());
+                if (Build.VERSION.SDK_INT <= 19)
+                    mActivity.getActionBar().setSubtitle(mActivity.getActionBar().getSubtitle());
             } catch (Exception e) {
                 Log.e(TAG, "setActionBarUpIndicator", e);
             }

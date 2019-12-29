@@ -1,6 +1,9 @@
 package com.hhp227.knu_minigroup.fragment;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.*;
@@ -22,8 +25,12 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.hhp227.knu_minigroup.CreateActivity.CAMERA_CAPTURE_IMAGE_REQUEST_CODE;
+import static com.hhp227.knu_minigroup.CreateActivity.CAMERA_PICK_IMAGE_REQUEST_CODE;
+
 public class DefaultSettingFragment extends Fragment {
     private static int groupId;
+    private Bitmap bitmap;
     private EditText inputTitle, inputDescription;
     private ImageView groupImage, resetTitle;
     private RadioGroup joinType;
@@ -167,7 +174,7 @@ public class DefaultSettingFragment extends Fragment {
                         params.put("GRP_NM", inputTitle.getText().toString());
                         params.put("TXT", inputDescription.getText().toString());
                         params.put("JOIN_DIV", !joinTypeCheck ? "0" : "1");
-                        if (params != null && params.size() > 0) {
+                        if (params.size() > 0) {
                             StringBuilder encodedParams = new StringBuilder();
                             try {
                                 for (Map.Entry<String, String> entry : params.entrySet()) {
@@ -203,5 +210,27 @@ public class DefaultSettingFragment extends Fragment {
         menu.add("카메라");
         menu.add("갤러리");
         menu.add("이미지 없음");
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        switch (item.getTitle().toString()) {
+            case "카메라" :
+                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(cameraIntent, CAMERA_CAPTURE_IMAGE_REQUEST_CODE);
+                break;
+            case "갤러리" :
+                Intent galleryIntent = new Intent(Intent.ACTION_PICK);
+                galleryIntent.setType(MediaStore.Images.Media.CONTENT_TYPE);
+                galleryIntent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(galleryIntent, CAMERA_PICK_IMAGE_REQUEST_CODE);
+                break;
+            case "이미지 없음" :
+                groupImage.setImageResource(R.drawable.add_photo);
+                bitmap = null;
+                Toast.makeText(getContext(), "이미지 없음 선택", Toast.LENGTH_LONG).show();
+                break;
+        }
+        return super.onContextItemSelected(item);
     }
 }

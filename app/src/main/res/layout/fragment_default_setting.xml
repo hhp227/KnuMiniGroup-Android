@@ -48,11 +48,11 @@
 
         <ImageView
                 android:id="@+id/iv_group_image"
-                android:layout_width="match_parent"
-                android:layout_height="300dp"
+                android:layout_width="wrap_content"
+                android:layout_height="275dp"
                 android:layout_centerHorizontal="true"
                 android:layout_centerVertical="true"
-                android:src="@drawable/ic_launcher_background"
+                android:src="@drawable/add_photo"
                 android:scaleType="centerCrop"/>
 
     </RelativeLayout>

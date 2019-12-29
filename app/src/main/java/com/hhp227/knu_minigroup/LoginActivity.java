@@ -15,6 +15,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.User;
+import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import net.htmlparser.jericho.Source;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,6 +31,7 @@ public class LoginActivity extends Activity {
     private Button login;
     private EditText inputId, inputPassword;
     private ProgressDialog progressDialog;
+    private PreferenceManager preferenceManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,12 +42,12 @@ public class LoginActivity extends Activity {
         login = findViewById(R.id.b_login);
         inputId = findViewById(R.id.et_id);
         inputPassword = findViewById(R.id.et_password);
-
+        preferenceManager = app.AppController.getInstance().getPreferenceManager();
         progressDialog = new ProgressDialog(this);
         progressDialog.setCancelable(false);
 
         // 사용자가 이미 로그인되어있는지 아닌지 확인
-        if (app.AppController.getInstance().getPreferenceManager().getUser() != null) {
+        if (preferenceManager.getUser() != null) {
             startActivity(new Intent(this, SplashActivity.class));
             finish();
         }
@@ -92,7 +94,7 @@ public class LoginActivity extends Activity {
                             List<Header> headers = response.allHeaders;
                             for (Header header : headers)
                                 if (header.getName().equals("Set-Cookie") && header.getValue().contains("SESSION_NEWLMS"))
-                                    app.AppController.getInstance().getPreferenceManager().storeCookie(header.getValue());
+                                    preferenceManager.storeCookie(header.getValue());
                             return super.parseNetworkResponse(response);
                         }
 
@@ -203,7 +205,7 @@ public class LoginActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+                headers.put("Cookie", preferenceManager.getCookie());
                 return headers;
             }
         });
@@ -219,7 +221,7 @@ public class LoginActivity extends Activity {
 
                 user.setUid(uid);
 
-                app.AppController.getInstance().getPreferenceManager().storeUser(user);
+                preferenceManager.storeUser(user);
                 // 화면이동
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);
@@ -236,7 +238,7 @@ public class LoginActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+                headers.put("Cookie", preferenceManager.getCookie());
                 return headers;
             }
         });
