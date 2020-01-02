@@ -7,13 +7,13 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
-import androidx.core.app.ActivityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentActivity;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.gms.ads.MobileAds;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.fragment.*;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
@@ -72,22 +72,25 @@ public class MainActivity extends FragmentActivity {
             @Override
             public void onDrawerOpened(View drawerView) {
                 actionBar.setTitle("메뉴목록");
-                ActivityCompat.invalidateOptionsMenu(MainActivity.this);
+                invalidateOptionsMenu();
             }
 
             @Override
             public void onDrawerClosed(View drawerView) {
                 actionBar.setTitle(titleSection);
-                ActivityCompat.invalidateOptionsMenu(MainActivity.this);
+                invalidateOptionsMenu();
             }
         };
+
+        // Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713
+        MobileAds.initialize(this, getString(R.string.admob_app_id));
 
         actionBar.setDisplayShowHomeEnabled(false); // 제목앞에 아이콘 안보이기
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setHomeButtonEnabled(true);
         actionBar.setTitle(titleSection);
 
-        drawerLayout.setDrawerListener(actionBarDrawerToggle);
+        drawerLayout.addDrawerListener(actionBarDrawerToggle);
         drawerList.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, menu));
 
         getSupportFragmentManager().beginTransaction().replace(R.id.fl_content, fragMain).commit();

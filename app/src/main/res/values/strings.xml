@@ -1,9 +1,15 @@
 <resources>
     <string name="app_name">경북대 소모임</string>
+    <string name="admob_app_id">ca-app-pub-6359051986076073~2419334882</string>
+    <string name="banner_ad_unit_id">ca-app-pub-6359051986076073/6935134700</string>
+    <string name="banner_ad_unit_id_settings">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="native_ad_unit_id">ca-app-pub-6359051986076073/6522231429</string>
+    <string name="native_ad_unit_id_test">ca-app-pub-3940256099942544/2247696110</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="action_settings">Settings</string>
+    <string name="ad_attribution">Ad</string>
     <!-- 날짜 -->
     <string name="format_date1">y년 M월 d일</string>
     <string name="format_date2">M월 d일</string>

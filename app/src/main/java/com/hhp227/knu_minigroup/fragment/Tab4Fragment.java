@@ -24,6 +24,8 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.hhp227.knu_minigroup.*;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.User;
@@ -41,6 +43,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     private static boolean isAdmin;
     private static final String TAG = Tab4Fragment.class.getSimpleName();
     private long mLastClickTime;
+    AdView adView;
     ImageView profileImage;
     LinearLayout profile, withdrawal, settings, appStore, share, version;
     ProgressDialog progressDialog;
@@ -70,6 +73,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_tab4, container, false);
+        adView = rootView.findViewById(R.id.adView);
         profileImage = rootView.findViewById(R.id.iv_profile_image);
         name = rootView.findViewById(R.id.tv_name);
         knuId = rootView.findViewById(R.id.tv_knu_id);
@@ -82,6 +86,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
         version = rootView.findViewById(R.id.ll_verinfo);
         progressDialog = new ProgressDialog(getContext());
 
+        AdRequest adRequest = new AdRequest.Builder().build();
         User user = app.AppController.getInstance().getPreferenceManager().getUser();
         String stuKnuId = user.getUserId();
         String userName = user.getName();
@@ -90,6 +95,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                 .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", user.getUid()), new LazyHeaders.Builder().addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie()).build()))
                 .apply(RequestOptions.circleCropTransform())
                 .into(profileImage);
+        adView.loadAd(adRequest);
         name.setText(userName);
         knuId.setText(stuKnuId);
         profile.setOnClickListener(this);
