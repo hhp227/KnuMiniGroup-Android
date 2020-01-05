@@ -15,7 +15,6 @@ import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 
 public class ProfileActivity extends Activity {
-    private ActionBar actionBar;
     private ImageView profileImage;
     private PreferenceManager preferenceManager;
     private TextView name, knuId, department, number, grade, email;
@@ -34,15 +33,17 @@ public class ProfileActivity extends Activity {
         email = findViewById(R.id.tv_email);
         preferenceManager = app.AppController.getInstance().getPreferenceManager();
         user = preferenceManager.getUser();
-        actionBar = getActionBar();
-        actionBar.setDisplayShowHomeEnabled(false);
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-            @Override
-            public boolean isLayoutRtl() {
-                return false;
-            }
-        });
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayShowHomeEnabled(false);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
+                @Override
+                public boolean isLayoutRtl() {
+                    return false;
+                }
+            });
+        }
         Glide.with(getApplicationContext())
                 .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", user.getUid()), new LazyHeaders.Builder().addHeader("Cookie", preferenceManager.getCookie()).build()))
                 .into(profileImage);

@@ -22,10 +22,13 @@ import androidx.exifinterface.media.ExifInterface;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.hhp227.knu_minigroup.adapter.WriteListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.WriteItem;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
+import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 import org.json.JSONException;
@@ -41,15 +44,13 @@ public class WriteActivity extends Activity {
     public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 100;
     public static final int REQUEST_IMAGE_CAPTURE = 200;
     private static final String TAG = WriteActivity.class.getSimpleName();
-    private ActionBar actionBar;
     private EditText inputTitle, inputContent;
-    private LinearLayout buttonImage;
+    private List<String> images;
     private List<WriteItem> contents;
-    private ListView listView;
+    private PreferenceManager preferenceManager;
     private ProgressDialog progressDialog;
     private StringBuilder makeHtmlImages;
     private Uri photoUri;
-    private View headerView;
     private WriteListAdapter listAdapter;
 
     private int contextMenuRequest, grpId;
@@ -60,26 +61,28 @@ public class WriteActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_write);
 
-        buttonImage = findViewById(R.id.ll_image);
-        listView = findViewById(R.id.lv_write);
-        headerView = getLayoutInflater().inflate(R.layout.write_text, null, false);
+        ActionBar actionBar = getActionBar();
+        View headerView = getLayoutInflater().inflate(R.layout.write_text, null, false);
+        LinearLayout buttonImage = findViewById(R.id.ll_image);
+        ListView listView = findViewById(R.id.lv_write);
         inputTitle = headerView.findViewById(R.id.et_title);
         inputContent = headerView.findViewById(R.id.et_content);
         contents = new ArrayList<>();
-        cookie = app.AppController.getInstance().getPreferenceManager().getCookie();
         listAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, contents);
+        preferenceManager = app.AppController.getInstance().getPreferenceManager();
+        cookie = preferenceManager.getCookie();
         progressDialog = new ProgressDialog(this);
         grpId = getIntent().getIntExtra("grp_id", 0);
-        actionBar = getActionBar();
-
-        actionBar.setDisplayShowHomeEnabled(false);
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-            @Override
-            public boolean isLayoutRtl() {
-                return false;
-            }
-        });
+        if (actionBar != null) {
+            actionBar.setDisplayShowHomeEnabled(false);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
+                @Override
+                public boolean isLayoutRtl() {
+                    return false;
+                }
+            });
+        }
         buttonImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -120,6 +123,7 @@ public class WriteActivity extends Activity {
                 String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(inputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(inputContent.getText());
                 if (!title.isEmpty() && !(TextUtils.isEmpty(content) && contents.size() == 0)) {
                     makeHtmlImages = new StringBuilder();
+                    images = new ArrayList<>();
                     progressDialog.setMessage("전송중...");
                     progressDialog.setProgressStyle(contents.size() > 0 ? ProgressDialog.STYLE_HORIZONTAL : ProgressDialog.STYLE_SPINNER);
                     showProgressDialog();
@@ -127,8 +131,10 @@ public class WriteActivity extends Activity {
                     if (contents.size() > 0) {
                         int position = 0;
                         uploadImage(position, contents.get(position).getBitmap());
-                    } else
+                    } else {
                         actionSend(grpId, title, content);
+                        //insertArticleFirebase(grpId);
+                    }
                 } else
                     Toast.makeText(getApplicationContext(), (title.isEmpty() ? "제목" : "내용") + "을 입력하세요.", Toast.LENGTH_LONG).show();
                 return true;
@@ -233,6 +239,7 @@ public class WriteActivity extends Activity {
                     String imageSrc = new String(response.data);
                     imageSrc = EndPoint.BASE_URL + imageSrc.substring(imageSrc.lastIndexOf("/ilosfiles2/"), imageSrc.lastIndexOf("\""));
                     makeHtmlImages.append("<p><img src=\"" + imageSrc + "\" width=\"488\"><p>" + (count < contents.size() - 1 ? "<br>": ""));
+                    images.add(imageSrc);
                     if (count < contents.size() - 1) {
                         count++;
                         Thread.sleep(700);
@@ -241,6 +248,7 @@ public class WriteActivity extends Activity {
                         String title = inputTitle.getEditableText().toString();
                         String content = (!TextUtils.isEmpty(inputContent.getText()) ? Html.toHtml(inputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) + "<p><br data-mce-bogus=\"1\"></p>" : "") + makeHtmlImages.toString();
                         actionSend(grpId, title, content);
+                        //insertArticleFirebase(grpId);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -342,6 +350,20 @@ public class WriteActivity extends Activity {
 
         currentPhotoPath = image.getAbsolutePath();
         return image;
+    }
+
+    private void insertArticleFirebase(int grpId) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
+        Map<String, Object> map = new HashMap<>();
+        map.put("group_id", grpId);
+        map.put("uid", preferenceManager.getUser().getUid());
+        map.put("name", preferenceManager.getUser().getName());
+        map.put("title", inputTitle.getText().toString());
+        map.put("timestamp", System.currentTimeMillis());
+        map.put("content", inputContent.getText().toString());
+        map.put("images", images);
+
+        databaseReference.child(String.valueOf(grpId)).push().setValue(map);
     }
 
     private void showProgressDialog() {

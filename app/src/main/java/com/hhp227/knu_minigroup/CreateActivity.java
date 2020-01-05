@@ -18,8 +18,12 @@ import android.view.View;
 import android.widget.*;
 import com.android.volley.*;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
+import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 import org.json.JSONException;
@@ -37,10 +41,10 @@ public class CreateActivity extends Activity {
     // 인텐트값
     public static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
     public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 200;
-    private ActionBar actionBar;
     private Bitmap bitmap;
     private EditText groupTitle, groupDescription;
     private ImageView groupImage, resetTitle;
+    private PreferenceManager preferenceManager;
     private ProgressDialog progressDialog;
     private RadioGroup joinType;
 
@@ -56,17 +60,20 @@ public class CreateActivity extends Activity {
         resetTitle = findViewById(R.id.iv_reset);
         groupImage = findViewById(R.id.iv_group_image);
         joinType = findViewById(R.id.rg_jointype);
-        cookie = app.AppController.getInstance().getPreferenceManager().getCookie();
+        preferenceManager = app.AppController.getInstance().getPreferenceManager();
+        cookie = preferenceManager.getCookie();
         progressDialog = new ProgressDialog(this);
-        actionBar = getActionBar();
-        actionBar.setDisplayShowHomeEnabled(false);
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-            @Override
-            public boolean isLayoutRtl() {
-                return false;
-            }
-        });
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayShowHomeEnabled(false);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
+                @Override
+                public boolean isLayoutRtl() {
+                    return false;
+                }
+            });
+        }
         progressDialog.setCancelable(false);
         progressDialog.setMessage("전송중...");
 
@@ -134,10 +141,14 @@ public class CreateActivity extends Activity {
                         public void onResponse(JSONObject response) {
                             try {
                                 if (!response.getBoolean("isError")) {
+                                    String groupId = response.getString("CLUB_GRP_ID").trim();
+                                    String groupName = response.getString("GRP_NM");
                                     if (bitmap != null)
-                                        groupImageUpdate(response.getString("CLUB_GRP_ID").trim(), response.getString("GRP_NM"));
-                                    else
-                                        createGroupSuccess(Integer.parseInt(response.getString("CLUB_GRP_ID").trim()), response.getString("GRP_NM"));
+                                        groupImageUpdate(groupId, groupName, description, join);
+                                    else {
+                                        createGroupSuccess(Integer.parseInt(groupId), groupName);
+                                        //insertGroupFirebase(Integer.parseInt(groupId), groupName, description, join);
+                                    }
                                 }
                             } catch (JSONException e) {
                                 Log.e(TAG, e.getMessage());
@@ -194,11 +205,12 @@ public class CreateActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void groupImageUpdate(final String clubGrpId, final String grpNm) {
+    private void groupImageUpdate(final String clubGrpId, final String grpNm, final String txt, final String joinDiv) {
         app.AppController.getInstance().addToRequestQueue(new MultipartRequest(Request.Method.POST, EndPoint.GROUP_IMAGE_UPDATE, new Response.Listener<NetworkResponse>() {
             @Override
             public void onResponse(NetworkResponse response) {
                 createGroupSuccess(Integer.parseInt(clubGrpId), grpNm);
+                //insertGroupFirebase(Integer.parseInt(clubGrpId), grpNm, txt, joinDiv);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -290,6 +302,27 @@ public class CreateActivity extends Activity {
         finish();
         hideProgressDialog();
         Toast.makeText(getApplicationContext(), "그룹이 생성되었습니다.", Toast.LENGTH_LONG).show();
+    }
+
+    private void insertGroupFirebase(int groupId, String groupName, String description, String joinType) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        GroupItem groupItem = new GroupItem();
+        groupItem.setId(groupId);
+        groupItem.setAdmin(true);
+        groupItem.setJoined(true);
+        groupItem.setTimestamp(System.currentTimeMillis());
+        groupItem.setImage(bitmap != null ? String.valueOf(groupId).concat(".jpg") : "default");
+        groupItem.setName(groupName);
+        groupItem.setInfo("null");
+        groupItem.setDescription(description);
+        groupItem.setJoinType(joinType);
+
+        String pushId = databaseReference.push().getKey();
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("Groups/" + pushId, groupItem);
+        map.put("UserGroupList/" + preferenceManager.getUser().getUid() + "/" + pushId, groupItem);
+        databaseReference.updateChildren(map);
     }
 
     private void showProgressDialog() {

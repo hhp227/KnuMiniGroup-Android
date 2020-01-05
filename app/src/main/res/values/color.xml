@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg_ad_attribution">#FFCC66</color>
+    <color name="txt_ad_attribution">#FFFFFF</color>
+</resources>

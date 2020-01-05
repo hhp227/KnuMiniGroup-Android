@@ -33,7 +33,6 @@ import java.util.Map;
 public class RequestActivity extends FragmentActivity {
     private static final int LIMIT = 100;
     private static final String TAG = RequestActivity.class.getSimpleName();
-    private ActionBar actionBar;
     private GroupListAdapter listAdapter;
     private List<GroupItem> groupItems;
     private ListView listView;
@@ -56,15 +55,17 @@ public class RequestActivity extends FragmentActivity {
         offSet = 1;
         groupItems = new ArrayList<>();
         listAdapter = new GroupListAdapter(getBaseContext(), groupItems);
-        actionBar = getActionBar();
-        actionBar.setDisplayShowHomeEnabled(false);
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-            @Override
-            public boolean isLayoutRtl() {
-                return false;
-            }
-        });
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayShowHomeEnabled(false);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
+                @Override
+                public boolean isLayoutRtl() {
+                    return false;
+                }
+            });
+        }
         footerLoading.setVisibility(View.GONE);
         listView.addFooterView(footerLoading);
         listView.setAdapter(listAdapter);
@@ -92,12 +93,12 @@ public class RequestActivity extends FragmentActivity {
                 GroupItem groupItem = groupItems.get(position);
 
                 Bundle args = new Bundle();
-                args.putInt("type", 1);
                 args.putInt("grp_id", groupItem.getId());
                 args.putString("grp_nm", groupItem.getName());
                 args.putString("img", groupItem.getImage());
                 args.putString("info", groupItem.getInfo());
                 args.putString("desc", groupItem.getDescription());
+                args.putString("type", "1");
 
                 GroupInfoFragment newFragment = GroupInfoFragment.newInstance();
                 newFragment.setArguments(args);

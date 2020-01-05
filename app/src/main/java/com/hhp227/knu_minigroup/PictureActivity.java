@@ -51,18 +51,20 @@ public class PictureActivity extends Activity {
             }
         });
         viewPager.setCurrentItem(position, false);
-        // 뒤로가기버튼
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        // 앱 아이콘 숨기기
-        actionBar.setDisplayShowHomeEnabled(false);
-        // 액션바 투명
-        actionBar.setBackgroundDrawable(getResources().getDrawable(R.drawable.transparent));
-        actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-            @Override
-            public boolean isLayoutRtl() {
-                return false;
-            }
-        });
+        if (actionBar != null) {
+            // 뒤로가기버튼
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            // 앱 아이콘 숨기기
+            actionBar.setDisplayShowHomeEnabled(false);
+            // 액션바 투명
+            actionBar.setBackgroundDrawable(getResources().getDrawable(R.drawable.transparent));
+            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
+                @Override
+                public boolean isLayoutRtl() {
+                    return false;
+                }
+            });
+        }
         count.setVisibility(images.size() > 1 ? View.VISIBLE : View.GONE);
         count.setText((position + 1) + " / " + images.size());
     }

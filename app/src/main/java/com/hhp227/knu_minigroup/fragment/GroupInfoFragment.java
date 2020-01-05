@@ -17,10 +17,13 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.hhp227.knu_minigroup.MainActivity;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.RequestActivity;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.dto.GroupItem;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -33,8 +36,9 @@ import static android.app.Activity.RESULT_OK;
 
 public class GroupInfoFragment extends DialogFragment {
     private static final String TAG = "정보창";
-    private static int joinType, groupId;
-    private static String groupName, groupImage, groupInfo, groupDesc;
+    private static boolean groupSubsc;
+    private static int groupId;
+    private static String groupName, groupImage, groupInfo, groupDesc, joinType;
     private Button button, close;
     private ImageView image;
     private ProgressDialog progressDialog;
@@ -52,12 +56,13 @@ public class GroupInfoFragment extends DialogFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            joinType = getArguments().getInt("type");
             groupId = getArguments().getInt("grp_id");
             groupName = getArguments().getString("grp_nm");
             groupImage = getArguments().getString("img");
             groupInfo = getArguments().getString("info");
             groupDesc = getArguments().getString("desc");
+            groupSubsc = getArguments().getBoolean("subs");
+            joinType = getArguments().getString("type");
         }
     }
 
@@ -82,16 +87,17 @@ public class GroupInfoFragment extends DialogFragment {
                 progressDialog.setMessage("요청중...");
                 showProgressDialog();
                 String tag_json_req = "req_register";
-                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, joinType == 0 ? EndPoint.REGISTER_GROUP : EndPoint.WITHDRAWAL_GROUP, null, new Response.Listener<JSONObject>() {
+                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, joinType.equals("0") ? EndPoint.REGISTER_GROUP : EndPoint.WITHDRAWAL_GROUP, null, new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            if (joinType == 0 && !response.getBoolean("isError")) {
+                            if (joinType.equals("0") && !response.getBoolean("isError")) {
                                 Toast.makeText(getContext(), "신청완료", Toast.LENGTH_LONG).show();
                                 Intent intent = new Intent(getContext(), MainActivity.class);
                                 getActivity().setResult(RESULT_OK, intent);
                                 getActivity().finish();
-                            } else if (joinType == 1 && !response.getBoolean("isError")) {
+                                //insertGroupFirebase();
+                            } else if (joinType.equals("1") && !response.getBoolean("isError")) {
                                 Toast.makeText(getContext(), "신청취소", Toast.LENGTH_LONG).show();
                                 ((RequestActivity) getActivity()).refresh();
                                 GroupInfoFragment.this.dismiss();
@@ -154,13 +160,27 @@ public class GroupInfoFragment extends DialogFragment {
         info.setText(groupInfo);
         desc.setText(groupDesc);
         desc.setMaxLines(6);
-        button.setText(joinType == 0 ? "가입신청" : "신청취소");
+        button.setText(joinType.equals("0") ? "가입신청" : "신청취소");
         Glide.with(this)
                 .load(groupImage)
                 .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background).error(R.drawable.ic_launcher_background))
                 .transition(DrawableTransitionOptions.withCrossFade(150))
                 .into(image);
         return rootView;
+    }
+
+    private void insertGroupFirebase() {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
+        GroupItem groupItem = new GroupItem();
+        groupItem.setId(groupId);
+        groupItem.setJoined(groupSubsc);
+        groupItem.setTimestamp(System.currentTimeMillis());
+        groupItem.setImage(groupImage != null ? String.valueOf(groupId).concat(".jpg") : "default");
+        groupItem.setName(groupName);
+        groupItem.setInfo("null");
+        groupItem.setDescription(groupDesc);
+        groupItem.setJoinType(joinType);
+        databaseReference.child(app.AppController.getInstance().getPreferenceManager().getUser().getUid()).push().setValue(groupItem);
     }
 
     private void showProgressDialog() {

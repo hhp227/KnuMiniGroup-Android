@@ -1,6 +1,7 @@
 package com.hhp227.knu_minigroup.adapter;
 
 import android.content.Context;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,13 +11,9 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdLoader;
 import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.formats.MediaView;
-import com.google.android.gms.ads.formats.NativeAdOptions;
 import com.google.android.gms.ads.formats.UnifiedNativeAd;
 import com.google.android.gms.ads.formats.UnifiedNativeAdView;
-import com.google.android.gms.ads.initialization.InitializationStatus;
-import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 
@@ -75,6 +72,7 @@ public class GroupGridAdapter extends BaseAdapter {
                     RatingBar starRating = finalConvertView.findViewById(R.id.ad_stars);
                     TextView bodyView = finalConvertView.findViewById(R.id.ad_body);
                     TextView advertiser = finalConvertView.findViewById(R.id.ad_advertiser);
+                    mediaView.setImageScaleType(ImageView.ScaleType.CENTER_CROP);
                     viewHolder.adView.setMediaView(mediaView);
                     viewHolder.adView.setHeadlineView(headlineView);
                     viewHolder.adView.setBodyView(bodyView);
@@ -99,6 +97,7 @@ public class GroupGridAdapter extends BaseAdapter {
                         viewHolder.adView.getAdvertiserView().setVisibility(View.INVISIBLE);
 
                     viewHolder.adView.setNativeAd(unifiedNativeAd);
+                    mediaView.addView(getAdText());
                 }
             });
             AdLoader adLoader = builder.withAdListener(new AdListener() {
@@ -116,6 +115,17 @@ public class GroupGridAdapter extends BaseAdapter {
         Glide.with(context).load(groupItem.getImage()).transition(new DrawableTransitionOptions().crossFade(150)).into(viewHolder.groupImage);
 
         return convertView;
+    }
+
+    private TextView getAdText() {
+        TextView adText = new TextView(context);
+        adText.setText(context.getString(R.string.ad_attribution));
+        adText.setTextSize(12);
+        adText.setBackgroundColor(context.getResources().getColor(R.color.bg_ad_attribution));
+        adText.setTextColor(context.getResources().getColor(R.color.txt_ad_attribution));
+        adText.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        adText.setGravity(Gravity.CENTER_VERTICAL);
+        return adText;
     }
 
     public static class ViewHolder {

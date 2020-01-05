@@ -19,7 +19,7 @@ public class GroupListAdapter extends BaseAdapter {
     private Context context;
     private LayoutInflater layoutInflater;
     private List<GroupItem> groupItems;
-    private TextView groupName, groupInfo;
+    private ViewHolder viewHolder;
 
     public GroupListAdapter(Context context, List<GroupItem> groupItems) {
         this.context = context;
@@ -45,20 +45,31 @@ public class GroupListAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         if (layoutInflater == null)
             layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        if (convertView == null)
+        if (convertView == null) {
             convertView = layoutInflater.inflate(R.layout.group_list_item, null);
+            viewHolder = new ViewHolder(convertView);
+            convertView.setTag(viewHolder);
+        } else
+            viewHolder = (ViewHolder) convertView.getTag();
 
-        groupName = convertView.findViewById(R.id.tv_group_name);
-        groupInfo = convertView.findViewById(R.id.tv_info);
         ImageView groupImage = convertView.findViewById(R.id.iv_group_image);
         GroupItem groupItem = groupItems.get(position);
 
-        groupName.setText(groupItem.getName());
-        groupName.setMaxLines(NAME_MAX_LINE);
-        groupInfo.setText(groupItem.getSubscription());
+        viewHolder.groupName.setText(groupItem.getName());
+        viewHolder.groupName.setMaxLines(NAME_MAX_LINE);
+        viewHolder.groupInfo.setText(groupItem.getSubscription());
 
         Glide.with(context).load(groupItem.getImage()).apply(RequestOptions.errorOf(R.drawable.bg_no_image)).into(groupImage);
 
         return convertView;
+    }
+
+    private static class ViewHolder {
+        private TextView groupName, groupInfo;
+
+        ViewHolder(View itemView) {
+            groupName = itemView.findViewById(R.id.tv_group_name);
+            groupInfo = itemView.findViewById(R.id.tv_info);
+        }
     }
 }

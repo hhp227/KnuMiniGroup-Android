@@ -11,7 +11,6 @@ import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 
 public class WebViewActivity extends Activity {
     public static String URL = "url";
-    private ActionBar actionBar;
     private WebView webView;
 
     @Override
@@ -19,23 +18,24 @@ public class WebViewActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_web_view);
         webView = findViewById(R.id.wv_notice);
-        actionBar = getActionBar();
-        Intent intent = getIntent();
+        URL = getIntent().getStringExtra(URL);
         WebSettings webSettings = webView.getSettings();
-        URL = intent.getStringExtra(URL);
+        ActionBar actionBar = getActionBar();
 
         webView.loadUrl(URL);
         webView.getSettings().setLoadWithOverviewMode(true);
         webView.getSettings().setUseWideViewPort(true);
-        actionBar.setDisplayShowHomeEnabled(false);
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setTitle("경북대 게시판");
-        actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-            @Override
-            public boolean isLayoutRtl() {
-                return false;
-            }
-        });
+        if (actionBar != null) {
+            actionBar.setDisplayShowHomeEnabled(false);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setTitle("경북대 게시판");
+            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
+                @Override
+                public boolean isLayoutRtl() {
+                    return false;
+                }
+            });
+        }
         // 모바일에서 자바스크립트를 실행 시키기 위한 용도
         webSettings.setJavaScriptEnabled(true);
     }

@@ -83,9 +83,6 @@
                     android:layout_marginRight="2dp"
                     android:layout_marginTop="2dp">
 
-                <TextView
-                        style="@style/AppTheme.AdAttribution"/>
-
                 <com.google.android.gms.ads.formats.MediaView
                         android:id="@+id/ad_media"
                         android:layout_width="match_parent"

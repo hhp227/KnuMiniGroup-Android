@@ -4,10 +4,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.Request;
@@ -15,7 +17,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
+import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.*;
+import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.GroupGridAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.GroupItem;
@@ -34,8 +38,8 @@ import static android.app.Activity.RESULT_OK;
 public class GroupFragment extends Fragment {
     public static final int CREATE_CODE = 10;
     public static final int REGISTER_CODE = 20;
-    private Button findGroup, requestGroup, createGroup;
-    private GridView myGroupList;
+    private static final String TAG = GroupFragment.class.getSimpleName();
+    private DatabaseReference databaseReference;
     private GroupGridAdapter groupGridAdapter;
     private List<GroupItem> groupItems;
     private PreferenceManager preferenceManager;
@@ -60,10 +64,10 @@ public class GroupFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_group, container, false);
-        findGroup = rootView.findViewById(R.id.b_find);
-        requestGroup = rootView.findViewById(R.id.b_request);
-        createGroup = rootView.findViewById(R.id.b_create);
-        myGroupList = rootView.findViewById(R.id.gv_my_grouplist);
+        Button findGroup = rootView.findViewById(R.id.b_find);
+        Button requestGroup = rootView.findViewById(R.id.b_request);
+        Button createGroup = rootView.findViewById(R.id.b_create);
+        GridView myGroupList = rootView.findViewById(R.id.gv_my_grouplist);
         progressBar = rootView.findViewById(R.id.pb_group);
         relativeLayout = rootView.findViewById(R.id.rl_group);
         swipeRefreshLayout = rootView.findViewById(R.id.srl_group);
@@ -71,6 +75,7 @@ public class GroupFragment extends Fragment {
         preferenceManager = new PreferenceManager(getActivity());
         groupItems = new ArrayList<>();
         groupGridAdapter = new GroupGridAdapter(getContext(), groupItems);
+        databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
 
         myGroupList.setAdapter(groupGridAdapter);
         myGroupList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -206,6 +211,20 @@ public class GroupFragment extends Fragment {
         });
     }
 
+    private void fetchDataTaskOnFirebase(Query query) {
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e(TAG, "데이터 가져오기 실패", databaseError.toException());
+            }
+        });
+    }
+
     private void logout() {
         preferenceManager.clear();
         startActivity(new Intent(getContext(), LoginActivity.class));
@@ -213,6 +232,7 @@ public class GroupFragment extends Fragment {
     }
 
     private void insertAdvertisement() {
+        //fetchDataTaskOnFirebase(databaseReference.child(preferenceManager.getUser().getUid()).orderByChild("id"));
         if (groupItems.size() % 2 != 0) {
             GroupItem ad = new GroupItem();
             ad.setAd(true);

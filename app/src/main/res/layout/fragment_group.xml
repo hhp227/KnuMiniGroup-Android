@@ -83,8 +83,8 @@
                 android:id="@+id/srl_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp">
+                android:layout_marginLeft="7dp"
+                android:layout_marginRight="7dp">
 
             <GridView
                     android:id="@+id/gv_my_grouplist"

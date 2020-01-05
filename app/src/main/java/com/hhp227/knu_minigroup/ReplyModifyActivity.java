@@ -24,7 +24,6 @@ import java.util.Map;
 
 public class ReplyModifyActivity extends Activity {
     private static final String TAG = "댓글수정";
-    private ActionBar actionBar;
     private EditText inputReply;
     private ListView listView;
     private ProgressDialog progressDialog;
@@ -47,16 +46,17 @@ public class ReplyModifyActivity extends Activity {
         replyId = intent.getIntExtra("cmmt_num", 0);
         reply = intent.getStringExtra("cmt");
         reply = reply.contains("※") ? reply.substring(0, reply.lastIndexOf("※")).trim() : reply;
-        actionBar = getActionBar();
-
-        actionBar.setDisplayShowHomeEnabled(false);
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-            @Override
-            public boolean isLayoutRtl() {
-                return false;
-            }
-        });
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayShowHomeEnabled(false);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
+                @Override
+                public boolean isLayoutRtl() {
+                    return false;
+                }
+            });
+        }
         listView.addHeaderView(headerView);
         listView.setAdapter(null);
         inputReply.setText(reply);

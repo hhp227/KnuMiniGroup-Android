@@ -14,7 +14,6 @@ import com.hhp227.knu_minigroup.fragment.TabHostLayoutFragment;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 
 public class GroupActivity extends FragmentActivity {
-    private ActionBar actionBar;
     private boolean isAdmin;
     private int groupId;
     private String groupName;
@@ -30,16 +29,18 @@ public class GroupActivity extends FragmentActivity {
         groupId = intent.getIntExtra("grp_id", 0);
         groupName = intent.getStringExtra("grp_nm");
         fragMain = TabHostLayoutFragment.newInstance(isAdmin, groupId, groupName);
-        actionBar = getActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-            @Override
-            public boolean isLayoutRtl() {
-                return false;
-            }
-        });
-        actionBar.setDisplayShowHomeEnabled(false);
-        actionBar.setTitle(groupName);
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
+                @Override
+                public boolean isLayoutRtl() {
+                    return false;
+                }
+            });
+            actionBar.setDisplayShowHomeEnabled(false);
+            actionBar.setTitle(groupName);
+        }
 
         getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, fragMain).commit();
     }

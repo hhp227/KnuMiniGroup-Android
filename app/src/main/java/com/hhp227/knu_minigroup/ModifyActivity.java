@@ -38,7 +38,6 @@ import static com.hhp227.knu_minigroup.WriteActivity.REQUEST_IMAGE_CAPTURE;
 
 public class ModifyActivity extends Activity {
     private static final String TAG = ModifyActivity.class.getSimpleName();
-    private ActionBar actionBar;
     private EditText inputTitle, inputContent;
     private LinearLayout buttonImage;
     private List<WriteItem> contents;
@@ -73,16 +72,17 @@ public class ModifyActivity extends Activity {
         title = intent.getStringExtra("sbjt");
         content = intent.getStringExtra("txt");
         imageList = intent.getStringArrayListExtra("img");
-        actionBar = getActionBar();
-
-        actionBar.setDisplayShowHomeEnabled(false);
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-            @Override
-            public boolean isLayoutRtl() {
-                return false;
-            }
-        });
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayShowHomeEnabled(false);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
+                @Override
+                public boolean isLayoutRtl() {
+                    return false;
+                }
+            });
+        }
         buttonImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
