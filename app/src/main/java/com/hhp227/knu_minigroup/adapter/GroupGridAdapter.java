@@ -166,6 +166,8 @@ public class GroupGridAdapter extends BaseAdapter {
 
     // 알고리즘 작성예정
     private void compareDataList() {
+        Collections.reverse(firebaseDataKeyList);
+        Collections.reverse(firebaseDataList);
         if (groupItems.size() > firebaseDataList.size()) {
             for (int i = 0; i < groupItems.size(); i++) {
                 if (i < firebaseDataList.size())
@@ -174,7 +176,8 @@ public class GroupGridAdapter extends BaseAdapter {
                     Log.e("테스트", "groupItems : " + groupItems.get(i).getId());
                 }
             }
-        }
+        } else
+            Log.e("테스트", "groupItems : " + groupItems.toString() + ", firebaseDataList : " + firebaseDataList.toString());
     }
 
     public String getKey(int position) {
