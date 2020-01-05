@@ -127,7 +127,8 @@ public class LoginActivity extends Activity {
                     };
                     app.AppController.getInstance().addToRequestQueue(stringRequest);
                 } else {
-                    Toast.makeText(getApplicationContext(), "아이디 또는 비밀번호가 잘못되었습니다.", Toast.LENGTH_LONG).show();
+                    inputId.setError(id.isEmpty() ? "아이디를 입력하세요." : null);
+                    inputPassword.setError(password.isEmpty() ? "패스워드를 입력하세요." : null);
                 }
             }
         });

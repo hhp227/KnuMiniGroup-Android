@@ -1,6 +1,7 @@
 package com.hhp227.knu_minigroup.adapter;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,9 +15,13 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.formats.MediaView;
 import com.google.android.gms.ads.formats.UnifiedNativeAd;
 import com.google.android.gms.ads.formats.UnifiedNativeAdView;
+import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class GroupGridAdapter extends BaseAdapter {
@@ -24,6 +29,8 @@ public class GroupGridAdapter extends BaseAdapter {
     private LayoutInflater layoutInflater;
     private List<GroupItem> groupItems;
     private ViewHolder viewHolder;
+    private List<String> firebaseDataKeyList;
+    private List<GroupItem> firebaseDataList;
 
     public GroupGridAdapter(Context context, List<GroupItem> groupItems) {
         this.context = context;
@@ -109,6 +116,9 @@ public class GroupGridAdapter extends BaseAdapter {
             adLoader.loadAd(new AdRequest.Builder().build());
             viewHolder.groupLayout.setVisibility(View.GONE);
             viewHolder.adView.setVisibility(View.VISIBLE);
+
+            // 파이어베이스
+            setFirebaseData();
         }
 
         viewHolder.groupName.setText(groupItem.getName());
@@ -126,6 +136,49 @@ public class GroupGridAdapter extends BaseAdapter {
         adText.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         adText.setGravity(Gravity.CENTER_VERTICAL);
         return adText;
+    }
+
+    private void setFirebaseData() {
+        firebaseDataKeyList = new ArrayList<>();
+        firebaseDataList = new ArrayList<>();
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
+        fetchDataTaskOnFirebase(databaseReference.child(app.AppController.getInstance().getPreferenceManager().getUser().getUid()).orderByChild("id"));
+    }
+
+    private void fetchDataTaskOnFirebase(Query query) {
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    GroupItem item = snapshot.getValue(GroupItem.class);
+                    firebaseDataKeyList.add(snapshot.getKey());
+                    firebaseDataList.add(item);
+                }
+                compareDataList();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("GroupGridAdapter", "데이터 가져오기 실패", databaseError.toException());
+            }
+        });
+    }
+
+    // 알고리즘 작성예정
+    private void compareDataList() {
+        if (groupItems.size() > firebaseDataList.size()) {
+            for (int i = 0; i < groupItems.size(); i++) {
+                if (i < firebaseDataList.size())
+                    Log.e("테스트", "groupItems : " + groupItems.get(i).getId() + ", firebaseDataList : " + firebaseDataList.get(i).getId());
+                else {
+                    Log.e("테스트", "groupItems : " + groupItems.get(i).getId());
+                }
+            }
+        }
+    }
+
+    public String getKey(int position) {
+        return firebaseDataKeyList.get(position);
     }
 
     public static class ViewHolder {

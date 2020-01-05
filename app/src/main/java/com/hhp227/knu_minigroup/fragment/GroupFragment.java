@@ -39,7 +39,6 @@ public class GroupFragment extends Fragment {
     public static final int CREATE_CODE = 10;
     public static final int REGISTER_CODE = 20;
     private static final String TAG = GroupFragment.class.getSimpleName();
-    private DatabaseReference databaseReference;
     private GroupGridAdapter groupGridAdapter;
     private List<GroupItem> groupItems;
     private PreferenceManager preferenceManager;
@@ -75,7 +74,6 @@ public class GroupFragment extends Fragment {
         preferenceManager = new PreferenceManager(getActivity());
         groupItems = new ArrayList<>();
         groupGridAdapter = new GroupGridAdapter(getContext(), groupItems);
-        databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
 
         myGroupList.setAdapter(groupGridAdapter);
         myGroupList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -211,20 +209,6 @@ public class GroupFragment extends Fragment {
         });
     }
 
-    private void fetchDataTaskOnFirebase(Query query) {
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e(TAG, "데이터 가져오기 실패", databaseError.toException());
-            }
-        });
-    }
-
     private void logout() {
         preferenceManager.clear();
         startActivity(new Intent(getContext(), LoginActivity.class));
@@ -232,7 +216,6 @@ public class GroupFragment extends Fragment {
     }
 
     private void insertAdvertisement() {
-        //fetchDataTaskOnFirebase(databaseReference.child(preferenceManager.getUser().getUid()).orderByChild("id"));
         if (groupItems.size() % 2 != 0) {
             GroupItem ad = new GroupItem();
             ad.setAd(true);
