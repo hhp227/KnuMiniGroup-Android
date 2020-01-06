@@ -28,24 +28,23 @@ import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static android.app.Activity.RESULT_OK;
 
 public class GroupFragment extends Fragment {
     public static final int CREATE_CODE = 10;
     public static final int REGISTER_CODE = 20;
-    private static final String TAG = GroupFragment.class.getSimpleName();
+    private long mLastClickTime; // 클릭시 걸리는 시간
     private GroupGridAdapter groupGridAdapter;
     private List<GroupItem> groupItems;
     private PreferenceManager preferenceManager;
     private ProgressBar progressBar;
     private RelativeLayout relativeLayout;
     private SwipeRefreshLayout swipeRefreshLayout;
-    private long mLastClickTime; // 클릭시 걸리는 시간
+
+    private List<Integer> groupItemIdList;
+    private List<String> groupItemKeyList;
 
     public GroupFragment() {
     }
@@ -73,6 +72,8 @@ public class GroupFragment extends Fragment {
 
         preferenceManager = new PreferenceManager(getActivity());
         groupItems = new ArrayList<>();
+        groupItemIdList = new ArrayList<>();
+        groupItemKeyList = new ArrayList<>();
         groupGridAdapter = new GroupGridAdapter(getContext(), groupItems);
 
         myGroupList.setAdapter(groupGridAdapter);
@@ -145,6 +146,7 @@ public class GroupFragment extends Fragment {
             logout();
 
         progressBar.setVisibility(View.VISIBLE);
+
         fetchDataTask();
 
         return rootView;
@@ -167,13 +169,20 @@ public class GroupFragment extends Fragment {
                 List<Element> listElementA = source.getAllElements(HTMLElementName.A);
                 for (Element elementA : listElementA) {
                     try {
+                        int id = groupIdExtract(elementA.getAttributeValue("onclick"));
+                        boolean isAdmin = adminCheck(elementA.getAttributeValue("onclick"));
+                        String image = EndPoint.BASE_URL + elementA.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
+                        String name = elementA.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
+
                         GroupItem groupItem = new GroupItem();
-                        groupItem.setId(groupIdExtract(elementA.getAttributeValue("onclick")));
-                        groupItem.setAdmin(adminCheck(elementA.getAttributeValue("onclick")));
-                        groupItem.setImage(EndPoint.BASE_URL + elementA.getFirstElement(HTMLElementName.IMG).getAttributeValue("src"));
-                        groupItem.setName(elementA.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString());
+                        groupItem.setId(id);
+                        groupItem.setAdmin(isAdmin);
+                        groupItem.setImage(image);
+                        groupItem.setName(name);
 
                         groupItems.add(groupItem);
+                        groupItemIdList.add(groupItem.getId()); // id타입을 String 으로 변경후 지울예정
+                        groupItemKeyList.add(String.valueOf(groupItem.getId()));
                     } catch (NullPointerException e) {
                         e.printStackTrace();
                     }
@@ -216,6 +225,7 @@ public class GroupFragment extends Fragment {
     }
 
     private void insertAdvertisement() {
+        setFirebaseData();
         if (groupItems.size() % 2 != 0) {
             GroupItem ad = new GroupItem();
             ad.setAd(true);
@@ -224,6 +234,34 @@ public class GroupFragment extends Fragment {
         }
         progressBar.setVisibility(View.GONE);
         relativeLayout.setVisibility(groupItems.isEmpty() ? View.VISIBLE : View.GONE);
+    }
+
+    private void setFirebaseData() {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
+        fetchDataTaskFromFirebase(databaseReference.child(app.AppController.getInstance().getPreferenceManager().getUser().getUid()).orderByChild("id"));
+    }
+
+    private void fetchDataTaskFromFirebase(Query query) {
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String key = snapshot.getKey();
+                    GroupItem value = snapshot.getValue(GroupItem.class);
+                    assert value != null;
+                    if (groupItemIdList.indexOf(value.getId()) > -1) {
+                        groupItemKeyList.set(groupItemIdList.indexOf(value.getId()), key);
+                        groupItems.set(groupItemIdList.indexOf(value.getId()), value);
+                    }
+                }
+                groupGridAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("GroupGridAdapter", "데이터 가져오기 실패", databaseError.toException());
+            }
+        });
     }
 
     private int groupIdExtract(String href) {

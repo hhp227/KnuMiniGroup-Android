@@ -29,8 +29,6 @@ public class GroupGridAdapter extends BaseAdapter {
     private LayoutInflater layoutInflater;
     private List<GroupItem> groupItems;
     private ViewHolder viewHolder;
-    private List<String> firebaseDataKeyList;
-    private List<GroupItem> firebaseDataList;
 
     public GroupGridAdapter(Context context, List<GroupItem> groupItems) {
         this.context = context;
@@ -116,9 +114,6 @@ public class GroupGridAdapter extends BaseAdapter {
             adLoader.loadAd(new AdRequest.Builder().build());
             viewHolder.groupLayout.setVisibility(View.GONE);
             viewHolder.adView.setVisibility(View.VISIBLE);
-
-            // 파이어베이스
-            setFirebaseData();
         }
 
         viewHolder.groupName.setText(groupItem.getName());
@@ -138,51 +133,9 @@ public class GroupGridAdapter extends BaseAdapter {
         return adText;
     }
 
-    private void setFirebaseData() {
-        firebaseDataKeyList = new ArrayList<>();
-        firebaseDataList = new ArrayList<>();
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
-        fetchDataTaskOnFirebase(databaseReference.child(app.AppController.getInstance().getPreferenceManager().getUser().getUid()).orderByChild("id"));
-    }
-
-    private void fetchDataTaskOnFirebase(Query query) {
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    GroupItem item = snapshot.getValue(GroupItem.class);
-                    firebaseDataKeyList.add(snapshot.getKey());
-                    firebaseDataList.add(item);
-                }
-                compareDataList();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e("GroupGridAdapter", "데이터 가져오기 실패", databaseError.toException());
-            }
-        });
-    }
-
-    // 알고리즘 작성예정
-    private void compareDataList() {
-        Collections.reverse(firebaseDataKeyList);
-        Collections.reverse(firebaseDataList);
-        if (groupItems.size() > firebaseDataList.size()) {
-            for (int i = 0; i < groupItems.size(); i++) {
-                if (i < firebaseDataList.size())
-                    Log.e("테스트", "groupItems : " + groupItems.get(i).getId() + ", firebaseDataList : " + firebaseDataList.get(i).getId());
-                else {
-                    Log.e("테스트", "groupItems : " + groupItems.get(i).getId());
-                }
-            }
-        } else
-            Log.e("테스트", "groupItems : " + groupItems.toString() + ", firebaseDataList : " + firebaseDataList.toString());
-    }
-
-    public String getKey(int position) {
+    /*public String getKey(int position) {
         return firebaseDataKeyList.get(position);
-    }
+    }*/
 
     public static class ViewHolder {
         private ImageView groupImage;
