@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 public class MemberManagementFragment extends Fragment {
-    private static int groupId;
+    private static String groupId;
     private ListView listView;
     private List<MemberItem> memberItems;
     private MemberListAdapter memberListAdapter;
@@ -36,10 +36,10 @@ public class MemberManagementFragment extends Fragment {
         // Required empty public constructor
     }
 
-    public static MemberManagementFragment newInstance(int grpId) {
+    public static MemberManagementFragment newInstance(String grpId) {
         MemberManagementFragment fragment = new MemberManagementFragment();
         Bundle args = new Bundle();
-        args.putInt("grp_id", grpId);
+        args.putString("grp_id", grpId);
         fragment.setArguments(args);
         return fragment;
     }
@@ -48,7 +48,7 @@ public class MemberManagementFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            groupId = getArguments().getInt("grp_id");
+            groupId = getArguments().getString("grp_id");
         }
     }
 
@@ -110,7 +110,7 @@ public class MemberManagementFragment extends Fragment {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-                params.put("CLUB_GRP_ID", String.valueOf(groupId));
+                params.put("CLUB_GRP_ID", groupId);
                 return params;
             }
         });

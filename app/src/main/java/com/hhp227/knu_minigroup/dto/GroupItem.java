@@ -1,15 +1,14 @@
 package com.hhp227.knu_minigroup.dto;
 
 public class GroupItem {
-    private int id;
     private boolean isAd, isAdmin, isJoined;
     private long timestamp;
-    private String image, name, info, description, subscription, joinType;
+    private String id, image, name, info, description, subscription, joinType;
 
     public GroupItem() {
     }
 
-    public GroupItem(int id, boolean isAd, boolean isAdmin, boolean isJoined, long timestamp, String image, String name, String info, String description, String subscription, String joinType) {
+    public GroupItem(String id, boolean isAd, boolean isAdmin, boolean isJoined, long timestamp, String image, String name, String info, String description, String subscription, String joinType) {
         this.id = id;
         this.isAd = isAd;
         this.isAdmin = isAdmin;
@@ -23,11 +22,11 @@ public class GroupItem {
         this.joinType = joinType;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 

@@ -53,8 +53,8 @@ public class WriteActivity extends Activity {
     private Uri photoUri;
     private WriteListAdapter listAdapter;
 
-    private int contextMenuRequest, grpId;
-    private String currentPhotoPath, cookie;
+    private int contextMenuRequest;
+    private String grpId, currentPhotoPath, cookie;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +72,7 @@ public class WriteActivity extends Activity {
         preferenceManager = app.AppController.getInstance().getPreferenceManager();
         cookie = preferenceManager.getCookie();
         progressDialog = new ProgressDialog(this);
-        grpId = getIntent().getIntExtra("grp_id", 0);
+        grpId = getIntent().getStringExtra("grp_id");
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -286,7 +286,7 @@ public class WriteActivity extends Activity {
         Volley.newRequestQueue(this).add(multipartRequest);
     }
 
-    private void actionSend(final int grpId, final String title, final String content) {
+    private void actionSend(final String grpId, final String title, final String content) {
         String tagStringReq = "req_send";
 
         StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.WRITE_ARTICLE, new Response.Listener<String>() {
@@ -330,7 +330,7 @@ public class WriteActivity extends Activity {
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
                 params.put("SBJT", title);
-                params.put("CLUB_GRP_ID", String.valueOf(grpId));
+                params.put("CLUB_GRP_ID", grpId);
                 params.put("TXT", content);
                 return params;
             }
@@ -352,7 +352,7 @@ public class WriteActivity extends Activity {
         return image;
     }
 
-    private void insertArticleFirebase(int grpId) {
+    private void insertArticleFirebase(String grpId) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
         Map<String, Object> map = new HashMap<>();
         map.put("group_id", grpId);
@@ -363,7 +363,7 @@ public class WriteActivity extends Activity {
         map.put("content", inputContent.getText().toString());
         map.put("images", images);
 
-        databaseReference.child(String.valueOf(grpId)).push().setValue(map);
+        databaseReference.child(grpId).push().setValue(map);
     }
 
     private void showProgressDialog() {

@@ -15,9 +15,8 @@ import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 
 public class GroupActivity extends FragmentActivity {
     private boolean isAdmin;
-    private int groupId;
-    private String groupName;
-    TabHostLayoutFragment fragMain;
+    private String groupId, groupName, key;
+    private TabHostLayoutFragment fragMain;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,9 +25,10 @@ public class GroupActivity extends FragmentActivity {
 
         Intent intent = getIntent();
         isAdmin = intent.getBooleanExtra("admin", false);
-        groupId = intent.getIntExtra("grp_id", 0);
+        groupId = intent.getStringExtra("grp_id");
         groupName = intent.getStringExtra("grp_nm");
-        fragMain = TabHostLayoutFragment.newInstance(isAdmin, groupId, groupName);
+        key = intent.getStringExtra("key");
+        fragMain = TabHostLayoutFragment.newInstance(isAdmin, groupId, groupName, key);
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -60,7 +60,7 @@ public class GroupActivity extends FragmentActivity {
             Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
             intent.putExtra("grp_chat", true);
             intent.putExtra("chat_nm", groupName);
-            intent.putExtra("uid", String.valueOf(groupId));
+            intent.putExtra("uid", groupId);
             startActivity(intent);
         }
         return super.onOptionsItemSelected(item);

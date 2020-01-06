@@ -94,7 +94,7 @@ public class FindActivity extends FragmentActivity {
                 GroupItem groupItem = groupItems.get(position);
 
                 Bundle args = new Bundle();
-                args.putInt("grp_id", groupItem.getId());
+                args.putString("grp_id", groupItem.getId());
                 args.putString("grp_nm", groupItem.getName());
                 args.putString("img", groupItem.getImage());
                 args.putString("info", groupItem.getInfo());
@@ -142,7 +142,7 @@ public class FindActivity extends FragmentActivity {
                     try {
                         Element menuList = element.getFirstElementByClass("menu_list");
                         if (element.getAttributeValue("class").equals("accordion")) {
-                            int id = groupIdExtract(menuList.getFirstElementByClass("button").getAttributeValue("onclick"));
+                            String id = groupIdExtract(menuList.getFirstElementByClass("button").getAttributeValue("onclick"));
                             String imageUrl = EndPoint.BASE_URL + element.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
                             String name = element.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
                             StringBuilder info = new StringBuilder();
@@ -236,7 +236,7 @@ public class FindActivity extends FragmentActivity {
         });
     }
 
-    private int groupIdExtract(String onclick) {
-        return Integer.parseInt(onclick.split("[(]|[)]|[,]")[1].trim());
+    private String groupIdExtract(String onclick) {
+        return onclick.split("[(]|[)]|[,]")[1].trim();
     }
 }

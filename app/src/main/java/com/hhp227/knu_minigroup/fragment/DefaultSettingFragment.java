@@ -29,7 +29,7 @@ import static com.hhp227.knu_minigroup.CreateActivity.CAMERA_CAPTURE_IMAGE_REQUE
 import static com.hhp227.knu_minigroup.CreateActivity.CAMERA_PICK_IMAGE_REQUEST_CODE;
 
 public class DefaultSettingFragment extends Fragment {
-    private static int groupId;
+    private static String groupId;
     private Bitmap bitmap;
     private EditText inputTitle, inputDescription;
     private ImageView groupImage, resetTitle;
@@ -41,10 +41,10 @@ public class DefaultSettingFragment extends Fragment {
         // Required empty public constructor
     }
 
-    public static DefaultSettingFragment newInstance(int grpId) {
+    public static DefaultSettingFragment newInstance(String grpId) {
         DefaultSettingFragment fragment = new DefaultSettingFragment();
         Bundle args = new Bundle();
-        args.putInt("grp_id", grpId);
+        args.putString("grp_id", grpId);
         fragment.setArguments(args);
         return fragment;
     }
@@ -54,7 +54,7 @@ public class DefaultSettingFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         if (getArguments() != null) {
-            groupId = getArguments().getInt("grp_id");
+            groupId = getArguments().getString("grp_id");
         }
     }
 
@@ -170,7 +170,7 @@ public class DefaultSettingFragment extends Fragment {
                     @Override
                     public byte[] getBody() {
                         Map<String, String> params = new HashMap<>();
-                        params.put("CLUB_GRP_ID", String.valueOf(groupId));
+                        params.put("CLUB_GRP_ID", groupId);
                         params.put("GRP_NM", inputTitle.getText().toString());
                         params.put("TXT", inputDescription.getText().toString());
                         params.put("JOIN_DIV", !joinTypeCheck ? "0" : "1");

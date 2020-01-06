@@ -37,8 +37,7 @@ import static android.app.Activity.RESULT_OK;
 public class GroupInfoFragment extends DialogFragment {
     private static final String TAG = "정보창";
     private static boolean groupSubsc;
-    private static int groupId;
-    private static String groupName, groupImage, groupInfo, groupDesc, joinType;
+    private static String groupId, groupName, groupImage, groupInfo, groupDesc, joinType;
     private Button button, close;
     private ImageView image;
     private ProgressDialog progressDialog;
@@ -56,7 +55,7 @@ public class GroupInfoFragment extends DialogFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            groupId = getArguments().getInt("grp_id");
+            groupId = getArguments().getString("grp_id");
             groupName = getArguments().getString("grp_nm");
             groupImage = getArguments().getString("img");
             groupInfo = getArguments().getString("info");
@@ -129,7 +128,7 @@ public class GroupInfoFragment extends DialogFragment {
                     @Override
                     public byte[] getBody() {
                         Map<String, String> params = new HashMap<>();
-                        params.put("CLUB_GRP_ID", String.valueOf(groupId));
+                        params.put("CLUB_GRP_ID", groupId);
                         if (params.size() > 0) {
                             StringBuilder encodedParams = new StringBuilder();
                             try {
@@ -175,7 +174,7 @@ public class GroupInfoFragment extends DialogFragment {
         groupItem.setId(groupId);
         groupItem.setJoined(groupSubsc);
         groupItem.setTimestamp(System.currentTimeMillis());
-        groupItem.setImage(groupImage != null ? String.valueOf(groupId).concat(".jpg") : "default");
+        groupItem.setImage(groupImage != null ? groupId.concat(".jpg") : "default");
         groupItem.setName(groupName);
         groupItem.setInfo("null");
         groupItem.setDescription(groupDesc);

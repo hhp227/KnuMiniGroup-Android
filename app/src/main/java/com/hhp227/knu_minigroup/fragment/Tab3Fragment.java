@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Tab3Fragment extends BaseFragment {
-    public static int groupId;
+    public static String groupId;
     private static final int LIMIT = 40;
     private static final String TAG = "맴버목록";
     private ProgressDialog progressDialog;
@@ -40,10 +40,10 @@ public class Tab3Fragment extends BaseFragment {
     public Tab3Fragment() {
     }
 
-    public static Tab3Fragment newInstance(int grpId) {
+    public static Tab3Fragment newInstance(String grpId) {
         Tab3Fragment fragment = new Tab3Fragment();
         Bundle args = new Bundle();
-        args.putInt("grp_id", grpId);
+        args.putString("grp_id", grpId);
         fragment.setArguments(args);
         return fragment;
     }
@@ -52,7 +52,7 @@ public class Tab3Fragment extends BaseFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            groupId = getArguments().getInt("grp_id");
+            groupId = getArguments().getString("grp_id");
         }
     }
 

@@ -56,8 +56,8 @@ public class ArticleActivity extends Activity {
     private View articleDetail;
 
     private boolean isBottom, isUpdate, isAuthorized;
-    private int groupId, articleId, position;
-    private String groupName;
+    private int articleId, position;
+    private String groupId, groupName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +76,7 @@ public class ArticleActivity extends Activity {
 
         final Intent intent = getIntent();
         preferenceManager = app.AppController.getInstance().getPreferenceManager();
-        groupId = intent.getIntExtra("grp_id", 0);
+        groupId = intent.getStringExtra("grp_id");
         groupName = intent.getStringExtra("grp_nm");
         articleId = intent.getIntExtra("artl_num", 0);
         position = intent.getIntExtra("position", 0);
@@ -238,7 +238,7 @@ public class ArticleActivity extends Activity {
                     @Override
                     protected Map<String, String> getParams() {
                         Map<String, String> params = new HashMap<>();
-                        params.put("CLUB_GRP_ID", String.valueOf(groupId));
+                        params.put("CLUB_GRP_ID", groupId);
                         params.put("ARTL_NUM", String.valueOf(articleId));
                         return params;
                     }
@@ -332,7 +332,7 @@ public class ArticleActivity extends Activity {
                     @Override
                     protected Map<String, String> getParams() {
                         Map<String, String> params = new HashMap<>();
-                        params.put("CLUB_GRP_ID", String.valueOf(groupId));
+                        params.put("CLUB_GRP_ID", groupId);
                         params.put("CMMT_NUM", String.valueOf(replyId));
                         params.put("ARTL_NUM", String.valueOf(articleId));
                         return params;
@@ -483,7 +483,7 @@ public class ArticleActivity extends Activity {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-                params.put("CLUB_GRP_ID", String.valueOf(groupId));
+                params.put("CLUB_GRP_ID", groupId);
                 params.put("ARTL_NUM", String.valueOf(articleId));
                 params.put("CMT", text);
                 return params;

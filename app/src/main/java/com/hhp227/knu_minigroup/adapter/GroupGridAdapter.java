@@ -27,22 +27,24 @@ import java.util.List;
 public class GroupGridAdapter extends BaseAdapter {
     private Context context;
     private LayoutInflater layoutInflater;
-    private List<GroupItem> groupItems;
+    private List<String> groupItemKeys;
+    private List<GroupItem> groupItemValues;
     private ViewHolder viewHolder;
 
-    public GroupGridAdapter(Context context, List<GroupItem> groupItems) {
+    public GroupGridAdapter(Context context, List<GroupItem> groupItemValues, List<String> groupItemKeys) {
         this.context = context;
-        this.groupItems = groupItems;
+        this.groupItemValues = groupItemValues;
+        this.groupItemKeys = groupItemKeys;
     }
 
     @Override
     public int getCount() {
-        return groupItems.size();
+        return groupItemValues.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return groupItems.get(position);
+        return groupItemValues.get(position);
     }
 
     @Override
@@ -61,7 +63,7 @@ public class GroupGridAdapter extends BaseAdapter {
         } else
             viewHolder = (ViewHolder) convertView.getTag();
 
-        GroupItem groupItem = groupItems.get(position);
+        GroupItem groupItem = groupItemValues.get(position);
 
         if (!groupItem.isAd()) {
             viewHolder.groupLayout.setVisibility(View.VISIBLE);
@@ -133,9 +135,9 @@ public class GroupGridAdapter extends BaseAdapter {
         return adText;
     }
 
-    /*public String getKey(int position) {
-        return firebaseDataKeyList.get(position);
-    }*/
+    public String getKey(int position) {
+        return groupItemKeys.get(position);
+    }
 
     public static class ViewHolder {
         private ImageView groupImage;

@@ -36,8 +36,7 @@ public class Tab1Fragment extends BaseFragment {
     public static final int UPDATE_ARTICLE = 20;
 
     public static boolean isAdmin;
-    public static int groupId;
-    public static String groupName;
+    public static String groupId, groupName, key;
     private ArticleListAdapter articleListAdapter;
     private FloatingActionButton floatingActionButton;
     private List<ArticleItem> articleItems;
@@ -54,12 +53,13 @@ public class Tab1Fragment extends BaseFragment {
     public Tab1Fragment() {
     }
 
-    public static Tab1Fragment newInstance(boolean isAdmin, int grpId, String grpNm) {
+    public static Tab1Fragment newInstance(boolean isAdmin, String grpId, String grpNm, String key) {
         Tab1Fragment fragment = new Tab1Fragment();
         Bundle args = new Bundle();
         args.putBoolean("admin", isAdmin);
-        args.putInt("grp_id", grpId);
+        args.putString("grp_id", grpId);
         args.putString("grp_nm", grpNm);
+        args.putString("key", key);
         fragment.setArguments(args);
         return fragment;
     }
@@ -69,8 +69,9 @@ public class Tab1Fragment extends BaseFragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             isAdmin = getArguments().getBoolean("admin");
-            groupId = getArguments().getInt("grp_id");
+            groupId = getArguments().getString("grp_id");
             groupName = getArguments().getString("grp_nm");
+            key = getArguments().getString("key");
         }
     }
 
@@ -173,6 +174,7 @@ public class Tab1Fragment extends BaseFragment {
 
         progressDialog = ProgressDialog.show(getActivity(), "", "불러오는중...");
         fetchArticleList();
+        Toast.makeText(getContext(), key, Toast.LENGTH_LONG).show();
 
         return rootView;
     }

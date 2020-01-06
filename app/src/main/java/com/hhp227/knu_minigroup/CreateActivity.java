@@ -49,7 +49,7 @@ public class CreateActivity extends Activity {
     private RadioGroup joinType;
 
     private boolean joinTypeCheck;
-    private String cookie;
+    private String cookie, pushId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,8 +146,8 @@ public class CreateActivity extends Activity {
                                     if (bitmap != null)
                                         groupImageUpdate(groupId, groupName, description, join);
                                     else {
-                                        createGroupSuccess(Integer.parseInt(groupId), groupName);
-                                        //insertGroupFirebase(Integer.parseInt(groupId), groupName, description, join);
+                                        insertGroupToFirebase(groupId, groupName, description, join);
+                                        createGroupSuccess(groupId, groupName);
                                     }
                                 }
                             } catch (JSONException e) {
@@ -209,8 +209,8 @@ public class CreateActivity extends Activity {
         app.AppController.getInstance().addToRequestQueue(new MultipartRequest(Request.Method.POST, EndPoint.GROUP_IMAGE_UPDATE, new Response.Listener<NetworkResponse>() {
             @Override
             public void onResponse(NetworkResponse response) {
-                createGroupSuccess(Integer.parseInt(clubGrpId), grpNm);
-                //insertGroupFirebase(Integer.parseInt(clubGrpId), grpNm, txt, joinDiv);
+                insertGroupToFirebase(clubGrpId, grpNm, txt, joinDiv);
+                createGroupSuccess(clubGrpId, grpNm);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -292,11 +292,12 @@ public class CreateActivity extends Activity {
         }
     }
 
-    private void createGroupSuccess(int groupId, String groupName) {
+    private void createGroupSuccess(String groupId, String groupName) {
         Intent intent = new Intent(CreateActivity.this, GroupActivity.class);
         intent.putExtra("admin", true);
         intent.putExtra("grp_id", groupId);
         intent.putExtra("grp_nm", groupName);
+        intent.putExtra("key", pushId);
         setResult(RESULT_OK, intent);
         startActivity(intent);
         finish();
@@ -304,20 +305,20 @@ public class CreateActivity extends Activity {
         Toast.makeText(getApplicationContext(), "그룹이 생성되었습니다.", Toast.LENGTH_LONG).show();
     }
 
-    private void insertGroupFirebase(int groupId, String groupName, String description, String joinType) {
+    private void insertGroupToFirebase(String groupId, String groupName, String description, String joinType) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         GroupItem groupItem = new GroupItem();
         groupItem.setId(groupId);
         groupItem.setAdmin(true);
         groupItem.setJoined(true);
         groupItem.setTimestamp(System.currentTimeMillis());
-        groupItem.setImage(bitmap != null ? String.valueOf(groupId).concat(".jpg") : "default");
+        groupItem.setImage(bitmap != null ? groupId.concat(".jpg") : "default");
         groupItem.setName(groupName);
         groupItem.setInfo("null");
         groupItem.setDescription(description);
         groupItem.setJoinType(joinType);
 
-        String pushId = databaseReference.push().getKey();
+        pushId = databaseReference.push().getKey();
 
         Map<String, Object> map = new HashMap<>();
         map.put("Groups/" + pushId, groupItem);

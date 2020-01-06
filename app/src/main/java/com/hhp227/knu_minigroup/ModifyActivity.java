@@ -49,8 +49,8 @@ public class ModifyActivity extends Activity {
     private View headerView;
     private WriteListAdapter listAdapter;
 
-    private int contextMenuRequest, grpId, artlNum;
-    private String currentPhotoPath, cookie, title, content;
+    private int contextMenuRequest, artlNum;
+    private String grpId, currentPhotoPath, cookie, title, content;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +67,7 @@ public class ModifyActivity extends Activity {
         progressDialog = new ProgressDialog(this);
 
         Intent intent = getIntent();
-        grpId = intent.getIntExtra("grp_id", 0);
+        grpId = intent.getStringExtra("grp_id");
         artlNum = intent.getIntExtra("artl_num", 0);
         title = intent.getStringExtra("sbjt");
         content = intent.getStringExtra("txt");
@@ -326,7 +326,7 @@ public class ModifyActivity extends Activity {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-                params.put("CLUB_GRP_ID", String.valueOf(grpId));
+                params.put("CLUB_GRP_ID", grpId);
                 params.put("ARTL_NUM", String.valueOf(artlNum));
                 params.put("SBJT", title);
                 params.put("TXT", content);

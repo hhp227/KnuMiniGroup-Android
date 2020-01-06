@@ -39,7 +39,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
-    private static int groupId;
+    private static String groupId;
     private static boolean isAdmin;
     private static final String TAG = Tab4Fragment.class.getSimpleName();
     private long mLastClickTime;
@@ -52,10 +52,10 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     public Tab4Fragment() {
     }
 
-    public static Tab4Fragment newInstance(boolean isAdmin, int grpId) {
+    public static Tab4Fragment newInstance(boolean isAdmin, String grpId) {
         Bundle args = new Bundle();
         args.putBoolean("admin", isAdmin);
-        args.putInt("grp_id", grpId);
+        args.putString("grp_id", grpId);
         Tab4Fragment fragment = new Tab4Fragment();
         fragment.setArguments(args);
         return fragment;
@@ -66,7 +66,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             isAdmin = getArguments().getBoolean("admin");
-            groupId = getArguments().getInt("grp_id");
+            groupId = getArguments().getString("grp_id");
         }
     }
 
@@ -170,7 +170,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                             @Override
                             public byte[] getBody() {
                                 Map<String, String> params = new HashMap<>();
-                                params.put("CLUB_GRP_ID", String.valueOf(groupId));
+                                params.put("CLUB_GRP_ID", groupId);
                                 if (params != null && params.size() > 0) {
                                     StringBuilder encodedParams = new StringBuilder();
                                     try {

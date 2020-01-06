@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Vector;
 
 public class SettingsActivity extends FragmentActivity {
-    private int groupId;
     private static final String[] TAB_NAMES = {"회원관리", "기본정보"};
     private TabHost tabHost;
     private TabsPagerAdapter tabsPagerAdapter;
@@ -34,7 +33,7 @@ public class SettingsActivity extends FragmentActivity {
         setContentView(R.layout.activity_settings);
         tabHost = findViewById(android.R.id.tabhost);
         viewPager = findViewById(R.id.view_pager);
-        groupId = getIntent().getIntExtra("grp_id", 0);
+        String groupId = getIntent().getStringExtra("grp_id");
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);

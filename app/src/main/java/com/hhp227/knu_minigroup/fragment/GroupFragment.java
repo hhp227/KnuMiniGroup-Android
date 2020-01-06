@@ -37,14 +37,12 @@ public class GroupFragment extends Fragment {
     public static final int REGISTER_CODE = 20;
     private long mLastClickTime; // 클릭시 걸리는 시간
     private GroupGridAdapter groupGridAdapter;
-    private List<GroupItem> groupItems;
+    private List<String> groupItemKeys;
+    private List<GroupItem> groupItemValues;
     private PreferenceManager preferenceManager;
     private ProgressBar progressBar;
     private RelativeLayout relativeLayout;
     private SwipeRefreshLayout swipeRefreshLayout;
-
-    private List<Integer> groupItemIdList;
-    private List<String> groupItemKeyList;
 
     public GroupFragment() {
     }
@@ -71,10 +69,9 @@ public class GroupFragment extends Fragment {
         swipeRefreshLayout = rootView.findViewById(R.id.srl_group);
 
         preferenceManager = new PreferenceManager(getActivity());
-        groupItems = new ArrayList<>();
-        groupItemIdList = new ArrayList<>();
-        groupItemKeyList = new ArrayList<>();
-        groupGridAdapter = new GroupGridAdapter(getContext(), groupItems);
+        groupItemKeys = new ArrayList<>();
+        groupItemValues = new ArrayList<>();
+        groupGridAdapter = new GroupGridAdapter(getContext(), groupItemValues, groupItemKeys);
 
         myGroupList.setAdapter(groupGridAdapter);
         myGroupList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -84,7 +81,7 @@ public class GroupFragment extends Fragment {
                 if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
                     return;
                 mLastClickTime = SystemClock.elapsedRealtime();
-                GroupItem groupItem = groupItems.get(position);
+                GroupItem groupItem = groupItemValues.get(position);
                 if (groupItem.isAd()) {
                     Toast.makeText(getContext(), "광고", Toast.LENGTH_LONG).show();
                 } else {
@@ -92,6 +89,7 @@ public class GroupFragment extends Fragment {
                     intent.putExtra("admin", groupItem.isAdmin());
                     intent.putExtra("grp_id", groupItem.getId());
                     intent.putExtra("grp_nm", groupItem.getName());
+                    intent.putExtra("key", groupGridAdapter.getKey(position));
                     startActivity(intent);
                 }
             }
@@ -103,7 +101,8 @@ public class GroupFragment extends Fragment {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        groupItems.clear();
+                        groupItemKeys.clear();
+                        groupItemValues.clear();
                         fetchDataTask();
                         swipeRefreshLayout.setRefreshing(false);
                     }
@@ -156,7 +155,8 @@ public class GroupFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if ((requestCode == CREATE_CODE || requestCode == REGISTER_CODE) && resultCode == RESULT_OK) {
-            groupItems.clear();
+            groupItemKeys.clear();
+            groupItemValues.clear();
             fetchDataTask();
         }
     }
@@ -169,7 +169,7 @@ public class GroupFragment extends Fragment {
                 List<Element> listElementA = source.getAllElements(HTMLElementName.A);
                 for (Element elementA : listElementA) {
                     try {
-                        int id = groupIdExtract(elementA.getAttributeValue("onclick"));
+                        String id = groupIdExtract(elementA.getAttributeValue("onclick"));
                         boolean isAdmin = adminCheck(elementA.getAttributeValue("onclick"));
                         String image = EndPoint.BASE_URL + elementA.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
                         String name = elementA.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
@@ -180,9 +180,8 @@ public class GroupFragment extends Fragment {
                         groupItem.setImage(image);
                         groupItem.setName(name);
 
-                        groupItems.add(groupItem);
-                        groupItemIdList.add(groupItem.getId()); // id타입을 String 으로 변경후 지울예정
-                        groupItemKeyList.add(String.valueOf(groupItem.getId()));
+                        groupItemValues.add(groupItem);
+                        groupItemKeys.add(groupItem.getId());
                     } catch (NullPointerException e) {
                         e.printStackTrace();
                     }
@@ -226,19 +225,19 @@ public class GroupFragment extends Fragment {
 
     private void insertAdvertisement() {
         setFirebaseData();
-        if (groupItems.size() % 2 != 0) {
+        if (groupItemValues.size() % 2 != 0) {
             GroupItem ad = new GroupItem();
             ad.setAd(true);
             ad.setName("광고 : 소모임앱이 출시되었습니다.");
-            groupItems.add(ad);
+            groupItemValues.add(ad);
         }
         progressBar.setVisibility(View.GONE);
-        relativeLayout.setVisibility(groupItems.isEmpty() ? View.VISIBLE : View.GONE);
+        relativeLayout.setVisibility(groupItemValues.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
     private void setFirebaseData() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
-        fetchDataTaskFromFirebase(databaseReference.child(app.AppController.getInstance().getPreferenceManager().getUser().getUid()).orderByChild("id"));
+        fetchDataTaskFromFirebase(databaseReference.child(app.AppController.getInstance().getPreferenceManager().getUser().getUid()).orderByChild("joined").equalTo(true));
     }
 
     private void fetchDataTaskFromFirebase(Query query) {
@@ -249,9 +248,9 @@ public class GroupFragment extends Fragment {
                     String key = snapshot.getKey();
                     GroupItem value = snapshot.getValue(GroupItem.class);
                     assert value != null;
-                    if (groupItemIdList.indexOf(value.getId()) > -1) {
-                        groupItemKeyList.set(groupItemIdList.indexOf(value.getId()), key);
-                        groupItems.set(groupItemIdList.indexOf(value.getId()), value);
+                    if (groupItemKeys.indexOf(value.getId()) > -1) {
+                        groupItemValues.set(groupItemKeys.indexOf(value.getId()), value);
+                        groupItemKeys.set(groupItemKeys.indexOf(value.getId()), key);
                     }
                 }
                 groupGridAdapter.notifyDataSetChanged();
@@ -264,8 +263,8 @@ public class GroupFragment extends Fragment {
         });
     }
 
-    private int groupIdExtract(String href) {
-        return Integer.parseInt(href.split("'")[3].trim());
+    private String groupIdExtract(String href) {
+        return href.split("'")[3].trim();
     }
 
     private boolean adminCheck(String onClick) {
