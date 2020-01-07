@@ -71,7 +71,7 @@ public class GroupFragment extends Fragment {
         preferenceManager = new PreferenceManager(getActivity());
         groupItemKeys = new ArrayList<>();
         groupItemValues = new ArrayList<>();
-        groupGridAdapter = new GroupGridAdapter(getContext(), groupItemValues, groupItemKeys);
+        groupGridAdapter = new GroupGridAdapter(getContext(), groupItemKeys, groupItemValues);
 
         myGroupList.setAdapter(groupGridAdapter);
         myGroupList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -86,10 +86,10 @@ public class GroupFragment extends Fragment {
                     Toast.makeText(getContext(), "광고", Toast.LENGTH_LONG).show();
                 } else {
                     Intent intent = new Intent(getContext(), GroupActivity.class);
-                    intent.putExtra("admin", groupItem.isAdmin());
-                    intent.putExtra("grp_id", groupItem.getId());
-                    intent.putExtra("grp_nm", groupItem.getName());
-                    intent.putExtra("key", groupGridAdapter.getKey(position));
+                    intent.putExtra(getString(R.string.extra_admin), groupItem.isAdmin());
+                    intent.putExtra(getString(R.string.extra_group_id), groupItem.getId());
+                    intent.putExtra(getString(R.string.extra_group_name), groupItem.getName());
+                    intent.putExtra(getString(R.string.extra_key), groupGridAdapter.getKey(position));
                     startActivity(intent);
                 }
             }
@@ -180,8 +180,8 @@ public class GroupFragment extends Fragment {
                         groupItem.setImage(image);
                         groupItem.setName(name);
 
+                        groupItemKeys.add(id);
                         groupItemValues.add(groupItem);
-                        groupItemKeys.add(groupItem.getId());
                     } catch (NullPointerException e) {
                         e.printStackTrace();
                     }
@@ -228,7 +228,7 @@ public class GroupFragment extends Fragment {
         if (groupItemValues.size() % 2 != 0) {
             GroupItem ad = new GroupItem();
             ad.setAd(true);
-            ad.setName("광고 : 소모임앱이 출시되었습니다.");
+            ad.setName("광고");
             groupItemValues.add(ad);
         }
         progressBar.setVisibility(View.GONE);
@@ -248,9 +248,10 @@ public class GroupFragment extends Fragment {
                     String key = snapshot.getKey();
                     GroupItem value = snapshot.getValue(GroupItem.class);
                     assert value != null;
-                    if (groupItemKeys.indexOf(value.getId()) > -1) {
-                        groupItemValues.set(groupItemKeys.indexOf(value.getId()), value);
-                        groupItemKeys.set(groupItemKeys.indexOf(value.getId()), key);
+                    int index = groupItemKeys.indexOf(value.getId());
+                    if (index > -1) {
+                        groupItemValues.set(index, value);
+                        groupItemKeys.set(index, key);
                     }
                 }
                 groupGridAdapter.notifyDataSetChanged();

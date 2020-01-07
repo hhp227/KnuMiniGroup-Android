@@ -24,10 +24,10 @@ public class GroupActivity extends FragmentActivity {
         setContentView(R.layout.activity_group);
 
         Intent intent = getIntent();
-        isAdmin = intent.getBooleanExtra("admin", false);
-        groupId = intent.getStringExtra("grp_id");
-        groupName = intent.getStringExtra("grp_nm");
-        key = intent.getStringExtra("key");
+        isAdmin = intent.getBooleanExtra(getString(R.string.extra_admin), false);
+        groupId = intent.getStringExtra(getString(R.string.extra_group_id));
+        groupName = intent.getStringExtra(getString(R.string.extra_group_name));
+        key = intent.getStringExtra(getString(R.string.extra_key));
         fragMain = TabHostLayoutFragment.newInstance(isAdmin, groupId, groupName, key);
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {

@@ -26,6 +26,9 @@ import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.hhp227.knu_minigroup.*;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.User;
@@ -39,7 +42,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
-    private static String groupId;
+    private static String groupId, key;
     private static boolean isAdmin;
     private static final String TAG = Tab4Fragment.class.getSimpleName();
     private long mLastClickTime;
@@ -52,10 +55,11 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     public Tab4Fragment() {
     }
 
-    public static Tab4Fragment newInstance(boolean isAdmin, String grpId) {
+    public static Tab4Fragment newInstance(boolean isAdmin, String grpId, String key) {
         Bundle args = new Bundle();
         args.putBoolean("admin", isAdmin);
         args.putString("grp_id", grpId);
+        args.putString("key", key);
         Tab4Fragment fragment = new Tab4Fragment();
         fragment.setArguments(args);
         return fragment;
@@ -67,6 +71,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
         if (getArguments() != null) {
             isAdmin = getArguments().getBoolean("admin");
             groupId = getArguments().getString("grp_id");
+            key = getArguments().getString("key");
         }
     }
 
@@ -171,7 +176,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                             public byte[] getBody() {
                                 Map<String, String> params = new HashMap<>();
                                 params.put("CLUB_GRP_ID", groupId);
-                                if (params != null && params.size() > 0) {
+                                if (params.size() > 0) {
                                     StringBuilder encodedParams = new StringBuilder();
                                     try {
                                         for (Map.Entry<String, String> entry : params.entrySet()) {
@@ -188,6 +193,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                                 return null;
                             }
                         });
+                        deleteDataFromFirebase();
                     }
                 });
                 builder.setNegativeButton("아니오", new DialogInterface.OnClickListener() {
@@ -226,6 +232,14 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     @Override
     public boolean canScrollVertically(int direction) {
         return false;
+    }
+
+    private void deleteDataFromFirebase() {
+        DatabaseReference userGroupListReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
+        DatabaseReference groupsReference = FirebaseDatabase.getInstance().getReference("Groups");
+        if (isAdmin)
+            groupsReference.child(key).removeValue();
+        userGroupListReference.child(app.AppController.getInstance().getPreferenceManager().getUser().getUid()).child(key).removeValue();
     }
 
     private void showProgressDialog() {

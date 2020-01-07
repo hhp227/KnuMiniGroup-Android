@@ -149,9 +149,10 @@ public class Tab1Fragment extends BaseFragment {
                     return;
                 mLastClickTime = SystemClock.elapsedRealtime();
                 Intent intent = new Intent(getActivity(), WriteActivity.class);
-                intent.putExtra("admin", isAdmin);
-                intent.putExtra("grp_id", groupId);
-                intent.putExtra("grp_nm", groupName);
+                intent.putExtra(getString(R.string.extra_admin), isAdmin);
+                intent.putExtra(getString(R.string.extra_group_id), groupId);
+                intent.putExtra(getString(R.string.extra_group_name), groupName);
+                intent.putExtra(getString(R.string.extra_key), key);
                 startActivity(intent);
                 return;
             }
@@ -174,7 +175,6 @@ public class Tab1Fragment extends BaseFragment {
 
         progressDialog = ProgressDialog.show(getActivity(), "", "불러오는중...");
         fetchArticleList();
-        Toast.makeText(getContext(), key, Toast.LENGTH_LONG).show();
 
         return rootView;
     }

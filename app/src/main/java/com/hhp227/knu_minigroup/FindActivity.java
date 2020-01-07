@@ -32,9 +32,9 @@ import java.util.Map;
 public class FindActivity extends FragmentActivity {
     private static final int LIMIT = 15;
     private static final String TAG = FindActivity.class.getSimpleName();
-    private DatabaseReference databaseReference;
     private GroupListAdapter listAdapter;
-    private List<GroupItem> groupItems;
+    private List<String> groupItemKeys;
+    private List<GroupItem> groupItemValues;
     private ListView listView;
     private ProgressBar progressBar;
     private RelativeLayout relativeLayout;
@@ -53,9 +53,9 @@ public class FindActivity extends FragmentActivity {
         progressBar = findViewById(R.id.pb_group);
         swipeRefreshLayout = findViewById(R.id.srl_group_list);
         offSet = 1;
-        groupItems = new ArrayList<>();
-        listAdapter = new GroupListAdapter(getBaseContext(), groupItems);
-        databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
+        groupItemKeys = new ArrayList<>();
+        groupItemValues = new ArrayList<>();
+        listAdapter = new GroupListAdapter(getBaseContext(), groupItemKeys, groupItemValues);
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
@@ -91,7 +91,7 @@ public class FindActivity extends FragmentActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                GroupItem groupItem = groupItems.get(position);
+                GroupItem groupItem = groupItemValues.get(position);
 
                 Bundle args = new Bundle();
                 args.putString("grp_id", groupItem.getId());
@@ -99,8 +99,9 @@ public class FindActivity extends FragmentActivity {
                 args.putString("img", groupItem.getImage());
                 args.putString("info", groupItem.getInfo());
                 args.putString("desc", groupItem.getDescription());
-                args.putBoolean("subs", groupItem.getSubscription().equals("가입방식: 자동 승인"));
+                args.putBoolean("subs", groupItem.getJoinType().equals("0"));
                 args.putString("type", "0");
+                args.putString("key", groupItemKeys.get(position));
 
                 GroupInfoFragment newFragment = GroupInfoFragment.newInstance();
                 newFragment.setArguments(args);
@@ -114,7 +115,7 @@ public class FindActivity extends FragmentActivity {
                     @Override
                     public void run() {
                         offSet = 1;
-                        groupItems.clear();
+                        groupItemValues.clear();
                         fetchGroupList();
                         swipeRefreshLayout.setRefreshing(false);
                     }
@@ -147,7 +148,7 @@ public class FindActivity extends FragmentActivity {
                             String name = element.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
                             StringBuilder info = new StringBuilder();
                             String description = menuList.getAllElementsByClass("info").get(0).getContent().toString();
-                            String subscription = menuList.getAllElementsByClass("info").get(1).getContent().toString().trim();
+                            String joinType = menuList.getAllElementsByClass("info").get(1).getTextExtractor().toString().trim();
                             for (Element span : element.getFirstElement(HTMLElementName.A).getAllElementsByClass("info")) {
                                 String extractedText = span.getTextExtractor().toString();
                                 info.append(extractedText.contains("회원수") ?
@@ -160,8 +161,9 @@ public class FindActivity extends FragmentActivity {
                             groupItem.setName(name);
                             groupItem.setInfo(info.toString().trim());
                             groupItem.setDescription(description);
-                            groupItem.setSubscription(subscription);
-                            groupItems.add(groupItem);
+                            groupItem.setJoinType(joinType.equals("가입방식: 자동 승인") ? "0" : "1");
+                            groupItemKeys.add(id);
+                            groupItemValues.add(groupItem);
                         }
                     } catch (Exception e) {
                         Log.e(TAG, e.getMessage());
@@ -171,8 +173,8 @@ public class FindActivity extends FragmentActivity {
                 hasRequestedMore = false;
                 footerLoading.setVisibility(View.GONE);
                 progressBar.setVisibility(View.GONE);
-                relativeLayout.setVisibility(groupItems.isEmpty() ? View.VISIBLE : View.GONE);
-                //fetchGroupListOnFirebase(databaseReference.orderByChild("timestamp"));
+                relativeLayout.setVisibility(groupItemValues.isEmpty() ? View.VISIBLE : View.GONE);
+                initFirebaseData();
             }
         }, new Response.ErrorListener() {
             @Override
@@ -220,13 +222,26 @@ public class FindActivity extends FragmentActivity {
         });
     }
 
-    private void fetchGroupListOnFirebase(Query query) {
+    private void initFirebaseData() {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
+        fetchGroupListFromFirebase(databaseReference.orderByKey());
+    }
+
+    private void fetchGroupListFromFirebase(Query query) {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    Log.d(TAG, snapshot.toString());
+                    String key = snapshot.getKey();
+                    GroupItem value = snapshot.getValue(GroupItem.class);
+                    assert value != null;
+                    int index = groupItemKeys.indexOf(value.getId());
+                    if (index > -1) {
+                        //groupItemValues.set(index, value); //getInfo 구현이 덜되어 주석처리
+                        groupItemKeys.set(index, key);
+                    }
                 }
+                listAdapter.notifyDataSetChanged();
             }
 
             @Override

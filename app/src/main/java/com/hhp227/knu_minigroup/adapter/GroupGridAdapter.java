@@ -31,10 +31,10 @@ public class GroupGridAdapter extends BaseAdapter {
     private List<GroupItem> groupItemValues;
     private ViewHolder viewHolder;
 
-    public GroupGridAdapter(Context context, List<GroupItem> groupItemValues, List<String> groupItemKeys) {
+    public GroupGridAdapter(Context context, List<String> groupItemKeys, List<GroupItem> groupItemValues) {
         this.context = context;
-        this.groupItemValues = groupItemValues;
         this.groupItemKeys = groupItemKeys;
+        this.groupItemValues = groupItemValues;
     }
 
     @Override

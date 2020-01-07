@@ -37,7 +37,7 @@ import static android.app.Activity.RESULT_OK;
 public class GroupInfoFragment extends DialogFragment {
     private static final String TAG = "정보창";
     private static boolean groupSubsc;
-    private static String groupId, groupName, groupImage, groupInfo, groupDesc, joinType;
+    private static String groupId, groupName, groupImage, groupInfo, groupDesc, joinType, key;
     private Button button, close;
     private ImageView image;
     private ProgressDialog progressDialog;
@@ -62,6 +62,7 @@ public class GroupInfoFragment extends DialogFragment {
             groupDesc = getArguments().getString("desc");
             groupSubsc = getArguments().getBoolean("subs");
             joinType = getArguments().getString("type");
+            key = getArguments().getString("key");
         }
     }
 
@@ -95,7 +96,7 @@ public class GroupInfoFragment extends DialogFragment {
                                 Intent intent = new Intent(getContext(), MainActivity.class);
                                 getActivity().setResult(RESULT_OK, intent);
                                 getActivity().finish();
-                                //insertGroupFirebase();
+                                insertGroupToFirebase();
                             } else if (joinType.equals("1") && !response.getBoolean("isError")) {
                                 Toast.makeText(getContext(), "신청취소", Toast.LENGTH_LONG).show();
                                 ((RequestActivity) getActivity()).refresh();
@@ -168,7 +169,7 @@ public class GroupInfoFragment extends DialogFragment {
         return rootView;
     }
 
-    private void insertGroupFirebase() {
+    private void insertGroupToFirebase() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
         GroupItem groupItem = new GroupItem();
         groupItem.setId(groupId);
@@ -179,7 +180,10 @@ public class GroupInfoFragment extends DialogFragment {
         groupItem.setInfo("null");
         groupItem.setDescription(groupDesc);
         groupItem.setJoinType(joinType);
-        databaseReference.child(app.AppController.getInstance().getPreferenceManager().getUser().getUid()).push().setValue(groupItem);
+
+        Map<String, Object> childUpdates = new HashMap<>();
+        childUpdates.put("/" + app.AppController.getInstance().getPreferenceManager().getUser().getUid() + "/" + key, groupItem);
+        databaseReference.updateChildren(childUpdates);
     }
 
     private void showProgressDialog() {

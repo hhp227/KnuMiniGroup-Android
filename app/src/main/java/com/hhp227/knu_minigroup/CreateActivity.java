@@ -294,10 +294,10 @@ public class CreateActivity extends Activity {
 
     private void createGroupSuccess(String groupId, String groupName) {
         Intent intent = new Intent(CreateActivity.this, GroupActivity.class);
-        intent.putExtra("admin", true);
-        intent.putExtra("grp_id", groupId);
-        intent.putExtra("grp_nm", groupName);
-        intent.putExtra("key", pushId);
+        intent.putExtra(getString(R.string.extra_admin), true);
+        intent.putExtra(getString(R.string.extra_group_id), groupId);
+        intent.putExtra(getString(R.string.extra_group_name), groupName);
+        intent.putExtra(getString(R.string.extra_key), pushId);
         setResult(RESULT_OK, intent);
         startActivity(intent);
         finish();
@@ -312,6 +312,7 @@ public class CreateActivity extends Activity {
         groupItem.setAdmin(true);
         groupItem.setJoined(true);
         groupItem.setTimestamp(System.currentTimeMillis());
+        groupItem.setAuthor(preferenceManager.getUser().getName());
         groupItem.setImage(bitmap != null ? groupId.concat(".jpg") : "default");
         groupItem.setName(groupName);
         groupItem.setInfo("null");
@@ -320,10 +321,10 @@ public class CreateActivity extends Activity {
 
         pushId = databaseReference.push().getKey();
 
-        Map<String, Object> map = new HashMap<>();
-        map.put("Groups/" + pushId, groupItem);
-        map.put("UserGroupList/" + preferenceManager.getUser().getUid() + "/" + pushId, groupItem);
-        databaseReference.updateChildren(map);
+        Map<String, Object> childUpdates = new HashMap<>();
+        childUpdates.put("Groups/" + pushId, groupItem);
+        childUpdates.put("UserGroupList/" + preferenceManager.getUser().getUid() + "/" + pushId, groupItem);
+        databaseReference.updateChildren(childUpdates);
     }
 
     private void showProgressDialog() {

@@ -34,7 +34,8 @@ public class RequestActivity extends FragmentActivity {
     private static final int LIMIT = 100;
     private static final String TAG = RequestActivity.class.getSimpleName();
     private GroupListAdapter listAdapter;
-    private List<GroupItem> groupItems;
+    private List<String> groupItemKeys;
+    private List<GroupItem> groupItemValues;
     private ListView listView;
     private ProgressBar progressBar;
     private RelativeLayout relativeLayout;
@@ -53,8 +54,8 @@ public class RequestActivity extends FragmentActivity {
         progressBar = findViewById(R.id.pb_group);
         swipeRefreshLayout = findViewById(R.id.srl_group_list);
         offSet = 1;
-        groupItems = new ArrayList<>();
-        listAdapter = new GroupListAdapter(getBaseContext(), groupItems);
+        groupItemValues = new ArrayList<>();
+        listAdapter = new GroupListAdapter(getBaseContext(), groupItemKeys, groupItemValues);
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
@@ -90,7 +91,7 @@ public class RequestActivity extends FragmentActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                GroupItem groupItem = groupItems.get(position);
+                GroupItem groupItem = groupItemValues.get(position);
 
                 Bundle args = new Bundle();
                 args.putString("grp_id", groupItem.getId());
@@ -98,6 +99,7 @@ public class RequestActivity extends FragmentActivity {
                 args.putString("img", groupItem.getImage());
                 args.putString("info", groupItem.getInfo());
                 args.putString("desc", groupItem.getDescription());
+                args.putBoolean("subs", groupItem.getJoinType().equals("0"));
                 args.putString("type", "1");
 
                 GroupInfoFragment newFragment = GroupInfoFragment.newInstance();
@@ -143,7 +145,7 @@ public class RequestActivity extends FragmentActivity {
                             String name = element.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
                             StringBuilder info = new StringBuilder();
                             String description = menuList.getAllElementsByClass("info").get(0).getContent().toString();
-                            String subscription = menuList.getAllElementsByClass("info").get(1).getContent().toString();
+                            String joinType = menuList.getAllElementsByClass("info").get(1).getContent().toString();
                             for (Element span : element.getFirstElement(HTMLElementName.A).getAllElementsByClass("info")) {
                                 String extractedText = span.getTextExtractor().toString();
                                 info.append(extractedText.contains("회원수") ?
@@ -156,8 +158,8 @@ public class RequestActivity extends FragmentActivity {
                             groupItem.setName(name);
                             groupItem.setInfo(info.toString());
                             groupItem.setDescription(description);
-                            groupItem.setSubscription(subscription);
-                            groupItems.add(groupItem);
+                            groupItem.setJoinType(joinType.equals("가입방식: 자동 승인") ? "0" : "1");
+                            groupItemValues.add(groupItem);
                         }
                     } catch (Exception e) {
                         Log.e(TAG, e.getMessage());
@@ -167,7 +169,7 @@ public class RequestActivity extends FragmentActivity {
                 hasRequestedMore = false;
                 footerLoading.setVisibility(View.GONE);
                 progressBar.setVisibility(View.GONE);
-                relativeLayout.setVisibility(groupItems.isEmpty() ? View.VISIBLE : View.GONE);
+                relativeLayout.setVisibility(groupItemValues.isEmpty() ? View.VISIBLE : View.GONE);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -217,7 +219,7 @@ public class RequestActivity extends FragmentActivity {
 
     public void refresh() {
         offSet = 1;
-        groupItems.clear();
+        groupItemValues.clear();
         fetchGroupList();
     }
 

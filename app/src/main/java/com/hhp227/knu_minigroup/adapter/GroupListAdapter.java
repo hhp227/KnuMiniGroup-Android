@@ -18,22 +18,24 @@ public class GroupListAdapter extends BaseAdapter {
     private static final int NAME_MAX_LINE = 2;
     private Context context;
     private LayoutInflater layoutInflater;
-    private List<GroupItem> groupItems;
+    private List<String> groupItemKeys;
+    private List<GroupItem> groupItemValues;
     private ViewHolder viewHolder;
 
-    public GroupListAdapter(Context context, List<GroupItem> groupItems) {
+    public GroupListAdapter(Context context, List<String> groupItemKeys, List<GroupItem> groupItemValues) {
         this.context = context;
-        this.groupItems = groupItems;
+        this.groupItemKeys = groupItemKeys;
+        this.groupItemValues = groupItemValues;
     }
 
     @Override
     public int getCount() {
-        return groupItems.size();
+        return groupItemValues.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return groupItems.get(position);
+        return groupItemValues.get(position);
     }
 
     @Override
@@ -53,15 +55,19 @@ public class GroupListAdapter extends BaseAdapter {
             viewHolder = (ViewHolder) convertView.getTag();
 
         ImageView groupImage = convertView.findViewById(R.id.iv_group_image);
-        GroupItem groupItem = groupItems.get(position);
+        GroupItem groupItem = groupItemValues.get(position);
 
         viewHolder.groupName.setText(groupItem.getName());
         viewHolder.groupName.setMaxLines(NAME_MAX_LINE);
-        viewHolder.groupInfo.setText(groupItem.getSubscription());
+        viewHolder.groupInfo.setText(groupItem.getJoinType().equals("0") ? "가입방식: 자동 승인" : "가입방식: 운영자 승인 확인");
 
         Glide.with(context).load(groupItem.getImage()).apply(RequestOptions.errorOf(R.drawable.bg_no_image)).into(groupImage);
 
         return convertView;
+    }
+
+    public String getKey(int position) {
+        return groupItemKeys.get(position);
     }
 
     private static class ViewHolder {

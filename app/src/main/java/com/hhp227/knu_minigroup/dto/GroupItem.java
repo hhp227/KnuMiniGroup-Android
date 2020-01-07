@@ -3,23 +3,23 @@ package com.hhp227.knu_minigroup.dto;
 public class GroupItem {
     private boolean isAd, isAdmin, isJoined;
     private long timestamp;
-    private String id, image, name, info, description, subscription, joinType;
+    private String id, author, image, name, info, description, jointype;
 
     public GroupItem() {
     }
 
-    public GroupItem(String id, boolean isAd, boolean isAdmin, boolean isJoined, long timestamp, String image, String name, String info, String description, String subscription, String joinType) {
+    public GroupItem(String id, boolean isAd, boolean isAdmin, boolean isJoined, long timestamp, String author, String image, String name, String info, String description, String jointype) {
         this.id = id;
         this.isAd = isAd;
         this.isAdmin = isAdmin;
         this.isJoined = isJoined;
         this.timestamp = timestamp;
+        this.author = author;
         this.image = image;
         this.name = name;
         this.info = info;
         this.description = description;
-        this.subscription = subscription;
-        this.joinType = joinType;
+        this.jointype = jointype;
     }
 
     public String getId() {
@@ -62,6 +62,14 @@ public class GroupItem {
         this.timestamp = timestamp;
     }
 
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
     public String getImage() {
         return image;
     }
@@ -94,19 +102,11 @@ public class GroupItem {
         this.description = description;
     }
 
-    public String getSubscription() {
-        return subscription;
-    }
-
-    public void setSubscription(String subscription) {
-        this.subscription = subscription;
-    }
-
     public String getJoinType() {
-        return joinType;
+        return jointype;
     }
 
     public void setJoinType(String joinType) {
-        this.joinType = joinType;
+        this.jointype = joinType;
     }
 }

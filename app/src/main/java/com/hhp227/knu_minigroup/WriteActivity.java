@@ -72,7 +72,7 @@ public class WriteActivity extends Activity {
         preferenceManager = app.AppController.getInstance().getPreferenceManager();
         cookie = preferenceManager.getCookie();
         progressDialog = new ProgressDialog(this);
-        grpId = getIntent().getStringExtra("grp_id");
+        grpId = getIntent().getStringExtra(getString(R.string.extra_group_id));
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -300,9 +300,9 @@ public class WriteActivity extends Activity {
                     if (!error) {
                         Toast.makeText(getApplicationContext(), "전송완료", Toast.LENGTH_LONG).show();
                         Intent intent = new Intent(WriteActivity.this, GroupActivity.class);
-                        intent.putExtra("admin", getIntent().getBooleanExtra("admin", false));
-                        intent.putExtra("grp_id", grpId);
-                        intent.putExtra("grp_nm", getIntent().getStringExtra("grp_nm"));
+                        intent.putExtra(getString(R.string.extra_admin), getIntent().getBooleanExtra(getString(R.string.extra_admin), false));
+                        intent.putExtra(getString(R.string.extra_group_id), grpId);
+                        intent.putExtra(getString(R.string.extra_group_name), getIntent().getStringExtra(getString(R.string.extra_group_name)));
                         // 이전 Activity 초기화
                         intent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         startActivity(intent);
@@ -355,7 +355,7 @@ public class WriteActivity extends Activity {
     private void insertArticleFirebase(String grpId) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
         Map<String, Object> map = new HashMap<>();
-        map.put("group_id", grpId);
+        map.put(getString(R.string.extra_group_id), grpId);
         map.put("uid", preferenceManager.getUser().getUid());
         map.put("name", preferenceManager.getUser().getName());
         map.put("title", inputTitle.getText().toString());
