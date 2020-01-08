@@ -59,7 +59,7 @@ public class ArticleActivity extends Activity {
 
     private boolean isBottom, isUpdate, isAuthorized;
     private int position;
-    private String groupId, articleId, groupName, key;
+    private String groupId, articleId, groupName, groupKey, articleKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,7 +81,8 @@ public class ArticleActivity extends Activity {
         groupId = intent.getStringExtra("grp_id");
         groupName = intent.getStringExtra("grp_nm");
         articleId = intent.getStringExtra("artl_num");
-        key = intent.getStringExtra("key");
+        groupKey = intent.getStringExtra("grp_key");
+        articleKey = intent.getStringExtra("artl_key");
         position = intent.getIntExtra("position", 0);
         isAuthorized = intent.getBooleanExtra("auth", false);
         isBottom = intent.getBooleanExtra("isbottom", false);
@@ -167,7 +168,6 @@ public class ArticleActivity extends Activity {
         // isBotoom이 참이면 화면 아래로 이동
         if (isBottom)
             setListViewBottom();
-        Toast.makeText(getApplicationContext(), key, Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -204,7 +204,6 @@ public class ArticleActivity extends Activity {
                 StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.DELETE_ARTICLE, new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        hideProgressDialog();
                         try {
                             JSONObject jsonObject = new JSONObject(response);
                             boolean error = jsonObject.getBoolean("isError");
@@ -214,7 +213,7 @@ public class ArticleActivity extends Activity {
                                 intent.putExtra("admin", getIntent().getBooleanExtra("admin", false));
                                 intent.putExtra("grp_id", groupId);
                                 intent.putExtra("grp_nm", groupName);
-                                intent.putExtra("key", key);
+                                intent.putExtra("key", groupKey);
                                 // 모든 이전 activity 초기화
                                 intent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                 startActivity(intent);
@@ -223,6 +222,9 @@ public class ArticleActivity extends Activity {
                             }
                         } catch (JSONException e) {
                             Log.e(TAG, "json 파싱 에러 : " + e.getMessage());
+                        } finally {
+                            hideProgressDialog();
+                            deleteArticleFromFirebase();
                         }
                     }
                 }, new Response.ErrorListener() {
@@ -313,12 +315,17 @@ public class ArticleActivity extends Activity {
                     @Override
                     public void onResponse(String response) {
                         source = new Source(response);
-                        if (!response.contains("처리를 실패했습니다")) {
-                            replyItemList.clear();
-                            List<Element> commentList = source.getAllElementsByClass("comment-list");
-                            fetchReplyData(commentList);
+                        try {
+                            if (!response.contains("처리를 실패했습니다")) {
+                                replyItemList.clear();
+                                List<Element> commentList = source.getAllElementsByClass("comment-list");
+                                fetchReplyData(commentList);
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, e.getMessage());
+                        } finally {
+                            hideProgressDialog();
                         }
-                        hideProgressDialog();
                     }
                 }, new Response.ErrorListener() {
                     @Override
@@ -538,10 +545,16 @@ public class ArticleActivity extends Activity {
         ReplyItem replyItem = new ReplyItem();
         replyItem.setId(replyId);
         replyItem.setUid(preferenceManager.getUser().getUid());
+        replyItem.setName(preferenceManager.getUser().getName());
         replyItem.setTimestamp(System.currentTimeMillis());
         replyItem.setReply(text);
 
-        databaseReference.child(key).push().setValue(replyItem);
+        databaseReference.child(articleKey).push().setValue(replyItem);
+    }
+
+    private void deleteArticleFromFirebase() {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
+        databaseReference.child(groupKey).child(articleKey).removeValue();
     }
 
     private void showProgressDialog() {

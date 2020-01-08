@@ -122,7 +122,8 @@ public class Tab1Fragment extends BaseFragment {
                 intent.putExtra("artl_num", articleItem.getId());
                 intent.putExtra("position", position + 1);
                 intent.putExtra("auth", articleItem.isAuth() || app.AppController.getInstance().getPreferenceManager().getUser().getUid().equals(articleItem.getUid()));
-                intent.putExtra("key", articleListAdapter.getKey(position));
+                intent.putExtra("grp_key", key);
+                intent.putExtra("artl_key", articleListAdapter.getKey(position));
                 startActivityForResult(intent, UPDATE_ARTICLE);
             }
         });
@@ -192,7 +193,7 @@ public class Tab1Fragment extends BaseFragment {
         if (requestCode == UPDATE_ARTICLE && resultCode == Activity.RESULT_OK) {
             int position = data.getIntExtra("position", 0) - 1;
             ArticleItem articleItem = articleItemValues.get(position);
-            articleItem.setName(data.getStringExtra("sbjt"));
+            articleItem.setTitle(data.getStringExtra("sbjt"));
             articleItem.setContent(data.getStringExtra("txt"));
             articleItem.setImage(data.getStringExtra("img"));
             articleItem.setReplyCount(data.getStringExtra("cmmt_cnt"));

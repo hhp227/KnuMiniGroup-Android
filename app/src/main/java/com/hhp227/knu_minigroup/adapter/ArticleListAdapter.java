@@ -129,6 +129,9 @@ public class ArticleListAdapter extends BaseAdapter {
                 intent.putExtra("position", position + 1);
                 intent.putExtra("auth", articleItem.isAuth());
                 intent.putExtra("isbottom", true);
+                /**
+                 * Tab1Fragment참고해서 groupKey, ArticleKey 넣어야 함
+                  */
                 activity.startActivityForResult(intent, UPDATE_ARTICLE);
             }
         });

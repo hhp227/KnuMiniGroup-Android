@@ -151,6 +151,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                                     e.printStackTrace();
                                 } finally {
                                     hideProgressDialog();
+                                    deleteGroupFromFirebase();
                                 }
                             }
                         }, new Response.ErrorListener() {
@@ -193,7 +194,6 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                                 return null;
                             }
                         });
-                        deleteDataFromFirebase();
                     }
                 });
                 builder.setNegativeButton("아니오", new DialogInterface.OnClickListener() {
@@ -234,7 +234,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
         return false;
     }
 
-    private void deleteDataFromFirebase() {
+    private void deleteGroupFromFirebase() {
         DatabaseReference userGroupListReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
         DatabaseReference groupsReference = FirebaseDatabase.getInstance().getReference("Groups");
         if (isAdmin)
