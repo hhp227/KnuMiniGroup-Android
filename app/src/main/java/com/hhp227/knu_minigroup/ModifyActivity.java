@@ -49,8 +49,8 @@ public class ModifyActivity extends Activity {
     private View headerView;
     private WriteListAdapter listAdapter;
 
-    private int contextMenuRequest, artlNum;
-    private String grpId, currentPhotoPath, cookie, title, content;
+    private int contextMenuRequest;
+    private String grpId, artlNum, currentPhotoPath, cookie, title, content;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +68,7 @@ public class ModifyActivity extends Activity {
 
         Intent intent = getIntent();
         grpId = intent.getStringExtra("grp_id");
-        artlNum = intent.getIntExtra("artl_num", 0);
+        artlNum = intent.getStringExtra("artl_num");
         title = intent.getStringExtra("sbjt");
         content = intent.getStringExtra("txt");
         imageList = intent.getStringArrayListExtra("img");
@@ -327,7 +327,7 @@ public class ModifyActivity extends Activity {
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
                 params.put("CLUB_GRP_ID", grpId);
-                params.put("ARTL_NUM", String.valueOf(artlNum));
+                params.put("ARTL_NUM", artlNum);
                 params.put("SBJT", title);
                 params.put("TXT", content);
                 return params;

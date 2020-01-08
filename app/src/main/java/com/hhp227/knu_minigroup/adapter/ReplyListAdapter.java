@@ -56,13 +56,12 @@ public class ReplyListAdapter extends BaseAdapter {
         ReplyItem replyItem = replyItems.get(position);
 
         Glide.with(activity)
-                .load(replyItem.getProfileImg())
+                .load(replyItem.getUid())
                 .apply(new RequestOptions().circleCrop().error(R.drawable.profile_img_circle))
                 .into(profileImage);
         name.setText(replyItem.getName());
         reply.setText(replyItem.getReply());
-        timeStamp.setText(replyItem.getTimeStamp());
-
+        timeStamp.setText(replyItem.getDate());
 
         return convertView;
     }

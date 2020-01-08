@@ -1,45 +1,37 @@
 package com.hhp227.knu_minigroup.dto;
 
 public class ReplyItem {
-    private int id, userId;
+    private long timestamp;
     private boolean auth;
-    private String name, profileImg, timeStamp, reply;
+    private String id, uid, name, date, reply;
 
     public ReplyItem() {
     }
 
-    public ReplyItem(int id, int userId, boolean auth, String name, String profileImg, String timeStamp, String reply) {
+    public ReplyItem(String id, String uid, String name, String date, String reply, boolean auth, long timestamp) {
         this.id = id;
-        this.userId = userId;
-        this.auth = auth;
+        this.uid = uid;
         this.name = name;
-        this.profileImg = profileImg;
-        this.timeStamp = timeStamp;
+        this.date = date;
         this.reply = reply;
+        this.auth = auth;
+        this.timestamp = timestamp;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public int getUserId() {
-        return userId;
+    public String getUid() {
+        return uid;
     }
 
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
-
-    public boolean isAuth() {
-        return auth;
-    }
-
-    public void setAuth(boolean auth) {
-        this.auth = auth;
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 
     public String getName() {
@@ -50,20 +42,12 @@ public class ReplyItem {
         this.name = name;
     }
 
-    public String getProfileImg() {
-        return profileImg;
+    public String getDate() {
+        return date;
     }
 
-    public void setProfileImg(String profileImg) {
-        this.profileImg = profileImg;
-    }
-
-    public String getTimeStamp() {
-        return timeStamp;
-    }
-
-    public void setTimeStamp(String timeStamp) {
-        this.timeStamp = timeStamp;
+    public void setDate(String date) {
+        this.date = date;
     }
 
     public String getReply() {
@@ -72,5 +56,21 @@ public class ReplyItem {
 
     public void setReply(String reply) {
         this.reply = reply;
+    }
+
+    public boolean isAuth() {
+        return auth;
+    }
+
+    public void setAuth(boolean auth) {
+        this.auth = auth;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 }

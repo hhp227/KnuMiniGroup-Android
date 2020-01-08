@@ -31,12 +31,14 @@ import com.hhp227.knu_minigroup.helper.BitmapUtil;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
+import net.htmlparser.jericho.Source;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -107,7 +109,6 @@ public class WriteActivity extends Activity {
         });
         progressDialog.setCancelable(false);
         registerForContextMenu(listView);
-        Toast.makeText(getApplicationContext(), key, Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -136,10 +137,8 @@ public class WriteActivity extends Activity {
                     if (contents.size() > 0) {
                         int position = 0;
                         uploadImage(position, contents.get(position).getBitmap());
-                    } else {
+                    } else
                         actionSend(grpId, title, content);
-                        insertArticleToFirebase();
-                    }
                 } else
                     Toast.makeText(getApplicationContext(), (title.isEmpty() ? "제목" : "내용") + "을 입력하세요.", Toast.LENGTH_LONG).show();
                 return true;
@@ -253,7 +252,6 @@ public class WriteActivity extends Activity {
                         String title = inputTitle.getEditableText().toString();
                         String content = (!TextUtils.isEmpty(inputContent.getText()) ? Html.toHtml(inputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) + "<p><br data-mce-bogus=\"1\"></p>" : "") + makeHtmlImages.toString();
                         actionSend(grpId, title, content);
-                        insertArticleToFirebase();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -315,6 +313,8 @@ public class WriteActivity extends Activity {
                     }
                 } catch (JSONException e) {
                     Log.e(TAG, "에러 : " + e.getMessage());
+                } finally {
+                    getArticleId();
                 }
             }
         }, new Response.ErrorListener() {
@@ -344,6 +344,30 @@ public class WriteActivity extends Activity {
         app.AppController.getInstance().addToRequestQueue(stringRequest, tagStringReq);
     }
 
+    private void getArticleId() {
+        String params = "?CLUB_GRP_ID=" + grpId + "&displayL=1";
+        app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.GROUP_ARTICLE_LIST + params, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Source source = new Source(response);
+                String artlNum = source.getFirstElementByClass("comment_wrap").getAttributeValue("num");
+                insertArticleToFirebase(artlNum);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Cookie", cookie);
+                return headers;
+            }
+        });
+    }
+
     private File createImageFile() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
@@ -358,10 +382,10 @@ public class WriteActivity extends Activity {
         return image;
     }
 
-    private void insertArticleToFirebase() {
+    private void insertArticleToFirebase(String artlNum) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
         Map<String, Object> map = new HashMap<>();
-        map.put(getString(R.string.extra_group_id), grpId);
+        map.put("id", artlNum);
         map.put("uid", preferenceManager.getUser().getUid());
         map.put("name", preferenceManager.getUser().getName());
         map.put("title", inputTitle.getText().toString());

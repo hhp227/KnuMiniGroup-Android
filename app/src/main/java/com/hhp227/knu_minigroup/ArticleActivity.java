@@ -18,6 +18,8 @@ import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.hhp227.knu_minigroup.adapter.ReplyListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ReplyItem;
@@ -56,8 +58,8 @@ public class ArticleActivity extends Activity {
     private View articleDetail;
 
     private boolean isBottom, isUpdate, isAuthorized;
-    private int articleId, position;
-    private String groupId, groupName;
+    private int position;
+    private String groupId, articleId, groupName, key;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,7 +80,8 @@ public class ArticleActivity extends Activity {
         preferenceManager = app.AppController.getInstance().getPreferenceManager();
         groupId = intent.getStringExtra("grp_id");
         groupName = intent.getStringExtra("grp_nm");
-        articleId = intent.getIntExtra("artl_num", 0);
+        articleId = intent.getStringExtra("artl_num");
+        key = intent.getStringExtra("key");
         position = intent.getIntExtra("position", 0);
         isAuthorized = intent.getBooleanExtra("auth", false);
         isBottom = intent.getBooleanExtra("isbottom", false);
@@ -164,6 +167,7 @@ public class ArticleActivity extends Activity {
         // isBotoom이 참이면 화면 아래로 이동
         if (isBottom)
             setListViewBottom();
+        Toast.makeText(getApplicationContext(), key, Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -210,6 +214,7 @@ public class ArticleActivity extends Activity {
                                 intent.putExtra("admin", getIntent().getBooleanExtra("admin", false));
                                 intent.putExtra("grp_id", groupId);
                                 intent.putExtra("grp_nm", groupName);
+                                intent.putExtra("key", key);
                                 // 모든 이전 activity 초기화
                                 intent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                 startActivity(intent);
@@ -239,7 +244,7 @@ public class ArticleActivity extends Activity {
                     protected Map<String, String> getParams() {
                         Map<String, String> params = new HashMap<>();
                         params.put("CLUB_GRP_ID", groupId);
-                        params.put("ARTL_NUM", String.valueOf(articleId));
+                        params.put("ARTL_NUM", articleId);
                         return params;
                     }
                 };
@@ -283,7 +288,7 @@ public class ArticleActivity extends Activity {
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         ReplyItem replyItem = replyItemList.isEmpty() || info.position == 0 ? null : replyItemList.get(info.position - 1); // 헤더가 있기때문에 포지션에서 -1을 해준다.
-        final int replyId = replyItem == null ? 0 : replyItem.getId();
+        final String replyId = replyItem == null ? "0" : replyItem.getId();
         switch (item.getItemId()) {
             case 1 :
                 android.content.ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
@@ -333,8 +338,8 @@ public class ArticleActivity extends Activity {
                     protected Map<String, String> getParams() {
                         Map<String, String> params = new HashMap<>();
                         params.put("CLUB_GRP_ID", groupId);
-                        params.put("CMMT_NUM", String.valueOf(replyId));
-                        params.put("ARTL_NUM", String.valueOf(articleId));
+                        params.put("CMMT_NUM", replyId);
+                        params.put("ARTL_NUM", articleId);
                         return params;
                     }
                 };
@@ -431,7 +436,7 @@ public class ArticleActivity extends Activity {
         for (Element comment : commentList) {
             Element commentName = comment.getFirstElementByClass("comment-name");
             Element commentAddr = comment.getFirstElementByClass("comment-addr");
-            int replyId = Integer.parseInt(commentAddr.getAttributeValue("id").replace("cmt_txt_", ""));
+            String replyId = commentAddr.getAttributeValue("id").replace("cmt_txt_", "");
             String name = commentName.getTextExtractor().toString().trim();
             String timeStamp = commentName.getFirstElement(HTMLElementName.SPAN).getContent().toString().trim();
             String replyContent = commentAddr.getContent().toString().trim();
@@ -441,9 +446,8 @@ public class ArticleActivity extends Activity {
             replyItem.setId(replyId);
             replyItem.setName(name.substring(0, name.lastIndexOf("(")));
             replyItem.setReply(Html.fromHtml(replyContent).toString());
-            replyItem.setTimeStamp(timeStamp.replaceAll("[(]|[)]", ""));
+            replyItem.setDate(timeStamp.replaceAll("[(]|[)]", ""));
             replyItem.setAuth(authorization);
-            replyItem.setProfileImg(authorization ? EndPoint.USER_IMAGE.replace("{UID}", preferenceManager.getUser().getUid()) : null);
             replyItemList.add(replyItem);
         }
         replyListAdapter.notifyDataSetChanged();
@@ -460,10 +464,16 @@ public class ArticleActivity extends Activity {
                 source = new Source(response);
                 replyItemList.clear();
                 List<Element> commentList = source.getAllElementsByClass("comment-list");
-                fetchReplyData(commentList);
-                hideProgressDialog();
-                // 전송할때마다 리스트뷰 아래로
-                setListViewBottom();
+                try {
+                    fetchReplyData(commentList);
+                    hideProgressDialog();
+                    // 전송할때마다 리스트뷰 아래로
+                    setListViewBottom();
+                } catch (Exception e) {
+                    Log.e(TAG, e.getMessage());
+                } finally {
+                    insertReplyToFirebase(commentList.get(commentList.size() - 1).getFirstElementByClass("comment-addr").getAttributeValue("id").replace("cmt_txt_", ""), text);
+                }
             }
         }, new Response.ErrorListener() {
             @Override
@@ -484,7 +494,7 @@ public class ArticleActivity extends Activity {
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
                 params.put("CLUB_GRP_ID", groupId);
-                params.put("ARTL_NUM", String.valueOf(articleId));
+                params.put("ARTL_NUM", articleId);
                 params.put("CMT", text);
                 return params;
             }
@@ -521,6 +531,17 @@ public class ArticleActivity extends Activity {
         for (Element childElement : isFlag ? listCont.getChildElements() : listCont.getAllElements(HTMLElementName.P))
             sb.append(childElement.getTextExtractor().toString().concat("\n"));
         return sb.toString().trim();
+    }
+
+    private void insertReplyToFirebase(String replyId, String text) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Replys");
+        ReplyItem replyItem = new ReplyItem();
+        replyItem.setId(replyId);
+        replyItem.setUid(preferenceManager.getUser().getUid());
+        replyItem.setTimestamp(System.currentTimeMillis());
+        replyItem.setReply(text);
+
+        databaseReference.child(key).push().setValue(replyItem);
     }
 
     private void showProgressDialog() {

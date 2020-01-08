@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,7 @@ import android.widget.*;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
+import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.ArticleActivity;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.WriteActivity;
@@ -39,7 +41,8 @@ public class Tab1Fragment extends BaseFragment {
     public static String groupId, groupName, key;
     private ArticleListAdapter articleListAdapter;
     private FloatingActionButton floatingActionButton;
-    private List<ArticleItem> articleItems;
+    private List<String> articleItemKeys;
+    private List<ArticleItem> articleItemValues;
     private ListView listView;
     private ProgressDialog progressDialog;
     private RelativeLayout relativeLayout;
@@ -84,8 +87,9 @@ public class Tab1Fragment extends BaseFragment {
         listView = rootView.findViewById(R.id.lv_article);
         relativeLayout = rootView.findViewById(R.id.rl_write);
         swipeRefreshLayout = rootView.findViewById(R.id.srl_article_list);
-        articleItems = new ArrayList<>();
-        articleListAdapter = new ArticleListAdapter(getActivity(), articleItems);
+        articleItemKeys = new ArrayList<>();
+        articleItemValues = new ArrayList<>();
+        articleListAdapter = new ArticleListAdapter(getActivity(), articleItemKeys, articleItemValues);
         offSet = 1; // offSet 초기화
         listView.addFooterView(footerLoading);
 
@@ -110,14 +114,15 @@ public class Tab1Fragment extends BaseFragment {
                     return;
                 mLastClickTime = SystemClock.elapsedRealtime();
 
-                ArticleItem articleItem = articleItems.get(position);
+                ArticleItem articleItem = articleItemValues.get(position);
                 Intent intent = new Intent(getContext(), ArticleActivity.class);
                 intent.putExtra("admin", isAdmin);
                 intent.putExtra("grp_id", groupId);
                 intent.putExtra("grp_nm", groupName);
                 intent.putExtra("artl_num", articleItem.getId());
                 intent.putExtra("position", position + 1);
-                intent.putExtra("auth", articleItem.isAuth());
+                intent.putExtra("auth", articleItem.isAuth() || app.AppController.getInstance().getPreferenceManager().getUser().getUid().equals(articleItem.getUid()));
+                intent.putExtra("key", articleListAdapter.getKey(position));
                 startActivityForResult(intent, UPDATE_ARTICLE);
             }
         });
@@ -165,7 +170,8 @@ public class Tab1Fragment extends BaseFragment {
                     @Override
                     public void run() {
                         offSet = 1;
-                        articleItems.clear();
+                        articleItemKeys.clear();
+                        articleItemValues.clear();
                         fetchArticleList();
                         swipeRefreshLayout.setRefreshing(false);
                     }
@@ -178,6 +184,26 @@ public class Tab1Fragment extends BaseFragment {
         fetchArticleList();
 
         return rootView;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == UPDATE_ARTICLE && resultCode == Activity.RESULT_OK) {
+            int position = data.getIntExtra("position", 0) - 1;
+            ArticleItem articleItem = articleItemValues.get(position);
+            articleItem.setName(data.getStringExtra("sbjt"));
+            articleItem.setContent(data.getStringExtra("txt"));
+            articleItem.setImage(data.getStringExtra("img"));
+            articleItem.setReplyCount(data.getStringExtra("cmmt_cnt"));
+            articleItemValues.set(position, articleItem);
+            articleListAdapter.notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    public boolean canScrollVertically(int direction) {
+        return listView != null && listView.canScrollVertically(direction);
     }
 
     private void fetchArticleList() {
@@ -196,10 +222,9 @@ public class Tab1Fragment extends BaseFragment {
                         Element commentWrap = element.getFirstElementByClass("comment_wrap");
 
                         boolean auth = viewArt.getAllElementsByClass("btn-small-gray").size() > 0;
-                        int id = Integer.parseInt(commentWrap.getAttributeValue("num"));
-                        String profileImage = auth ? EndPoint.USER_IMAGE.replace("{UID}", app.AppController.getInstance().getPreferenceManager().getUser().getUid()) : null;
+                        String id = commentWrap.getAttributeValue("num");
                         String title = viewArt.getFirstElementByClass("list_title").getTextExtractor().toString();
-                        String timeStamp = viewArt.getFirstElement(HTMLElementName.TD).getTextExtractor().toString();
+                        String date = viewArt.getFirstElement(HTMLElementName.TD).getTextExtractor().toString();
                         String imageUrl;
                         try {
                             imageUrl = viewArt.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
@@ -216,15 +241,15 @@ public class Tab1Fragment extends BaseFragment {
 
                         ArticleItem articleItem = new ArticleItem();
                         articleItem.setId(id);
-                        articleItem.setProfileImg(profileImage);
-                        articleItem.setName(title);
-                        articleItem.setTimeStamp(timeStamp);
+                        articleItem.setTitle(title);
+                        articleItem.setDate(date);
                         articleItem.setContent(content.toString().trim());
                         articleItem.setImage(imageUrl);
                         articleItem.setReplyCount(replyCnt);
                         articleItem.setAuth(auth);
 
-                        articleItems.add(articleItem);
+                        articleItemKeys.add(id);
+                        articleItemValues.add(articleItem);
                     }
                     articleListAdapter.notifyDataSetChanged();
                     // 중복 로딩 체크하는 Lock을 했던 HasRequestedMore변수를 풀어준다.
@@ -233,8 +258,9 @@ public class Tab1Fragment extends BaseFragment {
                     e.printStackTrace();
                 } finally {
                     hideProgressDialog();
-                    relativeLayout.setVisibility(!articleItems.isEmpty() ? View.GONE : View.VISIBLE);
-                    floatingActionButton.setVisibility(!articleItems.isEmpty() ? View.VISIBLE : View.GONE);
+                    relativeLayout.setVisibility(!articleItemValues.isEmpty() ? View.GONE : View.VISIBLE);
+                    floatingActionButton.setVisibility(!articleItemValues.isEmpty() ? View.VISIBLE : View.GONE);
+                    initFirebaseData();
                 }
             }
         }, new Response.ErrorListener() {
@@ -254,24 +280,32 @@ public class Tab1Fragment extends BaseFragment {
         app.AppController.getInstance().addToRequestQueue(stringRequest);
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == UPDATE_ARTICLE && resultCode == Activity.RESULT_OK) {
-            int position = data.getIntExtra("position", 0) - 1;
-            ArticleItem articleItem = articleItems.get(position);
-            articleItem.setName(data.getStringExtra("sbjt"));
-            articleItem.setContent(data.getStringExtra("txt"));
-            articleItem.setImage(data.getStringExtra("img"));
-            articleItem.setReplyCount(data.getStringExtra("cmmt_cnt"));
-            articleItems.set(position, articleItem);
-            articleListAdapter.notifyDataSetChanged();
-        }
+    private void initFirebaseData() {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
+        fetchArticleListFromFirebase(databaseReference.child(key));
     }
 
-    @Override
-    public boolean canScrollVertically(int direction) {
-        return listView != null && listView.canScrollVertically(direction);
+    private void fetchArticleListFromFirebase(Query query) {
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String key = snapshot.getKey();
+                    ArticleItem value = snapshot.getValue(ArticleItem.class);
+                    int index = articleItemKeys.indexOf(value.getId());
+                    if (index > -1) {
+                        articleItemValues.set(index, value);
+                        articleItemKeys.set(index, key);
+                    }
+                }
+                articleListAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("파이어베이스", databaseError.getMessage());
+            }
+        });
     }
 
     private void hideProgressDialog() {

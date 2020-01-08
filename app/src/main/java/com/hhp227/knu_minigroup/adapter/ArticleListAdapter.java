@@ -4,18 +4,23 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
+import androidx.annotation.NonNull;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.ArticleActivity;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.fragment.Tab1Fragment;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import static com.hhp227.knu_minigroup.fragment.Tab1Fragment.UPDATE_ARTICLE;
@@ -27,22 +32,24 @@ public class ArticleListAdapter extends BaseAdapter {
     private ImageView profileImage, articleImage;
     private LayoutInflater inflater;
     private LinearLayout replyButton, likeButton;
-    private List<ArticleItem> articleItems;
-    private TextView name, timestamp, content, contentMore, replyCount, likeCount;
+    private List<String> articleItemKeys;
+    private List<ArticleItem> articleItemValues;
+    private TextView title, timestamp, content, contentMore, replyCount, likeCount;
 
-    public ArticleListAdapter(Activity activity, List<ArticleItem> articleItems) {
+    public ArticleListAdapter(Activity activity, List<String> articleItemKeys, List<ArticleItem> articleItemValues) {
         this.activity = activity;
-        this.articleItems = articleItems;
+        this.articleItemKeys = articleItemKeys;
+        this.articleItemValues = articleItemValues;
     }
 
     @Override
     public int getCount() {
-        return articleItems.size();
+        return articleItemValues.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return articleItems.get(position);
+        return articleItemValues.get(position);
     }
 
     @Override
@@ -54,12 +61,11 @@ public class ArticleListAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         if (inflater == null)
             inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
         if (convertView == null)
             convertView = inflater.inflate(R.layout.article_item, null);
 
         profileImage = convertView.findViewById(R.id.iv_profile_image);
-        name = convertView.findViewById(R.id.tv_name);
+        title = convertView.findViewById(R.id.tv_title);
         timestamp = convertView.findViewById(R.id.tv_timestamp);
         content = convertView.findViewById(R.id.tv_content);
         contentMore = convertView.findViewById(R.id.tv_content_more);
@@ -67,14 +73,14 @@ public class ArticleListAdapter extends BaseAdapter {
         replyCount = convertView.findViewById(R.id.tv_replycount);
         replyButton = convertView.findViewById(R.id.ll_reply);
 
-        ArticleItem articleItem = articleItems.get(position);
+        ArticleItem articleItem = articleItemValues.get(position);
 
         Glide.with(activity)
-                .load(articleItem.getProfileImg())
+                .load(articleItem.getUid() != null ? EndPoint.USER_IMAGE.replace("{UID}", articleItem.getUid()) : null)
                 .apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop())
                 .into(profileImage);
-        name.setText(articleItem.getName());
-        timestamp.setText(articleItem.getTimeStamp());
+        title.setText(articleItem.getName() != null ? articleItem.getTitle() + " - " + articleItem.getName() : articleItem.getTitle());
+        timestamp.setText(articleItem.getDate() != null ? articleItem.getDate() : new SimpleDateFormat("yyyy.MM.dd a h:mm:ss").format(articleItem.getTimestamp()));
         // 피드의 메시지가 비었는지 확인
         if (!TextUtils.isEmpty(articleItem.getContent())) {
             content.setText(articleItem.getContent());
@@ -94,9 +100,19 @@ public class ArticleListAdapter extends BaseAdapter {
                     .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
                     .transition(DrawableTransitionOptions.withCrossFade(150))
                     .into(articleImage);
+        } else if (articleItem.getImages() != null) {
+            Glide.with(activity)
+                    .load(articleItem.getImages().get(0))
+                    .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
+                    .transition(DrawableTransitionOptions.withCrossFade(150))
+                    .into(articleImage);
         } else
             articleImage.setVisibility(View.GONE);
-        replyCount.setText(articleItem.getReplyCount());
+        // 댓글 카운트
+        if (articleItem.getReplyCount() != null)
+            replyCount.setText(articleItem.getReplyCount());
+        else
+            getReplayCountFromFirebase(FirebaseDatabase.getInstance().getReference("Replys").orderByChild(articleItemKeys.get(position)));
 
         // 댓글 버튼을 누르면 댓글쓰는곳으로 이동
         replyButton.setTag(position);
@@ -104,7 +120,7 @@ public class ArticleListAdapter extends BaseAdapter {
             @Override
             public void onClick(View v) {
                 int position = (int) v.getTag();
-                ArticleItem articleItem = articleItems.get(position);
+                ArticleItem articleItem = articleItemValues.get(position);
 
                 Intent intent = new Intent(activity, ArticleActivity.class);
                 intent.putExtra("grp_id", Tab1Fragment.groupId);
@@ -118,5 +134,24 @@ public class ArticleListAdapter extends BaseAdapter {
         });
 
         return convertView;
+    }
+
+    public void getReplayCountFromFirebase(Query query) {
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                long count = dataSnapshot.getChildrenCount();
+                replyCount.setText("댓글 " + count + "개");
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("파이어베이스", databaseError.getMessage());
+            }
+        });
+    }
+
+    public String getKey(int position) {
+        return articleItemKeys.get(position);
     }
 }

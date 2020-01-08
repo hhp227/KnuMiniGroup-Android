@@ -28,8 +28,7 @@ public class ReplyModifyActivity extends Activity {
     private ListView listView;
     private ProgressDialog progressDialog;
     private View headerView;
-    private int articleId, replyId;
-    private String groupId, reply;
+    private String groupId, articleId, replyId, reply;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,8 +41,8 @@ public class ReplyModifyActivity extends Activity {
 
         Intent intent = getIntent();
         groupId = intent.getStringExtra("grp_id");
-        articleId = intent.getIntExtra("artl_num", 0);
-        replyId = intent.getIntExtra("cmmt_num", 0);
+        articleId = intent.getStringExtra("artl_num");
+        replyId = intent.getStringExtra("cmmt_num");
         reply = intent.getStringExtra("cmt");
         reply = reply.contains("※") ? reply.substring(0, reply.lastIndexOf("※")).trim() : reply;
         ActionBar actionBar = getActionBar();
@@ -114,8 +113,8 @@ public class ReplyModifyActivity extends Activity {
                         protected Map<String, String> getParams() {
                             Map<String, String> params = new HashMap<>();
                             params.put("CLUB_GRP_ID", groupId);
-                            params.put("ARTL_NUM", String.valueOf(articleId));
-                            params.put("CMMT_NUM", String.valueOf(replyId));
+                            params.put("ARTL_NUM", articleId);
+                            params.put("CMMT_NUM", replyId);
                             params.put("CMT", text);
                             return params;
                         }
