@@ -224,7 +224,9 @@ public class Tab1Fragment extends BaseFragment {
 
                         boolean auth = viewArt.getAllElementsByClass("btn-small-gray").size() > 0;
                         String id = commentWrap.getAttributeValue("num");
-                        String title = viewArt.getFirstElementByClass("list_title").getTextExtractor().toString();
+                        String listTitle = viewArt.getFirstElementByClass("list_title").getTextExtractor().toString();
+                        String title = listTitle.substring(0, listTitle.lastIndexOf("-"));
+                        String name = listTitle.substring(listTitle.lastIndexOf("-") + 1);
                         String date = viewArt.getFirstElement(HTMLElementName.TD).getTextExtractor().toString();
                         String imageUrl;
                         try {
@@ -242,7 +244,8 @@ public class Tab1Fragment extends BaseFragment {
 
                         ArticleItem articleItem = new ArticleItem();
                         articleItem.setId(id);
-                        articleItem.setTitle(title);
+                        articleItem.setTitle(title.trim());
+                        articleItem.setName(name.trim());
                         articleItem.setDate(date);
                         articleItem.setContent(content.toString().trim());
                         articleItem.setImage(imageUrl);

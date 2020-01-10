@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
+
+import androidx.annotation.NonNull;
 import androidx.exifinterface.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -12,6 +14,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.Html;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,8 +23,15 @@ import android.widget.*;
 import androidx.core.content.FileProvider;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.hhp227.knu_minigroup.adapter.WriteListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.dto.WriteItem;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
@@ -50,7 +60,7 @@ public class ModifyActivity extends Activity {
     private WriteListAdapter listAdapter;
 
     private int contextMenuRequest;
-    private String grpId, artlNum, currentPhotoPath, cookie, title, content;
+    private String grpId, artlNum, currentPhotoPath, cookie, title, content, grpKey, artlKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +82,8 @@ public class ModifyActivity extends Activity {
         title = intent.getStringExtra("sbjt");
         content = intent.getStringExtra("txt");
         imageList = intent.getStringArrayListExtra("img");
+        grpKey = intent.getStringExtra("grp_key");
+        artlKey = intent.getStringExtra("artl_key");
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
@@ -110,6 +122,7 @@ public class ModifyActivity extends Activity {
                 contents.add(writeItem);
             }
             listAdapter.notifyDataSetChanged();
+            imageList.clear();
         }
         registerForContextMenu(listView);
     }
@@ -234,15 +247,17 @@ public class ModifyActivity extends Activity {
     }
 
     private void uploadImage(final int position, final WriteItem writeItem) {
-        if (writeItem.getImage() != null)
+        if (writeItem.getImage() != null) {
             imageUploadProcess(position, writeItem.getImage(), false);
-        else {
+            imageList.add(writeItem.getImage());
+        } else {
             MultipartRequest multipartRequest = new MultipartRequest(Request.Method.POST, EndPoint.IMAGE_UPLOAD, new Response.Listener<NetworkResponse>() {
                 @Override
                 public void onResponse(NetworkResponse response) {
                     String imageSrc = new String(response.data);
                     imageSrc = EndPoint.BASE_URL + imageSrc.substring(imageSrc.lastIndexOf("/ilosfiles2/"), imageSrc.lastIndexOf("\""));
                     imageUploadProcess(position, imageSrc, true);
+                    imageList.add(imageSrc);
                 }
             }, new Response.ErrorListener() {
                 @Override
@@ -301,12 +316,18 @@ public class ModifyActivity extends Activity {
         StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.MODIFY_ARTICLE, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                hideProgressDialog();
+                try {
+                    hideProgressDialog();
 
-                Toast.makeText(getApplicationContext(), "수정완료", Toast.LENGTH_LONG).show();
-                Intent intent = new Intent(ModifyActivity.this, ArticleActivity.class);
-                setResult(RESULT_OK, intent);
-                finish();
+                    Toast.makeText(getApplicationContext(), "수정완료", Toast.LENGTH_LONG).show();
+                    Intent intent = new Intent(ModifyActivity.this, ArticleActivity.class);
+                    setResult(RESULT_OK, intent);
+                    finish();
+                } catch (Exception e) {
+                    Log.e(TAG, e.getMessage());
+                } finally {
+                    initFirebaseData();
+                }
             }
         }, new Response.ErrorListener() {
             @Override
@@ -348,6 +369,29 @@ public class ModifyActivity extends Activity {
 
         currentPhotoPath = image.getAbsolutePath();
         return image;
+    }
+
+    private void initFirebaseData() {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
+        fetchArticleData(databaseReference.child(grpKey).child(artlKey));
+    }
+
+    private void fetchArticleData(final Query query) {
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ArticleItem articleItem = dataSnapshot.getValue(ArticleItem.class);
+                articleItem.setTitle(inputTitle.getText().toString());
+                articleItem.setContent(TextUtils.isEmpty(inputContent.getText()) ? null : inputContent.getText().toString());
+                articleItem.setImages(imageList.isEmpty() ? null : imageList);
+                query.getRef().setValue(articleItem);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("파이어베이스", databaseError.getMessage());
+            }
+        });
     }
 
     private void showProgressDialog() {

@@ -108,11 +108,7 @@ public class ArticleListAdapter extends BaseAdapter {
                     .into(articleImage);
         } else
             articleImage.setVisibility(View.GONE);
-        // 댓글 카운트
-        if (articleItem.getReplyCount() != null)
-            replyCount.setText(articleItem.getReplyCount());
-        else
-            getReplayCountFromFirebase(FirebaseDatabase.getInstance().getReference("Replys").orderByChild(articleItemKeys.get(position)));
+        replyCount.setText(articleItem.getReplyCount());
 
         // 댓글 버튼을 누르면 댓글쓰는곳으로 이동
         replyButton.setTag(position);
@@ -137,21 +133,6 @@ public class ArticleListAdapter extends BaseAdapter {
         });
 
         return convertView;
-    }
-
-    public void getReplayCountFromFirebase(Query query) {
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                long count = dataSnapshot.getChildrenCount();
-                replyCount.setText("댓글 " + count + "개");
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e("파이어베이스", databaseError.getMessage());
-            }
-        });
     }
 
     public String getKey(int position) {

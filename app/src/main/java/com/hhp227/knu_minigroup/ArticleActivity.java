@@ -193,6 +193,8 @@ public class ArticleActivity extends Activity {
                 intent.putExtra("sbjt", articleTitle.getText().toString().substring(0, articleTitle.getText().toString().lastIndexOf("-")).trim());
                 intent.putExtra("txt", articleContent.getText().toString());
                 intent.putStringArrayListExtra("img", (ArrayList<String>) imageList);
+                intent.putExtra("grp_key", groupKey);
+                intent.putExtra("artl_key", articleKey);
                 startActivityForResult(intent, UPDATE_ARTICLE);
                 return true;
             case 2 :
@@ -368,7 +370,7 @@ public class ArticleActivity extends Activity {
                     Element commentWrap = element.getFirstElementByClass("comment_wrap");
                     List<Element> commentList = element.getAllElementsByClass("comment-list");
 
-                    String profileImg = isAuthorized ? EndPoint.USER_IMAGE.replace("{UID}", preferenceManager.getUser().getUid()) : null;
+                    String profileImg = null;
                     String title = viewArt.getFirstElementByClass("list_title").getTextExtractor().toString();
                     String timeStamp = viewArt.getFirstElement(HTMLElementName.TD).getTextExtractor().toString();
                     String content = contentExtractor(viewArt.getFirstElementByClass("list_cont"), true);
