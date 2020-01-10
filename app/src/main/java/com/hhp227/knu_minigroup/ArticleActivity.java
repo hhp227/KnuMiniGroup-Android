@@ -42,7 +42,6 @@ import static com.hhp227.knu_minigroup.fragment.Tab1Fragment.UPDATE_ARTICLE;
 public class ArticleActivity extends Activity {
     private static final int UPDATE_REPLY = 10;
     private static final String TAG = ArticleActivity.class.getSimpleName();
-    private ActionBar actionBar;
     private EditText inputReply;
     private ImageView articleProfile;
     private LinearLayout articleImages;
@@ -90,16 +89,18 @@ public class ArticleActivity extends Activity {
         replyItemList = new ArrayList<>();
         replyListAdapter = new ReplyListAdapter(this, replyItemList);
         progressDialog = new ProgressDialog(this);
-        actionBar = getActionBar();
-        actionBar.setTitle(groupName);
-        actionBar.setDisplayShowHomeEnabled(false);
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-            @Override
-            public boolean isLayoutRtl() {
-                return false;
-            }
-        });
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setTitle(groupName);
+            actionBar.setDisplayShowHomeEnabled(false);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
+                @Override
+                public boolean isLayoutRtl() {
+                    return false;
+                }
+            });
+        }
         articleDetail.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -555,8 +556,10 @@ public class ArticleActivity extends Activity {
     }
 
     private void deleteArticleFromFirebase() {
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
-        databaseReference.child(groupKey).child(articleKey).removeValue();
+        DatabaseReference articlesReference = FirebaseDatabase.getInstance().getReference("Articles");
+        DatabaseReference replysReference = FirebaseDatabase.getInstance().getReference("Replys");
+        articlesReference.child(groupKey).child(articleKey).removeValue();
+        replysReference.child(articleKey).removeValue();
     }
 
     private void showProgressDialog() {

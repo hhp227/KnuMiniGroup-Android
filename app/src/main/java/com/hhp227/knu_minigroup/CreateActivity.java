@@ -146,8 +146,8 @@ public class CreateActivity extends Activity {
                                     if (bitmap != null)
                                         groupImageUpdate(groupId, groupName, description, join);
                                     else {
-                                        createGroupSuccess(groupId, groupName);
                                         insertGroupToFirebase(groupId, groupName, description, join);
+                                        createGroupSuccess(groupId, groupName);
                                     }
                                 }
                             } catch (JSONException e) {
@@ -209,8 +209,8 @@ public class CreateActivity extends Activity {
         app.AppController.getInstance().addToRequestQueue(new MultipartRequest(Request.Method.POST, EndPoint.GROUP_IMAGE_UPDATE, new Response.Listener<NetworkResponse>() {
             @Override
             public void onResponse(NetworkResponse response) {
-                createGroupSuccess(clubGrpId, grpNm);
                 insertGroupToFirebase(clubGrpId, grpNm, txt, joinDiv);
+                createGroupSuccess(clubGrpId, grpNm);
             }
         }, new Response.ErrorListener() {
             @Override

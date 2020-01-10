@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -26,9 +30,12 @@ import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.hhp227.knu_minigroup.*;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.User;
@@ -236,9 +243,25 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
 
     private void deleteGroupFromFirebase() {
         DatabaseReference userGroupListReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
-        DatabaseReference groupsReference = FirebaseDatabase.getInstance().getReference("Groups");
-        if (isAdmin)
-            groupsReference.child(key).removeValue();
+        final DatabaseReference articlesReference = FirebaseDatabase.getInstance().getReference("Articles");
+        if (isAdmin) {
+            articlesReference.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    DatabaseReference replysReference = FirebaseDatabase.getInstance().getReference("Replys");
+                    DatabaseReference groupsReference = FirebaseDatabase.getInstance().getReference("Groups");
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren())
+                        replysReference.child(snapshot.getKey()).removeValue();
+                    articlesReference.child(key).removeValue();
+                    groupsReference.child(key).removeValue();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.e(TAG, databaseError.getMessage());
+                }
+            });
+        }
         userGroupListReference.child(app.AppController.getInstance().getPreferenceManager().getUser().getUid()).child(key).removeValue();
     }
 
