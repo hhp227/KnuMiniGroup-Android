@@ -34,12 +34,14 @@ public class ArticleListAdapter extends BaseAdapter {
     private LinearLayout replyButton, likeButton;
     private List<String> articleItemKeys;
     private List<ArticleItem> articleItemValues;
+    private String groupKey;
     private TextView title, timestamp, content, contentMore, replyCount, likeCount;
 
-    public ArticleListAdapter(Activity activity, List<String> articleItemKeys, List<ArticleItem> articleItemValues) {
+    public ArticleListAdapter(Activity activity, List<String> articleItemKeys, List<ArticleItem> articleItemValues, String groupKey) {
         this.activity = activity;
         this.articleItemKeys = articleItemKeys;
         this.articleItemValues = articleItemValues;
+        this.groupKey = groupKey;
     }
 
     @Override
@@ -119,9 +121,8 @@ public class ArticleListAdapter extends BaseAdapter {
                 intent.putExtra("position", position + 1);
                 intent.putExtra("auth", articleItem.isAuth());
                 intent.putExtra("isbottom", true);
-                /**
-                 * Tab1Fragment참고해서 groupKey, ArticleKey 넣어야 함
-                  */
+                intent.putExtra("grp_key", groupKey);
+                intent.putExtra("artl_key", getKey(position));
                 activity.startActivityForResult(intent, UPDATE_ARTICLE);
             }
         });

@@ -166,6 +166,7 @@ public class GroupInfoFragment extends DialogFragment {
                 .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background).error(R.drawable.ic_launcher_background))
                 .transition(DrawableTransitionOptions.withCrossFade(150))
                 .into(image);
+        
         return rootView;
     }
 
@@ -175,7 +176,7 @@ public class GroupInfoFragment extends DialogFragment {
         groupItem.setId(groupId);
         groupItem.setJoined(groupSubsc);
         groupItem.setTimestamp(System.currentTimeMillis());
-        groupItem.setImage(groupImage != null ? groupId.concat(".jpg") : "default");
+        groupItem.setImage(groupImage);
         groupItem.setName(groupName);
         groupItem.setInfo("null");
         groupItem.setDescription(groupDesc);

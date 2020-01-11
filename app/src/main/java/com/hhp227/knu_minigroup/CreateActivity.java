@@ -313,7 +313,7 @@ public class CreateActivity extends Activity {
         groupItem.setJoined(true);
         groupItem.setTimestamp(System.currentTimeMillis());
         groupItem.setAuthor(preferenceManager.getUser().getName());
-        groupItem.setImage(bitmap != null ? groupId.concat(".jpg") : "default");
+        groupItem.setImage(EndPoint.BASE_URL + (bitmap != null ? "/ilosfiles2/club/photo/" + groupId.concat(".jpg") : "/ilos/images/community/share_nophoto.gif"));
         groupItem.setName(groupName);
         groupItem.setInfo("null");
         groupItem.setDescription(description);

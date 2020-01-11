@@ -89,7 +89,7 @@ public class Tab1Fragment extends BaseFragment {
         swipeRefreshLayout = rootView.findViewById(R.id.srl_article_list);
         articleItemKeys = new ArrayList<>();
         articleItemValues = new ArrayList<>();
-        articleListAdapter = new ArticleListAdapter(getActivity(), articleItemKeys, articleItemValues);
+        articleListAdapter = new ArticleListAdapter(getActivity(), articleItemKeys, articleItemValues, key);
         offSet = 1; // offSet 초기화
         listView.addFooterView(footerLoading);
 
