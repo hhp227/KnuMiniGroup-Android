@@ -195,7 +195,8 @@ public class Tab1Fragment extends BaseFragment {
             ArticleItem articleItem = articleItemValues.get(position);
             articleItem.setTitle(data.getStringExtra("sbjt"));
             articleItem.setContent(data.getStringExtra("txt"));
-            articleItem.setImage(data.getStringExtra("img"));
+            articleItem.setImage(data.getStringArrayListExtra("img").size() > 0 ? data.getStringArrayListExtra("img").get(0) : null);
+            articleItem.setImages(data.getStringArrayListExtra("img")); // firebase data
             articleItem.setReplyCount(data.getStringExtra("cmmt_cnt"));
             articleItemValues.set(position, articleItem);
             articleListAdapter.notifyDataSetChanged();
@@ -237,8 +238,8 @@ public class Tab1Fragment extends BaseFragment {
                             imageUrl = null;
                         }
                         StringBuilder content = new StringBuilder();
-                        for (Element p : viewArt.getFirstElementByClass("list_cont").getAllElements(HTMLElementName.P))
-                            content.append(p.getTextExtractor().toString().concat("\n"));
+                        for (Element childElement : viewArt.getFirstElementByClass("list_cont").getChildElements())
+                            content.append(childElement.getTextExtractor().toString().concat("\n"));
 
                         String replyCnt = commentWrap.getContent().getFirstElement(HTMLElementName.P).getTextExtractor().toString();
 

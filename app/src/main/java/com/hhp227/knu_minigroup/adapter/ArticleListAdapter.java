@@ -100,7 +100,7 @@ public class ArticleListAdapter extends BaseAdapter {
                     .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
                     .transition(DrawableTransitionOptions.withCrossFade(150))
                     .into(articleImage);
-        } else if (articleItem.getImages() != null) {
+        } else if (articleItem.getImages() != null && articleItem.getImages().size() > 0) {
             articleImage.setVisibility(View.VISIBLE);
             Glide.with(activity)
                     .load(articleItem.getImages().get(0))

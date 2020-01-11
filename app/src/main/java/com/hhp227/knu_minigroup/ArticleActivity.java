@@ -421,7 +421,7 @@ public class ArticleActivity extends Activity {
 
                     fetchReplyData(commentList);
                     if (isUpdate)
-                        deliveryUpdate(title, contentExtractor(viewArt.getFirstElementByClass("list_cont"), false), imageList, replyCnt);
+                        deliveryUpdate(title, contentExtractor(viewArt.getFirstElementByClass("list_cont"), true), imageList, replyCnt);
                 } catch (Exception e) {
                     Toast.makeText(getApplicationContext(), "값이 없습니다.", Toast.LENGTH_LONG).show();
                 } finally {
@@ -534,7 +534,7 @@ public class ArticleActivity extends Activity {
         intent.putExtra("position", position);
         intent.putExtra("sbjt", title);
         intent.putExtra("txt", content);
-        intent.putExtra("img", imageList.size() > 0 ? imageList.get(0) : null);
+        intent.putStringArrayListExtra("img", (ArrayList<String>) imageList);
         intent.putExtra("cmmt_cnt", replyCnt);
 
         setResult(RESULT_OK, intent);
