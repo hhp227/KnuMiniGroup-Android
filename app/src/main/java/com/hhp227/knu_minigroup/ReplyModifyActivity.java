@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,9 +15,12 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
+import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.dto.ReplyItem;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 
 import java.util.HashMap;
@@ -28,7 +32,7 @@ public class ReplyModifyActivity extends Activity {
     private ListView listView;
     private ProgressDialog progressDialog;
     private View headerView;
-    private String groupId, articleId, replyId, reply;
+    private String groupId, articleId, replyId, reply, articleKey, replyKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +47,8 @@ public class ReplyModifyActivity extends Activity {
         groupId = intent.getStringExtra("grp_id");
         articleId = intent.getStringExtra("artl_num");
         replyId = intent.getStringExtra("cmmt_num");
+        articleKey = intent.getStringExtra("artl_key");
+        replyKey = intent.getStringExtra("cmmt_key");
         reply = intent.getStringExtra("cmt");
         reply = reply.contains("※") ? reply.substring(0, reply.lastIndexOf("※")).trim() : reply;
         ActionBar actionBar = getActionBar();
@@ -84,16 +90,22 @@ public class ReplyModifyActivity extends Activity {
                     StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.MODIFY_REPLY, new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
-                            // 입력 자판 숨기기
-                            View view = ReplyModifyActivity.this.getCurrentFocus();
-                            if (view != null) {
-                                InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                                inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                            try {
+                                // 입력 자판 숨기기
+                                View view = ReplyModifyActivity.this.getCurrentFocus();
+                                if (view != null) {
+                                    InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                                    inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                                }
+                                Intent intent = new Intent(ReplyModifyActivity.this, ArticleActivity.class);
+                                intent.putExtra("update_reply", response);
+                                setResult(RESULT_OK, intent);
+                                finish();
+                            } catch (Exception e) {
+                                Log.e(TAG, e.getMessage());
+                            } finally {
+                                initFirebaseData();
                             }
-                            Intent intent = new Intent(ReplyModifyActivity.this, ArticleActivity.class);
-                            intent.putExtra("update_reply", response);
-                            setResult(RESULT_OK, intent);
-                            finish();
                         }
                     }, new Response.ErrorListener() {
                         @Override
@@ -125,6 +137,29 @@ public class ReplyModifyActivity extends Activity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void initFirebaseData() {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Replys");
+        updateReplyDataToFirebase(databaseReference.child(articleKey).child(replyKey));
+    }
+
+    private void updateReplyDataToFirebase(final Query query) {
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getValue() != null) {
+                    ReplyItem replyItem = dataSnapshot.getValue(ReplyItem.class);
+                    replyItem.setReply(inputReply.getText().toString() + "\n");
+                    query.getRef().setValue(replyItem);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
+            }
+        });
     }
 
     private void showProgressDialog() {

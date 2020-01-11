@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ReplyItem;
 
 import java.util.List;
@@ -18,21 +19,23 @@ import java.util.List;
 public class ReplyListAdapter extends BaseAdapter {
     private Activity activity;
     private LayoutInflater inflater;
-    private List<ReplyItem> replyItems;
+    private List<String> replyItemKeys;
+    private List<ReplyItem> replyItemValues;
 
-    public ReplyListAdapter(Activity activity, List<ReplyItem> replyItems) {
+    public ReplyListAdapter(Activity activity, List<String> replyItemKeys, List<ReplyItem> replyItemValues) {
         this.activity = activity;
-        this.replyItems = replyItems;
+        this.replyItemKeys = replyItemKeys;
+        this.replyItemValues = replyItemValues;
     }
 
     @Override
     public int getCount() {
-        return replyItems.size();
+        return replyItemValues.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return replyItems.get(position);
+        return replyItemValues.get(position);
     }
 
     @Override
@@ -53,10 +56,10 @@ public class ReplyListAdapter extends BaseAdapter {
         TextView timeStamp = convertView.findViewById(R.id.tv_timestamp);
 
         // 댓글 데이터 얻기
-        ReplyItem replyItem = replyItems.get(position);
+        ReplyItem replyItem = replyItemValues.get(position);
 
         Glide.with(activity)
-                .load(replyItem.getUid())
+                .load(replyItem.getUid() != null ? EndPoint.USER_IMAGE.replace("{UID}", replyItem.getUid()) : null)
                 .apply(new RequestOptions().circleCrop().error(R.drawable.profile_img_circle))
                 .into(profileImage);
         name.setText(replyItem.getName());
@@ -64,5 +67,9 @@ public class ReplyListAdapter extends BaseAdapter {
         timeStamp.setText(replyItem.getDate());
 
         return convertView;
+    }
+
+    public String getKey(int position) {
+        return replyItemKeys.get(position);
     }
 }

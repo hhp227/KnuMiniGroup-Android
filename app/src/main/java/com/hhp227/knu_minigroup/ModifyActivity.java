@@ -374,10 +374,10 @@ public class ModifyActivity extends Activity {
 
     private void initFirebaseData() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
-        fetchArticleData(databaseReference.child(grpKey).child(artlKey));
+        updateArticleDataToFirebase(databaseReference.child(grpKey).child(artlKey));
     }
 
-    private void fetchArticleData(final Query query) {
+    private void updateArticleDataToFirebase(final Query query) {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {

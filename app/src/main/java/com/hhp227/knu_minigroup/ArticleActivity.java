@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.*;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
+import androidx.annotation.NonNull;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
@@ -46,8 +47,8 @@ public class ArticleActivity extends Activity {
     private EditText inputReply;
     private ImageView articleProfile;
     private LinearLayout articleImages;
-    private List<ReplyItem> replyItemList;
-    private List<String> imageList;
+    private List<String> imageList, replyItemKeys;
+    private List<ReplyItem> replyItemValues;
     private ListView listView;
     private PreferenceManager preferenceManager;
     private ProgressDialog progressDialog;
@@ -87,8 +88,9 @@ public class ArticleActivity extends Activity {
         isAuthorized = intent.getBooleanExtra("auth", false);
         isBottom = intent.getBooleanExtra("isbottom", false);
         imageList = new ArrayList<>();
-        replyItemList = new ArrayList<>();
-        replyListAdapter = new ReplyListAdapter(this, replyItemList);
+        replyItemKeys = new ArrayList<>();
+        replyItemValues = new ArrayList<>();
+        replyListAdapter = new ReplyListAdapter(this, replyItemKeys, replyItemValues);
         progressDialog = new ProgressDialog(this);
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {
@@ -268,7 +270,8 @@ public class ArticleActivity extends Activity {
             onCreate(new Bundle());
         } else if (requestCode == UPDATE_REPLY && resultCode == RESULT_OK && data != null) {
             source = new Source(data.getStringExtra("update_reply"));
-            replyItemList.clear();
+            replyItemKeys.clear();
+            replyItemValues.clear();
             List<Element> commentList = source.getAllElementsByClass("comment-list");
             fetchReplyData(commentList);
         }
@@ -282,7 +285,7 @@ public class ArticleActivity extends Activity {
         super.onCreateContextMenu(menu, v, menuInfo);
         int position = ((AdapterView.AdapterContextMenuInfo) menuInfo).position;
         menu.setHeaderTitle("작업선택");
-        boolean auth = replyItemList.isEmpty() || position == 0 ? false : replyItemList.get((position - 1)).isAuth();
+        boolean auth = !replyItemValues.isEmpty() && position != 0 && replyItemValues.get((position - 1)).isAuth();
         menu.add(Menu.NONE, 1, Menu.NONE, "내용 복사");
         if (position != 0 && auth) {
             menu.add(Menu.NONE, 2, Menu.NONE, "댓글 수정");
@@ -293,7 +296,8 @@ public class ArticleActivity extends Activity {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        ReplyItem replyItem = replyItemList.isEmpty() || info.position == 0 ? null : replyItemList.get(info.position - 1); // 헤더가 있기때문에 포지션에서 -1을 해준다.
+        final String replyKey = replyItemKeys.isEmpty() || info.position == 0 ? null : replyItemKeys.get(info.position - 1);
+        ReplyItem replyItem = replyItemValues.isEmpty() || info.position == 0 ? null : replyItemValues.get(info.position - 1); // 헤더가 있기때문에 포지션에서 -1을 해준다.
         final String replyId = replyItem == null ? "0" : replyItem.getId();
         switch (item.getItemId()) {
             case 1 :
@@ -308,6 +312,8 @@ public class ArticleActivity extends Activity {
                 intent.putExtra("artl_num", articleId);
                 intent.putExtra("cmt", reply);
                 intent.putExtra("cmmt_num", replyId);
+                intent.putExtra("artl_key", articleKey);
+                intent.putExtra("cmmt_key", replyKey);
                 startActivityForResult(intent, UPDATE_REPLY);
                 return true;
             case 3 :
@@ -321,13 +327,15 @@ public class ArticleActivity extends Activity {
                         source = new Source(response);
                         try {
                             if (!response.contains("처리를 실패했습니다")) {
-                                replyItemList.clear();
+                                replyItemKeys.clear();
+                                replyItemValues.clear();
                                 List<Element> commentList = source.getAllElementsByClass("comment-list");
                                 fetchReplyData(commentList);
                             }
                         } catch (Exception e) {
                             Log.e(TAG, e.getMessage());
                         } finally {
+                            deleteReplyFromFirebase(replyKey);
                             hideProgressDialog();
                         }
                     }
@@ -447,24 +455,31 @@ public class ArticleActivity extends Activity {
     }
 
     private void fetchReplyData(List<Element> commentList) {
-        for (Element comment : commentList) {
-            Element commentName = comment.getFirstElementByClass("comment-name");
-            Element commentAddr = comment.getFirstElementByClass("comment-addr");
-            String replyId = commentAddr.getAttributeValue("id").replace("cmt_txt_", "");
-            String name = commentName.getTextExtractor().toString().trim();
-            String timeStamp = commentName.getFirstElement(HTMLElementName.SPAN).getContent().toString().trim();
-            String replyContent = commentAddr.getContent().toString().trim();
-            boolean authorization = commentName.getAllElements(HTMLElementName.INPUT).size() > 0;
+        try {
+            for (Element comment : commentList) {
+                Element commentName = comment.getFirstElementByClass("comment-name");
+                Element commentAddr = comment.getFirstElementByClass("comment-addr");
+                String replyId = commentAddr.getAttributeValue("id").replace("cmt_txt_", "");
+                String name = commentName.getTextExtractor().toString().trim();
+                String timeStamp = commentName.getFirstElement(HTMLElementName.SPAN).getContent().toString().trim();
+                String replyContent = commentAddr.getContent().toString().trim();
+                boolean authorization = commentName.getAllElements(HTMLElementName.INPUT).size() > 0;
 
-            ReplyItem replyItem = new ReplyItem();
-            replyItem.setId(replyId);
-            replyItem.setName(name.substring(0, name.lastIndexOf("(")));
-            replyItem.setReply(Html.fromHtml(replyContent).toString());
-            replyItem.setDate(timeStamp.replaceAll("[(]|[)]", ""));
-            replyItem.setAuth(authorization);
-            replyItemList.add(replyItem);
+                ReplyItem replyItem = new ReplyItem();
+                replyItem.setId(replyId);
+                replyItem.setName(name.substring(0, name.lastIndexOf("(")));
+                replyItem.setReply(Html.fromHtml(replyContent).toString());
+                replyItem.setDate(timeStamp.replaceAll("[(]|[)]", ""));
+                replyItem.setAuth(authorization);
+                replyItemKeys.add(replyId);
+                replyItemValues.add(replyItem);
+            }
+            replyListAdapter.notifyDataSetChanged();
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
+        } finally {
+            fetchReplyListFromFirebase();
         }
-        replyListAdapter.notifyDataSetChanged();
     }
 
     private void actionSend(final String text) {
@@ -476,7 +491,8 @@ public class ArticleActivity extends Activity {
             @Override
             public void onResponse(String response) {
                 source = new Source(response);
-                replyItemList.clear();
+                replyItemKeys.clear();
+                replyItemValues.clear();
                 List<Element> commentList = source.getAllElementsByClass("comment-list");
                 try {
                     fetchReplyData(commentList);
@@ -569,6 +585,41 @@ public class ArticleActivity extends Activity {
         });
     }
 
+    private void deleteArticleFromFirebase() {
+        DatabaseReference articlesReference = FirebaseDatabase.getInstance().getReference("Articles");
+        DatabaseReference replysReference = FirebaseDatabase.getInstance().getReference("Replys");
+        articlesReference.child(groupKey).child(articleKey).removeValue();
+        replysReference.child(articleKey).removeValue();
+    }
+
+    private void fetchReplyListFromFirebase() {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Replys");
+        databaseReference.child(articleKey).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getValue() != null) {
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        String key = snapshot.getKey();
+                        ReplyItem value = snapshot.getValue(ReplyItem.class);
+                        int index = replyItemKeys.indexOf(value.getId());
+                        if (index > -1) {
+                            ReplyItem replyItem = replyItemValues.get(index);
+                            replyItem.setUid(value.getUid());
+                            replyItemValues.set(index, replyItem);
+                            replyItemKeys.set(index, key);
+                        }
+                    }
+                    replyListAdapter.notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
+            }
+        });
+    }
+
     private void insertReplyToFirebase(String replyId, String text) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Replys");
         ReplyItem replyItem = new ReplyItem();
@@ -581,11 +632,9 @@ public class ArticleActivity extends Activity {
         databaseReference.child(articleKey).push().setValue(replyItem);
     }
 
-    private void deleteArticleFromFirebase() {
-        DatabaseReference articlesReference = FirebaseDatabase.getInstance().getReference("Articles");
-        DatabaseReference replysReference = FirebaseDatabase.getInstance().getReference("Replys");
-        articlesReference.child(groupKey).child(articleKey).removeValue();
-        replysReference.child(articleKey).removeValue();
+    private void deleteReplyFromFirebase(String replyKey) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Replys");
+        databaseReference.child(articleKey).child(replyKey).removeValue();
     }
 
     private void showProgressDialog() {
