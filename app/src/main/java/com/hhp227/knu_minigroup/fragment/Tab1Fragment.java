@@ -298,7 +298,9 @@ public class Tab1Fragment extends BaseFragment {
                     ArticleItem value = snapshot.getValue(ArticleItem.class);
                     int index = articleItemKeys.indexOf(value.getId());
                     if (index > -1) {
-                        articleItemValues.set(index, value);
+                        ArticleItem articleItem = articleItemValues.get(index);
+                        articleItem.setUid(value.getUid());
+                        articleItemValues.set(index, articleItem);
                         articleItemKeys.set(index, key);
                     }
                 }
