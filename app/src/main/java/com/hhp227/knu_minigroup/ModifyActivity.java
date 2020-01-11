@@ -380,11 +380,13 @@ public class ModifyActivity extends Activity {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                ArticleItem articleItem = dataSnapshot.getValue(ArticleItem.class);
-                articleItem.setTitle(inputTitle.getText().toString());
-                articleItem.setContent(TextUtils.isEmpty(inputContent.getText()) ? null : inputContent.getText().toString());
-                articleItem.setImages(imageList.isEmpty() ? null : imageList);
-                query.getRef().setValue(articleItem);
+                if (dataSnapshot.getValue() != null) {
+                    ArticleItem articleItem = dataSnapshot.getValue(ArticleItem.class);
+                    articleItem.setTitle(inputTitle.getText().toString());
+                    articleItem.setContent(TextUtils.isEmpty(inputContent.getText()) ? null : inputContent.getText().toString());
+                    articleItem.setImages(imageList.isEmpty() ? null : imageList);
+                    query.getRef().setValue(articleItem);
+                }
             }
 
             @Override

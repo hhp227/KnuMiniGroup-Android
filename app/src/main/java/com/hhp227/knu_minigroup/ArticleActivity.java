@@ -18,10 +18,10 @@ import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.adapter.ReplyListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.dto.ReplyItem;
 import com.hhp227.knu_minigroup.fragment.Tab1Fragment;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
@@ -32,6 +32,7 @@ import net.htmlparser.jericho.Source;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -372,7 +373,9 @@ public class ArticleActivity extends Activity {
                     List<Element> commentList = element.getAllElementsByClass("comment-list");
 
                     String profileImg = null;
-                    String title = viewArt.getFirstElementByClass("list_title").getTextExtractor().toString();
+                    String listTitle = viewArt.getFirstElementByClass("list_title").getTextExtractor().toString();
+                    String title = listTitle.substring(0, listTitle.lastIndexOf("-")).trim();
+                    String name = listTitle.substring(listTitle.lastIndexOf("-") + 1).trim();
                     String timeStamp = viewArt.getFirstElement(HTMLElementName.TD).getTextExtractor().toString();
                     String content = contentExtractor(viewArt.getFirstElementByClass("list_cont"), true);
 
@@ -383,7 +386,7 @@ public class ArticleActivity extends Activity {
                             .load(profileImg)
                             .apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop())
                             .into(articleProfile);
-                    articleTitle.setText(title);
+                    articleTitle.setText(title + " - " + name);
                     articleTimeStamp.setText(timeStamp);
                     if (!TextUtils.isEmpty(content)) {
                         articleContent.setText(content);
@@ -422,6 +425,7 @@ public class ArticleActivity extends Activity {
                 } catch (Exception e) {
                     Toast.makeText(getApplicationContext(), "값이 없습니다.", Toast.LENGTH_LONG).show();
                 } finally {
+                    fetchArticleDataFromFirebase();
                     hideProgressDialog();
                 }
             }
@@ -541,6 +545,30 @@ public class ArticleActivity extends Activity {
         for (Element childElement : isFlag ? listCont.getChildElements() : listCont.getAllElements(HTMLElementName.P))
             sb.append(childElement.getTextExtractor().toString().concat("\n"));
         return sb.toString().trim();
+    }
+
+    private void fetchArticleDataFromFirebase() {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
+        databaseReference.child(groupKey).child(articleKey).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getValue() != null) {
+                    ArticleItem articleItem = dataSnapshot.getValue(ArticleItem.class);
+                    Glide.with(getApplicationContext())
+                            .load(EndPoint.USER_IMAGE.replace("{UID}", articleItem.getUid()))
+                            .apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop())
+                            .into(articleProfile);
+                    articleTitle.setText(articleItem.getTitle() + " - " + articleItem.getName());
+                    articleTimeStamp.setText(new SimpleDateFormat("yyyy.MM.dd a h:mm:ss").format(articleItem.getTimestamp()));
+                    articleContent.setText(articleItem.getContent());
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
+            }
+        });
     }
 
     private void insertReplyToFirebase(String replyId, String text) {
