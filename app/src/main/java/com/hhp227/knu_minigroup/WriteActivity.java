@@ -390,7 +390,7 @@ public class WriteActivity extends Activity {
         map.put("name", preferenceManager.getUser().getName());
         map.put("title", inputTitle.getText().toString());
         map.put("timestamp", System.currentTimeMillis());
-        map.put("content", inputContent.getText().toString());
+        map.put("content", TextUtils.isEmpty(inputContent.getText().toString()) ? null : inputContent.getText().toString());
         map.put("images", images);
 
         databaseReference.child(key).push().setValue(map);

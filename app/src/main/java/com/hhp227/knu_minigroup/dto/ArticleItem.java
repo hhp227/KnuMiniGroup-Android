@@ -5,20 +5,19 @@ import java.util.List;
 public class ArticleItem {
     private boolean auth;
     private long timestamp;
-    private String id, uid, name, title, content, image, date, replyCount;
+    private String id, uid, name, title, content, date, replyCount;
     private List<String> images;
 
     public ArticleItem() {
     }
 
-    public ArticleItem(String id, String uid, String name, String title, String content, String image, List<String> images, String date, String replyCount, boolean auth, long timestamp) {
+    public ArticleItem(String id, String uid, String name, String title, String content, List<String> images, String date, String replyCount, boolean auth, long timestamp) {
         super();
         this.id = id;
         this.uid = uid;
         this.name = name;
         this.title = title;
         this.content = content;
-        this.image = image;
         this.images = images;
         this.date = date;
         this.replyCount = replyCount;
@@ -64,14 +63,6 @@ public class ArticleItem {
 
     public void setContent(String content) {
         this.content = content;
-    }
-
-    public String getImage() {
-        return image;
-    }
-
-    public void setImage(String image) {
-        this.image = image;
     }
 
     public List<String> getImages() {

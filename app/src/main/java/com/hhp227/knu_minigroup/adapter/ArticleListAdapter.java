@@ -93,14 +93,7 @@ public class ArticleListAdapter extends BaseAdapter {
         contentMore.setVisibility(!TextUtils.isEmpty(articleItem.getContent()) && content.getLineCount() > CONTENT_MAX_LINE ? View.VISIBLE : View.GONE);
 
         // 피드 이미지
-        if (articleItem.getImage() != null) {
-            articleImage.setVisibility(View.VISIBLE);
-            Glide.with(activity)
-                    .load(articleItem.getImage())
-                    .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
-                    .transition(DrawableTransitionOptions.withCrossFade(150))
-                    .into(articleImage);
-        } else if (articleItem.getImages() != null && articleItem.getImages().size() > 0) {
+        if (articleItem.getImages() != null && articleItem.getImages().size() > 0) {
             articleImage.setVisibility(View.VISIBLE);
             Glide.with(activity)
                     .load(articleItem.getImages().get(0))

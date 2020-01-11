@@ -195,7 +195,6 @@ public class Tab1Fragment extends BaseFragment {
             ArticleItem articleItem = articleItemValues.get(position);
             articleItem.setTitle(data.getStringExtra("sbjt"));
             articleItem.setContent(data.getStringExtra("txt"));
-            articleItem.setImage(data.getStringArrayListExtra("img").size() > 0 ? data.getStringArrayListExtra("img").get(0) : null);
             articleItem.setImages(data.getStringArrayListExtra("img")); // firebase data
             articleItem.setReplyCount(data.getStringExtra("cmmt_cnt"));
             articleItemValues.set(position, articleItem);
@@ -229,13 +228,13 @@ public class Tab1Fragment extends BaseFragment {
                         String title = listTitle.substring(0, listTitle.lastIndexOf("-"));
                         String name = listTitle.substring(listTitle.lastIndexOf("-") + 1);
                         String date = viewArt.getFirstElement(HTMLElementName.TD).getTextExtractor().toString();
-                        String imageUrl;
-                        try {
-                            imageUrl = viewArt.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
-                            imageUrl = !imageUrl.contains("http") ? EndPoint.BASE_URL + imageUrl : imageUrl;
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            imageUrl = null;
+                        List<Element> images = viewArt.getAllElements(HTMLElementName.IMG);
+                        List<String> imageList = new ArrayList<>();
+                        if (images.size() > 0) {
+                            for (Element image : images) {
+                                String imageUrl = !image.getAttributeValue("src").contains("http") ? EndPoint.BASE_URL + image.getAttributeValue("src") : image.getAttributeValue("src");
+                                imageList.add(imageUrl);
+                            }
                         }
                         StringBuilder content = new StringBuilder();
                         for (Element childElement : viewArt.getFirstElementByClass("list_cont").getChildElements())
@@ -249,7 +248,7 @@ public class Tab1Fragment extends BaseFragment {
                         articleItem.setName(name.trim());
                         articleItem.setDate(date);
                         articleItem.setContent(content.toString().trim());
-                        articleItem.setImage(imageUrl);
+                        articleItem.setImages(imageList);
                         articleItem.setReplyCount(replyCnt);
                         articleItem.setAuth(auth);
 

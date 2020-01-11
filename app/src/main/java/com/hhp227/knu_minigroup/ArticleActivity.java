@@ -558,9 +558,7 @@ public class ArticleActivity extends Activity {
                             .load(EndPoint.USER_IMAGE.replace("{UID}", articleItem.getUid()))
                             .apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop())
                             .into(articleProfile);
-                    articleTitle.setText(articleItem.getTitle() + " - " + articleItem.getName());
                     articleTimeStamp.setText(new SimpleDateFormat("yyyy.MM.dd a h:mm:ss").format(articleItem.getTimestamp()));
-                    articleContent.setText(articleItem.getContent());
                 }
             }
 

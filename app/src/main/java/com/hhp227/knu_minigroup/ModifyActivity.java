@@ -122,7 +122,6 @@ public class ModifyActivity extends Activity {
                 contents.add(writeItem);
             }
             listAdapter.notifyDataSetChanged();
-            imageList.clear();
         }
         registerForContextMenu(listView);
     }
@@ -144,6 +143,7 @@ public class ModifyActivity extends Activity {
                 String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(inputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(inputContent.getText());
                 if (!inputTitle.getText().toString().isEmpty() && !(TextUtils.isEmpty(inputContent.getText()) && contents.size() == 0)) {
                     makeHtmlImages = new StringBuilder();
+                    imageList.clear();
                     progressDialog.setMessage("전송중...");
                     progressDialog.setProgressStyle(contents.size() > 0 ? ProgressDialog.STYLE_HORIZONTAL : ProgressDialog.STYLE_SPINNER);
                     showProgressDialog();
@@ -180,7 +180,9 @@ public class ModifyActivity extends Activity {
         Intent intent;
         switch (item.getItemId()) {
             case 1 :
-                contents.remove(((AdapterView.AdapterContextMenuInfo) item.getMenuInfo()).position - 1);
+                int position = ((AdapterView.AdapterContextMenuInfo) item.getMenuInfo()).position - 1;
+                imageList.remove(position);
+                contents.remove(position);
                 listAdapter.notifyDataSetChanged();
                 return true;
             case 2 :
@@ -249,7 +251,6 @@ public class ModifyActivity extends Activity {
     private void uploadImage(final int position, final WriteItem writeItem) {
         if (writeItem.getImage() != null) {
             imageUploadProcess(position, writeItem.getImage(), false);
-            imageList.add(writeItem.getImage());
         } else {
             MultipartRequest multipartRequest = new MultipartRequest(Request.Method.POST, EndPoint.IMAGE_UPLOAD, new Response.Listener<NetworkResponse>() {
                 @Override
@@ -257,7 +258,6 @@ public class ModifyActivity extends Activity {
                     String imageSrc = new String(response.data);
                     imageSrc = EndPoint.BASE_URL + imageSrc.substring(imageSrc.lastIndexOf("/ilosfiles2/"), imageSrc.lastIndexOf("\""));
                     imageUploadProcess(position, imageSrc, true);
-                    imageList.add(imageSrc);
                 }
             }, new Response.ErrorListener() {
                 @Override
@@ -291,6 +291,7 @@ public class ModifyActivity extends Activity {
     }
 
     private void imageUploadProcess(int count, String imageUrl, boolean isFlag) {
+        imageList.add(imageUrl);
         progressDialog.setProgress((int) ((double) (count) / contents.size() * 100));
         try {
             makeHtmlImages.append("<p><img src=\"" + imageUrl + "\" width=\"488\"><p>" + (count < contents.size() - 1 ? "<br>": ""));
