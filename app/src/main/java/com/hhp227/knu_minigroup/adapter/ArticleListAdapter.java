@@ -29,13 +29,11 @@ public class ArticleListAdapter extends BaseAdapter {
     public static boolean LIKED;
     private static final int CONTENT_MAX_LINE = 4;
     private Activity activity;
-    private ImageView profileImage, articleImage;
     private LayoutInflater inflater;
-    private LinearLayout replyButton, likeButton;
     private List<String> articleItemKeys;
     private List<ArticleItem> articleItemValues;
     private String groupKey;
-    private TextView title, timestamp, content, contentMore, replyCount, likeCount;
+    private ViewHolder viewHolder;
 
     public ArticleListAdapter(Activity activity, List<String> articleItemKeys, List<ArticleItem> articleItemValues, String groupKey) {
         this.activity = activity;
@@ -63,52 +61,47 @@ public class ArticleListAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         if (inflater == null)
             inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        if (convertView == null)
+        if (convertView == null) {
             convertView = inflater.inflate(R.layout.article_item, null);
-
-        profileImage = convertView.findViewById(R.id.iv_profile_image);
-        title = convertView.findViewById(R.id.tv_title);
-        timestamp = convertView.findViewById(R.id.tv_timestamp);
-        content = convertView.findViewById(R.id.tv_content);
-        contentMore = convertView.findViewById(R.id.tv_content_more);
-        articleImage = convertView.findViewById(R.id.iv_article_image);
-        replyCount = convertView.findViewById(R.id.tv_replycount);
-        replyButton = convertView.findViewById(R.id.ll_reply);
+            viewHolder = new ViewHolder(convertView);
+            convertView.setTag(viewHolder);
+        } else
+            viewHolder = (ViewHolder) convertView.getTag();
 
         ArticleItem articleItem = articleItemValues.get(position);
 
         Glide.with(activity)
                 .load(articleItem.getUid() != null ? EndPoint.USER_IMAGE.replace("{UID}", articleItem.getUid()) : null)
                 .apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop())
-                .into(profileImage);
-        title.setText(articleItem.getName() != null ? articleItem.getTitle() + " - " + articleItem.getName() : articleItem.getTitle());
-        timestamp.setText(articleItem.getDate() != null ? articleItem.getDate() : new SimpleDateFormat("yyyy.MM.dd a h:mm:ss").format(articleItem.getTimestamp()));
+                .into(viewHolder.profileImage);
+        viewHolder.title.setText(articleItem.getName() != null ? articleItem.getTitle() + " - " + articleItem.getName() : articleItem.getTitle());
+        viewHolder.timestamp.setText(articleItem.getDate() != null ? articleItem.getDate() : new SimpleDateFormat("yyyy.MM.dd a h:mm:ss").format(articleItem.getTimestamp()));
         // 피드의 메시지가 비었는지 확인
         if (!TextUtils.isEmpty(articleItem.getContent())) {
-            content.setText(articleItem.getContent());
-            content.setMaxLines(CONTENT_MAX_LINE);
-            content.setVisibility(View.VISIBLE);
+            viewHolder.content.setText(articleItem.getContent());
+            viewHolder.content.setMaxLines(CONTENT_MAX_LINE);
+            viewHolder.content.setVisibility(View.VISIBLE);
         } else {
             // 피드 내용이 비었으면 화면에서 삭제
-            content.setVisibility(View.GONE);
+            viewHolder.content.setVisibility(View.GONE);
         }
-        contentMore.setVisibility(!TextUtils.isEmpty(articleItem.getContent()) && content.getLineCount() > CONTENT_MAX_LINE ? View.VISIBLE : View.GONE);
+        viewHolder.contentMore.setVisibility(!TextUtils.isEmpty(articleItem.getContent()) && viewHolder.content.getLineCount() > CONTENT_MAX_LINE ? View.VISIBLE : View.GONE);
 
         // 피드 이미지
         if (articleItem.getImages() != null && articleItem.getImages().size() > 0) {
-            articleImage.setVisibility(View.VISIBLE);
+            viewHolder.articleImage.setVisibility(View.VISIBLE);
             Glide.with(activity)
                     .load(articleItem.getImages().get(0))
                     .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
                     .transition(DrawableTransitionOptions.withCrossFade(150))
-                    .into(articleImage);
+                    .into(viewHolder.articleImage);
         } else
-            articleImage.setVisibility(View.GONE);
-        replyCount.setText(articleItem.getReplyCount());
+            viewHolder.articleImage.setVisibility(View.GONE);
+        viewHolder.replyCount.setText(articleItem.getReplyCount());
 
         // 댓글 버튼을 누르면 댓글쓰는곳으로 이동
-        replyButton.setTag(position);
-        replyButton.setOnClickListener(new View.OnClickListener() {
+        viewHolder.replyButton.setTag(position);
+        viewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 int position = (int) v.getTag();
@@ -132,5 +125,22 @@ public class ArticleListAdapter extends BaseAdapter {
 
     public String getKey(int position) {
         return articleItemKeys.get(position);
+    }
+
+    public static class ViewHolder {
+        private ImageView profileImage, articleImage;
+        private LinearLayout replyButton, likeButton;
+        private TextView title, timestamp, content, contentMore, replyCount, likeCount;
+
+        ViewHolder(View itemView) {
+            profileImage = itemView.findViewById(R.id.iv_profile_image);
+            title = itemView.findViewById(R.id.tv_title);
+            timestamp = itemView.findViewById(R.id.tv_timestamp);
+            content = itemView.findViewById(R.id.tv_content);
+            contentMore = itemView.findViewById(R.id.tv_content_more);
+            articleImage = itemView.findViewById(R.id.iv_article_image);
+            replyCount = itemView.findViewById(R.id.tv_replycount);
+            replyButton = itemView.findViewById(R.id.ll_reply);
+        }
     }
 }

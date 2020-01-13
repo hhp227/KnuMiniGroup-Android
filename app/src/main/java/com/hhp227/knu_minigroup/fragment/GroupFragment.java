@@ -252,7 +252,7 @@ public class GroupFragment extends Fragment {
                         assert value != null;
                         int index = groupItemKeys.indexOf(value.getId());
                         if (index > -1) {
-                            groupItemValues.set(index, value);
+                            //groupItemValues.set(index, value); //isAdmin값때문에 주석처리
                             groupItemKeys.set(index, key);
                         }
                         groupGridAdapter.notifyDataSetChanged();

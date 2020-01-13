@@ -134,6 +134,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                 startActivity(new Intent(getContext(), ProfileActivity.class));
                 break;
             case R.id.ll_withdrawal :
+                test();
                 AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                 builder.setMessage((isAdmin ? "폐쇄" : "탈퇴") + "하시겠습니까?");
                 builder.setPositiveButton("예", new DialogInterface.OnClickListener() {
@@ -239,10 +240,22 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     }
 
     private void deleteGroupFromFirebase() {
-        DatabaseReference userGroupListReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
+        final DatabaseReference userGroupListReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
         final DatabaseReference articlesReference = FirebaseDatabase.getInstance().getReference("Articles");
         final DatabaseReference groupsReference = FirebaseDatabase.getInstance().getReference("Groups");
         if (isAdmin) {
+            groupsReference.child(key).child("members").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren())
+                        userGroupListReference.child(snapshot.getKey()).child(key).removeValue();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
+                }
+            });
             articlesReference.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -279,8 +292,25 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                     Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
                 }
             });
+            userGroupListReference.child(app.AppController.getInstance().getPreferenceManager().getUser().getUid()).child(key).removeValue();
         }
-        userGroupListReference.child(app.AppController.getInstance().getPreferenceManager().getUser().getUid()).child(key).removeValue();
+    }
+
+    private void test() {
+        final DatabaseReference groupsReference = FirebaseDatabase.getInstance().getReference("Groups");
+        groupsReference.child(key).child("members").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Log.e("테스트", snapshot.getKey());
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
+            }
+        });
     }
 
     private void showProgressDialog() {
