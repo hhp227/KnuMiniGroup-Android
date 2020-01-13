@@ -98,7 +98,6 @@ public class FindActivity extends FragmentActivity {
                 args.putString("img", groupItem.getImage());
                 args.putString("info", groupItem.getInfo());
                 args.putString("desc", groupItem.getDescription());
-                args.putBoolean("subs", groupItem.getJoinType().equals("0"));
                 args.putString("type", "0");
                 args.putString("key", groupItemKeys.get(position));
 

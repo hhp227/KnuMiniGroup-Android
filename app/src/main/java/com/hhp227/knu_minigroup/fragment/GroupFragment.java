@@ -35,6 +35,7 @@ import static android.app.Activity.RESULT_OK;
 public class GroupFragment extends Fragment {
     public static final int CREATE_CODE = 10;
     public static final int REGISTER_CODE = 20;
+    private static final String TAG = GroupFragment.class.getSimpleName();
     private long mLastClickTime; // 클릭시 걸리는 시간
     private GroupGridAdapter groupGridAdapter;
     private List<String> groupItemKeys;
@@ -192,7 +193,7 @@ public class GroupFragment extends Fragment {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(error.getMessage());
+                VolleyLog.e(TAG, error.getMessage());
                 progressBar.setVisibility(View.GONE);
             }
         }) {
@@ -237,29 +238,38 @@ public class GroupFragment extends Fragment {
 
     private void setFirebaseData() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
-        fetchDataTaskFromFirebase(databaseReference.child(app.AppController.getInstance().getPreferenceManager().getUser().getUid()).orderByChild("joined").equalTo(true));
+        fetchDataTaskFromFirebase(databaseReference.child(app.AppController.getInstance().getPreferenceManager().getUser().getUid()).orderByValue().equalTo(true), false);
     }
 
-    private void fetchDataTaskFromFirebase(Query query) {
+    private void fetchDataTaskFromFirebase(Query query, final boolean isRecursion) {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    String key = snapshot.getKey();
-                    GroupItem value = snapshot.getValue(GroupItem.class);
-                    assert value != null;
-                    int index = groupItemKeys.indexOf(value.getId());
-                    if (index > -1) {
-                        groupItemValues.set(index, value);
-                        groupItemKeys.set(index, key);
+                if (isRecursion) {
+                    try {
+                        String key = dataSnapshot.getKey();
+                        GroupItem value = dataSnapshot.getValue(GroupItem.class);
+                        assert value != null;
+                        int index = groupItemKeys.indexOf(value.getId());
+                        if (index > -1) {
+                            groupItemValues.set(index, value);
+                            groupItemKeys.set(index, key);
+                        }
+                        groupGridAdapter.notifyDataSetChanged();
+                    } catch (Exception e) {
+                        Log.e(TAG, e.getMessage());
+                    }
+                } else {
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
+                        fetchDataTaskFromFirebase(databaseReference.child(snapshot.getKey()), true);
                     }
                 }
-                groupGridAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Log.e("GroupGridAdapter", "데이터 가져오기 실패", databaseError.toException());
+                Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
             }
         });
     }

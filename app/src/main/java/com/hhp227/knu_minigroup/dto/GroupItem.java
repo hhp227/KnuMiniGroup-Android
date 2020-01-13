@@ -1,25 +1,29 @@
 package com.hhp227.knu_minigroup.dto;
 
+import java.util.Map;
+
 public class GroupItem {
-    private boolean isAd, isAdmin, isJoined;
+    private boolean isAd, isAdmin;
+    private int memberCount;
     private long timestamp;
-    private String id, author, image, name, info, description, jointype;
+    private String id, author, authorUid, image, name, info, description, joinType;
+    private Map<String, Boolean> members;
 
     public GroupItem() {
     }
 
-    public GroupItem(String id, boolean isAd, boolean isAdmin, boolean isJoined, long timestamp, String author, String image, String name, String info, String description, String jointype) {
+    public GroupItem(String id, boolean isAd, boolean isAdmin, long timestamp, String author, String authorUid, String image, String name, String info, String description, String joinType) {
         this.id = id;
         this.isAd = isAd;
         this.isAdmin = isAdmin;
-        this.isJoined = isJoined;
         this.timestamp = timestamp;
         this.author = author;
+        this.authorUid = authorUid;
         this.image = image;
         this.name = name;
         this.info = info;
         this.description = description;
-        this.jointype = jointype;
+        this.joinType = joinType;
     }
 
     public String getId() {
@@ -46,14 +50,6 @@ public class GroupItem {
         isAdmin = admin;
     }
 
-    public boolean isJoined() {
-        return isJoined;
-    }
-
-    public void setJoined(boolean joined) {
-        isJoined = joined;
-    }
-
     public long getTimestamp() {
         return timestamp;
     }
@@ -68,6 +64,14 @@ public class GroupItem {
 
     public void setAuthor(String author) {
         this.author = author;
+    }
+
+    public String getAuthorUid() {
+        return authorUid;
+    }
+
+    public void setAuthorUid(String authorUid) {
+        this.authorUid = authorUid;
     }
 
     public String getImage() {
@@ -103,10 +107,26 @@ public class GroupItem {
     }
 
     public String getJoinType() {
-        return jointype;
+        return joinType;
     }
 
     public void setJoinType(String joinType) {
-        this.jointype = joinType;
+        this.joinType = joinType;
+    }
+
+    public Map<String, Boolean> getMembers() {
+        return members;
+    }
+
+    public void setMembers(Map<String, Boolean> members) {
+        this.members = members;
+    }
+
+    public int getMemberCount() {
+        return memberCount;
+    }
+
+    public void setMemberCount(int memberCount) {
+        this.memberCount = memberCount;
     }
 }

@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.*;
+import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -17,13 +18,13 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestOptions;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.MainActivity;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.RequestActivity;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.GroupItem;
+import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -36,10 +37,10 @@ import static android.app.Activity.RESULT_OK;
 
 public class GroupInfoFragment extends DialogFragment {
     private static final String TAG = "정보창";
-    private static boolean groupSubsc;
     private static String groupId, groupName, groupImage, groupInfo, groupDesc, joinType, key;
     private Button button, close;
     private ImageView image;
+    private PreferenceManager preferenceManager;
     private ProgressDialog progressDialog;
     private TextView name, info, desc;
 
@@ -60,7 +61,6 @@ public class GroupInfoFragment extends DialogFragment {
             groupImage = getArguments().getString("img");
             groupInfo = getArguments().getString("info");
             groupDesc = getArguments().getString("desc");
-            groupSubsc = getArguments().getBoolean("subs");
             joinType = getArguments().getString("type");
             key = getArguments().getString("key");
         }
@@ -79,6 +79,7 @@ public class GroupInfoFragment extends DialogFragment {
         name = rootView.findViewById(R.id.tv_name);
         info = rootView.findViewById(R.id.tv_info);
         desc = rootView.findViewById(R.id.tv_desciption);
+        preferenceManager = app.AppController.getInstance().getPreferenceManager();
         progressDialog = new ProgressDialog(getContext());
         progressDialog.setCancelable(false);
         button.setOnClickListener(new View.OnClickListener() {
@@ -117,7 +118,7 @@ public class GroupInfoFragment extends DialogFragment {
                     @Override
                     public Map<String, String> getHeaders() {
                         Map<String, String> headers = new HashMap<>();
-                        headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+                        headers.put("Cookie", preferenceManager.getCookie());
                         return headers;
                     }
 
@@ -166,25 +167,35 @@ public class GroupInfoFragment extends DialogFragment {
                 .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background).error(R.drawable.ic_launcher_background))
                 .transition(DrawableTransitionOptions.withCrossFade(150))
                 .into(image);
-        
+
         return rootView;
     }
 
     private void insertGroupToFirebase() {
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
-        GroupItem groupItem = new GroupItem();
-        groupItem.setId(groupId);
-        groupItem.setJoined(groupSubsc);
-        groupItem.setTimestamp(System.currentTimeMillis());
-        groupItem.setImage(groupImage);
-        groupItem.setName(groupName);
-        groupItem.setInfo("null");
-        groupItem.setDescription(groupDesc);
-        groupItem.setJoinType(joinType);
+        DatabaseReference userGroupListReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
+        final DatabaseReference groupsReference = FirebaseDatabase.getInstance().getReference("Groups");
+        groupsReference.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getValue() == null)
+                    return;
+                GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
+                Map<String, Boolean> members = groupItem.getMembers() != null && !groupItem.getMembers().containsKey(preferenceManager.getUser().getUid()) ? groupItem.getMembers() : new HashMap<String, Boolean>();
+                members.put(preferenceManager.getUser().getUid(), true);
+                groupItem.setMembers(members);
+                groupItem.setMemberCount(members.size());
+                groupsReference.child(key).setValue(groupItem);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
+            }
+        });
 
         Map<String, Object> childUpdates = new HashMap<>();
-        childUpdates.put("/" + app.AppController.getInstance().getPreferenceManager().getUser().getUid() + "/" + key, groupItem);
-        databaseReference.updateChildren(childUpdates);
+        childUpdates.put("/" + preferenceManager.getUser().getUid() + "/" + key, true);
+        userGroupListReference.updateChildren(childUpdates);
     }
 
     private void showProgressDialog() {

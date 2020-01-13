@@ -307,23 +307,25 @@ public class CreateActivity extends Activity {
 
     private void insertGroupToFirebase(String groupId, String groupName, String description, String joinType) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        Map<String, Boolean> members = new HashMap<>();
+        members.put(preferenceManager.getUser().getUid(), true);
         GroupItem groupItem = new GroupItem();
         groupItem.setId(groupId);
-        groupItem.setAdmin(true);
-        groupItem.setJoined(true);
         groupItem.setTimestamp(System.currentTimeMillis());
         groupItem.setAuthor(preferenceManager.getUser().getName());
+        groupItem.setAuthorUid(preferenceManager.getUser().getUid());
         groupItem.setImage(EndPoint.BASE_URL + (bitmap != null ? "/ilosfiles2/club/photo/" + groupId.concat(".jpg") : "/ilos/images/community/share_nophoto.gif"));
         groupItem.setName(groupName);
-        groupItem.setInfo("null");
         groupItem.setDescription(description);
         groupItem.setJoinType(joinType);
+        groupItem.setMembers(members);
+        groupItem.setMemberCount(members.size());
 
         pushId = databaseReference.push().getKey();
 
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("Groups/" + pushId, groupItem);
-        childUpdates.put("UserGroupList/" + preferenceManager.getUser().getUid() + "/" + pushId, groupItem);
+        childUpdates.put("UserGroupList/" + preferenceManager.getUser().getUid() + "/" + pushId, true);
         databaseReference.updateChildren(childUpdates);
     }
 

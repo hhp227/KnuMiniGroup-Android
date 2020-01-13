@@ -18,7 +18,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -30,14 +29,11 @@ import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.*;
+import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.ui.scrollable.BaseFragment;
 import org.json.JSONException;
@@ -58,6 +54,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     LinearLayout profile, withdrawal, settings, appStore, share, version;
     ProgressDialog progressDialog;
     TextView name, knuId, withdrawalText;
+    User user;
 
     public Tab4Fragment() {
     }
@@ -99,7 +96,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
         progressDialog = new ProgressDialog(getContext());
 
         AdRequest adRequest = new AdRequest.Builder().build();
-        User user = app.AppController.getInstance().getPreferenceManager().getUser();
+        user = app.AppController.getInstance().getPreferenceManager().getUser();
         String stuKnuId = user.getUserId();
         String userName = user.getName();
         progressDialog.setCancelable(false);
@@ -244,12 +241,12 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     private void deleteGroupFromFirebase() {
         DatabaseReference userGroupListReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
         final DatabaseReference articlesReference = FirebaseDatabase.getInstance().getReference("Articles");
+        final DatabaseReference groupsReference = FirebaseDatabase.getInstance().getReference("Groups");
         if (isAdmin) {
             articlesReference.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     DatabaseReference replysReference = FirebaseDatabase.getInstance().getReference("Replys");
-                    DatabaseReference groupsReference = FirebaseDatabase.getInstance().getReference("Groups");
                     for (DataSnapshot snapshot : dataSnapshot.getChildren())
                         replysReference.child(snapshot.getKey()).removeValue();
                     articlesReference.child(key).removeValue();
@@ -259,6 +256,27 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
                     Log.e(TAG, databaseError.getMessage());
+                }
+            });
+        } else {
+            groupsReference.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.getValue() == null)
+                        return;
+                    GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
+                    if (groupItem.getMembers() != null && groupItem.getMembers().containsKey(user.getUid())) {
+                        Map<String, Boolean> members = groupItem.getMembers();
+                        members.remove(user.getUid());
+                        groupItem.setMembers(members);
+                        groupItem.setMemberCount(members.size());
+                    }
+                    groupsReference.child(key).setValue(groupItem);
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
                 }
             });
         }
