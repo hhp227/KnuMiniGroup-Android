@@ -25,6 +25,7 @@ public class TabHostLayoutFragment extends Fragment {
     private static final String IS_ADMIN = "admin";
     private static final String GROUP_ID = "grp_id";
     private static final String GROUP_NAME = "grp_nm";
+    private static final String POSITION = "position";
     private static final String KEY = "key";
     private static final String[] TAB_NAMES = {"소식", "일정", "맴버", "설정"};
     private TabHost tabHost;
@@ -32,17 +33,19 @@ public class TabHostLayoutFragment extends Fragment {
     private ViewPager viewPager;
 
     private boolean isAdmin;
+    private int position;
     private String groupId, groupName, key;
 
     public TabHostLayoutFragment() {
     }
 
-    public static TabHostLayoutFragment newInstance(boolean isAdmin, String groupId, String groupName, String key) {
+    public static TabHostLayoutFragment newInstance(boolean isAdmin, String groupId, String groupName, int position, String key) {
         TabHostLayoutFragment fragment = new TabHostLayoutFragment();
         Bundle args = new Bundle();
         args.putBoolean(IS_ADMIN, isAdmin);
         args.putString(GROUP_ID, groupId);
         args.putString(GROUP_NAME, groupName);
+        args.putInt(POSITION, position);
         args.putString(KEY, key);
         fragment.setArguments(args);
         return fragment;
@@ -55,6 +58,7 @@ public class TabHostLayoutFragment extends Fragment {
             isAdmin = getArguments().getBoolean(IS_ADMIN);
             groupId = getArguments().getString(GROUP_ID);
             groupName = getArguments().getString(GROUP_NAME);
+            position = getArguments().getInt(POSITION);
             key = getArguments().getString(KEY);
         }
     }
@@ -91,7 +95,7 @@ public class TabHostLayoutFragment extends Fragment {
         fragments.add(Tab1Fragment.newInstance(isAdmin, groupId, groupName, key));
         fragments.add(new Tab2Fragment());
         fragments.add(Tab3Fragment.newInstance(groupId));
-        fragments.add(Tab4Fragment.newInstance(isAdmin, groupId, key));
+        fragments.add(Tab4Fragment.newInstance(isAdmin, groupId, position, key));
         tabsPagerAdapter = new TabsPagerAdapter(getChildFragmentManager(), fragments);
         viewPager.setAdapter(tabsPagerAdapter);
         viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {

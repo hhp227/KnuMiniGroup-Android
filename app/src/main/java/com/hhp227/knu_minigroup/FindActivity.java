@@ -98,7 +98,8 @@ public class FindActivity extends FragmentActivity {
                 args.putString("img", groupItem.getImage());
                 args.putString("info", groupItem.getInfo());
                 args.putString("desc", groupItem.getDescription());
-                args.putString("type", "0");
+                args.putString("type", groupItem.getJoinType());
+                args.putInt("btn_type", 0);
                 args.putString("key", groupItemKeys.get(position));
 
                 GroupInfoFragment newFragment = GroupInfoFragment.newInstance();
@@ -141,7 +142,7 @@ public class FindActivity extends FragmentActivity {
                     try {
                         Element menuList = element.getFirstElementByClass("menu_list");
                         if (element.getAttributeValue("class").equals("accordion")) {
-                            String id = groupIdExtract(menuList.getFirstElementByClass("button").getAttributeValue("onclick"));
+                            String id = String.valueOf(groupIdExtract(menuList.getFirstElementByClass("button").getAttributeValue("onclick")));
                             String imageUrl = EndPoint.BASE_URL + element.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
                             String name = element.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
                             StringBuilder info = new StringBuilder();
@@ -249,7 +250,7 @@ public class FindActivity extends FragmentActivity {
         });
     }
 
-    private String groupIdExtract(String onclick) {
-        return onclick.split("[(]|[)]|[,]")[1].trim();
+    private int groupIdExtract(String onclick) {
+        return Integer.parseInt(onclick.split("[(]|[)]|[,]")[1].trim());
     }
 }

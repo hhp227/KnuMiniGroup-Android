@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.*;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -37,6 +38,7 @@ import static android.app.Activity.RESULT_OK;
 
 public class GroupInfoFragment extends DialogFragment {
     private static final String TAG = "정보창";
+    private static int buttonType;
     private static String groupId, groupName, groupImage, groupInfo, groupDesc, joinType, key;
     private Button button, close;
     private ImageView image;
@@ -62,6 +64,7 @@ public class GroupInfoFragment extends DialogFragment {
             groupInfo = getArguments().getString("info");
             groupDesc = getArguments().getString("desc");
             joinType = getArguments().getString("type");
+            buttonType = getArguments().getInt("btn_type");
             key = getArguments().getString("key");
         }
     }
@@ -88,20 +91,21 @@ public class GroupInfoFragment extends DialogFragment {
                 progressDialog.setMessage("요청중...");
                 showProgressDialog();
                 String tag_json_req = "req_register";
-                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, joinType.equals("0") ? EndPoint.REGISTER_GROUP : EndPoint.WITHDRAWAL_GROUP, null, new Response.Listener<JSONObject>() {
+                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, buttonType == 0 ? EndPoint.REGISTER_GROUP : EndPoint.WITHDRAWAL_GROUP, null, new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            if (joinType.equals("0") && !response.getBoolean("isError")) {
+                            if (buttonType == 0 && !response.getBoolean("isError")) {
                                 Toast.makeText(getContext(), "신청완료", Toast.LENGTH_LONG).show();
                                 Intent intent = new Intent(getContext(), MainActivity.class);
                                 getActivity().setResult(RESULT_OK, intent);
                                 getActivity().finish();
                                 insertGroupToFirebase();
-                            } else if (joinType.equals("1") && !response.getBoolean("isError")) {
+                            } else if (buttonType == 1 && !response.getBoolean("isError")) {
                                 Toast.makeText(getContext(), "신청취소", Toast.LENGTH_LONG).show();
                                 ((RequestActivity) getActivity()).refresh();
                                 GroupInfoFragment.this.dismiss();
+                                deleteUserInGroupFromFirebase();
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -161,7 +165,7 @@ public class GroupInfoFragment extends DialogFragment {
         info.setText(groupInfo);
         desc.setText(groupDesc);
         desc.setMaxLines(6);
-        button.setText(joinType.equals("0") ? "가입신청" : "신청취소");
+        button.setText(buttonType == 0 ? "가입신청" : "신청취소");
         Glide.with(this)
                 .load(groupImage)
                 .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background).error(R.drawable.ic_launcher_background))
@@ -181,7 +185,7 @@ public class GroupInfoFragment extends DialogFragment {
                     return;
                 GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
                 Map<String, Boolean> members = groupItem.getMembers() != null && !groupItem.getMembers().containsKey(preferenceManager.getUser().getUid()) ? groupItem.getMembers() : new HashMap<String, Boolean>();
-                members.put(preferenceManager.getUser().getUid(), true);
+                members.put(preferenceManager.getUser().getUid(), joinType.equals("0"));
                 groupItem.setMembers(members);
                 groupItem.setMemberCount(members.size());
                 groupsReference.child(key).setValue(groupItem);
@@ -194,8 +198,34 @@ public class GroupInfoFragment extends DialogFragment {
         });
 
         Map<String, Object> childUpdates = new HashMap<>();
-        childUpdates.put("/" + preferenceManager.getUser().getUid() + "/" + key, true);
+        childUpdates.put("/" + preferenceManager.getUser().getUid() + "/" + key, joinType.equals("0"));
         userGroupListReference.updateChildren(childUpdates);
+    }
+
+    private void deleteUserInGroupFromFirebase() {
+        DatabaseReference userGroupListReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
+        final DatabaseReference groupsReference = FirebaseDatabase.getInstance().getReference("Groups");
+        groupsReference.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getValue() == null)
+                    return;
+                GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
+                if (groupItem.getMembers() != null && groupItem.getMembers().containsKey(preferenceManager.getUser().getUid())) {
+                    Map<String, Boolean> members = groupItem.getMembers();
+                    members.remove(preferenceManager.getUser().getUid());
+                    groupItem.setMembers(members);
+                    groupItem.setMemberCount(members.size());
+                }
+                groupsReference.child(key).setValue(groupItem);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
+            }
+        });
+        userGroupListReference.child(preferenceManager.getUser().getUid()).child(key).removeValue();
     }
 
     private void showProgressDialog() {

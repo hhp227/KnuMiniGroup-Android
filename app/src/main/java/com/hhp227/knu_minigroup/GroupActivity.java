@@ -16,6 +16,7 @@ import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 
 public class GroupActivity extends FragmentActivity {
     private boolean isAdmin;
+    private int position;
     private String groupId, groupName, key;
     private TabHostLayoutFragment fragMain;
 
@@ -28,8 +29,9 @@ public class GroupActivity extends FragmentActivity {
         isAdmin = intent.getBooleanExtra(getString(R.string.extra_admin), false);
         groupId = intent.getStringExtra(getString(R.string.extra_group_id));
         groupName = intent.getStringExtra(getString(R.string.extra_group_name));
+        position = intent.getIntExtra("position", 0);
         key = intent.getStringExtra(getString(R.string.extra_key));
-        fragMain = TabHostLayoutFragment.newInstance(isAdmin, groupId, groupName, key);
+        fragMain = TabHostLayoutFragment.newInstance(isAdmin, groupId, groupName, position, key);
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);

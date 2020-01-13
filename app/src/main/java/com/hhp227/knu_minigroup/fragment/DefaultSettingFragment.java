@@ -5,16 +5,21 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.*;
 
 import android.widget.*;
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import com.android.volley.*;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
+import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.dto.GroupItem;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.Source;
 import org.json.JSONException;
@@ -25,11 +30,12 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
+import static android.app.Activity.RESULT_OK;
 import static com.hhp227.knu_minigroup.CreateActivity.CAMERA_CAPTURE_IMAGE_REQUEST_CODE;
 import static com.hhp227.knu_minigroup.CreateActivity.CAMERA_PICK_IMAGE_REQUEST_CODE;
 
 public class DefaultSettingFragment extends Fragment {
-    private static String groupId;
+    private static String groupId, groupKey;
     private Bitmap bitmap;
     private EditText inputTitle, inputDescription;
     private ImageView groupImage, resetTitle;
@@ -41,10 +47,11 @@ public class DefaultSettingFragment extends Fragment {
         // Required empty public constructor
     }
 
-    public static DefaultSettingFragment newInstance(String grpId) {
+    public static DefaultSettingFragment newInstance(String grpId, String key) {
         DefaultSettingFragment fragment = new DefaultSettingFragment();
         Bundle args = new Bundle();
         args.putString("grp_id", grpId);
+        args.putString("key", key);
         fragment.setArguments(args);
         return fragment;
     }
@@ -55,6 +62,7 @@ public class DefaultSettingFragment extends Fragment {
         setHasOptionsMenu(true);
         if (getArguments() != null) {
             groupId = getArguments().getString("grp_id");
+            groupKey = getArguments().getString("key");
         }
     }
 
@@ -142,62 +150,77 @@ public class DefaultSettingFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_send :
-                String tagJsonReq = "req_send";
-                app.AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, EndPoint.UPDATE_GROUP, null, new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            if (!response.getBoolean("isError")) {
-                                Toast.makeText(getContext(), response.toString(), Toast.LENGTH_LONG).show();
-                                getActivity().finish();
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        VolleyLog.e(error.getMessage());
-                        Toast.makeText(getContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-                    }
-                }) {
-                    @Override
-                    public String getBodyContentType() {
-                        return "application/x-www-form-urlencoded; charset=" + getParamsEncoding();
-                    }
+                final String groupName = inputTitle.getText().toString();
+                final String groupDescription = inputDescription.getText().toString();
 
-                    @Override
-                    public byte[] getBody() {
-                        Map<String, String> params = new HashMap<>();
-                        params.put("CLUB_GRP_ID", groupId);
-                        params.put("GRP_NM", inputTitle.getText().toString());
-                        params.put("TXT", inputDescription.getText().toString());
-                        params.put("JOIN_DIV", !joinTypeCheck ? "0" : "1");
-                        if (params.size() > 0) {
-                            StringBuilder encodedParams = new StringBuilder();
+                if (!TextUtils.isEmpty(groupName) && !TextUtils.isEmpty(groupDescription)) {
+                    String tagJsonReq = "req_send";
+                    app.AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, EndPoint.UPDATE_GROUP, null, new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
                             try {
-                                for (Map.Entry<String, String> entry : params.entrySet()) {
-                                    encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));
-                                    encodedParams.append('=');
-                                    encodedParams.append(URLEncoder.encode(entry.getValue(), getParamsEncoding()));
-                                    encodedParams.append('&');
+                                if (!response.getBoolean("isError")) {
+                                    Intent intent = new Intent(getContext(), Tab4Fragment.class);
+                                    intent.putExtra("grp_nm", response.getString("GRP_NM"));
+                                    intent.putExtra("grp_desc", groupDescription);
+                                    intent.putExtra("join_div", !joinTypeCheck ? "0" : "1");
+                                    getActivity().setResult(RESULT_OK, intent);
+                                    getActivity().finish();
+                                    Toast.makeText(getContext(), "소모임 변경 완료", Toast.LENGTH_LONG).show();
                                 }
-                                return encodedParams.toString().getBytes(getParamsEncoding());
-                            } catch (UnsupportedEncodingException uee) {
-                                throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), uee);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            } finally {
+                                initFirebaseData();
                             }
                         }
-                        return null;
-                    }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            VolleyLog.e(error.getMessage());
+                            Toast.makeText(getContext(), error.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    }) {
+                        @Override
+                        public String getBodyContentType() {
+                            return "application/x-www-form-urlencoded; charset=" + getParamsEncoding();
+                        }
 
-                    @Override
-                    public Map<String, String> getHeaders() {
-                        Map<String, String> headers = new HashMap<>();
-                        headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
-                        return headers;
-                    }
-                }, tagJsonReq);
+                        @Override
+                        public byte[] getBody() {
+                            Map<String, String> params = new HashMap<>();
+                            params.put("CLUB_GRP_ID", groupId);
+                            params.put("GRP_NM", groupName);
+                            params.put("TXT", groupDescription);
+                            params.put("JOIN_DIV", !joinTypeCheck ? "0" : "1");
+                            if (params.size() > 0) {
+                                StringBuilder encodedParams = new StringBuilder();
+                                try {
+                                    for (Map.Entry<String, String> entry : params.entrySet()) {
+                                        encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));
+                                        encodedParams.append('=');
+                                        encodedParams.append(URLEncoder.encode(entry.getValue(), getParamsEncoding()));
+                                        encodedParams.append('&');
+                                    }
+                                    return encodedParams.toString().getBytes(getParamsEncoding());
+                                } catch (UnsupportedEncodingException uee) {
+                                    throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), uee);
+                                }
+                            }
+                            return null;
+                        }
+
+                        @Override
+                        public Map<String, String> getHeaders() {
+                            Map<String, String> headers = new HashMap<>();
+                            headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+                            return headers;
+                        }
+                    }, tagJsonReq);
+                } else {
+                    inputTitle.setError(groupName.isEmpty() ? "그룹이름을 입력하세요." : null);
+                    inputDescription.setError(groupDescription.isEmpty() ? "그룹설명을 입력하세요." : null);
+                }
                 return true;
         }
         return false;
@@ -232,5 +255,30 @@ public class DefaultSettingFragment extends Fragment {
                 break;
         }
         return super.onContextItemSelected(item);
+    }
+
+    private void initFirebaseData() {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
+        updateGroupDataToFirebase(databaseReference.child(groupKey));
+    }
+
+    private void updateGroupDataToFirebase(final Query query) {
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getValue() != null) {
+                    GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
+                    groupItem.setName(inputTitle.getText().toString());
+                    groupItem.setDescription(inputDescription.getText().toString());
+                    groupItem.setJoinType(!joinTypeCheck ? "0" : "1");
+                    query.getRef().setValue(groupItem);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("파이어베이스", "파이어베이스 데이터 불러오기 실패", databaseError.toException());
+            }
+        });
     }
 }

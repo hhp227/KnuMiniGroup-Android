@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
+import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.Request;
@@ -14,6 +15,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
+import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.adapter.GroupListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.GroupItem;
@@ -54,6 +56,7 @@ public class RequestActivity extends FragmentActivity {
         progressBar = findViewById(R.id.pb_group);
         swipeRefreshLayout = findViewById(R.id.srl_group_list);
         offSet = 1;
+        groupItemKeys = new ArrayList<>();
         groupItemValues = new ArrayList<>();
         listAdapter = new GroupListAdapter(getBaseContext(), groupItemKeys, groupItemValues);
         ActionBar actionBar = getActionBar();
@@ -99,8 +102,9 @@ public class RequestActivity extends FragmentActivity {
                 args.putString("img", groupItem.getImage());
                 args.putString("info", groupItem.getInfo());
                 args.putString("desc", groupItem.getDescription());
-                args.putBoolean("subs", groupItem.getJoinType().equals("0"));
-                args.putString("type", "1");
+                args.putString("type", groupItem.getJoinType());
+                args.putInt("btn_type", 1);
+                args.putString("key", groupItemKeys.get(position));
 
                 GroupInfoFragment newFragment = GroupInfoFragment.newInstance();
                 newFragment.setArguments(args);
@@ -159,6 +163,7 @@ public class RequestActivity extends FragmentActivity {
                             groupItem.setInfo(info.toString());
                             groupItem.setDescription(description);
                             groupItem.setJoinType(joinType.equals("가입방식: 자동 승인") ? "0" : "1");
+                            groupItemKeys.add(id);
                             groupItemValues.add(groupItem);
                         }
                     } catch (Exception e) {
@@ -170,6 +175,7 @@ public class RequestActivity extends FragmentActivity {
                 footerLoading.setVisibility(View.GONE);
                 progressBar.setVisibility(View.GONE);
                 relativeLayout.setVisibility(groupItemValues.isEmpty() ? View.VISIBLE : View.GONE);
+                initFirebaseData();
             }
         }, new Response.ErrorListener() {
             @Override
@@ -219,8 +225,47 @@ public class RequestActivity extends FragmentActivity {
 
     public void refresh() {
         offSet = 1;
+        groupItemKeys.clear();
         groupItemValues.clear();
         fetchGroupList();
+    }
+
+    private void initFirebaseData() {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
+        fetchDataTaskFromFirebase(databaseReference.child(app.AppController.getInstance().getPreferenceManager().getUser().getUid()).orderByValue().equalTo(false), false);
+    }
+
+    private void fetchDataTaskFromFirebase(Query query, final boolean isRecursion) {
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (isRecursion) {
+                    try {
+                        String key = dataSnapshot.getKey();
+                        GroupItem value = dataSnapshot.getValue(GroupItem.class);
+                        assert value != null;
+                        int index = groupItemKeys.indexOf(value.getId());
+                        if (index > -1) {
+                            //groupItemValues.set(index, value); //isAdmin값때문에 주석처리
+                            groupItemKeys.set(index, key);
+                        }
+                        listAdapter.notifyDataSetChanged();
+                    } catch (Exception e) {
+                        Log.e(TAG, e.getMessage());
+                    }
+                } else {
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
+                        fetchDataTaskFromFirebase(databaseReference.child(snapshot.getKey()), true);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
+            }
+        });
     }
 
     private String groupIdExtract(String onclick) {

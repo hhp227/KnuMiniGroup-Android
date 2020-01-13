@@ -1,6 +1,7 @@
 package com.hhp227.knu_minigroup.fragment;
 
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -45,8 +46,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
-    private static String groupId, key;
     private static boolean isAdmin;
+    private static int position;
+    private static String groupId, key;
     private static final String TAG = Tab4Fragment.class.getSimpleName();
     private long mLastClickTime;
     AdView adView;
@@ -59,10 +61,11 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     public Tab4Fragment() {
     }
 
-    public static Tab4Fragment newInstance(boolean isAdmin, String grpId, String key) {
+    public static Tab4Fragment newInstance(boolean isAdmin, String grpId, int position, String key) {
         Bundle args = new Bundle();
         args.putBoolean("admin", isAdmin);
         args.putString("grp_id", grpId);
+        args.putInt("position", position);
         args.putString("key", key);
         Tab4Fragment fragment = new Tab4Fragment();
         fragment.setArguments(args);
@@ -75,6 +78,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
         if (getArguments() != null) {
             isAdmin = getArguments().getBoolean("admin");
             groupId = getArguments().getString("grp_id");
+            position = getArguments().getInt("position");
             key = getArguments().getString("key");
         }
     }
@@ -134,7 +138,6 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                 startActivity(new Intent(getContext(), ProfileActivity.class));
                 break;
             case R.id.ll_withdrawal :
-                test();
                 AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                 builder.setMessage((isAdmin ? "폐쇄" : "탈퇴") + "하시겠습니까?");
                 builder.setPositiveButton("예", new DialogInterface.OnClickListener() {
@@ -212,7 +215,8 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
             case R.id.ll_settings :
                 Intent intent = new Intent(getContext(), SettingsActivity.class);
                 intent.putExtra("grp_id", groupId);
-                startActivity(intent);
+                intent.putExtra("key", key);
+                startActivityForResult(intent, GroupFragment.UPDATE_GROUP);
                 break;
             case R.id.ll_appstore :
                 String appUrl = "https://play.google.com/store/apps/details?id=" + getContext().getPackageName();
@@ -237,6 +241,23 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     @Override
     public boolean canScrollVertically(int direction) {
         return false;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == GroupFragment.UPDATE_GROUP && resultCode == Activity.RESULT_OK) {
+            String groupName = data.getStringExtra("grp_nm");
+            String groupDescription = data.getStringExtra("grp_desc");
+            String joinType = data.getStringExtra("join_div");
+            getActivity().getActionBar().setTitle(groupName);
+            Intent intent = new Intent(getContext(), GroupFragment.class);
+            intent.putExtra("grp_nm", groupName);
+            intent.putExtra("grp_desc", groupDescription);
+            intent.putExtra("join_div", joinType);
+            intent.putExtra("position", position);
+            getActivity().setResult(Activity.RESULT_OK, intent);
+        }
     }
 
     private void deleteGroupFromFirebase() {
@@ -294,23 +315,6 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
             });
             userGroupListReference.child(app.AppController.getInstance().getPreferenceManager().getUser().getUid()).child(key).removeValue();
         }
-    }
-
-    private void test() {
-        final DatabaseReference groupsReference = FirebaseDatabase.getInstance().getReference("Groups");
-        groupsReference.child(key).child("members").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    Log.e("테스트", snapshot.getKey());
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
-            }
-        });
     }
 
     private void showProgressDialog() {

@@ -34,6 +34,7 @@ public class SettingsActivity extends FragmentActivity {
         tabHost = findViewById(android.R.id.tabhost);
         viewPager = findViewById(R.id.view_pager);
         String groupId = getIntent().getStringExtra("grp_id");
+        String key = getIntent().getStringExtra("key");
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
@@ -63,7 +64,7 @@ public class SettingsActivity extends FragmentActivity {
         });
         List<Fragment> fragments = new Vector<>();
         fragments.add(MemberManagementFragment.newInstance(groupId));
-        fragments.add(DefaultSettingFragment.newInstance(groupId));
+        fragments.add(DefaultSettingFragment.newInstance(groupId, key));
         tabsPagerAdapter = new TabsPagerAdapter(getSupportFragmentManager(), fragments);
         viewPager.setAdapter(tabsPagerAdapter);
         viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {

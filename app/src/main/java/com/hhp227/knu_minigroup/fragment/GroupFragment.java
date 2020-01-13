@@ -35,6 +35,7 @@ import static android.app.Activity.RESULT_OK;
 public class GroupFragment extends Fragment {
     public static final int CREATE_CODE = 10;
     public static final int REGISTER_CODE = 20;
+    public static final int UPDATE_GROUP = 30;
     private static final String TAG = GroupFragment.class.getSimpleName();
     private long mLastClickTime; // 클릭시 걸리는 시간
     private GroupGridAdapter groupGridAdapter;
@@ -90,8 +91,9 @@ public class GroupFragment extends Fragment {
                     intent.putExtra(getString(R.string.extra_admin), groupItem.isAdmin());
                     intent.putExtra(getString(R.string.extra_group_id), groupItem.getId());
                     intent.putExtra(getString(R.string.extra_group_name), groupItem.getName());
+                    intent.putExtra(getString(R.string.extra_group_position), position);
                     intent.putExtra(getString(R.string.extra_key), groupGridAdapter.getKey(position));
-                    startActivity(intent);
+                    startActivityForResult(intent, UPDATE_GROUP);
                 }
             }
         });
@@ -159,6 +161,14 @@ public class GroupFragment extends Fragment {
             groupItemKeys.clear();
             groupItemValues.clear();
             fetchDataTask();
+        } else if (requestCode == UPDATE_GROUP && resultCode == RESULT_OK) {
+            int position = data.getIntExtra("position",0);
+            GroupItem groupItem = groupItemValues.get(position);
+            groupItem.setName(data.getStringExtra("grp_nm"));
+            groupItem.setDescription(data.getStringExtra("grp_desc"));
+            groupItem.setJoinType(data.getStringExtra("join_div"));
+            groupItemValues.set(position, groupItem);
+            groupGridAdapter.notifyDataSetChanged();
         }
     }
 
@@ -225,7 +235,7 @@ public class GroupFragment extends Fragment {
     }
 
     private void insertAdvertisement() {
-        setFirebaseData();
+        initFirebaseData();
         if (groupItemValues.size() % 2 != 0) {
             GroupItem ad = new GroupItem();
             ad.setAd(true);
@@ -236,7 +246,7 @@ public class GroupFragment extends Fragment {
         relativeLayout.setVisibility(groupItemValues.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
-    private void setFirebaseData() {
+    private void initFirebaseData() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
         fetchDataTaskFromFirebase(databaseReference.child(app.AppController.getInstance().getPreferenceManager().getUser().getUid()).orderByValue().equalTo(true), false);
     }
