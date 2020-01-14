@@ -31,8 +31,7 @@ public class SCShuttleScheduleFragment extends Fragment {
     private Source source;
     private ArrayList<HashMap<String, String>> data;
     private ProgressDialog progressDialog;
-    private ListView ShuttleList;
-    private SimpleAdapter ShuttleAdapter;
+    private SimpleAdapter shuttleAdapter;
 
     public static SCShuttleScheduleFragment newInstance() {
         SCShuttleScheduleFragment fragment = new SCShuttleScheduleFragment();
@@ -46,18 +45,17 @@ public class SCShuttleScheduleFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
         View rootView = inflater.inflate(R.layout.fragment_shuttle_schedule_sc, container, false);
-        ShuttleList = rootView.findViewById(R.id.lv_shuttle);
+        ListView shuttleList = rootView.findViewById(R.id.lv_shuttle);
         SWPRefresh = rootView.findViewById(R.id.srl_shuttle);
         data = new ArrayList<>();
         progressDialog = new ProgressDialog(getActivity());
 
-        ShuttleAdapter = new SimpleAdapter(getActivity(), data, R.layout.shuttle_sc_item,
+        shuttleAdapter = new SimpleAdapter(getActivity(), data, R.layout.shuttle_sc_item,
                 new String[] {"col1", "col2", "col3", "col4", "col5", "col6"},
                 new int[] {R.id.column1, R.id.column2, R.id.column3, R.id.column4, R.id.column5, R.id.column6});
 
-        ShuttleList.setAdapter(ShuttleAdapter);
+        shuttleList.setAdapter(shuttleAdapter);
         SWPRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -75,7 +73,7 @@ public class SCShuttleScheduleFragment extends Fragment {
             new Thread() {
                 public void run() {
                     try {
-                        URL URL = new URL(EndPoint.URL_SHUTTLE);
+                        URL URL = new URL(EndPoint.URL_SHUTTLE.replace("{SHUTTLE}", "map03_02"));
                         InputStream html = URL.openStream();
                         source = new Source(new InputStreamReader(html, "utf-8")); // 소스를 UTF-8 인코딩으로 불러온다.
                         source.fullSequentialParse(); // 순차적으로 구문분석
@@ -109,7 +107,7 @@ public class SCShuttleScheduleFragment extends Fragment {
                     handler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            ShuttleAdapter.notifyDataSetChanged(); // 모든 작업이 끝나면 리스트 갱신
+                            shuttleAdapter.notifyDataSetChanged(); // 모든 작업이 끝나면 리스트 갱신
                             progressDialog.dismiss(); // 모든 작업이 끝나면 다이어로그 종료
                         }
                     }, 0);

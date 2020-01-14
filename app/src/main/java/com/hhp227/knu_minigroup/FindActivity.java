@@ -114,6 +114,7 @@ public class FindActivity extends FragmentActivity {
                     @Override
                     public void run() {
                         offSet = 1;
+                        groupItemKeys.clear();
                         groupItemValues.clear();
                         fetchGroupList();
                         swipeRefreshLayout.setRefreshing(false);
