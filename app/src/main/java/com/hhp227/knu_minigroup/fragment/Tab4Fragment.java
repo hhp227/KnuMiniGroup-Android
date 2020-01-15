@@ -1,6 +1,5 @@
 package com.hhp227.knu_minigroup.fragment;
 
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -18,7 +17,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;

@@ -1,5 +1,6 @@
 package com.hhp227.knu_minigroup.fragment;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -9,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.Request;
@@ -29,8 +29,6 @@ import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
 
 import java.util.*;
-
-import static android.app.Activity.RESULT_OK;
 
 public class GroupFragment extends Fragment {
     public static final int CREATE_CODE = 10;
@@ -84,9 +82,9 @@ public class GroupFragment extends Fragment {
                     return;
                 mLastClickTime = SystemClock.elapsedRealtime();
                 GroupItem groupItem = groupItemValues.get(position);
-                if (groupItem.isAd()) {
+                if (groupItem.isAd())
                     Toast.makeText(getContext(), "광고", Toast.LENGTH_LONG).show();
-                } else {
+                else {
                     Intent intent = new Intent(getContext(), GroupActivity.class);
                     intent.putExtra(getString(R.string.extra_admin), groupItem.isAdmin());
                     intent.putExtra(getString(R.string.extra_group_id), groupItem.getId());
@@ -141,9 +139,7 @@ public class GroupFragment extends Fragment {
         });
         if (app.AppController.getInstance().getPreferenceManager().getUser() == null)
             logout();
-
         progressBar.setVisibility(View.VISIBLE);
-
         fetchDataTask();
 
         return rootView;
@@ -152,12 +148,12 @@ public class GroupFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if ((requestCode == CREATE_CODE || requestCode == REGISTER_CODE) && resultCode == RESULT_OK) {
+        if ((requestCode == CREATE_CODE || requestCode == REGISTER_CODE) && resultCode == Activity.RESULT_OK) {
             groupItemKeys.clear();
             groupItemValues.clear();
             fetchDataTask();
-        } else if (requestCode == UPDATE_GROUP && resultCode == RESULT_OK) {
-            int position = data.getIntExtra("position",0);
+        } else if (requestCode == UPDATE_GROUP && resultCode == Activity.RESULT_OK) {
+            int position = data.getIntExtra("position", 0);
             GroupItem groupItem = groupItemValues.get(position);
             groupItem.setName(data.getStringExtra("grp_nm"));
             groupItem.setDescription(data.getStringExtra("grp_desc"));
