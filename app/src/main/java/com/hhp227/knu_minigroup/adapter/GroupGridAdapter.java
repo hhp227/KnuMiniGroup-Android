@@ -76,14 +76,12 @@ public class GroupGridAdapter extends BaseAdapter {
                 public void onUnifiedNativeAdLoaded(UnifiedNativeAd unifiedNativeAd) {
                     MediaView mediaView = finalConvertView.findViewById(R.id.ad_media);
                     TextView headlineView = finalConvertView.findViewById(R.id.ad_headline);
-                    RatingBar starRating = finalConvertView.findViewById(R.id.ad_stars);
                     TextView bodyView = finalConvertView.findViewById(R.id.ad_body);
                     TextView advertiser = finalConvertView.findViewById(R.id.ad_advertiser);
                     mediaView.setImageScaleType(ImageView.ScaleType.CENTER_CROP);
                     viewHolder.adView.setMediaView(mediaView);
                     viewHolder.adView.setHeadlineView(headlineView);
                     viewHolder.adView.setBodyView(bodyView);
-                    viewHolder.adView.setStarRatingView(starRating);
                     viewHolder.adView.setAdvertiserView(advertiser);
                     headlineView.setText(unifiedNativeAd.getHeadline());
                     viewHolder.adView.getMediaView().setMediaContent(unifiedNativeAd.getMediaContent());
@@ -92,16 +90,11 @@ public class GroupGridAdapter extends BaseAdapter {
                         viewHolder.adView.getBodyView().setVisibility(View.VISIBLE);
                     } else
                         viewHolder.adView.getBodyView().setVisibility(View.INVISIBLE);
-                    if (unifiedNativeAd.getStarRating() != null) {
-                        starRating.setRating(unifiedNativeAd.getStarRating().floatValue());
-                        viewHolder.adView.getStarRatingView().setVisibility(View.VISIBLE);
-                    } else
-                        viewHolder.adView.getStarRatingView().setVisibility(View.INVISIBLE);
                     if (unifiedNativeAd.getAdvertiser() != null) {
                         advertiser.setText(unifiedNativeAd.getAdvertiser());
                         viewHolder.adView.getAdvertiserView().setVisibility(View.VISIBLE);
                     } else
-                        viewHolder.adView.getAdvertiserView().setVisibility(View.INVISIBLE);
+                        viewHolder.adView.getAdvertiserView().setVisibility(View.GONE);
 
                     viewHolder.adView.setNativeAd(unifiedNativeAd);
                     mediaView.addView(getAdText());

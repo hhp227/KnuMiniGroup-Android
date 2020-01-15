@@ -97,7 +97,6 @@ public class GroupFragment extends Fragment {
                 }
             }
         });
-
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -113,7 +112,6 @@ public class GroupFragment extends Fragment {
             }
         });
         swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light, android.R.color.holo_red_light);
-
         findGroup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -123,7 +121,6 @@ public class GroupFragment extends Fragment {
                 startActivityForResult(new Intent(getContext(), FindActivity.class), REGISTER_CODE);
             }
         });
-
         requestGroup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -133,7 +130,6 @@ public class GroupFragment extends Fragment {
                 startActivity(new Intent(getActivity(), RequestActivity.class));
             }
         });
-
         createGroup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -143,7 +139,6 @@ public class GroupFragment extends Fragment {
                 startActivityForResult(new Intent(getContext(), CreateActivity.class), CREATE_CODE);
             }
         });
-
         if (app.AppController.getInstance().getPreferenceManager().getUser() == null)
             logout();
 
@@ -248,7 +243,7 @@ public class GroupFragment extends Fragment {
 
     private void initFirebaseData() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
-        fetchDataTaskFromFirebase(databaseReference.child(app.AppController.getInstance().getPreferenceManager().getUser().getUid()).orderByValue().equalTo(true), false);
+        fetchDataTaskFromFirebase(databaseReference.child(preferenceManager.getUser().getUid()).orderByValue().equalTo(true), false);
     }
 
     private void fetchDataTaskFromFirebase(Query query, final boolean isRecursion) {
