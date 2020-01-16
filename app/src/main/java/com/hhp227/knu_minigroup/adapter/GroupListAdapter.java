@@ -54,14 +54,13 @@ public class GroupListAdapter extends BaseAdapter {
         } else
             viewHolder = (ViewHolder) convertView.getTag();
 
-        ImageView groupImage = convertView.findViewById(R.id.iv_group_image);
         GroupItem groupItem = mGroupItemValues.get(position);
 
         viewHolder.groupName.setText(groupItem.getName());
         viewHolder.groupName.setMaxLines(NAME_MAX_LINE);
         viewHolder.groupInfo.setText(groupItem.getJoinType().equals("0") ? "가입방식: 자동 승인" : "가입방식: 운영자 승인 확인");
 
-        Glide.with(mContext).load(groupItem.getImage()).apply(RequestOptions.errorOf(R.drawable.bg_no_image)).into(groupImage);
+        Glide.with(mContext).load(groupItem.getImage()).apply(RequestOptions.errorOf(R.drawable.bg_no_image)).into(viewHolder.groupImage);
 
         return convertView;
     }
@@ -71,9 +70,11 @@ public class GroupListAdapter extends BaseAdapter {
     }
 
     private static class ViewHolder {
+        private ImageView groupImage;
         private TextView groupName, groupInfo;
 
         ViewHolder(View itemView) {
+            groupImage = itemView.findViewById(R.id.iv_group_image);
             groupName = itemView.findViewById(R.id.tv_group_name);
             groupInfo = itemView.findViewById(R.id.tv_info);
         }
