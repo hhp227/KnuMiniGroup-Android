@@ -32,7 +32,7 @@ public class FindActivity extends FragmentActivity {
     private static final int LIMIT = 15;
     private static final String TAG = FindActivity.class.getSimpleName();
     private boolean mHasRequestedMore;
-    private int mOffSet;
+    private int mOffSet, mMinId;
     private GroupListAdapter mAdapter;
     private List<String> mGroupItemKeys;
     private List<GroupItem> mGroupItemValues;
@@ -113,6 +113,7 @@ public class FindActivity extends FragmentActivity {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
+                        mMinId = 0;
                         mOffSet = 1;
                         mGroupItemKeys.clear();
                         mGroupItemValues.clear();
@@ -143,7 +144,7 @@ public class FindActivity extends FragmentActivity {
                     try {
                         Element menuList = element.getFirstElementByClass("menu_list");
                         if (element.getAttributeValue("class").equals("accordion")) {
-                            String id = String.valueOf(groupIdExtract(menuList.getFirstElementByClass("button").getAttributeValue("onclick")));
+                            int id = groupIdExtract(menuList.getFirstElementByClass("button").getAttributeValue("onclick"));
                             String imageUrl = EndPoint.BASE_URL + element.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
                             String name = element.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
                             StringBuilder info = new StringBuilder();
@@ -155,14 +156,20 @@ public class FindActivity extends FragmentActivity {
                                         extractedText.substring(0, extractedText.lastIndexOf("생성일")).trim() + "\n" :
                                         extractedText + "\n");
                             }
+                            mMinId = mMinId == 0 ? id : Math.min(mMinId, id);
+                            if (id > mMinId) {
+                                mHasRequestedMore = true;
+                                break;
+                            } else
+                                mHasRequestedMore = false;
                             GroupItem groupItem = new GroupItem();
-                            groupItem.setId(id);
+                            groupItem.setId(String.valueOf(id));
                             groupItem.setImage(imageUrl);
                             groupItem.setName(name);
                             groupItem.setInfo(info.toString().trim());
                             groupItem.setDescription(description);
                             groupItem.setJoinType(joinType.equals("가입방식: 자동 승인") ? "0" : "1");
-                            mGroupItemKeys.add(id);
+                            mGroupItemKeys.add(String.valueOf(id));
                             mGroupItemValues.add(groupItem);
                         }
                     } catch (Exception e) {
@@ -170,7 +177,6 @@ public class FindActivity extends FragmentActivity {
                     }
                 }
                 mAdapter.notifyDataSetChanged();
-                mHasRequestedMore = false;
                 hideProgressBar();
                 mRelativeLayout.setVisibility(mGroupItemValues.isEmpty() ? View.VISIBLE : View.GONE);
                 initFirebaseData();
