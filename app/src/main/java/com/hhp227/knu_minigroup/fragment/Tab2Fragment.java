@@ -29,14 +29,12 @@ import java.util.*;
 
 public class Tab2Fragment extends BaseFragment {
     private static final String TAG = "일정";
-    private Calendar calendar;
-    private ExtendedCalendarView extendedCalendarView;
-    private HashMap<String, String> map;
-    private List<HashMap<String, String>> list;
-    private ListView listView;
-    private SimpleAdapter arrayAdapter;
-    private String year, month;
-    private View headerView;
+    private Calendar mCalendar;
+    private ExtendedCalendarView mExtendedCalendarView;
+    private HashMap<String, String> mMap;
+    private List<HashMap<String, String>> mList;
+    private ListView mListView;
+    private SimpleAdapter mAdapter;
 
     public Tab2Fragment() {
     }
@@ -44,63 +42,64 @@ public class Tab2Fragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_tab2, container, false);
-        headerView = getLayoutInflater().inflate(R.layout.header_calendar, null, false);
-        extendedCalendarView = headerView.findViewById(R.id.calendar);
-        listView = rootView.findViewById(R.id.lv_cal);
-        calendar = Calendar.getInstance();
-        extendedCalendarView.setOnDayClickListener(new ExtendedCalendarView.OnDayClickListener() {
+        View headerView = getLayoutInflater().inflate(R.layout.header_calendar, null, false);
+        mExtendedCalendarView = headerView.findViewById(R.id.calendar);
+        mListView = rootView.findViewById(R.id.lv_cal);
+        mCalendar = Calendar.getInstance();
+
+        mExtendedCalendarView.setOnDayClickListener(new ExtendedCalendarView.OnDayClickListener() {
             @Override
             public void onDayClicked(AdapterView<?> adapter, View view, int position, long id, Day day) {
 
             }
         });
-        extendedCalendarView.prev.setOnClickListener(new View.OnClickListener() {
+        mExtendedCalendarView.prev.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                extendedCalendarView.previousMonth();
-                if (calendar.get(Calendar.MONTH) == calendar.getActualMinimum(Calendar.MONTH)) {
-                    calendar.set((calendar.get(Calendar.YEAR) - 1), calendar.getActualMaximum(Calendar.MONTH),1);
+                mExtendedCalendarView.previousMonth();
+                if (mCalendar.get(Calendar.MONTH) == mCalendar.getActualMinimum(Calendar.MONTH)) {
+                    mCalendar.set((mCalendar.get(Calendar.YEAR) - 1), mCalendar.getActualMaximum(Calendar.MONTH),1);
                 } else {
-                    calendar.set(Calendar.MONTH, calendar.get(Calendar.MONTH) - 1);
+                    mCalendar.set(Calendar.MONTH, mCalendar.get(Calendar.MONTH) - 1);
                 }
                 fetchDataTask();
             }
         });
-        extendedCalendarView.next.setOnClickListener(new View.OnClickListener() {
+        mExtendedCalendarView.next.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                extendedCalendarView.nextMonth();
-                if (calendar.get(Calendar.MONTH) == calendar.getActualMaximum(Calendar.MONTH)) {
-                    calendar.set((calendar.get(Calendar.YEAR) + 1), calendar.getActualMinimum(Calendar.MONTH),1);
+                mExtendedCalendarView.nextMonth();
+                if (mCalendar.get(Calendar.MONTH) == mCalendar.getActualMaximum(Calendar.MONTH)) {
+                    mCalendar.set((mCalendar.get(Calendar.YEAR) + 1), mCalendar.getActualMinimum(Calendar.MONTH),1);
                 } else {
-                    calendar.set(Calendar.MONTH, calendar.get(Calendar.MONTH) + 1);
+                    mCalendar.set(Calendar.MONTH, mCalendar.get(Calendar.MONTH) + 1);
                 }
                 fetchDataTask();
             }
         });
-        listView.addHeaderView(headerView);
+        mListView.addHeaderView(headerView);
         fetchDataTask();
         return rootView;
     }
 
     @Override
     public boolean canScrollVertically(int direction) {
-        return listView != null && listView.canScrollVertically(direction);
+        return mListView != null && mListView.canScrollVertically(direction);
     }
 
     private void fetchDataTask() {
-        year = String.valueOf(calendar.get(Calendar.YEAR));
-        month = String.format("%02d", calendar.get(Calendar.MONTH) + 1);
+        String year = String.valueOf(mCalendar.get(Calendar.YEAR));
+        String month = String.format("%02d", mCalendar.get(Calendar.MONTH) + 1);
 
         String endPoint = EndPoint.URL_SCHEDULE.replace("{YEAR-MONTH}", year.concat(month));
         app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, endPoint, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 try {
-                    list = new ArrayList<>();
-                    arrayAdapter = new SimpleAdapter(getContext(), list, R.layout.schedule_item, new String[] {"날짜", "내용"}, new int[] {R.id.date, R.id.content});
+                    mList = new ArrayList<>();
+                    mAdapter = new SimpleAdapter(getContext(), mList, R.layout.schedule_item, new String[] {"날짜", "내용"}, new int[] {R.id.date, R.id.content});
 
-                    listView.setAdapter(arrayAdapter);
+                    mListView.setAdapter(mAdapter);
                     XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
                     XmlPullParser parser = factory.newPullParser();
                     parser.setInput(new StringReader(response));
@@ -111,14 +110,14 @@ public class Tab2Fragment extends BaseFragment {
                             case XmlPullParser.START_TAG :
                                 switch (parser.getName()) {
                                     case "entry" :
-                                        map = new HashMap<>();
+                                        mMap = new HashMap<>();
                                         break;
                                     case "date" :
-                                        map.put("날짜", getTimeStamp(parser.nextText()));
+                                        mMap.put("날짜", getTimeStamp(parser.nextText()));
                                         break;
                                     case "title" :
                                         try {
-                                            map.put("내용", parser.nextText());
+                                            mMap.put("내용", parser.nextText());
                                         } catch (Exception e) {
                                             Log.e(TAG, e.getMessage());
                                         }
@@ -127,11 +126,11 @@ public class Tab2Fragment extends BaseFragment {
                                 break;
                             case XmlPullParser.END_TAG :
                                 if (parser.getName().equals("entry"))
-                                    list.add(map);
+                                    mList.add(mMap);
                         }
                         eventType = parser.next();
                     }
-                    arrayAdapter.notifyDataSetChanged();
+                    mAdapter.notifyDataSetChanged();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

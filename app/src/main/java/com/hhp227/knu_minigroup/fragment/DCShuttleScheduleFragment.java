@@ -9,7 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
-import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.Request;
@@ -30,9 +29,9 @@ import java.util.Map;
 
 public class DCShuttleScheduleFragment extends Fragment {
     private static final String TAG = "학교버스시간표";
-    private List<Map<String, String>> list;
-    private SwipeRefreshLayout swipeRefreshLayout;
-    private SimpleAdapter shuttleAdapter;
+    private List<Map<String, String>> mShuttleList;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
+    private SimpleAdapter mAdapter;
 
     public static DCShuttleScheduleFragment newInstance() {
         DCShuttleScheduleFragment fragment = new DCShuttleScheduleFragment();
@@ -47,21 +46,21 @@ public class DCShuttleScheduleFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_shuttle_schedule, container, false);
-        ListView shuttleList = rootView.findViewById(R.id.lv_shuttle);
-        swipeRefreshLayout = rootView.findViewById(R.id.srl_shuttle);
-        list = new ArrayList<>();
-        shuttleAdapter = new SimpleAdapter(getContext(), list, R.layout.shuttle_item, new String[] {"col1", "col2"}, new int[] {R.id.division, R.id.time_label});
-        shuttleList.setAdapter(shuttleAdapter);
+        ListView listView = rootView.findViewById(R.id.lv_shuttle);
+        mSwipeRefreshLayout = rootView.findViewById(R.id.srl_shuttle);
+        mShuttleList = new ArrayList<>();
+        mAdapter = new SimpleAdapter(getContext(), mShuttleList, R.layout.shuttle_item, new String[] {"col1", "col2"}, new int[] {R.id.division, R.id.time_label});
+        listView.setAdapter(mAdapter);
 
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        list.clear();
+                        mShuttleList.clear();
                         fetchDataTask();
-                        swipeRefreshLayout.setRefreshing(false);
+                        mSwipeRefreshLayout.setRefreshing(false);
                     }
                 }, 1000);
             }
@@ -89,21 +88,21 @@ public class DCShuttleScheduleFragment extends Fragment {
                             if (i != 0) {
                                 Element col2 = trs.get(i).getAllElements(HTMLElementName.TD).get(0);
                                 map1.put("col2", col2.getTextExtractor().toString());
-                                list.add(a == 0 ? j : list.size(), map1);
+                                mShuttleList.add(a == 0 ? j : mShuttleList.size(), map1);
                                 col1 = trs.get(i).getAllElements(HTMLElementName.TH).get(1);
                                 col2 = trs.get(i).getAllElements(HTMLElementName.TD).get(1);
                                 map2.put("col1", col1.getTextExtractor().toString());
                                 map2.put("col2", col2.getTextExtractor().toString());
                                 if (!TextUtils.isEmpty(col1.getTextExtractor().toString()) || !TextUtils.isEmpty(col2.getTextExtractor().toString()))
-                                    list.add(list.size(), map2);
+                                    mShuttleList.add(mShuttleList.size(), map2);
                             } else
-                                list.add(a == 0 ? i : list.size(), map1);
+                                mShuttleList.add(a == 0 ? i : mShuttleList.size(), map1);
                         } catch (Exception e) {
                             Log.e(TAG, e.getMessage());
                         }
                     }
                 }
-                shuttleAdapter.notifyDataSetChanged();
+                mAdapter.notifyDataSetChanged();
             }
         }, new Response.ErrorListener() {
             @Override

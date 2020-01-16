@@ -25,7 +25,7 @@ import java.util.ArrayList;
 
 public class BTLDormMealFragment extends Fragment {
     private static final String TAG = "BTL 식단표";
-    private TextView[] menuView;
+    private TextView[] mMenuView;
 
     public static BTLDormMealFragment newInstance() {
         BTLDormMealFragment fragment = new BTLDormMealFragment();
@@ -40,7 +40,7 @@ public class BTLDormMealFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_dormmeal, container, false);
-        menuView = new TextView[] {
+        mMenuView = new TextView[] {
                 rootView.findViewById(R.id.breakfast),
                 rootView.findViewById(R.id.lunch),
                 rootView.findViewById(R.id.dinner)
@@ -66,13 +66,11 @@ public class BTLDormMealFragment extends Fragment {
                         }
                         eventType = parser.next();
                     }
-                } catch (XmlPullParserException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
+                } catch (XmlPullParserException | IOException e) {
                     e.printStackTrace();
                 }
-                for (int i = 0; i < menuView.length; i++)
-                    menuView[i].setText(arrayList.size() > 0 ? arrayList.get(i) : "등록된 식단이 없습니다.");
+                for (int i = 0; i < mMenuView.length; i++)
+                    mMenuView[i].setText(arrayList.size() > 0 ? arrayList.get(i) : "등록된 식단이 없습니다.");
             }
         }, new Response.ErrorListener() {
             @Override

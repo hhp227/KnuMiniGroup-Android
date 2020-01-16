@@ -36,22 +36,20 @@ import java.util.Map;
 public class Tab1Fragment extends BaseFragment {
     public static final int LIMIT = 10;
     public static final int UPDATE_ARTICLE = 20;
-
-    public static boolean isAdmin;
-    public static String groupId, groupName, key;
-    private ArticleListAdapter articleListAdapter;
-    private FloatingActionButton floatingActionButton;
-    private List<String> articleItemKeys;
-    private List<ArticleItem> articleItemValues;
-    private ListView listView;
-    private ProgressDialog progressDialog;
-    private RelativeLayout relativeLayout;
-    private SwipeRefreshLayout swipeRefreshLayout;
-    private View footerLoading;
-
-    private boolean hasRequestedMore; // 데이터 불러올때 중복안되게 하기위한 변수
-    private int offSet;
+    public static boolean mIsAdmin;
+    public static String mGroupId, mGroupName, mKey;
+    private boolean mHasRequestedMore; // 데이터 불러올때 중복안되게 하기위한 변수
+    private int mOffSet;
     private long mLastClickTime; // 클릭시 걸리는 시간
+    private ArticleListAdapter mAdapter;
+    private FloatingActionButton mFloatingActionButton;
+    private List<String> mArticleItemKeys;
+    private List<ArticleItem> mArticleItemValues;
+    private ListView mListView;
+    private ProgressDialog mProgressDialog;
+    private RelativeLayout mRelativeLayout;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
+    private View mFooterLoading;
 
     public Tab1Fragment() {
     }
@@ -71,42 +69,41 @@ public class Tab1Fragment extends BaseFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            isAdmin = getArguments().getBoolean("admin");
-            groupId = getArguments().getString("grp_id");
-            groupName = getArguments().getString("grp_nm");
-            key = getArguments().getString("key");
+            mIsAdmin = getArguments().getBoolean("admin");
+            mGroupId = getArguments().getString("grp_id");
+            mGroupName = getArguments().getString("grp_nm");
+            mKey = getArguments().getString("key");
         }
     }
 
     @Override
     public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_tab1, container, false);
+        mFloatingActionButton = rootView.findViewById(R.id.fab_button);
+        mFooterLoading = View.inflate(getContext(), R.layout.load_more, null);
+        mListView = rootView.findViewById(R.id.lv_article);
+        mRelativeLayout = rootView.findViewById(R.id.rl_write);
+        mSwipeRefreshLayout = rootView.findViewById(R.id.srl_article_list);
+        mArticleItemKeys = new ArrayList<>();
+        mArticleItemValues = new ArrayList<>();
+        mAdapter = new ArticleListAdapter(getActivity(), mArticleItemKeys, mArticleItemValues, mKey);
+        mOffSet = 1; // offSet 초기화
 
-        floatingActionButton = rootView.findViewById(R.id.fab_button);
-        footerLoading = View.inflate(getContext(), R.layout.load_more, null);
-        listView = rootView.findViewById(R.id.lv_article);
-        relativeLayout = rootView.findViewById(R.id.rl_write);
-        swipeRefreshLayout = rootView.findViewById(R.id.srl_article_list);
-        articleItemKeys = new ArrayList<>();
-        articleItemValues = new ArrayList<>();
-        articleListAdapter = new ArticleListAdapter(getActivity(), articleItemKeys, articleItemValues, key);
-        offSet = 1; // offSet 초기화
-        listView.addFooterView(footerLoading);
-
-        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+        mListView.addFooterView(mFooterLoading);
+        mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getActivity(), WriteActivity.class);
-                intent.putExtra(getString(R.string.extra_admin), isAdmin);
-                intent.putExtra(getString(R.string.extra_group_id), groupId);
-                intent.putExtra(getString(R.string.extra_group_name), groupName);
-                intent.putExtra(getString(R.string.extra_key), key);
+                intent.putExtra(getString(R.string.extra_admin), mIsAdmin);
+                intent.putExtra(getString(R.string.extra_group_id), mGroupId);
+                intent.putExtra(getString(R.string.extra_group_name), mGroupName);
+                intent.putExtra(getString(R.string.extra_key), mKey);
                 startActivity(intent);
                 return;
             }
         });
-        listView.setAdapter(articleListAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mListView.setAdapter(mAdapter);
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 // 두번 클릭시 방지
@@ -114,32 +111,32 @@ public class Tab1Fragment extends BaseFragment {
                     return;
                 mLastClickTime = SystemClock.elapsedRealtime();
 
-                ArticleItem articleItem = articleItemValues.get(position);
+                ArticleItem articleItem = mArticleItemValues.get(position);
                 Intent intent = new Intent(getContext(), ArticleActivity.class);
-                intent.putExtra("admin", isAdmin);
-                intent.putExtra("grp_id", groupId);
-                intent.putExtra("grp_nm", groupName);
+                intent.putExtra("admin", mIsAdmin);
+                intent.putExtra("grp_id", mGroupId);
+                intent.putExtra("grp_nm", mGroupName);
                 intent.putExtra("artl_num", articleItem.getId());
                 intent.putExtra("position", position + 1);
                 intent.putExtra("auth", articleItem.isAuth() || app.AppController.getInstance().getPreferenceManager().getUser().getUid().equals(articleItem.getUid()));
-                intent.putExtra("grp_key", key);
-                intent.putExtra("artl_key", articleListAdapter.getKey(position));
+                intent.putExtra("grp_key", mKey);
+                intent.putExtra("artl_key", mAdapter.getKey(position));
                 startActivityForResult(intent, UPDATE_ARTICLE);
             }
         });
-        listView.setOnScrollListener(new AbsListView.OnScrollListener() {
+        mListView.setOnScrollListener(new AbsListView.OnScrollListener() {
             boolean lastItemVisibleFlag;
 
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
-                if (scrollState == SCROLL_STATE_IDLE && lastItemVisibleFlag && !hasRequestedMore) {
+                if (scrollState == SCROLL_STATE_IDLE && lastItemVisibleFlag && !mHasRequestedMore) {
                     // 화면이 바닦에 닿을때 처리
                     // 로딩중을 알리는 프로그레스바를 보인다.
-                    footerLoading.setVisibility(View.VISIBLE);
+                    mFooterLoading.setVisibility(View.VISIBLE);
 
                     // 다음 데이터를 불러온다.
-                    offSet += LIMIT;
-                    hasRequestedMore = true;
+                    mOffSet += LIMIT;
+                    mHasRequestedMore = true;
                     fetchArticleList();
                 }
             }
@@ -149,39 +146,39 @@ public class Tab1Fragment extends BaseFragment {
                 lastItemVisibleFlag = totalItemCount > 0 && firstVisibleItem + visibleItemCount >= totalItemCount;
             }
         });
-        relativeLayout.setOnClickListener(new View.OnClickListener() {
+        mRelativeLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
                     return;
                 mLastClickTime = SystemClock.elapsedRealtime();
                 Intent intent = new Intent(getActivity(), WriteActivity.class);
-                intent.putExtra(getString(R.string.extra_admin), isAdmin);
-                intent.putExtra(getString(R.string.extra_group_id), groupId);
-                intent.putExtra(getString(R.string.extra_group_name), groupName);
-                intent.putExtra(getString(R.string.extra_key), key);
+                intent.putExtra(getString(R.string.extra_admin), mIsAdmin);
+                intent.putExtra(getString(R.string.extra_group_id), mGroupId);
+                intent.putExtra(getString(R.string.extra_group_name), mGroupName);
+                intent.putExtra(getString(R.string.extra_key), mKey);
                 startActivity(intent);
                 return;
             }
         });
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        offSet = 1;
-                        articleItemKeys.clear();
-                        articleItemValues.clear();
+                        mOffSet = 1;
+                        mArticleItemKeys.clear();
+                        mArticleItemValues.clear();
                         fetchArticleList();
-                        swipeRefreshLayout.setRefreshing(false);
+                        mSwipeRefreshLayout.setRefreshing(false);
                     }
                 }, 2000);
             }
         });
-        swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_red_light, android.R.color.holo_orange_light, android.R.color.holo_green_light, android.R.color.holo_blue_bright);
+        mSwipeRefreshLayout.setColorSchemeResources(android.R.color.holo_red_light, android.R.color.holo_orange_light, android.R.color.holo_green_light, android.R.color.holo_blue_bright);
 
-        progressDialog = ProgressDialog.show(getActivity(), "", "불러오는중...");
+        mProgressDialog = ProgressDialog.show(getActivity(), "", "불러오는중...");
         fetchArticleList();
 
         return rootView;
@@ -192,23 +189,23 @@ public class Tab1Fragment extends BaseFragment {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == UPDATE_ARTICLE && resultCode == Activity.RESULT_OK) {
             int position = data.getIntExtra("position", 0) - 1;
-            ArticleItem articleItem = articleItemValues.get(position);
+            ArticleItem articleItem = mArticleItemValues.get(position);
             articleItem.setTitle(data.getStringExtra("sbjt"));
             articleItem.setContent(data.getStringExtra("txt"));
             articleItem.setImages(data.getStringArrayListExtra("img")); // firebase data
             articleItem.setReplyCount(data.getStringExtra("cmmt_cnt"));
-            articleItemValues.set(position, articleItem);
-            articleListAdapter.notifyDataSetChanged();
+            mArticleItemValues.set(position, articleItem);
+            mAdapter.notifyDataSetChanged();
         }
     }
 
     @Override
     public boolean canScrollVertically(int direction) {
-        return listView != null && listView.canScrollVertically(direction);
+        return mListView != null && mListView.canScrollVertically(direction);
     }
 
     private void fetchArticleList() {
-        String params = "?CLUB_GRP_ID=" + groupId + "&startL=" + offSet + "&displayL=" + LIMIT;
+        String params = "?CLUB_GRP_ID=" + mGroupId + "&startL=" + mOffSet + "&displayL=" + LIMIT;
         StringRequest stringRequest = new StringRequest(Request.Method.GET, EndPoint.GROUP_ARTICLE_LIST + params, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -252,18 +249,18 @@ public class Tab1Fragment extends BaseFragment {
                         articleItem.setReplyCount(replyCnt);
                         articleItem.setAuth(auth);
 
-                        articleItemKeys.add(id);
-                        articleItemValues.add(articleItem);
+                        mArticleItemKeys.add(id);
+                        mArticleItemValues.add(articleItem);
                     }
-                    articleListAdapter.notifyDataSetChanged();
-                    // 중복 로딩 체크하는 Lock을 했던 HasRequestedMore변수를 풀어준다.
-                    hasRequestedMore = false;
+                    mAdapter.notifyDataSetChanged();
+                    // 중복 로딩 체크하는 Lock을 했던 mHasRequestedMore변수를 풀어준다.
+                    mHasRequestedMore = false;
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
                     hideProgressDialog();
-                    relativeLayout.setVisibility(!articleItemValues.isEmpty() ? View.GONE : View.VISIBLE);
-                    floatingActionButton.setVisibility(!articleItemValues.isEmpty() ? View.VISIBLE : View.GONE);
+                    mRelativeLayout.setVisibility(!mArticleItemValues.isEmpty() ? View.GONE : View.VISIBLE);
+                    mFloatingActionButton.setVisibility(!mArticleItemValues.isEmpty() ? View.VISIBLE : View.GONE);
                     initFirebaseData();
                 }
             }
@@ -286,7 +283,7 @@ public class Tab1Fragment extends BaseFragment {
 
     private void initFirebaseData() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
-        fetchArticleListFromFirebase(databaseReference.child(key));
+        fetchArticleListFromFirebase(databaseReference.child(mKey));
     }
 
     private void fetchArticleListFromFirebase(Query query) {
@@ -296,15 +293,15 @@ public class Tab1Fragment extends BaseFragment {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     String key = snapshot.getKey();
                     ArticleItem value = snapshot.getValue(ArticleItem.class);
-                    int index = articleItemKeys.indexOf(value.getId());
+                    int index = mArticleItemKeys.indexOf(value.getId());
                     if (index > -1) {
-                        ArticleItem articleItem = articleItemValues.get(index);
+                        ArticleItem articleItem = mArticleItemValues.get(index);
                         articleItem.setUid(value.getUid());
-                        articleItemValues.set(index, articleItem);
-                        articleItemKeys.set(index, key);
+                        mArticleItemValues.set(index, articleItem);
+                        mArticleItemKeys.set(index, key);
                     }
                 }
-                articleListAdapter.notifyDataSetChanged();
+                mAdapter.notifyDataSetChanged();
             }
 
             @Override
@@ -315,8 +312,8 @@ public class Tab1Fragment extends BaseFragment {
     }
 
     private void hideProgressDialog() {
-        if (progressDialog.isShowing())
-            progressDialog.dismiss();
-        footerLoading.setVisibility(View.GONE);
+        if (mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
+        mFooterLoading.setVisibility(View.GONE);
     }
 }

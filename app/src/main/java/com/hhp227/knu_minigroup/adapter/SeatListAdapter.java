@@ -19,24 +19,23 @@ import java.util.List;
 import java.util.TimeZone;
 
 public class SeatListAdapter extends BaseAdapter {
-    private Activity activity;
-    private LayoutInflater inflater;
-    private List<SeatItem> seatItems;
-    private TextView name, text, status;
+    private Activity mActivity;
+    private LayoutInflater mInflater;
+    private List<SeatItem> mSeatItemList;
 
     public SeatListAdapter(Activity activity, List<SeatItem> seatItems) {
-        this.activity = activity;
-        this.seatItems = seatItems;
+        this.mActivity = activity;
+        this.mSeatItemList = seatItems;
     }
 
     @Override
     public int getCount() {
-        return seatItems.size();
+        return mSeatItemList.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return seatItems.get(position);
+        return mSeatItemList.get(position);
     }
 
     @Override
@@ -46,21 +45,22 @@ public class SeatListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        if (inflater == null)
-            inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        if (convertView == null)
-            convertView = inflater.inflate(R.layout.seat_item, null);
+        ViewHolder viewHolder;
+        if (mInflater == null)
+            mInflater = (LayoutInflater) mActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        if (convertView == null) {
+            convertView = mInflater.inflate(R.layout.seat_item, null);
+            viewHolder = new ViewHolder(convertView);
+            convertView.setTag(viewHolder);
+        } else
+            viewHolder = (ViewHolder) convertView.getTag();
 
-        name = convertView.findViewById(R.id.name);
-        text = convertView.findViewById(R.id.text);
-        status = convertView.findViewById(R.id.seat);
-
-        SeatItem seatItem = seatItems.get(position);
-        name.setText(seatItem.name);
-        text.setText(seatItem.disable == null ? "사용중 좌석" : seatItem.disable[0]);
-        status.setText(seatItem.disable == null ?
+        SeatItem seatItem = mSeatItemList.get(position);
+        viewHolder.name.setText(seatItem.name);
+        viewHolder.text.setText(seatItem.disable == null ? "사용중 좌석" : seatItem.disable[0]);
+        viewHolder.status.setText(seatItem.disable == null ?
                 new StringBuilder().append("[").append(seatItem.occupied).append("/").append(seatItem.activeTotal).append("]").toString() :
-                new StringBuilder().append(getPeriodTimeGenerator(activity, seatItem.disable[1])).append(" ~ ").append(getPeriodTimeGenerator(activity, seatItem.disable[2])).toString());
+                new StringBuilder().append(getPeriodTimeGenerator(mActivity, seatItem.disable[1])).append(" ~ ").append(getPeriodTimeGenerator(mActivity, seatItem.disable[2])).toString());
 
         return convertView;
     }
@@ -82,5 +82,15 @@ public class SeatListAdapter extends BaseAdapter {
         }
         SimpleDateFormat sdf = new SimpleDateFormat(context.getResources().getString(R.string.format_date2));
         return sdf.format(date);
+    }
+
+    private static class ViewHolder {
+        private TextView name, text, status;
+
+        public ViewHolder(View itemView) {
+            name = itemView.findViewById(R.id.name);
+            text = itemView.findViewById(R.id.text);
+            status = itemView.findViewById(R.id.seat);
+        }
     }
 }

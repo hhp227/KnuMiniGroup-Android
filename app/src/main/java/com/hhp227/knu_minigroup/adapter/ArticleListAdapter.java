@@ -26,30 +26,28 @@ import java.util.List;
 import static com.hhp227.knu_minigroup.fragment.Tab1Fragment.UPDATE_ARTICLE;
 
 public class ArticleListAdapter extends BaseAdapter {
-    public static boolean LIKED;
     private static final int CONTENT_MAX_LINE = 4;
-    private Activity activity;
-    private LayoutInflater inflater;
-    private List<String> articleItemKeys;
-    private List<ArticleItem> articleItemValues;
-    private String groupKey;
-    private ViewHolder viewHolder;
+    private Activity mActivity;
+    private LayoutInflater mInflater;
+    private List<String> mArticleItemKeys;
+    private List<ArticleItem> mArticleItemValues;
+    private String mGroupKey;
 
     public ArticleListAdapter(Activity activity, List<String> articleItemKeys, List<ArticleItem> articleItemValues, String groupKey) {
-        this.activity = activity;
-        this.articleItemKeys = articleItemKeys;
-        this.articleItemValues = articleItemValues;
-        this.groupKey = groupKey;
+        this.mActivity = activity;
+        this.mArticleItemKeys = articleItemKeys;
+        this.mArticleItemValues = articleItemValues;
+        this.mGroupKey = groupKey;
     }
 
     @Override
     public int getCount() {
-        return articleItemValues.size();
+        return mArticleItemValues.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return articleItemValues.get(position);
+        return mArticleItemValues.get(position);
     }
 
     @Override
@@ -59,18 +57,19 @@ public class ArticleListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        if (inflater == null)
-            inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        ViewHolder viewHolder;
+        if (mInflater == null)
+            mInflater = (LayoutInflater) mActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (convertView == null) {
-            convertView = inflater.inflate(R.layout.article_item, null);
+            convertView = mInflater.inflate(R.layout.article_item, null);
             viewHolder = new ViewHolder(convertView);
             convertView.setTag(viewHolder);
         } else
             viewHolder = (ViewHolder) convertView.getTag();
 
-        ArticleItem articleItem = articleItemValues.get(position);
+        ArticleItem articleItem = mArticleItemValues.get(position);
 
-        Glide.with(activity)
+        Glide.with(mActivity)
                 .load(articleItem.getUid() != null ? EndPoint.USER_IMAGE.replace("{UID}", articleItem.getUid()) : null)
                 .apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop())
                 .into(viewHolder.profileImage);
@@ -90,7 +89,7 @@ public class ArticleListAdapter extends BaseAdapter {
         // 피드 이미지
         if (articleItem.getImages() != null && articleItem.getImages().size() > 0) {
             viewHolder.articleImage.setVisibility(View.VISIBLE);
-            Glide.with(activity)
+            Glide.with(mActivity)
                     .load(articleItem.getImages().get(0))
                     .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
                     .transition(DrawableTransitionOptions.withCrossFade(150))
@@ -105,18 +104,18 @@ public class ArticleListAdapter extends BaseAdapter {
             @Override
             public void onClick(View v) {
                 int position = (int) v.getTag();
-                ArticleItem articleItem = articleItemValues.get(position);
+                ArticleItem articleItem = mArticleItemValues.get(position);
 
-                Intent intent = new Intent(activity, ArticleActivity.class);
-                intent.putExtra("grp_id", Tab1Fragment.groupId);
-                intent.putExtra("grp_nm", Tab1Fragment.groupName);
+                Intent intent = new Intent(mActivity, ArticleActivity.class);
+                intent.putExtra("grp_id", Tab1Fragment.mGroupId);
+                intent.putExtra("grp_nm", Tab1Fragment.mGroupName);
                 intent.putExtra("artl_num", articleItem.getId());
                 intent.putExtra("position", position + 1);
                 intent.putExtra("auth", articleItem.isAuth());
                 intent.putExtra("isbottom", true);
-                intent.putExtra("grp_key", groupKey);
+                intent.putExtra("grp_key", mGroupKey);
                 intent.putExtra("artl_key", getKey(position));
-                activity.startActivityForResult(intent, UPDATE_ARTICLE);
+                mActivity.startActivityForResult(intent, UPDATE_ARTICLE);
             }
         });
 
@@ -124,7 +123,7 @@ public class ArticleListAdapter extends BaseAdapter {
     }
 
     public String getKey(int position) {
-        return articleItemKeys.get(position);
+        return mArticleItemKeys.get(position);
     }
 
     public static class ViewHolder {

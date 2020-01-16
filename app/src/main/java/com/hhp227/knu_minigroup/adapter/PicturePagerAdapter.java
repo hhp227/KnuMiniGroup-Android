@@ -12,32 +12,31 @@ import com.hhp227.knu_minigroup.helper.ZoomImageView;
 import java.util.List;
 
 public class PicturePagerAdapter extends PagerAdapter {
-    private Context context;
-    private LayoutInflater layoutInflater;
-    private List<String> images;
-    private ZoomImageView zoomImageView;
+    private Context mContext;
+    private LayoutInflater mInflater;
+    private List<String> mImageList;
 
     public PicturePagerAdapter(Context context, List<String> images) {
-        this.context = context;
-        this.images = images;
+        this.mContext = context;
+        this.mImageList = images;
     }
 
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
-        if (layoutInflater == null)
-            layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View view = layoutInflater.inflate(R.layout.image_fullscreen, container, false);
-        zoomImageView = view.findViewById(R.id.ziv_image);
-        String image = images.get(position);
+        if (mInflater == null)
+            mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View view = mInflater.inflate(R.layout.image_fullscreen, container, false);
+        ZoomImageView zoomImageView = view.findViewById(R.id.ziv_image);
+        String image = mImageList.get(position);
 
-        Glide.with(context).load(image).into(zoomImageView);
+        Glide.with(mContext).load(image).into(zoomImageView);
         container.addView(view);
         return view;
     }
 
     @Override
     public int getCount() {
-        return images.size();
+        return mImageList.size();
     }
 
     @Override

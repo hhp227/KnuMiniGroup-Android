@@ -17,10 +17,7 @@ import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.EndPoint;
 
 public class UserFragment extends DialogFragment {
-    private Button send, close;
-    private ImageView profileImage;
-    private String uid, name, value;
-    private TextView userName;
+    private String mUid, mName, mValue;
 
     public static UserFragment newInstance() {
         UserFragment fragment = new UserFragment();
@@ -34,20 +31,20 @@ public class UserFragment extends DialogFragment {
             getDialog().getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
         View rootView = inflater.inflate(R.layout.fragment_user, container, false);
-        profileImage = rootView.findViewById(R.id.iv_profile_image);
-        userName = rootView.findViewById(R.id.tv_name);
-        send = rootView.findViewById(R.id.b_send);
-        close = rootView.findViewById(R.id.b_close);
+        ImageView profileImage = rootView.findViewById(R.id.iv_profile_image);
+        TextView userName = rootView.findViewById(R.id.tv_name);
+        Button send = rootView.findViewById(R.id.b_send);
+        Button close = rootView.findViewById(R.id.b_close);
 
         Bundle bundle = getArguments();
         if (bundle != null) {
-            uid = bundle.getString("uid");
-            name = bundle.getString("name");
-            value = bundle.getString("value");
+            mUid = bundle.getString("uid");
+            mName = bundle.getString("name");
+            mValue = bundle.getString("value");
         }
-        Glide.with(getActivity()).load(EndPoint.USER_IMAGE.replace("{UID}", uid)).apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop()).into(profileImage);
-        userName.setText(name);
-        if (uid.equals(app.AppController.getInstance().getPreferenceManager().getUser().getUid()))
+        Glide.with(getActivity()).load(EndPoint.USER_IMAGE.replace("{UID}", mUid)).apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop()).into(profileImage);
+        userName.setText(mName);
+        if (mUid.equals(app.AppController.getInstance().getPreferenceManager().getUser().getUid()))
             send.setVisibility(View.GONE);
         else {
             send.setText("메시지 보내기");
@@ -56,9 +53,9 @@ public class UserFragment extends DialogFragment {
                 public void onClick(View v) {
                     Intent intent = new Intent(getContext(), ChatActivity.class);
                     intent.putExtra("grp_chat", false);
-                    intent.putExtra("chat_nm", name);
-                    intent.putExtra("uid", uid);
-                    intent.putExtra("value", value);
+                    intent.putExtra("chat_nm", mName);
+                    intent.putExtra("uid", mUid);
+                    intent.putExtra("value", mValue);
                     startActivity(intent);
                 }
             });

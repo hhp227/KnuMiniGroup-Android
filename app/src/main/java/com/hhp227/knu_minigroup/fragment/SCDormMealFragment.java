@@ -17,15 +17,13 @@ import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 public class SCDormMealFragment extends Fragment {
     private static final String TAG = "상주기숙사 식단표";
-    private Source source;
-    private TextView[] menuView;
-    private ArrayList<String> data;
-    private ProgressDialog progressDialog;
+    private ArrayList<String> mMealList;
+    private ProgressDialog mProgressDialog;
+    private TextView[] mMenuView;
 
     public static SCDormMealFragment newInstance() {
         SCDormMealFragment fragment = new SCDormMealFragment();
@@ -40,18 +38,16 @@ public class SCDormMealFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_dormmeal, container, false);
-
-        menuView = new TextView[] {
+        mMenuView = new TextView[] {
                 rootView.findViewById(R.id.breakfast),
                 rootView.findViewById(R.id.lunch),
                 rootView.findViewById(R.id.dinner)
         };
+        mMealList = new ArrayList<>();
+        mProgressDialog = new ProgressDialog(getActivity());
 
-        data = new ArrayList<>();
-
-        progressDialog = new ProgressDialog(getActivity());
-        progressDialog.setCancelable(false);
-        progressDialog.setMessage("불러오는중...");
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.setMessage("불러오는중...");
         showProgressDialog();
 
         String tag_string_req = "req_getmeal";
@@ -74,25 +70,25 @@ public class SCDormMealFragment extends Fragment {
     }
 
     private void parseHTML(String response) {
-        source = new Source(response);
+        Source source = new Source(response);
         Element table = source.getAllElements(HTMLElementName.TABLE).get(1);
         for (Element p : table.getAllElements(HTMLElementName.P))
-            data.add(p.getTextExtractor().toString().trim());
-        for (int i = 0; i < menuView.length; i++)
-            menuView[i].setText(data.get(i));
+            mMealList.add(p.getTextExtractor().toString().trim());
+        for (int i = 0; i < mMenuView.length; i++)
+            mMenuView[i].setText(mMealList.get(i));
     }
 
     private void showProgressDialog() {
-        if (!progressDialog.isShowing())
-            progressDialog.show();
+        if (!mProgressDialog.isShowing())
+            mProgressDialog.show();
     }
 
     private void hideProgressDialog() {
-        if (progressDialog.isShowing())
-            progressDialog.dismiss();
+        if (mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
     }
 
-    public class StringEucKrRequest extends StringRequest {
+    public static class StringEucKrRequest extends StringRequest {
         public StringEucKrRequest(int method, String url, Response.Listener<String> listener, Response.ErrorListener errorListener) {
             super(method, url, listener, errorListener);
         }
@@ -102,8 +98,6 @@ public class SCDormMealFragment extends Fragment {
             try {
                 String string = new String(response.data, "euc-kr");
                 return Response.success(string, HttpHeaderParser.parseCacheHeaders(response));
-            } catch (UnsupportedEncodingException e) {
-                return Response.error(new ParseError(e));
             } catch (Exception e) {
                 return Response.error(new ParseError(e));
             }

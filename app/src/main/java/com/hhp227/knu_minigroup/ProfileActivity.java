@@ -15,25 +15,20 @@ import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 
 public class ProfileActivity extends Activity {
-    private ImageView profileImage;
-    private PreferenceManager preferenceManager;
-    private TextView name, knuId, department, number, grade, email;
-    private User user;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
-        profileImage = findViewById(R.id.iv_profile_image);
-        name = findViewById(R.id.tv_name);
-        knuId = findViewById(R.id.tv_knu_id);
-        department = findViewById(R.id.tv_dept);
-        number = findViewById(R.id.tv_stu_num);
-        grade = findViewById(R.id.tv_grade);
-        email = findViewById(R.id.tv_email);
-        preferenceManager = app.AppController.getInstance().getPreferenceManager();
-        user = preferenceManager.getUser();
         ActionBar actionBar = getActionBar();
+        ImageView profileImage = findViewById(R.id.iv_profile_image);
+        TextView name = findViewById(R.id.tv_name);
+        TextView knuId = findViewById(R.id.tv_knu_id);
+        TextView department = findViewById(R.id.tv_dept);
+        TextView number = findViewById(R.id.tv_stu_num);
+        TextView grade = findViewById(R.id.tv_grade);
+        TextView email = findViewById(R.id.tv_email);
+        PreferenceManager preferenceManager = app.AppController.getInstance().getPreferenceManager();
+        User user = preferenceManager.getUser();
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(true);

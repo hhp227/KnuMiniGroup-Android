@@ -35,13 +35,12 @@ import static com.hhp227.knu_minigroup.CreateActivity.CAMERA_CAPTURE_IMAGE_REQUE
 import static com.hhp227.knu_minigroup.CreateActivity.CAMERA_PICK_IMAGE_REQUEST_CODE;
 
 public class DefaultSettingFragment extends Fragment {
-    private static String groupId, groupKey;
-    private Bitmap bitmap;
-    private EditText inputTitle, inputDescription;
-    private ImageView groupImage, resetTitle;
-    private RadioGroup joinType;
-
-    private boolean joinTypeCheck;
+    private static String mGroupId, mGroupKey;
+    private boolean mJoinTypeCheck;
+    private Bitmap mBitmap;
+    private EditText mInputTitle, mInputDescription;
+    private ImageView mGroupImage, mResetTitle;
+    private RadioGroup mJoinType;
 
     public DefaultSettingFragment() {
         // Required empty public constructor
@@ -61,21 +60,21 @@ public class DefaultSettingFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         if (getArguments() != null) {
-            groupId = getArguments().getString("grp_id");
-            groupKey = getArguments().getString("key");
+            mGroupId = getArguments().getString("grp_id");
+            mGroupKey = getArguments().getString("key");
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_default_setting, container, false);
-        groupImage = rootView.findViewById(R.id.iv_group_image);
-        inputTitle = rootView.findViewById(R.id.et_title);
-        inputDescription = rootView.findViewById(R.id.et_description);
-        joinType = rootView.findViewById(R.id.rg_jointype);
-        resetTitle = rootView.findViewById(R.id.iv_reset);
+        mGroupImage = rootView.findViewById(R.id.iv_group_image);
+        mInputTitle = rootView.findViewById(R.id.et_title);
+        mInputDescription = rootView.findViewById(R.id.et_description);
+        mJoinType = rootView.findViewById(R.id.rg_jointype);
+        mResetTitle = rootView.findViewById(R.id.iv_reset);
 
-        groupImage.setOnClickListener(new View.OnClickListener() {
+        mGroupImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 registerForContextMenu(v);
@@ -83,33 +82,33 @@ public class DefaultSettingFragment extends Fragment {
                 unregisterForContextMenu(v);
             }
         });
-        inputTitle.addTextChangedListener(new TextWatcher() {
+        mInputTitle.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                resetTitle.setImageResource(s.length() > 0 ? R.drawable.ic_clear_black_24dp : R.drawable.ic_clear_gray_24dp);
+                mResetTitle.setImageResource(s.length() > 0 ? R.drawable.ic_clear_black_24dp : R.drawable.ic_clear_gray_24dp);
             }
 
             @Override
             public void afterTextChanged(Editable s) {
             }
         });
-        joinType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+        mJoinType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                joinTypeCheck = checkedId != R.id.rb_auto;
+                mJoinTypeCheck = checkedId != R.id.rb_auto;
             }
         });
-        resetTitle.setOnClickListener(new View.OnClickListener() {
+        mResetTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                inputTitle.setText("");
+                mInputTitle.setText("");
             }
         });
-        String params = "?CLUB_GRP_ID=" + groupId;
+        String params = "?CLUB_GRP_ID=" + mGroupId;
         app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.MODIFY_GROUP + params, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -118,11 +117,11 @@ public class DefaultSettingFragment extends Fragment {
                 String desc = source.getElementById("wrtExplain").getContent().toString();
                 for (Element rbElement : source.getFirstElementByClass("radiobox").getAllElementsByClass("chktype"))
                     if (rbElement.toString().contains("checked"))
-                        joinTypeCheck = !rbElement.getAttributeValue("value").equals("0");
+                        mJoinTypeCheck = !rbElement.getAttributeValue("value").equals("0");
 
-                inputTitle.setText(title);
-                inputDescription.setText(desc);
-                joinType.check(!joinTypeCheck ? R.id.rb_auto : R.id.rb_check);
+                mInputTitle.setText(title);
+                mInputDescription.setText(desc);
+                mJoinType.check(!mJoinTypeCheck ? R.id.rb_auto : R.id.rb_check);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -150,8 +149,8 @@ public class DefaultSettingFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_send :
-                final String groupName = inputTitle.getText().toString();
-                final String groupDescription = inputDescription.getText().toString();
+                final String groupName = mInputTitle.getText().toString();
+                final String groupDescription = mInputDescription.getText().toString();
 
                 if (!TextUtils.isEmpty(groupName) && !TextUtils.isEmpty(groupDescription)) {
                     String tagJsonReq = "req_send";
@@ -163,7 +162,7 @@ public class DefaultSettingFragment extends Fragment {
                                     Intent intent = new Intent(getContext(), Tab4Fragment.class);
                                     intent.putExtra("grp_nm", response.getString("GRP_NM"));
                                     intent.putExtra("grp_desc", groupDescription);
-                                    intent.putExtra("join_div", !joinTypeCheck ? "0" : "1");
+                                    intent.putExtra("join_div", !mJoinTypeCheck ? "0" : "1");
                                     getActivity().setResult(RESULT_OK, intent);
                                     getActivity().finish();
                                     Toast.makeText(getContext(), "소모임 변경 완료", Toast.LENGTH_LONG).show();
@@ -189,10 +188,10 @@ public class DefaultSettingFragment extends Fragment {
                         @Override
                         public byte[] getBody() {
                             Map<String, String> params = new HashMap<>();
-                            params.put("CLUB_GRP_ID", groupId);
+                            params.put("CLUB_GRP_ID", mGroupId);
                             params.put("GRP_NM", groupName);
                             params.put("TXT", groupDescription);
-                            params.put("JOIN_DIV", !joinTypeCheck ? "0" : "1");
+                            params.put("JOIN_DIV", !mJoinTypeCheck ? "0" : "1");
                             if (params.size() > 0) {
                                 StringBuilder encodedParams = new StringBuilder();
                                 try {
@@ -218,8 +217,8 @@ public class DefaultSettingFragment extends Fragment {
                         }
                     }, tagJsonReq);
                 } else {
-                    inputTitle.setError(groupName.isEmpty() ? "그룹이름을 입력하세요." : null);
-                    inputDescription.setError(groupDescription.isEmpty() ? "그룹설명을 입력하세요." : null);
+                    mInputTitle.setError(groupName.isEmpty() ? "그룹이름을 입력하세요." : null);
+                    mInputDescription.setError(groupDescription.isEmpty() ? "그룹설명을 입력하세요." : null);
                 }
                 return true;
         }
@@ -249,8 +248,8 @@ public class DefaultSettingFragment extends Fragment {
                 startActivityForResult(galleryIntent, CAMERA_PICK_IMAGE_REQUEST_CODE);
                 break;
             case "이미지 없음" :
-                groupImage.setImageResource(R.drawable.add_photo);
-                bitmap = null;
+                mGroupImage.setImageResource(R.drawable.add_photo);
+                mBitmap = null;
                 Toast.makeText(getContext(), "이미지 없음 선택", Toast.LENGTH_LONG).show();
                 break;
         }
@@ -259,7 +258,7 @@ public class DefaultSettingFragment extends Fragment {
 
     private void initFirebaseData() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
-        updateGroupDataToFirebase(databaseReference.child(groupKey));
+        updateGroupDataToFirebase(databaseReference.child(mGroupKey));
     }
 
     private void updateGroupDataToFirebase(final Query query) {
@@ -268,9 +267,9 @@ public class DefaultSettingFragment extends Fragment {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getValue() != null) {
                     GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
-                    groupItem.setName(inputTitle.getText().toString());
-                    groupItem.setDescription(inputDescription.getText().toString());
-                    groupItem.setJoinType(!joinTypeCheck ? "0" : "1");
+                    groupItem.setName(mInputTitle.getText().toString());
+                    groupItem.setDescription(mInputDescription.getText().toString());
+                    groupItem.setJoinType(!mJoinTypeCheck ? "0" : "1");
                     query.getRef().setValue(groupItem);
                 }
             }

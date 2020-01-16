@@ -16,24 +16,23 @@ import com.hhp227.knu_minigroup.dto.MemberItem;
 import java.util.List;
 
 public class MemberListAdapter extends BaseAdapter {
-    private Context context;
-    private LayoutInflater layoutInflater;
-    private List<MemberItem> memberItems;
-    private ViewHolder viewHolder;
+    private Context mContext;
+    private LayoutInflater mInflater;
+    private List<MemberItem> mMemberItems;
 
     public MemberListAdapter(Context context, List<MemberItem> memberItems) {
-        this.context = context;
-        this.memberItems = memberItems;
+        this.mContext = context;
+        this.mMemberItems = memberItems;
     }
 
     @Override
     public int getCount() {
-        return memberItems.size();
+        return mMemberItems.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return memberItems.get(position);
+        return mMemberItems.get(position);
     }
 
     @Override
@@ -43,17 +42,18 @@ public class MemberListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        if (layoutInflater == null)
-            layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        ViewHolder viewHolder;
+        if (mInflater == null)
+            mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (convertView == null) {
-            convertView = layoutInflater.inflate(R.layout.member_list_item, null);
+            convertView = mInflater.inflate(R.layout.member_list_item, null);
             viewHolder = new ViewHolder(convertView);
             convertView.setTag(viewHolder);
         } else
             viewHolder = (ViewHolder) convertView.getTag();
 
-        MemberItem memberItem = memberItems.get(position);
-        Glide.with(context).load(EndPoint.USER_IMAGE.replace("{UID}", memberItem.uid)).apply(RequestOptions.circleCropTransform()).into(viewHolder.profileImage);
+        MemberItem memberItem = mMemberItems.get(position);
+        Glide.with(mContext).load(EndPoint.USER_IMAGE.replace("{UID}", memberItem.uid)).apply(RequestOptions.circleCropTransform()).into(viewHolder.profileImage);
         viewHolder.name.setText(memberItem.name);
         viewHolder.department.setText(memberItem.dept);
         viewHolder.division.setText(memberItem.div);
@@ -62,7 +62,7 @@ public class MemberListAdapter extends BaseAdapter {
         return convertView;
     }
 
-    public class ViewHolder {
+    public static class ViewHolder {
         private ImageView profileImage;
         private TextView name, department, division, registerDate;
 

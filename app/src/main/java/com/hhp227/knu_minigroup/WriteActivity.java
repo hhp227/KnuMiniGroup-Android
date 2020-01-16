@@ -38,7 +38,6 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -46,39 +45,37 @@ public class WriteActivity extends Activity {
     public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 100;
     public static final int REQUEST_IMAGE_CAPTURE = 200;
     private static final String TAG = WriteActivity.class.getSimpleName();
-    private EditText inputTitle, inputContent;
-    private List<String> images;
-    private List<WriteItem> contents;
-    private PreferenceManager preferenceManager;
-    private ProgressDialog progressDialog;
-    private StringBuilder makeHtmlImages;
-    private Uri photoUri;
-    private WriteListAdapter listAdapter;
-
-    private int contextMenuRequest;
-    private boolean isAdmin;
-    private String grpId, grpNm, currentPhotoPath, cookie, key;
+    private int mContextMenuRequest;
+    private boolean mIsAdmin;
+    private String mGrpId, mGrpNm, mCurrentPhotoPath, mCookie, mKey;
+    private EditText mInputTitle, mInputContent;
+    private List<String> mImages;
+    private List<WriteItem> mContents;
+    private PreferenceManager mPreferenceManager;
+    private ProgressDialog mProgressDialog;
+    private StringBuilder mMakeHtmlImages;
+    private Uri mPhotoUri;
+    private WriteListAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_write);
-
         ActionBar actionBar = getActionBar();
         View headerView = getLayoutInflater().inflate(R.layout.write_text, null, false);
         LinearLayout buttonImage = findViewById(R.id.ll_image);
         ListView listView = findViewById(R.id.lv_write);
-        inputTitle = headerView.findViewById(R.id.et_title);
-        inputContent = headerView.findViewById(R.id.et_content);
-        contents = new ArrayList<>();
-        listAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, contents);
-        preferenceManager = app.AppController.getInstance().getPreferenceManager();
-        cookie = preferenceManager.getCookie();
-        progressDialog = new ProgressDialog(this);
-        isAdmin = getIntent().getBooleanExtra(getString(R.string.extra_admin), false);
-        grpId = getIntent().getStringExtra(getString(R.string.extra_group_id));
-        grpNm = getIntent().getStringExtra(getString(R.string.extra_group_name));
-        key = getIntent().getStringExtra(getString(R.string.extra_key));
+        mInputTitle = headerView.findViewById(R.id.et_title);
+        mInputContent = headerView.findViewById(R.id.et_content);
+        mContents = new ArrayList<>();
+        mAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, mContents);
+        mPreferenceManager = app.AppController.getInstance().getPreferenceManager();
+        mCookie = mPreferenceManager.getCookie();
+        mProgressDialog = new ProgressDialog(this);
+        mIsAdmin = getIntent().getBooleanExtra(getString(R.string.extra_admin), false);
+        mGrpId = getIntent().getStringExtra(getString(R.string.extra_group_id));
+        mGrpNm = getIntent().getStringExtra(getString(R.string.extra_group_name));
+        mKey = getIntent().getStringExtra(getString(R.string.extra_key));
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -92,22 +89,22 @@ public class WriteActivity extends Activity {
         buttonImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                contextMenuRequest = 2;
+                mContextMenuRequest = 2;
                 registerForContextMenu(v);
                 openContextMenu(v);
                 unregisterForContextMenu(v);
             }
         });
         listView.addHeaderView(headerView);
-        listView.setAdapter(listAdapter);
+        listView.setAdapter(mAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                contextMenuRequest = 1;
+                mContextMenuRequest = 1;
                 view.showContextMenu();
             }
         });
-        progressDialog.setCancelable(false);
+        mProgressDialog.setCancelable(false);
         registerForContextMenu(listView);
     }
 
@@ -125,20 +122,20 @@ public class WriteActivity extends Activity {
                 finish();
                 return true;
             case R.id.action_send :
-                String title = inputTitle.getEditableText().toString();
-                String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(inputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(inputContent.getText());
-                if (!title.isEmpty() && !(TextUtils.isEmpty(content) && contents.size() == 0)) {
-                    makeHtmlImages = new StringBuilder();
-                    images = new ArrayList<>();
-                    progressDialog.setMessage("전송중...");
-                    progressDialog.setProgressStyle(contents.size() > 0 ? ProgressDialog.STYLE_HORIZONTAL : ProgressDialog.STYLE_SPINNER);
+                String title = mInputTitle.getEditableText().toString();
+                String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(mInputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(mInputContent.getText());
+                if (!title.isEmpty() && !(TextUtils.isEmpty(content) && mContents.size() == 0)) {
+                    mMakeHtmlImages = new StringBuilder();
+                    mImages = new ArrayList<>();
+                    mProgressDialog.setMessage("전송중...");
+                    mProgressDialog.setProgressStyle(mContents.size() > 0 ? ProgressDialog.STYLE_HORIZONTAL : ProgressDialog.STYLE_SPINNER);
                     showProgressDialog();
 
-                    if (contents.size() > 0) {
+                    if (mContents.size() > 0) {
                         int position = 0;
-                        uploadImage(position, contents.get(position).getBitmap());
+                        uploadImage(position, mContents.get(position).getBitmap());
                     } else
-                        actionSend(grpId, title, content);
+                        actionSend(mGrpId, title, content);
                 } else
                     Toast.makeText(getApplicationContext(), (title.isEmpty() ? "제목" : "내용") + "을 입력하세요.", Toast.LENGTH_LONG).show();
                 return true;
@@ -149,7 +146,7 @@ public class WriteActivity extends Activity {
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
-        switch (contextMenuRequest) {
+        switch (mContextMenuRequest) {
             case 1 :
                 menu.setHeaderTitle("작업 선택");
                 menu.add(Menu.NONE, 1, Menu.NONE, "삭제");
@@ -167,8 +164,8 @@ public class WriteActivity extends Activity {
         Intent intent;
         switch (item.getItemId()) {
             case 1 :
-                contents.remove(((AdapterView.AdapterContextMenuInfo) item.getMenuInfo()).position - 1);
-                listAdapter.notifyDataSetChanged();
+                mContents.remove(((AdapterView.AdapterContextMenuInfo) item.getMenuInfo()).position - 1);
+                mAdapter.notifyDataSetChanged();
                 return true;
             case 2 :
                 intent = new Intent(Intent.ACTION_PICK);
@@ -186,9 +183,9 @@ public class WriteActivity extends Activity {
                         // Error occurred while creating the File
                     }
                     if (photoFile != null) {
-                        photoUri = FileProvider.getUriForFile(this, getPackageName(), photoFile);
+                        mPhotoUri = FileProvider.getUriForFile(this, getPackageName(), photoFile);
 
-                        intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+                        intent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
                         startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
                     }
                 }
@@ -209,23 +206,23 @@ public class WriteActivity extends Activity {
             writeItem.setBitmap(bitmap);
             writeItem.setFileUri(fileUri);
 
-            contents.add(writeItem);
-            listAdapter.notifyDataSetChanged();
+            mContents.add(writeItem);
+            mAdapter.notifyDataSetChanged();
         } else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             try {
-                bitmap = new BitmapUtil(this).bitmapResize(photoUri, 200);
+                bitmap = new BitmapUtil(this).bitmapResize(mPhotoUri, 200);
                 if (bitmap != null) {
-                    ExifInterface ei = new ExifInterface(currentPhotoPath);
+                    ExifInterface ei = new ExifInterface(mCurrentPhotoPath);
                     int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
                     int angle = orientation == ExifInterface.ORIENTATION_ROTATE_90 ? 90
                               : orientation == ExifInterface.ORIENTATION_ROTATE_180 ? 180
                               : orientation == ExifInterface.ORIENTATION_ROTATE_270 ? 270
                               : 0;
                     Bitmap rotatedBitmap = new BitmapUtil(this).rotateImage(bitmap, angle);
-                    WriteItem writeItem = new WriteItem(photoUri, rotatedBitmap, null);
+                    WriteItem writeItem = new WriteItem(mPhotoUri, rotatedBitmap, null);
 
-                    contents.add(writeItem);
-                    listAdapter.notifyDataSetChanged();
+                    mContents.add(writeItem);
+                    mAdapter.notifyDataSetChanged();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -238,20 +235,20 @@ public class WriteActivity extends Activity {
             @Override
             public void onResponse(NetworkResponse response) {
                 int count = position;
-                progressDialog.setProgress((int) ((double) (count) / contents.size() * 100));
+                mProgressDialog.setProgress((int) ((double) (count) / mContents.size() * 100));
                 try {
                     String imageSrc = new String(response.data);
                     imageSrc = EndPoint.BASE_URL + imageSrc.substring(imageSrc.lastIndexOf("/ilosfiles2/"), imageSrc.lastIndexOf("\""));
-                    makeHtmlImages.append("<p><img src=\"" + imageSrc + "\" width=\"488\"><p>" + (count < contents.size() - 1 ? "<br>": ""));
-                    images.add(imageSrc);
-                    if (count < contents.size() - 1) {
+                    mMakeHtmlImages.append("<p><img src=\"" + imageSrc + "\" width=\"488\"><p>" + (count < mContents.size() - 1 ? "<br>": ""));
+                    mImages.add(imageSrc);
+                    if (count < mContents.size() - 1) {
                         count++;
                         Thread.sleep(700);
-                        uploadImage(count, contents.get(count).getBitmap());
+                        uploadImage(count, mContents.get(count).getBitmap());
                     } else {
-                        String title = inputTitle.getEditableText().toString();
-                        String content = (!TextUtils.isEmpty(inputContent.getText()) ? Html.toHtml(inputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) + "<p><br data-mce-bogus=\"1\"></p>" : "") + makeHtmlImages.toString();
-                        actionSend(grpId, title, content);
+                        String title = mInputTitle.getEditableText().toString();
+                        String content = (!TextUtils.isEmpty(mInputContent.getText()) ? Html.toHtml(mInputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) + "<p><br data-mce-bogus=\"1\"></p>" : "") + mMakeHtmlImages.toString();
+                        actionSend(mGrpId, title, content);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -269,7 +266,7 @@ public class WriteActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", cookie);
+                headers.put("Cookie", mCookie);
                 return headers;
             }
 
@@ -303,10 +300,10 @@ public class WriteActivity extends Activity {
                     if (!error) {
                         Toast.makeText(getApplicationContext(), "전송완료", Toast.LENGTH_LONG).show();
                         Intent intent = new Intent(WriteActivity.this, GroupActivity.class);
-                        intent.putExtra(getString(R.string.extra_admin), isAdmin);
+                        intent.putExtra(getString(R.string.extra_admin), mIsAdmin);
                         intent.putExtra(getString(R.string.extra_group_id), grpId);
-                        intent.putExtra(getString(R.string.extra_group_name), grpNm);
-                        intent.putExtra(getString(R.string.extra_key), key);
+                        intent.putExtra(getString(R.string.extra_group_name), mGrpNm);
+                        intent.putExtra(getString(R.string.extra_key), mKey);
                         // 이전 Activity 초기화
                         intent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         startActivity(intent);
@@ -328,7 +325,7 @@ public class WriteActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", cookie);
+                headers.put("Cookie", mCookie);
                 return headers;
             }
 
@@ -345,7 +342,7 @@ public class WriteActivity extends Activity {
     }
 
     private void getArticleId() {
-        String params = "?CLUB_GRP_ID=" + grpId + "&displayL=1";
+        String params = "?CLUB_GRP_ID=" + mGrpId + "&displayL=1";
         app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.GROUP_ARTICLE_LIST + params, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -362,7 +359,7 @@ public class WriteActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", cookie);
+                headers.put("Cookie", mCookie);
                 return headers;
             }
         });
@@ -378,7 +375,7 @@ public class WriteActivity extends Activity {
                 storageDir      /* directory */
         );
 
-        currentPhotoPath = image.getAbsolutePath();
+        mCurrentPhotoPath = image.getAbsolutePath();
         return image;
     }
 
@@ -386,23 +383,23 @@ public class WriteActivity extends Activity {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
         Map<String, Object> map = new HashMap<>();
         map.put("id", artlNum);
-        map.put("uid", preferenceManager.getUser().getUid());
-        map.put("name", preferenceManager.getUser().getName());
-        map.put("title", inputTitle.getText().toString());
+        map.put("uid", mPreferenceManager.getUser().getUid());
+        map.put("name", mPreferenceManager.getUser().getName());
+        map.put("title", mInputTitle.getText().toString());
         map.put("timestamp", System.currentTimeMillis());
-        map.put("content", TextUtils.isEmpty(inputContent.getText().toString()) ? null : inputContent.getText().toString());
-        map.put("images", images);
+        map.put("content", TextUtils.isEmpty(mInputContent.getText().toString()) ? null : mInputContent.getText().toString());
+        map.put("images", mImages);
 
-        databaseReference.child(key).push().setValue(map);
+        databaseReference.child(mKey).push().setValue(map);
     }
 
     private void showProgressDialog() {
-        if (!progressDialog.isShowing())
-            progressDialog.show();
+        if (!mProgressDialog.isShowing())
+            mProgressDialog.show();
     }
 
     private void hideProgressDialog() {
-        if (progressDialog.isShowing())
-            progressDialog.dismiss();
+        if (mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
     }
 }

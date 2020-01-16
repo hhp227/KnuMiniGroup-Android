@@ -13,35 +13,44 @@ import com.hhp227.knu_minigroup.dto.WriteItem;
 import java.util.List;
 
 public class WriteListAdapter extends ArrayAdapter<WriteItem> {
-    private Context context;
-    private LayoutInflater layoutInflater;
     private int resource;
-    private ImageView imageView;
+    private Context mContext;
+    private LayoutInflater mInflater;
 
     public WriteListAdapter(Context context, int resource, List<WriteItem> objects) {
         super(context, resource, objects);
-        this.context = context;
+        this.mContext = context;
         this.resource = resource;
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        if (layoutInflater == null)
-            layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
-        if (convertView == null)
-            convertView = layoutInflater.inflate(resource, null);
-
-        imageView = convertView.findViewById(R.id.iv_image_preview);
+        ViewHolder viewHolder;
+        if (mInflater == null)
+            mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        if (convertView == null) {
+            convertView = mInflater.inflate(resource, null);
+            viewHolder = new ViewHolder(convertView);
+            convertView.setTag(viewHolder);
+        } else
+            viewHolder = (ViewHolder) convertView.getTag();
 
         WriteItem writeItem = getItem(position);
 
-        imageView.setVisibility(writeItem.getImage() != null || writeItem.getBitmap() != null ? View.VISIBLE : View.GONE);
+        viewHolder.imageView.setVisibility(writeItem.getImage() != null || writeItem.getBitmap() != null ? View.VISIBLE : View.GONE);
         if (writeItem.getFileUri() != null)
-            imageView.setImageBitmap(writeItem.getBitmap());
+            viewHolder.imageView.setImageBitmap(writeItem.getBitmap());
         if (writeItem.getImage() != null)
-            Glide.with(context).load(writeItem.getImage()).into(imageView);
+            Glide.with(mContext).load(writeItem.getImage()).into(viewHolder.imageView);
 
         return convertView;
+    }
+
+    private static class ViewHolder {
+        private ImageView imageView;
+
+        public ViewHolder(View itemView) {
+            imageView = itemView.findViewById(R.id.iv_image_preview);
+        }
     }
 }

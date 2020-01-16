@@ -21,18 +21,16 @@ import com.hhp227.knu_minigroup.ui.navigationdrawer.ActionBarDrawerToggle;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 
 public class MainActivity extends FragmentActivity {
-    private ActionBar actionBar;
-    private ActionBarDrawerToggle actionBarDrawerToggle;
-    private CharSequence titleSection;
-    private DrawerArrowDrawable drawerArrow;
-    private DrawerLayout drawerLayout;
-    private ImageView profileImage;
-    private ListView drawerList;
-    private PreferenceManager preferenceManager;
-    private RelativeLayout drawerRelativeLayout;
-    private TextView knuId;
-
-    String[] menu = {"메인화면", "본관게시판", "시간표", "통학버스시간표", "식단보기", "도서관좌석", "로그아웃"};
+    private ActionBar mActionBar;
+    private ActionBarDrawerToggle mActionBarDrawerToggle;
+    private CharSequence mTitleSection;
+    private DrawerArrowDrawable mDrawerArrow;
+    private DrawerLayout mDrawerLayout;
+    private ImageView mProfileImage;
+    private ListView mDrawerList;
+    private PreferenceManager mPreferenceManager;
+    private RelativeLayout mDrawerRelativeLayout;
+    private TextView mKnuId;
 
     GroupFragment fragMain;
     UnivNoticeFragment fragUnivNotice;
@@ -45,13 +43,13 @@ public class MainActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        actionBar = getActionBar();
-        drawerLayout = findViewById(R.id.dl_group);
-        drawerRelativeLayout = findViewById(R.id.rl_left_drawer);
-        drawerList = findViewById(R.id.lv_drawer);
-        profileImage = findViewById(R.id.iv_profile_image);
-        knuId = findViewById(R.id.tv_knu_id);
+        final String[] menu = {"메인화면", "본관게시판", "시간표", "통학버스시간표", "식단보기", "도서관좌석", "로그아웃"};
+        mActionBar = getActionBar();
+        mDrawerLayout = findViewById(R.id.dl_group);
+        mDrawerRelativeLayout = findViewById(R.id.rl_left_drawer);
+        mDrawerList = findViewById(R.id.lv_drawer);
+        mProfileImage = findViewById(R.id.iv_profile_image);
+        mKnuId = findViewById(R.id.tv_knu_id);
 
         fragMain = GroupFragment.newInstance();
         fragUnivNotice = UnivNoticeFragment.newInstance();
@@ -60,24 +58,24 @@ public class MainActivity extends FragmentActivity {
         fragMeal = MealFragment.newInstance();
         fragSeat = SeatFragment.newInstance();
 
-        preferenceManager = app.AppController.getInstance().getPreferenceManager();
-        titleSection = "메인화면";
-        drawerArrow = new DrawerArrowDrawable(this) {
+        mPreferenceManager = app.AppController.getInstance().getPreferenceManager();
+        mTitleSection = "메인화면";
+        mDrawerArrow = new DrawerArrowDrawable(this) {
             @Override
             public boolean isLayoutRtl() {
                 return false;
             }
         };
-        actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, drawerArrow, R.string.app_name, R.string.app_name) {
+        mActionBarDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, mDrawerArrow, R.string.app_name, R.string.app_name) {
             @Override
             public void onDrawerOpened(View drawerView) {
-                actionBar.setTitle("메뉴목록");
+                mActionBar.setTitle("메뉴목록");
                 invalidateOptionsMenu();
             }
 
             @Override
             public void onDrawerClosed(View drawerView) {
-                actionBar.setTitle(titleSection);
+                mActionBar.setTitle(mTitleSection);
                 invalidateOptionsMenu();
             }
         };
@@ -85,17 +83,17 @@ public class MainActivity extends FragmentActivity {
         // Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713
         MobileAds.initialize(this, getString(R.string.admob_app_id));
 
-        actionBar.setDisplayShowHomeEnabled(false); // 제목앞에 아이콘 안보이기
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setHomeButtonEnabled(true);
-        actionBar.setTitle(titleSection);
+        mActionBar.setDisplayShowHomeEnabled(false); // 제목앞에 아이콘 안보이기
+        mActionBar.setDisplayHomeAsUpEnabled(true);
+        mActionBar.setHomeButtonEnabled(true);
+        mActionBar.setTitle(mTitleSection);
 
-        drawerLayout.addDrawerListener(actionBarDrawerToggle);
-        drawerList.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, menu));
+        mDrawerLayout.addDrawerListener(mActionBarDrawerToggle);
+        mDrawerList.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, menu));
 
         getSupportFragmentManager().beginTransaction().replace(R.id.fl_content, fragMain).commit();
 
-        drawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 switch (position) {
@@ -121,40 +119,40 @@ public class MainActivity extends FragmentActivity {
                         logoutUser();
                         break;
                 }
-                drawerList.setItemChecked(position, true);
-                titleSection = menu[position];
-                drawerLayout.closeDrawer(drawerRelativeLayout);
+                mDrawerList.setItemChecked(position, true);
+                mTitleSection = menu[position];
+                mDrawerLayout.closeDrawer(mDrawerRelativeLayout);
             }
         });
-        drawerList.setItemChecked(0, true);
+        mDrawerList.setItemChecked(0, true);
         Glide.with(getApplicationContext())
-                    .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", preferenceManager.getUser().getUid()), new LazyHeaders.Builder().addHeader("Cookie", preferenceManager.getCookie()).build()))
+                    .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mPreferenceManager.getUser().getUid()), new LazyHeaders.Builder().addHeader("Cookie", mPreferenceManager.getCookie()).build()))
                     .apply(new RequestOptions().circleCrop())
-                    .into(profileImage);
-        profileImage.setOnClickListener(new View.OnClickListener() {
+                    .into(mProfileImage);
+        mProfileImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(getApplicationContext(), ProfileActivity.class));
             }
         });
-        knuId.setText(preferenceManager.getUser().getUserId());
+        mKnuId.setText(mPreferenceManager.getUser().getUserId());
     }
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState){
         super.onPostCreate(savedInstanceState);
-        actionBarDrawerToggle.syncState();
+        mActionBarDrawerToggle.syncState();
     }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        actionBarDrawerToggle.onConfigurationChanged(newConfig);
+        mActionBarDrawerToggle.onConfigurationChanged(newConfig);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (actionBarDrawerToggle.onOptionsItemSelected(item))
+        if (mActionBarDrawerToggle.onOptionsItemSelected(item))
             return true;
         switch (item.getItemId()) {
             default :
@@ -163,7 +161,7 @@ public class MainActivity extends FragmentActivity {
     }
 
     private void logoutUser() {
-        preferenceManager.clear();
+        mPreferenceManager.clear();
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
         finish();

@@ -26,11 +26,10 @@ import java.util.List;
 import java.util.Map;
 
 public class MemberManagementFragment extends Fragment {
-    private static String groupId;
-    private ListView listView;
-    private List<MemberItem> memberItems;
-    private MemberListAdapter memberListAdapter;
-    private SwipeRefreshLayout swipeRefreshLayout;
+    private static String mGroupId;
+    private List<MemberItem> mMemberItemList;
+    private MemberListAdapter mAdapter;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     public MemberManagementFragment() {
         // Required empty public constructor
@@ -48,27 +47,27 @@ public class MemberManagementFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            groupId = getArguments().getString("grp_id");
+            mGroupId = getArguments().getString("grp_id");
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_member, container, false);
-        listView = rootView.findViewById(R.id.lv_member);
-        swipeRefreshLayout = rootView.findViewById(R.id.srl_member);
-        memberItems = new ArrayList<>();
-        memberListAdapter = new MemberListAdapter(getContext(), memberItems);
+        ListView listView = rootView.findViewById(R.id.lv_member);
+        mSwipeRefreshLayout = rootView.findViewById(R.id.srl_member);
+        mMemberItemList = new ArrayList<>();
+        mAdapter = new MemberListAdapter(getContext(), mMemberItemList);
 
-        listView.setAdapter(memberListAdapter);
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        listView.setAdapter(mAdapter);
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         Toast.makeText(getContext(), "새로고침", Toast.LENGTH_LONG).show();
-                        swipeRefreshLayout.setRefreshing(false);
+                        mSwipeRefreshLayout.setRefreshing(false);
                     }
                 }, 1500);
             }
@@ -89,9 +88,9 @@ public class MemberManagementFragment extends Fragment {
                     String date = tdList.get(6).getContent().toString();
 
                     MemberItem memberItem = new MemberItem(uid, name, null, studentNumber, deptName, division, date);
-                    memberItems.add(memberItem);
+                    mMemberItemList.add(memberItem);
                 }
-                memberListAdapter.notifyDataSetChanged();
+                mAdapter.notifyDataSetChanged();
             }
         }, new Response.ErrorListener() {
             @Override
@@ -110,7 +109,7 @@ public class MemberManagementFragment extends Fragment {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-                params.put("CLUB_GRP_ID", groupId);
+                params.put("CLUB_GRP_ID", mGroupId);
                 return params;
             }
         });

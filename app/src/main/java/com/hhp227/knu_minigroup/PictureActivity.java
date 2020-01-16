@@ -14,27 +14,26 @@ import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import java.util.List;
 
 public class PictureActivity extends Activity {
-    private TextView count;
-    private ViewPager viewPager;
-    private PicturePagerAdapter pagerAdapter;
-    private List<String> images;
+    private TextView mCount;
+    private List<String> mImages;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         // 상단 타이틀바를 투명하게
         this.requestWindowFeature(Window.FEATURE_ACTION_BAR_OVERLAY);
         setContentView(R.layout.activity_picture);
         ActionBar actionBar = getActionBar();
-        viewPager = findViewById(R.id.view_pager);
-        count = findViewById(R.id.tv_count);
+        ViewPager viewPager = findViewById(R.id.view_pager);
+        mCount = findViewById(R.id.tv_count);
         int position = 0;
         Bundle b = getIntent().getExtras();
         if (b != null) {
-            images = b.getStringArrayList("images");
+            mImages = b.getStringArrayList("images");
             position = b.getInt("position");
         }
-        pagerAdapter = new PicturePagerAdapter(this, images);
+        PicturePagerAdapter pagerAdapter = new PicturePagerAdapter(this, mImages);
         viewPager.setAdapter(pagerAdapter);
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -43,7 +42,7 @@ public class PictureActivity extends Activity {
 
             @Override
             public void onPageSelected(int position) {
-                count.setText((position + 1) + " / " + images.size());
+                mCount.setText((position + 1) + " / " + mImages.size());
             }
 
             @Override
@@ -52,10 +51,13 @@ public class PictureActivity extends Activity {
         });
         viewPager.setCurrentItem(position, false);
         if (actionBar != null) {
+
             // 뒤로가기버튼
             actionBar.setDisplayHomeAsUpEnabled(true);
+
             // 앱 아이콘 숨기기
             actionBar.setDisplayShowHomeEnabled(false);
+
             // 액션바 투명
             actionBar.setBackgroundDrawable(getResources().getDrawable(R.drawable.transparent));
             actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
@@ -65,8 +67,8 @@ public class PictureActivity extends Activity {
                 }
             });
         }
-        count.setVisibility(images.size() > 1 ? View.VISIBLE : View.GONE);
-        count.setText((position + 1) + " / " + images.size());
+        mCount.setVisibility(mImages.size() > 1 ? View.VISIBLE : View.GONE);
+        mCount.setText((position + 1) + " / " + mImages.size());
     }
 
     @Override

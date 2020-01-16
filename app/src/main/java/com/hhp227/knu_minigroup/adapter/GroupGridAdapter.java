@@ -25,26 +25,26 @@ import java.util.Comparator;
 import java.util.List;
 
 public class GroupGridAdapter extends BaseAdapter {
-    private Context context;
-    private LayoutInflater layoutInflater;
-    private List<String> groupItemKeys;
-    private List<GroupItem> groupItemValues;
-    private ViewHolder viewHolder;
+    private Context mContext;
+    private LayoutInflater mInflater;
+    private List<String> mGroupItemKeys;
+    private List<GroupItem> mGroupItemValues;
+    private ViewHolder mViewHolder;
 
     public GroupGridAdapter(Context context, List<String> groupItemKeys, List<GroupItem> groupItemValues) {
-        this.context = context;
-        this.groupItemKeys = groupItemKeys;
-        this.groupItemValues = groupItemValues;
+        this.mContext = context;
+        this.mGroupItemKeys = groupItemKeys;
+        this.mGroupItemValues = groupItemValues;
     }
 
     @Override
     public int getCount() {
-        return groupItemValues.size();
+        return mGroupItemValues.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return groupItemValues.get(position);
+        return mGroupItemValues.get(position);
     }
 
     @Override
@@ -54,22 +54,22 @@ public class GroupGridAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        if (layoutInflater == null)
-            layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        if (mInflater == null)
+            mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (convertView == null) {
-            convertView = layoutInflater.inflate(R.layout.group_grid_item, null);
-            viewHolder = new ViewHolder(convertView);
-            convertView.setTag(viewHolder);
+            convertView = mInflater.inflate(R.layout.group_grid_item, null);
+            mViewHolder = new ViewHolder(convertView);
+            convertView.setTag(mViewHolder);
         } else
-            viewHolder = (ViewHolder) convertView.getTag();
+            mViewHolder = (ViewHolder) convertView.getTag();
 
-        GroupItem groupItem = groupItemValues.get(position);
+        GroupItem groupItem = mGroupItemValues.get(position);
 
         if (!groupItem.isAd()) {
-            viewHolder.groupLayout.setVisibility(View.VISIBLE);
-            viewHolder.adView.setVisibility(View.GONE);
+            mViewHolder.groupLayout.setVisibility(View.VISIBLE);
+            mViewHolder.adView.setVisibility(View.GONE);
         } else {
-            AdLoader.Builder builder = new AdLoader.Builder(context, "ca-app-pub-3940256099942544/2247696110");
+            AdLoader.Builder builder = new AdLoader.Builder(mContext, "ca-app-pub-3940256099942544/2247696110");
             final View finalConvertView = convertView;
             builder.forUnifiedNativeAd(new UnifiedNativeAd.OnUnifiedNativeAdLoadedListener() {
                 @Override
@@ -79,57 +79,57 @@ public class GroupGridAdapter extends BaseAdapter {
                     TextView bodyView = finalConvertView.findViewById(R.id.ad_body);
                     TextView advertiser = finalConvertView.findViewById(R.id.ad_advertiser);
                     mediaView.setImageScaleType(ImageView.ScaleType.CENTER_CROP);
-                    viewHolder.adView.setMediaView(mediaView);
-                    viewHolder.adView.setHeadlineView(headlineView);
-                    viewHolder.adView.setBodyView(bodyView);
-                    viewHolder.adView.setAdvertiserView(advertiser);
+                    mViewHolder.adView.setMediaView(mediaView);
+                    mViewHolder.adView.setHeadlineView(headlineView);
+                    mViewHolder.adView.setBodyView(bodyView);
+                    mViewHolder.adView.setAdvertiserView(advertiser);
                     headlineView.setText(unifiedNativeAd.getHeadline());
-                    viewHolder.adView.getMediaView().setMediaContent(unifiedNativeAd.getMediaContent());
+                    mViewHolder.adView.getMediaView().setMediaContent(unifiedNativeAd.getMediaContent());
                     if (unifiedNativeAd.getBody() != null) {
                         bodyView.setText(unifiedNativeAd.getBody());
-                        viewHolder.adView.getBodyView().setVisibility(View.VISIBLE);
+                        mViewHolder.adView.getBodyView().setVisibility(View.VISIBLE);
                     } else
-                        viewHolder.adView.getBodyView().setVisibility(View.INVISIBLE);
+                        mViewHolder.adView.getBodyView().setVisibility(View.INVISIBLE);
                     if (unifiedNativeAd.getAdvertiser() != null) {
                         advertiser.setText(unifiedNativeAd.getAdvertiser());
-                        viewHolder.adView.getAdvertiserView().setVisibility(View.VISIBLE);
+                        mViewHolder.adView.getAdvertiserView().setVisibility(View.VISIBLE);
                     } else
-                        viewHolder.adView.getAdvertiserView().setVisibility(View.GONE);
+                        mViewHolder.adView.getAdvertiserView().setVisibility(View.GONE);
 
-                    viewHolder.adView.setNativeAd(unifiedNativeAd);
+                    mViewHolder.adView.setNativeAd(unifiedNativeAd);
                     mediaView.addView(getAdText());
                 }
             });
             AdLoader adLoader = builder.withAdListener(new AdListener() {
                 @Override
                 public void onAdFailedToLoad(int i) {
-                    Toast.makeText(context, "광고 불러오기 실패 : " + i, Toast.LENGTH_LONG).show();
+                    Toast.makeText(mContext, "광고 불러오기 실패 : " + i, Toast.LENGTH_LONG).show();
                 }
             }).build();
             adLoader.loadAd(new AdRequest.Builder().build());
-            viewHolder.groupLayout.setVisibility(View.GONE);
-            viewHolder.adView.setVisibility(View.VISIBLE);
+            mViewHolder.groupLayout.setVisibility(View.GONE);
+            mViewHolder.adView.setVisibility(View.VISIBLE);
         }
 
-        viewHolder.groupName.setText(groupItem.getName());
-        Glide.with(context).load(groupItem.getImage()).transition(new DrawableTransitionOptions().crossFade(150)).into(viewHolder.groupImage);
+        mViewHolder.groupName.setText(groupItem.getName());
+        Glide.with(mContext).load(groupItem.getImage()).transition(new DrawableTransitionOptions().crossFade(150)).into(mViewHolder.groupImage);
 
         return convertView;
     }
 
     private TextView getAdText() {
-        TextView adText = new TextView(context);
-        adText.setText(context.getString(R.string.ad_attribution));
+        TextView adText = new TextView(mContext);
+        adText.setText(mContext.getString(R.string.ad_attribution));
         adText.setTextSize(12);
-        adText.setBackgroundColor(context.getResources().getColor(R.color.bg_ad_attribution));
-        adText.setTextColor(context.getResources().getColor(R.color.txt_ad_attribution));
+        adText.setBackgroundColor(mContext.getResources().getColor(R.color.bg_ad_attribution));
+        adText.setTextColor(mContext.getResources().getColor(R.color.txt_ad_attribution));
         adText.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         adText.setGravity(Gravity.CENTER_VERTICAL);
         return adText;
     }
 
     public String getKey(int position) {
-        return groupItemKeys.get(position);
+        return mGroupItemKeys.get(position);
     }
 
     public static class ViewHolder {

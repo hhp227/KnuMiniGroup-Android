@@ -6,7 +6,6 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 
-import androidx.annotation.NonNull;
 import androidx.exifinterface.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -48,43 +47,39 @@ import static com.hhp227.knu_minigroup.WriteActivity.REQUEST_IMAGE_CAPTURE;
 
 public class ModifyActivity extends Activity {
     private static final String TAG = ModifyActivity.class.getSimpleName();
-    private EditText inputTitle, inputContent;
-    private LinearLayout buttonImage;
-    private List<WriteItem> contents;
-    private ProgressDialog progressDialog;
-    private StringBuilder makeHtmlImages;
-    private Uri photoUri;
-    private List<String> imageList;
-    private ListView listView;
-    private View headerView;
-    private WriteListAdapter listAdapter;
-
-    private int contextMenuRequest;
-    private String grpId, artlNum, currentPhotoPath, cookie, title, content, grpKey, artlKey;
+    private int mContextMenuRequest;
+    private String mGrpId, mArtlNum, mCurrentPhotoPath, mCookie, mTitle, mContent, mGrpKey, mArtlKey;
+    private EditText mInputTitle, mInputContent;
+    private List<WriteItem> mContents;
+    private ProgressDialog mProgressDialog;
+    private StringBuilder mMakeHtmlImages;
+    private Uri mPhotoUri;
+    private List<String> mImageList;
+    private WriteListAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_write);
-        buttonImage = findViewById(R.id.ll_image);
-        listView = findViewById(R.id.lv_write);
-        headerView = getLayoutInflater().inflate(R.layout.write_text, null, false);
-        inputTitle = headerView.findViewById(R.id.et_title);
-        inputContent = headerView.findViewById(R.id.et_content);
-        contents = new ArrayList<>();
-        cookie = app.AppController.getInstance().getPreferenceManager().getCookie();
-        listAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, contents);
-        progressDialog = new ProgressDialog(this);
-
-        Intent intent = getIntent();
-        grpId = intent.getStringExtra("grp_id");
-        artlNum = intent.getStringExtra("artl_num");
-        title = intent.getStringExtra("sbjt");
-        content = intent.getStringExtra("txt");
-        imageList = intent.getStringArrayListExtra("img");
-        grpKey = intent.getStringExtra("grp_key");
-        artlKey = intent.getStringExtra("artl_key");
         ActionBar actionBar = getActionBar();
+        LinearLayout buttonImage = findViewById(R.id.ll_image);
+        ListView listView = findViewById(R.id.lv_write);
+        View headerView = getLayoutInflater().inflate(R.layout.write_text, null, false);
+        Intent intent = getIntent();
+        mInputTitle = headerView.findViewById(R.id.et_title);
+        mInputContent = headerView.findViewById(R.id.et_content);
+        mContents = new ArrayList<>();
+        mCookie = app.AppController.getInstance().getPreferenceManager().getCookie();
+        mAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, mContents);
+        mProgressDialog = new ProgressDialog(this);
+
+        mGrpId = intent.getStringExtra("grp_id");
+        mArtlNum = intent.getStringExtra("artl_num");
+        mTitle = intent.getStringExtra("sbjt");
+        mContent = intent.getStringExtra("txt");
+        mImageList = intent.getStringArrayListExtra("img");
+        mGrpKey = intent.getStringExtra("grp_key");
+        mArtlKey = intent.getStringExtra("artl_key");
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -98,30 +93,30 @@ public class ModifyActivity extends Activity {
         buttonImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                contextMenuRequest = 2;
+                mContextMenuRequest = 2;
                 registerForContextMenu(v);
                 openContextMenu(v);
                 unregisterForContextMenu(v);
             }
         });
-        inputTitle.setText(title);
-        inputContent.setText(content);
+        mInputTitle.setText(mTitle);
+        mInputContent.setText(mContent);
         listView.addHeaderView(headerView);
-        listView.setAdapter(listAdapter);
+        listView.setAdapter(mAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                contextMenuRequest = 1;
+                mContextMenuRequest = 1;
                 view.showContextMenu();
             }
         });
-        progressDialog.setCancelable(false);
-        if (imageList.size() > 0) {
-            for (String imageUrl : imageList) {
+        mProgressDialog.setCancelable(false);
+        if (mImageList.size() > 0) {
+            for (String imageUrl : mImageList) {
                 WriteItem writeItem = new WriteItem(null, null, imageUrl);
-                contents.add(writeItem);
+                mContents.add(writeItem);
             }
-            listAdapter.notifyDataSetChanged();
+            mAdapter.notifyDataSetChanged();
         }
         registerForContextMenu(listView);
     }
@@ -139,22 +134,22 @@ public class ModifyActivity extends Activity {
                 finish();
                 return true;
             case R.id.action_send :
-                String title = inputTitle.getEditableText().toString();
-                String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(inputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(inputContent.getText());
-                if (!inputTitle.getText().toString().isEmpty() && !(TextUtils.isEmpty(inputContent.getText()) && contents.size() == 0)) {
-                    makeHtmlImages = new StringBuilder();
-                    imageList.clear();
-                    progressDialog.setMessage("전송중...");
-                    progressDialog.setProgressStyle(contents.size() > 0 ? ProgressDialog.STYLE_HORIZONTAL : ProgressDialog.STYLE_SPINNER);
+                String title = mInputTitle.getEditableText().toString();
+                String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(mInputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(mInputContent.getText());
+                if (!mInputTitle.getText().toString().isEmpty() && !(TextUtils.isEmpty(mInputContent.getText()) && mContents.size() == 0)) {
+                    mMakeHtmlImages = new StringBuilder();
+                    mImageList.clear();
+                    mProgressDialog.setMessage("전송중...");
+                    mProgressDialog.setProgressStyle(mContents.size() > 0 ? ProgressDialog.STYLE_HORIZONTAL : ProgressDialog.STYLE_SPINNER);
                     showProgressDialog();
 
-                    if (contents.size() > 0) {
+                    if (mContents.size() > 0) {
                         int position = 0;
-                        uploadImage(position, contents.get(0));
+                        uploadImage(position, mContents.get(0));
                     } else
                         actionSend(title, content);
                 } else
-                    Toast.makeText(getApplicationContext(), (TextUtils.isEmpty(inputTitle.getText()) ? "제목" : "내용") + "을 입력하세요.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), (TextUtils.isEmpty(mInputTitle.getText()) ? "제목" : "내용") + "을 입력하세요.", Toast.LENGTH_LONG).show();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -162,7 +157,7 @@ public class ModifyActivity extends Activity {
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
-        switch (contextMenuRequest) {
+        switch (mContextMenuRequest) {
             case 1 :
                 menu.setHeaderTitle("작업 선택");
                 menu.add(Menu.NONE, 1, Menu.NONE, "삭제");
@@ -181,9 +176,9 @@ public class ModifyActivity extends Activity {
         switch (item.getItemId()) {
             case 1 :
                 int position = ((AdapterView.AdapterContextMenuInfo) item.getMenuInfo()).position - 1;
-                imageList.remove(position);
-                contents.remove(position);
-                listAdapter.notifyDataSetChanged();
+                mImageList.remove(position);
+                mContents.remove(position);
+                mAdapter.notifyDataSetChanged();
                 return true;
             case 2 :
                 intent = new Intent(Intent.ACTION_PICK);
@@ -201,9 +196,9 @@ public class ModifyActivity extends Activity {
                         // Error occurred while creating the File
                     }
                     if (photoFile != null) {
-                        photoUri = FileProvider.getUriForFile(this, getPackageName(), photoFile);
+                        mPhotoUri = FileProvider.getUriForFile(this, getPackageName(), photoFile);
 
-                        intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+                        intent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
                         startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
                     }
                 }
@@ -224,23 +219,23 @@ public class ModifyActivity extends Activity {
             writeItem.setBitmap(bitmap);
             writeItem.setFileUri(fileUri);
 
-            contents.add(writeItem);
-            listAdapter.notifyDataSetChanged();
+            mContents.add(writeItem);
+            mAdapter.notifyDataSetChanged();
         } else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             try {
-                bitmap = new BitmapUtil(this).bitmapResize(photoUri, 200);
+                bitmap = new BitmapUtil(this).bitmapResize(mPhotoUri, 200);
                 if (bitmap != null) {
-                    ExifInterface ei = new ExifInterface(currentPhotoPath);
+                    ExifInterface ei = new ExifInterface(mCurrentPhotoPath);
                     int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
                     int angle = orientation == ExifInterface.ORIENTATION_ROTATE_90 ? 90
                             : orientation == ExifInterface.ORIENTATION_ROTATE_180 ? 180
                             : orientation == ExifInterface.ORIENTATION_ROTATE_270 ? 270
                             : 0;
                     Bitmap rotatedBitmap = new BitmapUtil(this).rotateImage(bitmap, angle);
-                    WriteItem writeItem = new WriteItem(photoUri, rotatedBitmap, null);
+                    WriteItem writeItem = new WriteItem(mPhotoUri, rotatedBitmap, null);
 
-                    contents.add(writeItem);
-                    listAdapter.notifyDataSetChanged();
+                    mContents.add(writeItem);
+                    mAdapter.notifyDataSetChanged();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -269,7 +264,7 @@ public class ModifyActivity extends Activity {
                 @Override
                 public Map<String, String> getHeaders() {
                     Map<String, String> headers = new HashMap<>();
-                    headers.put("Cookie", cookie);
+                    headers.put("Cookie", mCookie);
                     return headers;
                 }
 
@@ -291,17 +286,17 @@ public class ModifyActivity extends Activity {
     }
 
     private void imageUploadProcess(int count, String imageUrl, boolean isFlag) {
-        imageList.add(imageUrl);
-        progressDialog.setProgress((int) ((double) (count) / contents.size() * 100));
+        mImageList.add(imageUrl);
+        mProgressDialog.setProgress((int) ((double) (count) / mContents.size() * 100));
         try {
-            makeHtmlImages.append("<p><img src=\"" + imageUrl + "\" width=\"488\"><p>" + (count < contents.size() - 1 ? "<br>": ""));
-            if (count < contents.size() - 1) {
+            mMakeHtmlImages.append("<p><img src=\"" + imageUrl + "\" width=\"488\"><p>" + (count < mContents.size() - 1 ? "<br>": ""));
+            if (count < mContents.size() - 1) {
                 count++;
                 Thread.sleep(isFlag ? 700 : 0);
-                uploadImage(count, contents.get(count));
+                uploadImage(count, mContents.get(count));
             } else {
-                String title = inputTitle.getEditableText().toString();
-                String content = (!TextUtils.isEmpty(inputContent.getText()) ? Html.toHtml(inputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) + "<p><br data-mce-bogus=\"1\"></p>" : "") + makeHtmlImages.toString();
+                String title = mInputTitle.getEditableText().toString();
+                String content = (!TextUtils.isEmpty(mInputContent.getText()) ? Html.toHtml(mInputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) + "<p><br data-mce-bogus=\"1\"></p>" : "") + mMakeHtmlImages.toString();
                 actionSend(title, content);
             }
         } catch (InterruptedException e) {
@@ -341,15 +336,15 @@ public class ModifyActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", cookie);
+                headers.put("Cookie", mCookie);
                 return headers;
             }
 
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-                params.put("CLUB_GRP_ID", grpId);
-                params.put("ARTL_NUM", artlNum);
+                params.put("CLUB_GRP_ID", mGrpId);
+                params.put("ARTL_NUM", mArtlNum);
                 params.put("SBJT", title);
                 params.put("TXT", content);
                 return params;
@@ -368,13 +363,13 @@ public class ModifyActivity extends Activity {
                 storageDir      /* directory */
         );
 
-        currentPhotoPath = image.getAbsolutePath();
+        mCurrentPhotoPath = image.getAbsolutePath();
         return image;
     }
 
     private void initFirebaseData() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
-        updateArticleDataToFirebase(databaseReference.child(grpKey).child(artlKey));
+        updateArticleDataToFirebase(databaseReference.child(mGrpKey).child(mArtlKey));
     }
 
     private void updateArticleDataToFirebase(final Query query) {
@@ -383,9 +378,9 @@ public class ModifyActivity extends Activity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getValue() != null) {
                     ArticleItem articleItem = dataSnapshot.getValue(ArticleItem.class);
-                    articleItem.setTitle(inputTitle.getText().toString());
-                    articleItem.setContent(TextUtils.isEmpty(inputContent.getText()) ? null : inputContent.getText().toString());
-                    articleItem.setImages(imageList.isEmpty() ? null : imageList);
+                    articleItem.setTitle(mInputTitle.getText().toString());
+                    articleItem.setContent(TextUtils.isEmpty(mInputContent.getText()) ? null : mInputContent.getText().toString());
+                    articleItem.setImages(mImageList.isEmpty() ? null : mImageList);
                     query.getRef().setValue(articleItem);
                 }
             }
@@ -398,12 +393,12 @@ public class ModifyActivity extends Activity {
     }
 
     private void showProgressDialog() {
-        if (!progressDialog.isShowing())
-            progressDialog.show();
+        if (!mProgressDialog.isShowing())
+            mProgressDialog.show();
     }
 
     private void hideProgressDialog() {
-        if (progressDialog.isShowing())
-            progressDialog.dismiss();
+        if (mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
     }
 }

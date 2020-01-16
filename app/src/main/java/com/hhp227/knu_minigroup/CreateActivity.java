@@ -38,32 +38,32 @@ import java.util.UUID;
 
 public class CreateActivity extends Activity {
     private static final String TAG = CreateActivity.class.getSimpleName();
+
     // 인텐트값
     public static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
     public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 200;
-    private Bitmap bitmap;
-    private EditText groupTitle, groupDescription;
-    private ImageView groupImage, resetTitle;
-    private PreferenceManager preferenceManager;
-    private ProgressDialog progressDialog;
-    private RadioGroup joinType;
-
-    private boolean joinTypeCheck;
-    private String cookie, pushId;
+    private boolean mJoinTypeCheck;
+    private String mCookie, mPushId;
+    private Bitmap mBitmap;
+    private EditText mGroupTitle, mGroupDescription;
+    private ImageView mGroupImage, mResetTitle;
+    private PreferenceManager mPreferenceManager;
+    private ProgressDialog mProgressDialog;
+    private RadioGroup mJoinType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create);
-        groupTitle = findViewById(R.id.et_title);
-        groupDescription = findViewById(R.id.et_description);
-        resetTitle = findViewById(R.id.iv_reset);
-        groupImage = findViewById(R.id.iv_group_image);
-        joinType = findViewById(R.id.rg_jointype);
-        preferenceManager = app.AppController.getInstance().getPreferenceManager();
-        cookie = preferenceManager.getCookie();
-        progressDialog = new ProgressDialog(this);
         ActionBar actionBar = getActionBar();
+        mGroupTitle = findViewById(R.id.et_title);
+        mGroupDescription = findViewById(R.id.et_description);
+        mResetTitle = findViewById(R.id.iv_reset);
+        mGroupImage = findViewById(R.id.iv_group_image);
+        mJoinType = findViewById(R.id.rg_jointype);
+        mPreferenceManager = app.AppController.getInstance().getPreferenceManager();
+        mCookie = mPreferenceManager.getCookie();
+        mProgressDialog = new ProgressDialog(this);
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -74,32 +74,29 @@ public class CreateActivity extends Activity {
                 }
             });
         }
-        progressDialog.setCancelable(false);
-        progressDialog.setMessage("전송중...");
-
-        groupTitle.addTextChangedListener(new TextWatcher() {
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.setMessage("전송중...");
+        mGroupTitle.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                resetTitle.setImageResource(s.length() > 0 ? R.drawable.ic_clear_black_24dp : R.drawable.ic_clear_gray_24dp);
+                mResetTitle.setImageResource(s.length() > 0 ? R.drawable.ic_clear_black_24dp : R.drawable.ic_clear_gray_24dp);
             }
 
             @Override
             public void afterTextChanged(Editable s) {
             }
         });
-
-        resetTitle.setOnClickListener(new View.OnClickListener() {
+        mResetTitle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                groupTitle.setText("");
+                mGroupTitle.setText("");
             }
         });
-
-        groupImage.setOnClickListener(new View.OnClickListener() {
+        mGroupImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 registerForContextMenu(v);
@@ -107,15 +104,13 @@ public class CreateActivity extends Activity {
                 unregisterForContextMenu(v);
             }
         });
-
-        joinType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+        mJoinType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                joinTypeCheck = checkedId != R.id.rb_auto;
+                mJoinTypeCheck = checkedId != R.id.rb_auto;
             }
         });
-
-        joinType.check(R.id.rb_auto);
+        mJoinType.check(R.id.rb_auto);
     }
 
     @Override
@@ -131,9 +126,9 @@ public class CreateActivity extends Activity {
                 finish();
                 return true;
             case R.id.action_send :
-                final String title = groupTitle.getText().toString().trim();
-                final String description = groupDescription.getText().toString().trim();
-                final String join = !joinTypeCheck ? "0" : "1";
+                final String title = mGroupTitle.getText().toString().trim();
+                final String description = mGroupDescription.getText().toString().trim();
+                final String join = !mJoinTypeCheck ? "0" : "1";
                 if (!title.isEmpty() && !description.isEmpty()) {
                     showProgressDialog();
                     app.AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, EndPoint.CREATE_GROUP, null, new Response.Listener<JSONObject>() {
@@ -143,7 +138,7 @@ public class CreateActivity extends Activity {
                                 if (!response.getBoolean("isError")) {
                                     String groupId = response.getString("CLUB_GRP_ID").trim();
                                     String groupName = response.getString("GRP_NM");
-                                    if (bitmap != null)
+                                    if (mBitmap != null)
                                         groupImageUpdate(groupId, groupName, description, join);
                                     else {
                                         insertGroupToFirebase(groupId, groupName, description, join);
@@ -165,7 +160,7 @@ public class CreateActivity extends Activity {
                         @Override
                         public Map<String, String> getHeaders() {
                             Map<String, String> headers = new HashMap<>();
-                            headers.put("Cookie", cookie);
+                            headers.put("Cookie", mCookie);
                             return headers;
                         }
 
@@ -222,7 +217,7 @@ public class CreateActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", cookie);
+                headers.put("Cookie", mCookie);
                 return headers;
             }
 
@@ -236,7 +231,7 @@ public class CreateActivity extends Activity {
             @Override
             protected Map<String, DataPart> getByteData() {
                 Map<String, DataPart> params = new HashMap<>();
-                params.put("file", new DataPart(UUID.randomUUID().toString().replace("-", "").concat(".jpg"), getFileDataFromDrawable(bitmap)));
+                params.put("file", new DataPart(UUID.randomUUID().toString().replace("-", "").concat(".jpg"), getFileDataFromDrawable(mBitmap)));
                 return params;
             }
 
@@ -271,8 +266,8 @@ public class CreateActivity extends Activity {
                 startActivityForResult(galleryIntent, CAMERA_PICK_IMAGE_REQUEST_CODE);
                 break;
             case "이미지 없음" :
-                groupImage.setImageResource(R.drawable.add_photo);
-                bitmap = null;
+                mGroupImage.setImageResource(R.drawable.add_photo);
+                mBitmap = null;
                 Toast.makeText(getBaseContext(), "이미지 없음 선택", Toast.LENGTH_LONG).show();
                 break;
         }
@@ -283,12 +278,12 @@ public class CreateActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == CAMERA_CAPTURE_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-            bitmap = (Bitmap) data.getExtras().get("data");
-            groupImage.setImageBitmap(bitmap);
+            mBitmap = (Bitmap) data.getExtras().get("data");
+            mGroupImage.setImageBitmap(mBitmap);
         } else if (requestCode == CAMERA_PICK_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
             Uri fileUri = data.getData();
-            bitmap = new BitmapUtil(this).bitmapResize(fileUri, 200);
-            groupImage.setImageBitmap(bitmap);
+            mBitmap = new BitmapUtil(this).bitmapResize(fileUri, 200);
+            mGroupImage.setImageBitmap(mBitmap);
         }
     }
 
@@ -297,7 +292,7 @@ public class CreateActivity extends Activity {
         intent.putExtra(getString(R.string.extra_admin), true);
         intent.putExtra(getString(R.string.extra_group_id), groupId);
         intent.putExtra(getString(R.string.extra_group_name), groupName);
-        intent.putExtra(getString(R.string.extra_key), pushId);
+        intent.putExtra(getString(R.string.extra_key), mPushId);
         setResult(RESULT_OK, intent);
         startActivity(intent);
         finish();
@@ -308,34 +303,34 @@ public class CreateActivity extends Activity {
     private void insertGroupToFirebase(String groupId, String groupName, String description, String joinType) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         Map<String, Boolean> members = new HashMap<>();
-        members.put(preferenceManager.getUser().getUid(), true);
+        members.put(mPreferenceManager.getUser().getUid(), true);
         GroupItem groupItem = new GroupItem();
         groupItem.setId(groupId);
         groupItem.setTimestamp(System.currentTimeMillis());
-        groupItem.setAuthor(preferenceManager.getUser().getName());
-        groupItem.setAuthorUid(preferenceManager.getUser().getUid());
-        groupItem.setImage(EndPoint.BASE_URL + (bitmap != null ? "/ilosfiles2/club/photo/" + groupId.concat(".jpg") : "/ilos/images/community/share_nophoto.gif"));
+        groupItem.setAuthor(mPreferenceManager.getUser().getName());
+        groupItem.setAuthorUid(mPreferenceManager.getUser().getUid());
+        groupItem.setImage(EndPoint.BASE_URL + (mBitmap != null ? "/ilosfiles2/club/photo/" + groupId.concat(".jpg") : "/ilos/images/community/share_nophoto.gif"));
         groupItem.setName(groupName);
         groupItem.setDescription(description);
         groupItem.setJoinType(joinType);
         groupItem.setMembers(members);
         groupItem.setMemberCount(members.size());
 
-        pushId = databaseReference.push().getKey();
+        mPushId = databaseReference.push().getKey();
 
         Map<String, Object> childUpdates = new HashMap<>();
-        childUpdates.put("Groups/" + pushId, groupItem);
-        childUpdates.put("UserGroupList/" + preferenceManager.getUser().getUid() + "/" + pushId, true);
+        childUpdates.put("Groups/" + mPushId, groupItem);
+        childUpdates.put("UserGroupList/" + mPreferenceManager.getUser().getUid() + "/" + mPushId, true);
         databaseReference.updateChildren(childUpdates);
     }
 
     private void showProgressDialog() {
-        if (!progressDialog.isShowing())
-            progressDialog.show();
+        if (!mProgressDialog.isShowing())
+            mProgressDialog.show();
     }
 
     private void hideProgressDialog() {
-        if (progressDialog.isShowing())
-            progressDialog.dismiss();
+        if (mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
     }
 }

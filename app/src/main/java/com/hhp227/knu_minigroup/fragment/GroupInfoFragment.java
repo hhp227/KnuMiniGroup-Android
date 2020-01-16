@@ -38,13 +38,10 @@ import static android.app.Activity.RESULT_OK;
 
 public class GroupInfoFragment extends DialogFragment {
     private static final String TAG = "정보창";
-    private static int buttonType;
-    private static String groupId, groupName, groupImage, groupInfo, groupDesc, joinType, key;
-    private Button button, close;
-    private ImageView image;
-    private PreferenceManager preferenceManager;
-    private ProgressDialog progressDialog;
-    private TextView name, info, desc;
+    private static int mButtonType;
+    private static String mGroupId, mGroupName, mGroupImage, mGroupInfo, mGroupDesc, mJoinType, mKey;
+    private PreferenceManager mPreferenceManager;
+    private ProgressDialog mProgressDialog;
 
     public static GroupInfoFragment newInstance() {
         Bundle args = new Bundle();
@@ -58,14 +55,14 @@ public class GroupInfoFragment extends DialogFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            groupId = getArguments().getString("grp_id");
-            groupName = getArguments().getString("grp_nm");
-            groupImage = getArguments().getString("img");
-            groupInfo = getArguments().getString("info");
-            groupDesc = getArguments().getString("desc");
-            joinType = getArguments().getString("type");
-            buttonType = getArguments().getInt("btn_type");
-            key = getArguments().getString("key");
+            mGroupId = getArguments().getString("grp_id");
+            mGroupName = getArguments().getString("grp_nm");
+            mGroupImage = getArguments().getString("img");
+            mGroupInfo = getArguments().getString("info");
+            mGroupDesc = getArguments().getString("desc");
+            mJoinType = getArguments().getString("type");
+            mButtonType = getArguments().getInt("btn_type");
+            mKey = getArguments().getString("key");
         }
     }
 
@@ -76,32 +73,32 @@ public class GroupInfoFragment extends DialogFragment {
             getDialog().getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
         View rootView = inflater.inflate(R.layout.fragment_group_info, container, false);
-        button = rootView.findViewById(R.id.b_request);
-        close = rootView.findViewById(R.id.b_close);
-        image = rootView.findViewById(R.id.iv_group_image);
-        name = rootView.findViewById(R.id.tv_name);
-        info = rootView.findViewById(R.id.tv_info);
-        desc = rootView.findViewById(R.id.tv_desciption);
-        preferenceManager = app.AppController.getInstance().getPreferenceManager();
-        progressDialog = new ProgressDialog(getContext());
-        progressDialog.setCancelable(false);
+        Button button = rootView.findViewById(R.id.b_request);
+        Button close = rootView.findViewById(R.id.b_close);
+        ImageView image = rootView.findViewById(R.id.iv_group_image);
+        TextView name = rootView.findViewById(R.id.tv_name);
+        TextView info = rootView.findViewById(R.id.tv_info);
+        TextView desc = rootView.findViewById(R.id.tv_desciption);
+        mPreferenceManager = app.AppController.getInstance().getPreferenceManager();
+        mProgressDialog = new ProgressDialog(getContext());
+        mProgressDialog.setCancelable(false);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                progressDialog.setMessage("요청중...");
+                mProgressDialog.setMessage("요청중...");
                 showProgressDialog();
                 String tag_json_req = "req_register";
-                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, buttonType == 0 ? EndPoint.REGISTER_GROUP : EndPoint.WITHDRAWAL_GROUP, null, new Response.Listener<JSONObject>() {
+                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, mButtonType == 0 ? EndPoint.REGISTER_GROUP : EndPoint.WITHDRAWAL_GROUP, null, new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            if (buttonType == 0 && !response.getBoolean("isError")) {
+                            if (mButtonType == 0 && !response.getBoolean("isError")) {
                                 Toast.makeText(getContext(), "신청완료", Toast.LENGTH_LONG).show();
                                 Intent intent = new Intent(getContext(), MainActivity.class);
                                 getActivity().setResult(RESULT_OK, intent);
                                 getActivity().finish();
                                 insertGroupToFirebase();
-                            } else if (buttonType == 1 && !response.getBoolean("isError")) {
+                            } else if (mButtonType == 1 && !response.getBoolean("isError")) {
                                 Toast.makeText(getContext(), "신청취소", Toast.LENGTH_LONG).show();
                                 ((RequestActivity) getActivity()).refresh();
                                 GroupInfoFragment.this.dismiss();
@@ -122,7 +119,7 @@ public class GroupInfoFragment extends DialogFragment {
                     @Override
                     public Map<String, String> getHeaders() {
                         Map<String, String> headers = new HashMap<>();
-                        headers.put("Cookie", preferenceManager.getCookie());
+                        headers.put("Cookie", mPreferenceManager.getCookie());
                         return headers;
                     }
 
@@ -134,7 +131,7 @@ public class GroupInfoFragment extends DialogFragment {
                     @Override
                     public byte[] getBody() {
                         Map<String, String> params = new HashMap<>();
-                        params.put("CLUB_GRP_ID", groupId);
+                        params.put("CLUB_GRP_ID", mGroupId);
                         if (params.size() > 0) {
                             StringBuilder encodedParams = new StringBuilder();
                             try {
@@ -161,13 +158,13 @@ public class GroupInfoFragment extends DialogFragment {
                 GroupInfoFragment.this.dismiss();
             }
         });
-        name.setText(groupName);
-        info.setText(groupInfo);
-        desc.setText(groupDesc);
+        name.setText(mGroupName);
+        info.setText(mGroupInfo);
+        desc.setText(mGroupDesc);
         desc.setMaxLines(6);
-        button.setText(buttonType == 0 ? "가입신청" : "신청취소");
+        button.setText(mButtonType == 0 ? "가입신청" : "신청취소");
         Glide.with(this)
-                .load(groupImage)
+                .load(mGroupImage)
                 .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background).error(R.drawable.ic_launcher_background))
                 .transition(DrawableTransitionOptions.withCrossFade(150))
                 .into(image);
@@ -178,17 +175,17 @@ public class GroupInfoFragment extends DialogFragment {
     private void insertGroupToFirebase() {
         DatabaseReference userGroupListReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
         final DatabaseReference groupsReference = FirebaseDatabase.getInstance().getReference("Groups");
-        groupsReference.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+        groupsReference.child(mKey).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getValue() == null)
                     return;
                 GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
-                Map<String, Boolean> members = groupItem.getMembers() != null && !groupItem.getMembers().containsKey(preferenceManager.getUser().getUid()) ? groupItem.getMembers() : new HashMap<String, Boolean>();
-                members.put(preferenceManager.getUser().getUid(), joinType.equals("0"));
+                Map<String, Boolean> members = groupItem.getMembers() != null && !groupItem.getMembers().containsKey(mPreferenceManager.getUser().getUid()) ? groupItem.getMembers() : new HashMap<String, Boolean>();
+                members.put(mPreferenceManager.getUser().getUid(), mJoinType.equals("0"));
                 groupItem.setMembers(members);
                 groupItem.setMemberCount(members.size());
-                groupsReference.child(key).setValue(groupItem);
+                groupsReference.child(mKey).setValue(groupItem);
             }
 
             @Override
@@ -198,26 +195,26 @@ public class GroupInfoFragment extends DialogFragment {
         });
 
         Map<String, Object> childUpdates = new HashMap<>();
-        childUpdates.put("/" + preferenceManager.getUser().getUid() + "/" + key, joinType.equals("0"));
+        childUpdates.put("/" + mPreferenceManager.getUser().getUid() + "/" + mKey, mJoinType.equals("0"));
         userGroupListReference.updateChildren(childUpdates);
     }
 
     private void deleteUserInGroupFromFirebase() {
         DatabaseReference userGroupListReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
         final DatabaseReference groupsReference = FirebaseDatabase.getInstance().getReference("Groups");
-        groupsReference.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+        groupsReference.child(mKey).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getValue() == null)
                     return;
                 GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
-                if (groupItem.getMembers() != null && groupItem.getMembers().containsKey(preferenceManager.getUser().getUid())) {
+                if (groupItem.getMembers() != null && groupItem.getMembers().containsKey(mPreferenceManager.getUser().getUid())) {
                     Map<String, Boolean> members = groupItem.getMembers();
-                    members.remove(preferenceManager.getUser().getUid());
+                    members.remove(mPreferenceManager.getUser().getUid());
                     groupItem.setMembers(members);
                     groupItem.setMemberCount(members.size());
                 }
-                groupsReference.child(key).setValue(groupItem);
+                groupsReference.child(mKey).setValue(groupItem);
             }
 
             @Override
@@ -225,16 +222,16 @@ public class GroupInfoFragment extends DialogFragment {
                 Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
             }
         });
-        userGroupListReference.child(preferenceManager.getUser().getUid()).child(key).removeValue();
+        userGroupListReference.child(mPreferenceManager.getUser().getUid()).child(mKey).removeValue();
     }
 
     private void showProgressDialog() {
-        if (!progressDialog.isShowing())
-            progressDialog.show();
+        if (!mProgressDialog.isShowing())
+            mProgressDialog.show();
     }
 
     private void hideProgressDialog() {
-        if (progressDialog.isShowing())
-            progressDialog.dismiss();
+        if (mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
     }
 }

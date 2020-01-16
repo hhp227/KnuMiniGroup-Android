@@ -27,15 +27,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Tab3Fragment extends BaseFragment {
-    public static String groupId;
     private static final int LIMIT = 40;
     private static final String TAG = "맴버목록";
-    private ProgressDialog progressDialog;
-    private GridView gridView;
-    private MemberGridAdapter memberGridAdapter;
-    private List<MemberItem> memberItems;
-    private boolean hasRequestedMore;
-    private int offSet;
+    private boolean mHasRequestedMore;
+    private int mOffSet;
+    private String mGroupId;
+    private ProgressDialog mProgressDialog;
+    private GridView mGridView;
+    private MemberGridAdapter mAdapter;
+    private List<MemberItem> mMemberItems;
 
     public Tab3Fragment() {
     }
@@ -52,29 +52,29 @@ public class Tab3Fragment extends BaseFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            groupId = getArguments().getString("grp_id");
+            mGroupId = getArguments().getString("grp_id");
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_tab3, container, false);
-        gridView = rootView.findViewById(R.id.gv_member);
-        memberItems = new ArrayList<>();
-        memberGridAdapter = new MemberGridAdapter(getActivity(), memberItems);
-        progressDialog = new ProgressDialog(getActivity());
-        offSet = 1;
-        progressDialog.setMessage("불러오는중...");
-        progressDialog.setCancelable(false);
-        gridView.setAdapter(memberGridAdapter);
-        gridView.setOnScrollListener(new AbsListView.OnScrollListener() {
+        mGridView = rootView.findViewById(R.id.gv_member);
+        mMemberItems = new ArrayList<>();
+        mAdapter = new MemberGridAdapter(getActivity(), mMemberItems);
+        mProgressDialog = new ProgressDialog(getActivity());
+        mOffSet = 1;
+        mProgressDialog.setMessage("불러오는중...");
+        mProgressDialog.setCancelable(false);
+        mGridView.setAdapter(mAdapter);
+        mGridView.setOnScrollListener(new AbsListView.OnScrollListener() {
             boolean lastItemVisibleFlag = false;
 
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
-                if (scrollState == SCROLL_STATE_IDLE && lastItemVisibleFlag && hasRequestedMore == false) {
-                    offSet += LIMIT;
-                    hasRequestedMore = true;
+                if (scrollState == SCROLL_STATE_IDLE && lastItemVisibleFlag && mHasRequestedMore == false) {
+                    mOffSet += LIMIT;
+                    mHasRequestedMore = true;
                     fetchMemberList();
                 }
             }
@@ -84,10 +84,10 @@ public class Tab3Fragment extends BaseFragment {
                 lastItemVisibleFlag = totalItemCount > 0 && firstVisibleItem + visibleItemCount >= totalItemCount;
             }
         });
-        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                MemberItem memberItem = memberItems.get(position);
+                MemberItem memberItem = mMemberItems.get(position);
                 String uid = memberItem.uid;
                 String name = memberItem.name;
                 String value = memberItem.value;
@@ -110,11 +110,11 @@ public class Tab3Fragment extends BaseFragment {
 
     @Override
     public boolean canScrollVertically(int direction) {
-        return gridView != null && gridView.canScrollVertically(direction);
+        return mGridView != null && mGridView.canScrollVertically(direction);
     }
 
     private void fetchMemberList() {
-        String params = "?CLUB_GRP_ID=" + groupId + "&startM=" + offSet + "&displayM=" + LIMIT;
+        String params = "?CLUB_GRP_ID=" + mGroupId + "&startM=" + mOffSet + "&displayM=" + LIMIT;
         app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.MEMBER_LIST + params, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -131,13 +131,13 @@ public class Tab3Fragment extends BaseFragment {
                         String name = spanElements.get(i).getContent().toString();
                         String imageUrl = imgElements.get(i).getAttributeValue("src");
                         String value = inputElements.get(i).getAttributeValue("value");
-                        memberItems.add(new MemberItem(imageUrl.substring(imageUrl.indexOf("id=") + "id=".length(), imageUrl.lastIndexOf("&ext")), name, value));
+                        mMemberItems.add(new MemberItem(imageUrl.substring(imageUrl.indexOf("id=") + "id=".length(), imageUrl.lastIndexOf("&ext")), name, value));
                     }
-                    memberGridAdapter.notifyDataSetChanged();
+                    mAdapter.notifyDataSetChanged();
                 } catch (NullPointerException e) {
                     e.printStackTrace();
                 }
-                hasRequestedMore = false;
+                mHasRequestedMore = false;
                 hideProgressDialog();
             }
         }, new Response.ErrorListener() {
@@ -150,12 +150,12 @@ public class Tab3Fragment extends BaseFragment {
     }
 
     private void showProgressDialog() {
-        if (!progressDialog.isShowing())
-            progressDialog.show();
+        if (!mProgressDialog.isShowing())
+            mProgressDialog.show();
     }
 
     private void hideProgressDialog() {
-        if (progressDialog.isShowing())
-            progressDialog.dismiss();
+        if (mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
     }
 }

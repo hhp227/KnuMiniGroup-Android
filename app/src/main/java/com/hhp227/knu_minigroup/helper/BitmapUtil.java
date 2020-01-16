@@ -9,31 +9,29 @@ import android.net.Uri;
 import java.io.FileNotFoundException;
 
 public class BitmapUtil {
-    private Context context;
+    private Context mContext;
 
     public BitmapUtil(Context context) {
-        this.context = context;
+        this.mContext = context;
     }
 
     public Bitmap bitmapResize(Uri uri, int resize) {
         Bitmap result = null;
         BitmapFactory.Options options = new BitmapFactory.Options();
         try {
-            BitmapFactory.decodeStream(context.getContentResolver().openInputStream(uri), null, options);
+            BitmapFactory.decodeStream(mContext.getContentResolver().openInputStream(uri), null, options);
 
             int width = options.outWidth;
             int height = options.outHeight;
             int sampleSize = 1;
 
-            while (true) {
-                if (width / 2 < resize || height / 2 < resize)
-                    break;
+            while (width / 2 >= resize && height / 2 >= resize) {
                 width /= 2;
                 height /= 2;
                 sampleSize *= 2;
             }
             options.inSampleSize = sampleSize;
-            Bitmap bitmap = BitmapFactory.decodeStream(context.getContentResolver().openInputStream(uri), null, options);
+            Bitmap bitmap = BitmapFactory.decodeStream(mContext.getContentResolver().openInputStream(uri), null, options);
             result = bitmap;
         } catch (FileNotFoundException e) {
             e.printStackTrace();

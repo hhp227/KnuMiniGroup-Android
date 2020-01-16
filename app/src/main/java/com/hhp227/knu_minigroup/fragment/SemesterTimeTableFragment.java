@@ -22,9 +22,9 @@ import java.util.Map;
 
 public class SemesterTimeTableFragment extends Fragment {
     private static final String TAG = "시간표";
-    private LinearLayout[] lay = new LinearLayout[22];
-    private ProgressBar progressBar;
-    private TextView[] data = new TextView[22 * 6];
+    private LinearLayout[] lay;
+    private ProgressBar mProgressBar;
+    private TextView[] mDatas;
 
     public SemesterTimeTableFragment() {
         // Required empty public constructor
@@ -43,8 +43,9 @@ public class SemesterTimeTableFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_timetable, container, false);
-        progressBar = rootView.findViewById(R.id.pb_group);
-
+        mProgressBar = rootView.findViewById(R.id.pb_group);
+        mDatas = new TextView[22 * 6];
+        lay = new LinearLayout[22];
         lay[0] = rootView.findViewById(R.id.lay_0);
         lay[1] = rootView.findViewById(R.id.lay_1);
         lay[2] = rootView.findViewById(R.id.lay_2);
@@ -68,7 +69,7 @@ public class SemesterTimeTableFragment extends Fragment {
         lay[20] = rootView.findViewById(R.id.lay_20);
         lay[21] = rootView.findViewById(R.id.lay_21);
 
-        progressBar.setVisibility(View.VISIBLE);
+        showProgressBar();
         app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.TIMETABLE, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -92,26 +93,25 @@ public class SemesterTimeTableFragment extends Fragment {
                     if (i == 1)
                         continue;
                     List<Element> schedule = list.get(i).getChildElements();
-
                     for (int j = 0; j < 6; j++) { // 6개
-                        data[id] = new TextView(getActivity());
-                        data[id].setId(id);
-                        data[id].setTextSize(10);
-                        data[id].setGravity(Gravity.CENTER);
-                        data[id].setBackgroundColor(Color.parseColor(i == 0 ? "#FAF4C0" : "#EAEAEA"));
-                        data[id].setText(schedule.get(j).getTextExtractor().toString());
+                        mDatas[id] = new TextView(getActivity());
+                        mDatas[id].setId(id);
+                        mDatas[id].setTextSize(10);
+                        mDatas[id].setGravity(Gravity.CENTER);
+                        mDatas[id].setBackgroundColor(Color.parseColor(i == 0 ? "#FAF4C0" : "#EAEAEA"));
+                        mDatas[id].setText(schedule.get(j).getTextExtractor().toString());
 
-                        lay[i].addView(data[id], i == 0 ? params2 : params1); //시간표 데이터 출력
+                        lay[i].addView(mDatas[id], i == 0 ? params2 : params1); //시간표 데이터 출력
                         id++;
                     }
                 }
-                progressBar.setVisibility(View.GONE);
+                hideProgressBar();
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 VolleyLog.e(TAG, error.getMessage());
-                progressBar.setVisibility(View.GONE);
+                hideProgressBar();
             }
         }) {
             @Override
@@ -133,5 +133,15 @@ public class SemesterTimeTableFragment extends Fragment {
     public int getLcdSizeHeight() {
         // TODO Auto-generated method stub
         return ((WindowManager) getActivity().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getHeight();
+    }
+
+    private void showProgressBar() {
+        if (mProgressBar != null)
+            mProgressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void hideProgressBar() {
+        if (mProgressBar != null)
+            mProgressBar.setVisibility(View.GONE);
     }
 }

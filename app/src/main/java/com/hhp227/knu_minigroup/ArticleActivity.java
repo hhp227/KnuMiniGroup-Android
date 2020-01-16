@@ -13,7 +13,6 @@ import android.util.Log;
 import android.view.*;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
-import androidx.annotation.NonNull;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
@@ -44,57 +43,56 @@ import static com.hhp227.knu_minigroup.fragment.Tab1Fragment.UPDATE_ARTICLE;
 public class ArticleActivity extends Activity {
     private static final int UPDATE_REPLY = 10;
     private static final String TAG = ArticleActivity.class.getSimpleName();
-    private EditText inputReply;
-    private ImageView articleProfile;
-    private LinearLayout articleImages;
-    private List<String> imageList, replyItemKeys;
-    private List<ReplyItem> replyItemValues;
-    private ListView listView;
-    private PreferenceManager preferenceManager;
-    private ProgressDialog progressDialog;
-    private ReplyListAdapter replyListAdapter;
-    private Source source;
-    private SwipeRefreshLayout swipeRefreshLayout;
-    private TextView articleTitle, articleTimeStamp, articleContent, buttonSend;
-    private View articleDetail;
-
-    private boolean isBottom, isUpdate, isAuthorized;
-    private int position;
-    private String groupId, articleId, groupName, groupKey, articleKey;
+    private boolean mIsBottom, mIsUpdate, mIsAuthorized;
+    private int mPosition;
+    private String mGroupId, mArticleId, mGroupName, mGroupKey, mArticleKey;
+    private EditText mInputReply;
+    private ImageView mArticleProfile;
+    private LinearLayout mArticleImages;
+    private List<String> mImageList, mReplyItemKeys;
+    private List<ReplyItem> mReplyItemValues;
+    private ListView mListView;
+    private PreferenceManager mPreferenceManager;
+    private ProgressDialog mProgressDialog;
+    private ReplyListAdapter mAdapter;
+    private Source mSource;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
+    private TextView mArticleTitle, mArticleTimeStamp, mArticleContent, mButtonSend;
+    private View mArticleDetail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_article);
-        articleDetail = getLayoutInflater().inflate(R.layout.article_detail, null, false);
-        buttonSend = findViewById(R.id.tv_btn_send);
-        articleProfile = articleDetail.findViewById(R.id.iv_profile_image);
-        articleTitle = articleDetail.findViewById(R.id.tv_title);
-        articleTimeStamp = articleDetail.findViewById(R.id.tv_timestamp);
-        articleContent = articleDetail.findViewById(R.id.tv_content);
-        articleImages = articleDetail.findViewById(R.id.ll_image);
-        inputReply = findViewById(R.id.et_reply);
-        listView = findViewById(R.id.lv_article);
-        swipeRefreshLayout = findViewById(R.id.srl_article);
+        ActionBar actionBar = getActionBar();
+        mArticleDetail = getLayoutInflater().inflate(R.layout.article_detail, null, false);
+        mButtonSend = findViewById(R.id.tv_btn_send);
+        mArticleProfile = mArticleDetail.findViewById(R.id.iv_profile_image);
+        mArticleTitle = mArticleDetail.findViewById(R.id.tv_title);
+        mArticleTimeStamp = mArticleDetail.findViewById(R.id.tv_timestamp);
+        mArticleContent = mArticleDetail.findViewById(R.id.tv_content);
+        mArticleImages = mArticleDetail.findViewById(R.id.ll_image);
+        mInputReply = findViewById(R.id.et_reply);
+        mListView = findViewById(R.id.lv_article);
+        mSwipeRefreshLayout = findViewById(R.id.srl_article);
 
         final Intent intent = getIntent();
-        preferenceManager = app.AppController.getInstance().getPreferenceManager();
-        groupId = intent.getStringExtra("grp_id");
-        groupName = intent.getStringExtra("grp_nm");
-        articleId = intent.getStringExtra("artl_num");
-        groupKey = intent.getStringExtra("grp_key");
-        articleKey = intent.getStringExtra("artl_key");
-        position = intent.getIntExtra("position", 0);
-        isAuthorized = intent.getBooleanExtra("auth", false);
-        isBottom = intent.getBooleanExtra("isbottom", false);
-        imageList = new ArrayList<>();
-        replyItemKeys = new ArrayList<>();
-        replyItemValues = new ArrayList<>();
-        replyListAdapter = new ReplyListAdapter(this, replyItemKeys, replyItemValues);
-        progressDialog = new ProgressDialog(this);
-        ActionBar actionBar = getActionBar();
+        mPreferenceManager = app.AppController.getInstance().getPreferenceManager();
+        mGroupId = intent.getStringExtra("grp_id");
+        mGroupName = intent.getStringExtra("grp_nm");
+        mArticleId = intent.getStringExtra("artl_num");
+        mGroupKey = intent.getStringExtra("grp_key");
+        mArticleKey = intent.getStringExtra("artl_key");
+        mPosition = intent.getIntExtra("position", 0);
+        mIsAuthorized = intent.getBooleanExtra("auth", false);
+        mIsBottom = intent.getBooleanExtra("isbottom", false);
+        mImageList = new ArrayList<>();
+        mReplyItemKeys = new ArrayList<>();
+        mReplyItemValues = new ArrayList<>();
+        mAdapter = new ReplyListAdapter(this, mReplyItemKeys, mReplyItemValues);
+        mProgressDialog = new ProgressDialog(this);
         if (actionBar != null) {
-            actionBar.setTitle(groupName);
+            actionBar.setTitle(mGroupName);
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
@@ -104,20 +102,21 @@ public class ArticleActivity extends Activity {
                 }
             });
         }
-        articleDetail.setOnLongClickListener(new View.OnLongClickListener() {
+        mArticleDetail.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 v.showContextMenu();
                 return true;
             }
         });
-        buttonSend.setOnClickListener(new View.OnClickListener() {
+        mButtonSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (inputReply.getText().toString().trim().length() > 0) {
-                    actionSend(inputReply.getText().toString());
+                if (mInputReply.getText().toString().trim().length() > 0) {
+                    actionSend(mInputReply.getText().toString());
+
                     // 전송하면 텍스트 초기화
-                    inputReply.setText("");
+                    mInputReply.setText("");
                     if (v != null) {
                         InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                         inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
@@ -126,33 +125,33 @@ public class ArticleActivity extends Activity {
                     Toast.makeText(getApplicationContext(), "댓글을 입력하세요.", Toast.LENGTH_LONG).show();
             }
         });
-        inputReply.addTextChangedListener(new TextWatcher() {
+        mInputReply.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                buttonSend.setBackgroundResource(s.length() > 0 ? R.drawable.background_sendbtn_p : R.drawable.background_sendbtn_n);
-                buttonSend.setTextColor(getResources().getColor(s.length() > 0 ? android.R.color.white : android.R.color.darker_gray));
+                mButtonSend.setBackgroundResource(s.length() > 0 ? R.drawable.background_sendbtn_p : R.drawable.background_sendbtn_n);
+                mButtonSend.setTextColor(getResources().getColor(s.length() > 0 ? android.R.color.white : android.R.color.darker_gray));
             }
 
             @Override
             public void afterTextChanged(Editable s) {
             }
         });
-        inputReply.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        mInputReply.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus)
-                    listView.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
+                    mListView.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
             }
         });
-        listView.addHeaderView(articleDetail);
-        listView.setAdapter(replyListAdapter);
-        progressDialog.setCancelable(false);
-        progressDialog.setMessage("요청중 ...");
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mListView.addHeaderView(mArticleDetail);
+        mListView.setAdapter(mAdapter);
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.setMessage("요청중 ...");
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 Handler handler = new Handler();
@@ -160,23 +159,24 @@ public class ArticleActivity extends Activity {
                     @Override
                     public void run() {
 
-                        swipeRefreshLayout.setRefreshing(false);
+                        mSwipeRefreshLayout.setRefreshing(false);
                     }
                 };
                 handler.postDelayed(runnable, 1000);
             }
         });
-        registerForContextMenu(listView); // 콘텍스트메뉴
+        registerForContextMenu(mListView); // 콘텍스트메뉴
         showProgressDialog();
         fetchArticleData();
+
         // isBotoom이 참이면 화면 아래로 이동
-        if (isBottom)
+        if (mIsBottom)
             setListViewBottom();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (isAuthorized) {
+        if (mIsAuthorized) {
             menu.add(Menu.NONE, 1, Menu.NONE, "수정하기");
             menu.add(Menu.NONE, 2, Menu.NONE, "삭제하기");
         }
@@ -192,19 +192,19 @@ public class ArticleActivity extends Activity {
                 return true;
             case 1 :
                 Intent intent = new Intent(this, ModifyActivity.class);
-                intent.putExtra("grp_id", groupId);
-                intent.putExtra("artl_num", articleId);
-                intent.putExtra("sbjt", articleTitle.getText().toString().substring(0, articleTitle.getText().toString().lastIndexOf("-")).trim());
-                intent.putExtra("txt", articleContent.getText().toString());
-                intent.putStringArrayListExtra("img", (ArrayList<String>) imageList);
-                intent.putExtra("grp_key", groupKey);
-                intent.putExtra("artl_key", articleKey);
+                intent.putExtra("grp_id", mGroupId);
+                intent.putExtra("artl_num", mArticleId);
+                intent.putExtra("sbjt", mArticleTitle.getText().toString().substring(0, mArticleTitle.getText().toString().lastIndexOf("-")).trim());
+                intent.putExtra("txt", mArticleContent.getText().toString());
+                intent.putStringArrayListExtra("img", (ArrayList<String>) mImageList);
+                intent.putExtra("grp_key", mGroupKey);
+                intent.putExtra("artl_key", mArticleKey);
                 startActivityForResult(intent, UPDATE_ARTICLE);
                 return true;
             case 2 :
                 String tag_string_req = "req_delete";
 
-                progressDialog.setMessage("요청중 ...");
+                mProgressDialog.setMessage("요청중 ...");
                 showProgressDialog();
 
                 StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.DELETE_ARTICLE, new Response.Listener<String>() {
@@ -217,9 +217,9 @@ public class ArticleActivity extends Activity {
                                 Toast.makeText(getApplicationContext(), "삭제완료", Toast.LENGTH_LONG).show();
                                 Intent intent = new Intent(ArticleActivity.this, GroupActivity.class);
                                 intent.putExtra("admin", getIntent().getBooleanExtra("admin", false));
-                                intent.putExtra("grp_id", groupId);
-                                intent.putExtra("grp_nm", groupName);
-                                intent.putExtra("key", groupKey);
+                                intent.putExtra("grp_id", mGroupId);
+                                intent.putExtra("grp_nm", mGroupName);
+                                intent.putExtra("key", mGroupKey);
                                 // 모든 이전 activity 초기화
                                 intent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                 startActivity(intent);
@@ -244,15 +244,15 @@ public class ArticleActivity extends Activity {
                     @Override
                     public Map<String, String> getHeaders() {
                         Map<String, String> headers = new HashMap<>();
-                        headers.put("Cookie", preferenceManager.getCookie());
+                        headers.put("Cookie", mPreferenceManager.getCookie());
                         return headers;
                     }
 
                     @Override
                     protected Map<String, String> getParams() {
                         Map<String, String> params = new HashMap<>();
-                        params.put("CLUB_GRP_ID", groupId);
-                        params.put("ARTL_NUM", articleId);
+                        params.put("CLUB_GRP_ID", mGroupId);
+                        params.put("ARTL_NUM", mArticleId);
                         return params;
                     }
                 };
@@ -266,13 +266,13 @@ public class ArticleActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == UPDATE_ARTICLE && resultCode == RESULT_OK) {
-            isUpdate = true;
+            mIsUpdate = true;
             onCreate(new Bundle());
         } else if (requestCode == UPDATE_REPLY && resultCode == RESULT_OK && data != null) {
-            source = new Source(data.getStringExtra("update_reply"));
-            replyItemKeys.clear();
-            replyItemValues.clear();
-            List<Element> commentList = source.getAllElementsByClass("comment-list");
+            mSource = new Source(data.getStringExtra("update_reply"));
+            mReplyItemKeys.clear();
+            mReplyItemValues.clear();
+            List<Element> commentList = mSource.getAllElementsByClass("comment-list");
             fetchReplyData(commentList);
         }
     }
@@ -285,7 +285,7 @@ public class ArticleActivity extends Activity {
         super.onCreateContextMenu(menu, v, menuInfo);
         int position = ((AdapterView.AdapterContextMenuInfo) menuInfo).position;
         menu.setHeaderTitle("작업선택");
-        boolean auth = !replyItemValues.isEmpty() && position != 0 && replyItemValues.get((position - 1)).isAuth();
+        boolean auth = !mReplyItemValues.isEmpty() && position != 0 && mReplyItemValues.get((position - 1)).isAuth();
         menu.add(Menu.NONE, 1, Menu.NONE, "내용 복사");
         if (position != 0 && auth) {
             menu.add(Menu.NONE, 2, Menu.NONE, "댓글 수정");
@@ -296,40 +296,40 @@ public class ArticleActivity extends Activity {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        final String replyKey = replyItemKeys.isEmpty() || info.position == 0 ? null : replyItemKeys.get(info.position - 1);
-        ReplyItem replyItem = replyItemValues.isEmpty() || info.position == 0 ? null : replyItemValues.get(info.position - 1); // 헤더가 있기때문에 포지션에서 -1을 해준다.
+        final String replyKey = mReplyItemKeys.isEmpty() || info.position == 0 ? null : mReplyItemKeys.get(info.position - 1);
+        ReplyItem replyItem = mReplyItemValues.isEmpty() || info.position == 0 ? null : mReplyItemValues.get(info.position - 1); // 헤더가 있기때문에 포지션에서 -1을 해준다.
         final String replyId = replyItem == null ? "0" : replyItem.getId();
         switch (item.getItemId()) {
             case 1 :
                 android.content.ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                clipboard.setText(info.position == 0 ? articleContent.getText().toString() : replyItem.getReply());
+                clipboard.setText(info.position == 0 ? mArticleContent.getText().toString() : replyItem.getReply());
                 Toast.makeText(getApplicationContext(), "클립보드에 복사되었습니다!", Toast.LENGTH_SHORT).show();
                 return true;
             case 2 :
                 Intent intent = new Intent(getBaseContext(), ReplyModifyActivity.class);
                 String reply = replyItem.getReply();
-                intent.putExtra("grp_id", groupId);
-                intent.putExtra("artl_num", articleId);
+                intent.putExtra("grp_id", mGroupId);
+                intent.putExtra("artl_num", mArticleId);
                 intent.putExtra("cmt", reply);
                 intent.putExtra("cmmt_num", replyId);
-                intent.putExtra("artl_key", articleKey);
+                intent.putExtra("artl_key", mArticleKey);
                 intent.putExtra("cmmt_key", replyKey);
                 startActivityForResult(intent, UPDATE_REPLY);
                 return true;
             case 3 :
                 String tag_string_req = "req_delete";
 
-                progressDialog.setMessage("요청중...");
+                mProgressDialog.setMessage("요청중...");
                 showProgressDialog();
                 StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.DELETE_REPLY, new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        source = new Source(response);
+                        mSource = new Source(response);
                         try {
                             if (!response.contains("처리를 실패했습니다")) {
-                                replyItemKeys.clear();
-                                replyItemValues.clear();
-                                List<Element> commentList = source.getAllElementsByClass("comment-list");
+                                mReplyItemKeys.clear();
+                                mReplyItemValues.clear();
+                                List<Element> commentList = mSource.getAllElementsByClass("comment-list");
                                 fetchReplyData(commentList);
                             }
                         } catch (Exception e) {
@@ -349,16 +349,16 @@ public class ArticleActivity extends Activity {
                     @Override
                     public Map<String, String> getHeaders() {
                         Map<String, String> headers = new HashMap<>();
-                        headers.put("Cookie", preferenceManager.getCookie());
+                        headers.put("Cookie", mPreferenceManager.getCookie());
                         return headers;
                     }
 
                     @Override
                     protected Map<String, String> getParams() {
                         Map<String, String> params = new HashMap<>();
-                        params.put("CLUB_GRP_ID", groupId);
+                        params.put("CLUB_GRP_ID", mGroupId);
                         params.put("CMMT_NUM", replyId);
-                        params.put("ARTL_NUM", articleId);
+                        params.put("ARTL_NUM", mArticleId);
                         return params;
                     }
                 };
@@ -369,13 +369,13 @@ public class ArticleActivity extends Activity {
     }
 
     private void fetchArticleData() {
-        String params = "?CLUB_GRP_ID=" + groupId + "&startL=" + position + "&displayL=1";
+        String params = "?CLUB_GRP_ID=" + mGroupId + "&startL=" + mPosition + "&displayL=1";
         StringRequest stringRequest = new StringRequest(Request.Method.GET, EndPoint.GROUP_ARTICLE_LIST + params, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                source = new Source(response.trim());
+                mSource = new Source(response.trim());
                 try {
-                    Element element = source.getFirstElementByClass("listbox2");
+                    Element element = mSource.getFirstElementByClass("listbox2");
                     Element viewArt = element.getFirstElementByClass("view_art");
                     Element commentWrap = element.getFirstElementByClass("comment_wrap");
                     List<Element> commentList = element.getAllElementsByClass("comment-list");
@@ -393,18 +393,18 @@ public class ArticleActivity extends Activity {
                     Glide.with(getApplicationContext())
                             .load(profileImg)
                             .apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop())
-                            .into(articleProfile);
-                    articleTitle.setText(title + " - " + name);
-                    articleTimeStamp.setText(timeStamp);
+                            .into(mArticleProfile);
+                    mArticleTitle.setText(title + " - " + name);
+                    mArticleTimeStamp.setText(timeStamp);
                     if (!TextUtils.isEmpty(content)) {
-                        articleContent.setText(content);
-                        articleContent.setVisibility(View.VISIBLE);
+                        mArticleContent.setText(content);
+                        mArticleContent.setVisibility(View.VISIBLE);
                     } else
-                        articleContent.setVisibility(View.GONE);
+                        mArticleContent.setVisibility(View.GONE);
 
                     if (images.size() > 0) {
                         for (Element image : images) {
-                            final int position = imageList.size();
+                            final int position = mImageList.size();
                             String imageUrl = !image.getAttributeValue("src").contains("http") ? EndPoint.BASE_URL + image.getAttributeValue("src") : image.getAttributeValue("src");
                             ImageView articleImage = new ImageView(getApplicationContext());
                             articleImage.setAdjustViewBounds(true);
@@ -414,22 +414,22 @@ public class ArticleActivity extends Activity {
                                 @Override
                                 public void onClick(View v) {
                                     Intent intent = new Intent(getApplicationContext(), PictureActivity.class);
-                                    intent.putStringArrayListExtra("images", (ArrayList<String>) imageList);
+                                    intent.putStringArrayListExtra("images", (ArrayList<String>) mImageList);
                                     intent.putExtra("position", position);
                                     startActivity(intent);
                                 }
                             });
                             Glide.with(getApplicationContext()).load(imageUrl).apply(RequestOptions.errorOf(R.drawable.ic_launcher_background)).into(articleImage);
-                            articleImages.addView(articleImage);
-                            imageList.add(imageUrl);
+                            mArticleImages.addView(articleImage);
+                            mImageList.add(imageUrl);
                         }
-                        articleImages.setVisibility(View.VISIBLE);
+                        mArticleImages.setVisibility(View.VISIBLE);
                     } else
-                        articleImages.setVisibility(View.GONE);
+                        mArticleImages.setVisibility(View.GONE);
 
                     fetchReplyData(commentList);
-                    if (isUpdate)
-                        deliveryUpdate(title, contentExtractor(viewArt.getFirstElementByClass("list_cont"), true), imageList, replyCnt);
+                    if (mIsUpdate)
+                        deliveryUpdate(title, contentExtractor(viewArt.getFirstElementByClass("list_cont"), true), mImageList, replyCnt);
                 } catch (Exception e) {
                     Toast.makeText(getApplicationContext(), "값이 없습니다.", Toast.LENGTH_LONG).show();
                 } finally {
@@ -447,7 +447,7 @@ public class ArticleActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", preferenceManager.getCookie());
+                headers.put("Cookie", mPreferenceManager.getCookie());
                 return headers;
             }
         };
@@ -471,10 +471,10 @@ public class ArticleActivity extends Activity {
                 replyItem.setReply(Html.fromHtml(replyContent).toString());
                 replyItem.setDate(timeStamp.replaceAll("[(]|[)]", ""));
                 replyItem.setAuth(authorization);
-                replyItemKeys.add(replyId);
-                replyItemValues.add(replyItem);
+                mReplyItemKeys.add(replyId);
+                mReplyItemValues.add(replyItem);
             }
-            replyListAdapter.notifyDataSetChanged();
+            mAdapter.notifyDataSetChanged();
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
         } finally {
@@ -485,15 +485,15 @@ public class ArticleActivity extends Activity {
     private void actionSend(final String text) {
         String tag_string_req = "req_send";
 
-        progressDialog.setMessage("전송중...");
+        mProgressDialog.setMessage("전송중...");
         showProgressDialog();
         StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.INSERT_REPLY, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                source = new Source(response);
-                replyItemKeys.clear();
-                replyItemValues.clear();
-                List<Element> commentList = source.getAllElementsByClass("comment-list");
+                mSource = new Source(response);
+                mReplyItemKeys.clear();
+                mReplyItemValues.clear();
+                List<Element> commentList = mSource.getAllElementsByClass("comment-list");
                 try {
                     fetchReplyData(commentList);
                     hideProgressDialog();
@@ -516,15 +516,15 @@ public class ArticleActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", preferenceManager.getCookie());
+                headers.put("Cookie", mPreferenceManager.getCookie());
                 return headers;
             }
 
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-                params.put("CLUB_GRP_ID", groupId);
-                params.put("ARTL_NUM", articleId);
+                params.put("CLUB_GRP_ID", mGroupId);
+                params.put("ARTL_NUM", mArticleId);
                 params.put("CMT", text);
                 return params;
             }
@@ -539,15 +539,15 @@ public class ArticleActivity extends Activity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                final int articleHeight = articleDetail.getMeasuredHeight();
-                listView.setSelection(articleHeight);
+                final int articleHeight = mArticleDetail.getMeasuredHeight();
+                mListView.setSelection(articleHeight);
             }
         }, 300);
     }
 
     private void deliveryUpdate(String title, String content, List<String> imageList, String replyCnt) {
         Intent intent = new Intent(getApplicationContext(), Tab1Fragment.class);
-        intent.putExtra("position", position);
+        intent.putExtra("position", mPosition);
         intent.putExtra("sbjt", title);
         intent.putExtra("txt", content);
         intent.putStringArrayListExtra("img", (ArrayList<String>) imageList);
@@ -565,7 +565,7 @@ public class ArticleActivity extends Activity {
 
     private void fetchArticleDataFromFirebase() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
-        databaseReference.child(groupKey).child(articleKey).addListenerForSingleValueEvent(new ValueEventListener() {
+        databaseReference.child(mGroupKey).child(mArticleKey).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getValue() != null) {
@@ -573,8 +573,8 @@ public class ArticleActivity extends Activity {
                     Glide.with(getApplicationContext())
                             .load(EndPoint.USER_IMAGE.replace("{UID}", articleItem.getUid()))
                             .apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop())
-                            .into(articleProfile);
-                    articleTimeStamp.setText(new SimpleDateFormat("yyyy.MM.dd a h:mm:ss").format(articleItem.getTimestamp()));
+                            .into(mArticleProfile);
+                    mArticleTimeStamp.setText(new SimpleDateFormat("yyyy.MM.dd a h:mm:ss").format(articleItem.getTimestamp()));
                 }
             }
 
@@ -588,28 +588,28 @@ public class ArticleActivity extends Activity {
     private void deleteArticleFromFirebase() {
         DatabaseReference articlesReference = FirebaseDatabase.getInstance().getReference("Articles");
         DatabaseReference replysReference = FirebaseDatabase.getInstance().getReference("Replys");
-        articlesReference.child(groupKey).child(articleKey).removeValue();
-        replysReference.child(articleKey).removeValue();
+        articlesReference.child(mGroupKey).child(mArticleKey).removeValue();
+        replysReference.child(mArticleKey).removeValue();
     }
 
     private void fetchReplyListFromFirebase() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Replys");
-        databaseReference.child(articleKey).addListenerForSingleValueEvent(new ValueEventListener() {
+        databaseReference.child(mArticleKey).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getValue() != null) {
                     for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                         String key = snapshot.getKey();
                         ReplyItem value = snapshot.getValue(ReplyItem.class);
-                        int index = replyItemKeys.indexOf(value.getId());
+                        int index = mReplyItemKeys.indexOf(value.getId());
                         if (index > -1) {
-                            ReplyItem replyItem = replyItemValues.get(index);
+                            ReplyItem replyItem = mReplyItemValues.get(index);
                             replyItem.setUid(value.getUid());
-                            replyItemValues.set(index, replyItem);
-                            replyItemKeys.set(index, key);
+                            mReplyItemValues.set(index, replyItem);
+                            mReplyItemKeys.set(index, key);
                         }
                     }
-                    replyListAdapter.notifyDataSetChanged();
+                    mAdapter.notifyDataSetChanged();
                 }
             }
 
@@ -624,26 +624,26 @@ public class ArticleActivity extends Activity {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Replys");
         ReplyItem replyItem = new ReplyItem();
         replyItem.setId(replyId);
-        replyItem.setUid(preferenceManager.getUser().getUid());
-        replyItem.setName(preferenceManager.getUser().getName());
+        replyItem.setUid(mPreferenceManager.getUser().getUid());
+        replyItem.setName(mPreferenceManager.getUser().getName());
         replyItem.setTimestamp(System.currentTimeMillis());
         replyItem.setReply(text);
 
-        databaseReference.child(articleKey).push().setValue(replyItem);
+        databaseReference.child(mArticleKey).push().setValue(replyItem);
     }
 
     private void deleteReplyFromFirebase(String replyKey) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Replys");
-        databaseReference.child(articleKey).child(replyKey).removeValue();
+        databaseReference.child(mArticleKey).child(replyKey).removeValue();
     }
 
     private void showProgressDialog() {
-        if (!progressDialog.isShowing())
-            progressDialog.show();
+        if (!mProgressDialog.isShowing())
+            mProgressDialog.show();
     }
 
     private void hideProgressDialog() {
-        if (progressDialog.isShowing())
-            progressDialog.dismiss();
+        if (mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
     }
 }

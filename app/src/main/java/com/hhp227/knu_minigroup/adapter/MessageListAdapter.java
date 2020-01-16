@@ -21,26 +21,25 @@ import java.util.Locale;
 public class MessageListAdapter extends BaseAdapter {
     private static final int MSG_TYPE_LEFT = 0;
     private static final int MSG_TYPE_RIGHT = 1;
-    private Context context;
-    private LayoutInflater inflater;
-    private List<MessageItem> messageItems;
-    private String uid;
-    private ViewHolder viewHolder;
+    private Context mContext;
+    private LayoutInflater mInflater;
+    private List<MessageItem> mMessageItems;
+    private String mUid;
 
     public MessageListAdapter(Context context, List<MessageItem> messageItems, String uid) {
-        this.context = context;
-        this.messageItems = messageItems;
-        this.uid = uid;
+        this.mContext = context;
+        this.mMessageItems = messageItems;
+        this.mUid = uid;
     }
 
     @Override
     public int getCount() {
-        return messageItems.size();
+        return mMessageItems.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return messageItems.get(position);
+        return mMessageItems.get(position);
     }
 
     @Override
@@ -50,19 +49,20 @@ public class MessageListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        if (inflater == null)
-            inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        ViewHolder viewHolder;
+        if (mInflater == null)
+            mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (convertView == null) {
-            convertView = inflater.inflate(getItemViewType(position) == MSG_TYPE_RIGHT ? R.layout.message_item_right : R.layout.message_item_left, null);
+            convertView = mInflater.inflate(getItemViewType(position) == MSG_TYPE_RIGHT ? R.layout.message_item_right : R.layout.message_item_left, null);
             viewHolder = new ViewHolder(convertView);
             convertView.setTag(viewHolder);
         } else
             viewHolder = (ViewHolder) convertView.getTag();
-        MessageItem messageItem = messageItems.get(position);
+        MessageItem messageItem = mMessageItems.get(position);
         viewHolder.name.setText(messageItem.getName());
         viewHolder.message.setText(messageItem.getMessage());
         viewHolder.timeStamp.setText(getTimeStamp(messageItem.getTimeStamp()));
-        if (position > 0 && getTimeStamp(messageItems.get(position - 1).getTimeStamp()).equals(getTimeStamp(messageItem.getTimeStamp())) && messageItems.get(position - 1).getFrom().equals(messageItem.getFrom())) {
+        if (position > 0 && getTimeStamp(mMessageItems.get(position - 1).getTimeStamp()).equals(getTimeStamp(messageItem.getTimeStamp())) && mMessageItems.get(position - 1).getFrom().equals(messageItem.getFrom())) {
             viewHolder.name.setVisibility(View.GONE);
             viewHolder.messageBox.setPadding(viewHolder.messageBox.getPaddingLeft(), 0, viewHolder.messageBox.getPaddingRight(), viewHolder.messageBox.getPaddingBottom());
             viewHolder.profileImage.setVisibility(View.INVISIBLE);
@@ -70,9 +70,9 @@ public class MessageListAdapter extends BaseAdapter {
             viewHolder.name.setVisibility(getItemViewType(position) == MSG_TYPE_RIGHT ? View.GONE : View.VISIBLE);
             viewHolder.profileImage.setVisibility(View.VISIBLE);
             viewHolder.messageBox.setPadding(10, 10, 10, 10);
-            Glide.with(context).load(EndPoint.USER_IMAGE.replace("{UID}", messageItem.getFrom())).apply(new RequestOptions().circleCrop()).into(viewHolder.profileImage);
+            Glide.with(mContext).load(EndPoint.USER_IMAGE.replace("{UID}", messageItem.getFrom())).apply(new RequestOptions().circleCrop()).into(viewHolder.profileImage);
         }
-        if (position + 1 != messageItems.size() && getTimeStamp(messageItem.getTimeStamp()).equals(getTimeStamp(messageItems.get(position + 1).getTimeStamp())) && messageItem.getFrom().equals(messageItems.get(position + 1).getFrom()))
+        if (position + 1 != mMessageItems.size() && getTimeStamp(messageItem.getTimeStamp()).equals(getTimeStamp(mMessageItems.get(position + 1).getTimeStamp())) && messageItem.getFrom().equals(mMessageItems.get(position + 1).getFrom()))
             viewHolder.timeStamp.setText("");
 
         return convertView;
@@ -85,7 +85,7 @@ public class MessageListAdapter extends BaseAdapter {
 
     @Override
     public int getItemViewType(int position) {
-        return !messageItems.get(position).getFrom().equals(uid) ? MSG_TYPE_LEFT : MSG_TYPE_RIGHT;
+        return !mMessageItems.get(position).getFrom().equals(mUid) ? MSG_TYPE_LEFT : MSG_TYPE_RIGHT;
     }
 
     private String getTimeStamp(long time) {

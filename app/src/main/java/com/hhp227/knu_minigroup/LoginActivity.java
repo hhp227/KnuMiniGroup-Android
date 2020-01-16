@@ -28,10 +28,9 @@ import java.util.Map;
 
 public class LoginActivity extends Activity {
     private static final String TAG = "로그인화면";
-    private Button login;
-    private EditText inputId, inputPassword;
-    private ProgressDialog progressDialog;
-    private PreferenceManager preferenceManager;
+    private EditText mInputId, mInputPassword;
+    private ProgressDialog mProgressDialog;
+    private PreferenceManager mPreferenceManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,15 +38,15 @@ public class LoginActivity extends Activity {
         // 액션바 없음
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_login);
-        login = findViewById(R.id.b_login);
-        inputId = findViewById(R.id.et_id);
-        inputPassword = findViewById(R.id.et_password);
-        preferenceManager = app.AppController.getInstance().getPreferenceManager();
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setCancelable(false);
+        Button login = findViewById(R.id.b_login);
+        mInputId = findViewById(R.id.et_id);
+        mInputPassword = findViewById(R.id.et_password);
+        mPreferenceManager = app.AppController.getInstance().getPreferenceManager();
+        mProgressDialog = new ProgressDialog(this);
+        mProgressDialog.setCancelable(false);
 
         // 사용자가 이미 로그인되어있는지 아닌지 확인
-        if (preferenceManager.getUser() != null) {
+        if (mPreferenceManager.getUser() != null) {
             startActivity(new Intent(this, SplashActivity.class));
             finish();
         }
@@ -56,11 +55,11 @@ public class LoginActivity extends Activity {
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final String id = inputId.getText().toString();
-                final String password = inputPassword.getText().toString();
+                final String id = mInputId.getText().toString();
+                final String password = mInputPassword.getText().toString();
 
                 if (!id.isEmpty() && !password.isEmpty()) {
-                    progressDialog.setMessage("로그인중...");
+                    mProgressDialog.setMessage("로그인중...");
                     showProgressDialog();
 
                     StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.LOGIN, new Response.Listener<String>() {
@@ -94,7 +93,7 @@ public class LoginActivity extends Activity {
                             List<Header> headers = response.allHeaders;
                             for (Header header : headers)
                                 if (header.getName().equals("Set-Cookie") && header.getValue().contains("SESSION_NEWLMS"))
-                                    preferenceManager.storeCookie(header.getValue());
+                                    mPreferenceManager.storeCookie(header.getValue());
                             return super.parseNetworkResponse(response);
                         }
 
@@ -127,8 +126,8 @@ public class LoginActivity extends Activity {
                     };
                     app.AppController.getInstance().addToRequestQueue(stringRequest);
                 } else {
-                    inputId.setError(id.isEmpty() ? "아이디를 입력하세요." : null);
-                    inputPassword.setError(password.isEmpty() ? "패스워드를 입력하세요." : null);
+                    mInputId.setError(id.isEmpty() ? "아이디를 입력하세요." : null);
+                    mInputPassword.setError(password.isEmpty() ? "패스워드를 입력하세요." : null);
                 }
             }
         });
@@ -206,7 +205,7 @@ public class LoginActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", preferenceManager.getCookie());
+                headers.put("Cookie", mPreferenceManager.getCookie());
                 return headers;
             }
         });
@@ -222,7 +221,7 @@ public class LoginActivity extends Activity {
 
                 user.setUid(uid);
 
-                preferenceManager.storeUser(user);
+                mPreferenceManager.storeUser(user);
                 // 화면이동
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);
@@ -239,19 +238,19 @@ public class LoginActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", preferenceManager.getCookie());
+                headers.put("Cookie", mPreferenceManager.getCookie());
                 return headers;
             }
         });
     }
 
     private void showProgressDialog() {
-        if (!progressDialog.isShowing())
-            progressDialog.show();
+        if (!mProgressDialog.isShowing())
+            mProgressDialog.show();
     }
 
     private void hideProgressDialog() {
-        if (progressDialog.isShowing())
-            progressDialog.dismiss();
+        if (mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
     }
 }

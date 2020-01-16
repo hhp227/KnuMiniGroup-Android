@@ -11,16 +11,15 @@ import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 
 public class WebViewActivity extends Activity {
     public static String URL = "url";
-    private WebView webView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_web_view);
-        webView = findViewById(R.id.wv_notice);
-        URL = getIntent().getStringExtra(URL);
+        WebView webView = findViewById(R.id.wv_notice);
         WebSettings webSettings = webView.getSettings();
         ActionBar actionBar = getActionBar();
+        URL = getIntent().getStringExtra(URL);
 
         webView.loadUrl(URL);
         webView.getSettings().setLoadWithOverviewMode(true);

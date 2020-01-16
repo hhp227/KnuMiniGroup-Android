@@ -44,17 +44,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
-    private static boolean isAdmin;
-    private static int position;
-    private static String groupId, key;
-    private static final String TAG = Tab4Fragment.class.getSimpleName();
+    private static final String TAG = "설정";
+    private static boolean mIsAdmin;
+    private static int mPosition;
+    private static String mGroupId, mKey;
     private long mLastClickTime;
-    AdView adView;
-    ImageView profileImage;
-    LinearLayout profile, withdrawal, settings, appStore, share, version;
-    ProgressDialog progressDialog;
-    TextView name, knuId, withdrawalText;
-    User user;
+    private ProgressDialog mProgressDialog;
+    private User mUser;
 
     public Tab4Fragment() {
     }
@@ -74,36 +70,36 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            isAdmin = getArguments().getBoolean("admin");
-            groupId = getArguments().getString("grp_id");
-            position = getArguments().getInt("position");
-            key = getArguments().getString("key");
+            mIsAdmin = getArguments().getBoolean("admin");
+            mGroupId = getArguments().getString("grp_id");
+            mPosition = getArguments().getInt("position");
+            mKey = getArguments().getString("key");
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_tab4, container, false);
-        adView = rootView.findViewById(R.id.adView);
-        profileImage = rootView.findViewById(R.id.iv_profile_image);
-        name = rootView.findViewById(R.id.tv_name);
-        knuId = rootView.findViewById(R.id.tv_knu_id);
-        profile = rootView.findViewById(R.id.ll_profile);
-        withdrawal = rootView.findViewById(R.id.ll_withdrawal);
-        withdrawalText = rootView.findViewById(R.id.tv_withdrawal);
-        settings = rootView.findViewById(R.id.ll_settings);
-        appStore = rootView.findViewById(R.id.ll_appstore);
-        share = rootView.findViewById(R.id.ll_share);
-        version = rootView.findViewById(R.id.ll_verinfo);
-        progressDialog = new ProgressDialog(getContext());
-
+        TextView name = rootView.findViewById(R.id.tv_name);
+        TextView knuId = rootView.findViewById(R.id.tv_knu_id);
+        TextView withdrawalText = rootView.findViewById(R.id.tv_withdrawal);
+        AdView adView = rootView.findViewById(R.id.adView);
+        ImageView profileImage = rootView.findViewById(R.id.iv_profile_image);
+        LinearLayout profile = rootView.findViewById(R.id.ll_profile);
+        LinearLayout withdrawal = rootView.findViewById(R.id.ll_withdrawal);
+        LinearLayout settings = rootView.findViewById(R.id.ll_settings);
+        LinearLayout appStore = rootView.findViewById(R.id.ll_appstore);
+        LinearLayout share = rootView.findViewById(R.id.ll_share);
+        LinearLayout version = rootView.findViewById(R.id.ll_verinfo);
         AdRequest adRequest = new AdRequest.Builder().build();
-        user = app.AppController.getInstance().getPreferenceManager().getUser();
-        String stuKnuId = user.getUserId();
-        String userName = user.getName();
-        progressDialog.setCancelable(false);
+        mProgressDialog = new ProgressDialog(getContext());
+        mUser = app.AppController.getInstance().getPreferenceManager().getUser();
+        String stuKnuId = mUser.getUserId();
+        String userName = mUser.getName();
+
+        mProgressDialog.setCancelable(false);
         Glide.with(getContext())
-                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", user.getUid()), new LazyHeaders.Builder().addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie()).build()))
+                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUser.getUid()), new LazyHeaders.Builder().addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie()).build()))
                 .apply(RequestOptions.circleCropTransform())
                 .into(profileImage);
         adView.loadAd(adRequest);
@@ -111,7 +107,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
         knuId.setText(stuKnuId);
         profile.setOnClickListener(this);
         withdrawal.setOnClickListener(this);
-        if (isAdmin) {
+        if (mIsAdmin) {
             withdrawalText.setText("소모임 폐쇄");
             settings.setOnClickListener(this);
             settings.setVisibility(View.VISIBLE);
@@ -137,18 +133,18 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                 break;
             case R.id.ll_withdrawal :
                 AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                builder.setMessage((isAdmin ? "폐쇄" : "탈퇴") + "하시겠습니까?");
+                builder.setMessage((mIsAdmin ? "폐쇄" : "탈퇴") + "하시겠습니까?");
                 builder.setPositiveButton("예", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        progressDialog.setMessage("요청중...");
+                        mProgressDialog.setMessage("요청중...");
                         showProgressDialog();
-                        app.AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, isAdmin ? EndPoint.DELETE_GROUP : EndPoint.WITHDRAWAL_GROUP, null, new Response.Listener<JSONObject>() {
+                        app.AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, mIsAdmin ? EndPoint.DELETE_GROUP : EndPoint.WITHDRAWAL_GROUP, null, new Response.Listener<JSONObject>() {
                             @Override
                             public void onResponse(JSONObject response) {
                                 try {
                                     if (!response.getBoolean("isError")) {
-                                        Toast.makeText(getContext(), "소모임 " + (isAdmin ? "폐쇄" : "탈퇴") + " 완료", Toast.LENGTH_LONG).show();
+                                        Toast.makeText(getContext(), "소모임 " + (mIsAdmin ? "폐쇄" : "탈퇴") + " 완료", Toast.LENGTH_LONG).show();
                                         Intent intent = new Intent(getContext(), MainActivity.class);
                                         intent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                         startActivity(intent);
@@ -182,7 +178,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                             @Override
                             public byte[] getBody() {
                                 Map<String, String> params = new HashMap<>();
-                                params.put("CLUB_GRP_ID", groupId);
+                                params.put("CLUB_GRP_ID", mGroupId);
                                 if (params.size() > 0) {
                                     StringBuilder encodedParams = new StringBuilder();
                                     try {
@@ -212,8 +208,8 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                 break;
             case R.id.ll_settings :
                 Intent intent = new Intent(getContext(), SettingsActivity.class);
-                intent.putExtra("grp_id", groupId);
-                intent.putExtra("key", key);
+                intent.putExtra("grp_id", mGroupId);
+                intent.putExtra("key", mKey);
                 startActivityForResult(intent, GroupFragment.UPDATE_GROUP);
                 break;
             case R.id.ll_appstore :
@@ -253,7 +249,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
             intent.putExtra("grp_nm", groupName);
             intent.putExtra("grp_desc", groupDescription);
             intent.putExtra("join_div", joinType);
-            intent.putExtra("position", position);
+            intent.putExtra("position", mPosition);
             getActivity().setResult(Activity.RESULT_OK, intent);
         }
     }
@@ -262,12 +258,12 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
         final DatabaseReference userGroupListReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
         final DatabaseReference articlesReference = FirebaseDatabase.getInstance().getReference("Articles");
         final DatabaseReference groupsReference = FirebaseDatabase.getInstance().getReference("Groups");
-        if (isAdmin) {
-            groupsReference.child(key).child("members").addListenerForSingleValueEvent(new ValueEventListener() {
+        if (mIsAdmin) {
+            groupsReference.child(mKey).child("members").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     for (DataSnapshot snapshot : dataSnapshot.getChildren())
-                        userGroupListReference.child(snapshot.getKey()).child(key).removeValue();
+                        userGroupListReference.child(snapshot.getKey()).child(mKey).removeValue();
                 }
 
                 @Override
@@ -275,14 +271,14 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                     Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
                 }
             });
-            articlesReference.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+            articlesReference.child(mKey).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     DatabaseReference replysReference = FirebaseDatabase.getInstance().getReference("Replys");
                     for (DataSnapshot snapshot : dataSnapshot.getChildren())
                         replysReference.child(snapshot.getKey()).removeValue();
-                    articlesReference.child(key).removeValue();
-                    groupsReference.child(key).removeValue();
+                    articlesReference.child(mKey).removeValue();
+                    groupsReference.child(mKey).removeValue();
                 }
 
                 @Override
@@ -291,19 +287,19 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                 }
             });
         } else {
-            groupsReference.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+            groupsReference.child(mKey).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     if (dataSnapshot.getValue() == null)
                         return;
                     GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
-                    if (groupItem.getMembers() != null && groupItem.getMembers().containsKey(user.getUid())) {
+                    if (groupItem.getMembers() != null && groupItem.getMembers().containsKey(mUser.getUid())) {
                         Map<String, Boolean> members = groupItem.getMembers();
-                        members.remove(user.getUid());
+                        members.remove(mUser.getUid());
                         groupItem.setMembers(members);
                         groupItem.setMemberCount(members.size());
                     }
-                    groupsReference.child(key).setValue(groupItem);
+                    groupsReference.child(mKey).setValue(groupItem);
                 }
 
                 @Override
@@ -311,17 +307,17 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                     Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
                 }
             });
-            userGroupListReference.child(app.AppController.getInstance().getPreferenceManager().getUser().getUid()).child(key).removeValue();
+            userGroupListReference.child(app.AppController.getInstance().getPreferenceManager().getUser().getUid()).child(mKey).removeValue();
         }
     }
 
     private void showProgressDialog() {
-        if (!progressDialog.isShowing())
-            progressDialog.show();
+        if (!mProgressDialog.isShowing())
+            mProgressDialog.show();
     }
 
     private void hideProgressDialog() {
-        if (progressDialog.isShowing())
-            progressDialog.dismiss();
+        if (mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
     }
 }

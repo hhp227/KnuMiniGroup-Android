@@ -35,31 +35,30 @@ import java.util.Map;
 public class RequestActivity extends FragmentActivity {
     private static final int LIMIT = 100;
     private static final String TAG = RequestActivity.class.getSimpleName();
-    private GroupListAdapter listAdapter;
-    private List<String> groupItemKeys;
-    private List<GroupItem> groupItemValues;
-    private ListView listView;
-    private ProgressBar progressBar;
-    private RelativeLayout relativeLayout;
-    private SwipeRefreshLayout swipeRefreshLayout;
-    private View footerLoading;
-    private boolean hasRequestedMore;
-    private int offSet;
+    private boolean mHasRequestedMore;
+    private int mOffSet;
+    private GroupListAdapter mAdapter;
+    private List<String> mGroupItemKeys;
+    private List<GroupItem> mGroupItemValues;
+    private ProgressBar mProgressBar;
+    private RelativeLayout mRelativeLayout;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
+    private View mFooterLoading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
-        footerLoading = View.inflate(this, R.layout.load_more, null);
-        listView = findViewById(R.id.lv_group);
-        relativeLayout = findViewById(R.id.rl_group);
-        progressBar = findViewById(R.id.pb_group);
-        swipeRefreshLayout = findViewById(R.id.srl_group_list);
-        offSet = 1;
-        groupItemKeys = new ArrayList<>();
-        groupItemValues = new ArrayList<>();
-        listAdapter = new GroupListAdapter(getBaseContext(), groupItemKeys, groupItemValues);
         ActionBar actionBar = getActionBar();
+        ListView listView = findViewById(R.id.lv_group);
+        mFooterLoading = View.inflate(this, R.layout.load_more, null);
+        mRelativeLayout = findViewById(R.id.rl_group);
+        mProgressBar = findViewById(R.id.pb_group);
+        mSwipeRefreshLayout = findViewById(R.id.srl_group_list);
+        mGroupItemKeys = new ArrayList<>();
+        mGroupItemValues = new ArrayList<>();
+        mAdapter = new GroupListAdapter(getBaseContext(), mGroupItemKeys, mGroupItemValues);
+        mOffSet = 1;
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -70,18 +69,18 @@ public class RequestActivity extends FragmentActivity {
                 }
             });
         }
-        footerLoading.setVisibility(View.GONE);
-        listView.addFooterView(footerLoading);
-        listView.setAdapter(listAdapter);
+        mFooterLoading.setVisibility(View.GONE);
+        listView.addFooterView(mFooterLoading);
+        listView.setAdapter(mAdapter);
         listView.setOnScrollListener(new AbsListView.OnScrollListener() {
             boolean lastItemVisibleFlag = false;
 
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
-                if (scrollState == SCROLL_STATE_IDLE && lastItemVisibleFlag && !hasRequestedMore) {
-                    footerLoading.setVisibility(View.VISIBLE);
-                    offSet += LIMIT;
-                    hasRequestedMore = true;
+                if (scrollState == SCROLL_STATE_IDLE && lastItemVisibleFlag && !mHasRequestedMore) {
+                    mFooterLoading.setVisibility(View.VISIBLE);
+                    mOffSet += LIMIT;
+                    mHasRequestedMore = true;
                     fetchGroupList();
                 }
             }
@@ -94,7 +93,7 @@ public class RequestActivity extends FragmentActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                GroupItem groupItem = groupItemValues.get(position);
+                GroupItem groupItem = mGroupItemValues.get(position);
 
                 Bundle args = new Bundle();
                 args.putString("grp_id", groupItem.getId());
@@ -104,26 +103,26 @@ public class RequestActivity extends FragmentActivity {
                 args.putString("desc", groupItem.getDescription());
                 args.putString("type", groupItem.getJoinType());
                 args.putInt("btn_type", 1);
-                args.putString("key", groupItemKeys.get(position));
+                args.putString("key", mGroupItemKeys.get(position));
 
                 GroupInfoFragment newFragment = GroupInfoFragment.newInstance();
                 newFragment.setArguments(args);
                 newFragment.show(getSupportFragmentManager(), "dialog");
             }
         });
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         refresh();
-                        swipeRefreshLayout.setRefreshing(false);
+                        mSwipeRefreshLayout.setRefreshing(false);
                     }
                 }, 1000);
             }
         });
-        progressBar.setVisibility(View.VISIBLE);
+        mProgressBar.setVisibility(View.VISIBLE);
         fetchGroupList();
     }
 
@@ -163,25 +162,25 @@ public class RequestActivity extends FragmentActivity {
                             groupItem.setInfo(info.toString());
                             groupItem.setDescription(description);
                             groupItem.setJoinType(joinType.equals("가입방식: 자동 승인") ? "0" : "1");
-                            groupItemKeys.add(id);
-                            groupItemValues.add(groupItem);
+                            mGroupItemKeys.add(id);
+                            mGroupItemValues.add(groupItem);
                         }
                     } catch (Exception e) {
                         Log.e(TAG, e.getMessage());
                     }
                 }
-                listAdapter.notifyDataSetChanged();
-                hasRequestedMore = false;
-                footerLoading.setVisibility(View.GONE);
-                progressBar.setVisibility(View.GONE);
-                relativeLayout.setVisibility(groupItemValues.isEmpty() ? View.VISIBLE : View.GONE);
+                mAdapter.notifyDataSetChanged();
+                mHasRequestedMore = false;
+                mFooterLoading.setVisibility(View.GONE);
+                mProgressBar.setVisibility(View.GONE);
+                mRelativeLayout.setVisibility(mGroupItemValues.isEmpty() ? View.VISIBLE : View.GONE);
                 initFirebaseData();
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 VolleyLog.e(TAG, error.getMessage());
-                progressBar.setVisibility(View.GONE);
+                mProgressBar.setVisibility(View.GONE);
             }
         }) {
             @Override
@@ -201,7 +200,7 @@ public class RequestActivity extends FragmentActivity {
                 Map<String, String> params = new HashMap<>();
                 params.put("panel_id", "1");
                 params.put("gubun", "select_share_total");
-                params.put("start", String.valueOf(offSet));
+                params.put("start", String.valueOf(mOffSet));
                 params.put("display", String.valueOf(LIMIT));
                 params.put("encoding", "utf-8");
                 if (params.size() > 0) {
@@ -224,9 +223,9 @@ public class RequestActivity extends FragmentActivity {
     }
 
     public void refresh() {
-        offSet = 1;
-        groupItemKeys.clear();
-        groupItemValues.clear();
+        mOffSet = 1;
+        mGroupItemKeys.clear();
+        mGroupItemValues.clear();
         fetchGroupList();
     }
 
@@ -244,12 +243,12 @@ public class RequestActivity extends FragmentActivity {
                         String key = dataSnapshot.getKey();
                         GroupItem value = dataSnapshot.getValue(GroupItem.class);
                         assert value != null;
-                        int index = groupItemKeys.indexOf(value.getId());
+                        int index = mGroupItemKeys.indexOf(value.getId());
                         if (index > -1) {
-                            //groupItemValues.set(index, value); //isAdmin값때문에 주석처리
-                            groupItemKeys.set(index, key);
+                            //mGroupItemValues.set(index, value); //isAdmin값때문에 주석처리
+                            mGroupItemKeys.set(index, key);
                         }
-                        listAdapter.notifyDataSetChanged();
+                        mAdapter.notifyDataSetChanged();
                     } catch (Exception e) {
                         Log.e(TAG, e.getMessage());
                     }

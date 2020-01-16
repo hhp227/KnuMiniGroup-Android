@@ -15,9 +15,8 @@ import java.util.List;
 import java.util.Vector;
 
 public class MealFragment extends Fragment {
-    private ViewPager viewPager;
-    private TabsPagerAdapter mAdapter;
-    private android.widget.TabHost tabHost;
+    private TabHost mTabHost;
+    private ViewPager mViewPager;
 
     public MealFragment() {
     }
@@ -35,38 +34,36 @@ public class MealFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_tabs, container, false);
-        tabHost = rootView.findViewById(android.R.id.tabhost);
-        viewPager = rootView.findViewById(R.id.view_pager);
-        tabHost.setup();
-
+        List<Fragment> fragments = new Vector<>();
         String[] tabNames = {"문화관", "BTL", "상주생활관"};
+        TabsPagerAdapter tabsPagerAdapter = new TabsPagerAdapter(getChildFragmentManager(), fragments);
+        mTabHost = rootView.findViewById(android.R.id.tabhost);
+        mViewPager = rootView.findViewById(R.id.view_pager);
 
+        mTabHost.setup();
         for (int i = 0; i < tabNames.length; i++) {
             TabHost.TabSpec tabSpec;
-            tabSpec = tabHost.newTabSpec(tabNames[i]);
+            tabSpec = mTabHost.newTabSpec(tabNames[i]);
             tabSpec.setIndicator(tabNames[i]);
             tabSpec.setContent(new FakeContent(getActivity()));
-            tabHost.addTab(tabSpec);
+            mTabHost.addTab(tabSpec);
         }
-        tabHost.setOnTabChangedListener(new android.widget.TabHost.OnTabChangeListener() {
+        mTabHost.setOnTabChangedListener(new android.widget.TabHost.OnTabChangeListener() {
 
             // 탭호스트 리스너
             @Override
             public void onTabChanged(String tabId) {
-                int selectedItem = tabHost.getCurrentTab();
-                viewPager.setCurrentItem(selectedItem);
+                int selectedItem = mTabHost.getCurrentTab();
+                mViewPager.setCurrentItem(selectedItem);
             }
 
         });
-        viewPager.setOffscreenPageLimit(tabNames.length);
-        List<Fragment> fragments = new Vector<>();
+        mViewPager.setOffscreenPageLimit(tabNames.length);
         fragments.add(new DCDormMealFragment());
         fragments.add(new BTLDormMealFragment());
         fragments.add(new SCDormMealFragment());
-        mAdapter = new TabsPagerAdapter(getChildFragmentManager(), fragments);
-        viewPager.setAdapter(mAdapter);
-        viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-
+        mViewPager.setAdapter(tabsPagerAdapter);
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             // 뷰페이져 리스너
             @Override
             public void onPageScrollStateChanged(int arg0) {
@@ -80,7 +77,7 @@ public class MealFragment extends Fragment {
 
             @Override
             public void onPageSelected(int selectedItem) {
-                tabHost.setCurrentTab(selectedItem);
+                mTabHost.setCurrentTab(selectedItem);
             }
 
         });

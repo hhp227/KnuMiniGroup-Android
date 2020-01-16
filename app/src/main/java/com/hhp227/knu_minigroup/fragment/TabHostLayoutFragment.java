@@ -28,13 +28,12 @@ public class TabHostLayoutFragment extends Fragment {
     private static final String POSITION = "position";
     private static final String KEY = "key";
     private static final String[] TAB_NAMES = {"소식", "일정", "맴버", "설정"};
-    private TabHost tabHost;
-    private TabsPagerAdapter tabsPagerAdapter;
-    private ViewPager viewPager;
-
-    private boolean isAdmin;
-    private int position;
-    private String groupId, groupName, key;
+    private boolean mIsAdmin;
+    private int mPosition;
+    private String mGroupId, mGroupName, mKey;
+    private TabHost mTabHost;
+    private TabsPagerAdapter mAdapter;
+    private ViewPager mViewPager;
 
     public TabHostLayoutFragment() {
     }
@@ -55,11 +54,11 @@ public class TabHostLayoutFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            isAdmin = getArguments().getBoolean(IS_ADMIN);
-            groupId = getArguments().getString(GROUP_ID);
-            groupName = getArguments().getString(GROUP_NAME);
-            position = getArguments().getInt(POSITION);
-            key = getArguments().getString(KEY);
+            mIsAdmin = getArguments().getBoolean(IS_ADMIN);
+            mGroupId = getArguments().getString(GROUP_ID);
+            mGroupName = getArguments().getString(GROUP_NAME);
+            mPosition = getArguments().getInt(POSITION);
+            mKey = getArguments().getString(KEY);
         }
     }
 
@@ -67,45 +66,43 @@ public class TabHostLayoutFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_tab_host_layout, container, false);
         ScrollableLayout scrollableLayout = rootView.findViewById(R.id.scrollable_layout);
-        tabHost = rootView.findViewById(android.R.id.tabhost);
-        viewPager = rootView.findViewById(R.id.view_pager);
+        mTabHost = rootView.findViewById(android.R.id.tabhost);
+        mViewPager = rootView.findViewById(R.id.view_pager);
 
-        viewPager.setOffscreenPageLimit(TAB_NAMES.length);
-        tabHost.setup();
-
+        mViewPager.setOffscreenPageLimit(TAB_NAMES.length);
+        mTabHost.setup();
         for (int i = 0; i < TAB_NAMES.length; i++) {
             TabHost.TabSpec tabSpec;
-            tabSpec = tabHost.newTabSpec(TAB_NAMES[i]);
+            tabSpec = mTabHost.newTabSpec(TAB_NAMES[i]);
             tabSpec.setIndicator(TAB_NAMES[i]);
             tabSpec.setContent(new FakeContent(getActivity()));
-            tabHost.addTab(tabSpec);
-            TextView textView = tabHost.getTabWidget().getChildAt(i).findViewById(android.R.id.title);
+            mTabHost.addTab(tabSpec);
+            TextView textView = mTabHost.getTabWidget().getChildAt(i).findViewById(android.R.id.title);
             textView.setTextColor(Color.parseColor("#FFFFFF"));
         }
-
-        tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
+        mTabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
             @Override
             public void onTabChanged(String tabId) {
-                int selectedItem = tabHost.getCurrentTab();
-                viewPager.setCurrentItem(selectedItem);
+                int selectedItem = mTabHost.getCurrentTab();
+                mViewPager.setCurrentItem(selectedItem);
             }
         });
 
         List<BaseFragment> fragments = new Vector<>();
-        fragments.add(Tab1Fragment.newInstance(isAdmin, groupId, groupName, key));
+        fragments.add(Tab1Fragment.newInstance(mIsAdmin, mGroupId, mGroupName, mKey));
         fragments.add(new Tab2Fragment());
-        fragments.add(Tab3Fragment.newInstance(groupId));
-        fragments.add(Tab4Fragment.newInstance(isAdmin, groupId, position, key));
-        tabsPagerAdapter = new TabsPagerAdapter(getChildFragmentManager(), fragments);
-        viewPager.setAdapter(tabsPagerAdapter);
-        viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        fragments.add(Tab3Fragment.newInstance(mGroupId));
+        fragments.add(Tab4Fragment.newInstance(mIsAdmin, mGroupId, mPosition, mKey));
+        mAdapter = new TabsPagerAdapter(getChildFragmentManager(), fragments);
+        mViewPager.setAdapter(mAdapter);
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
             }
 
             @Override
             public void onPageSelected(int position) {
-                tabHost.setCurrentTab(position);
+                mTabHost.setCurrentTab(position);
             }
 
             @Override
@@ -116,7 +113,7 @@ public class TabHostLayoutFragment extends Fragment {
         scrollableLayout.setCanScrollVerticallyDelegate(new CanScrollVerticallyDelegate() {
             @Override
             public boolean canScrollVertically(int direction) {
-                return tabsPagerAdapter.canScrollVertically(viewPager.getCurrentItem(), direction);
+                return mAdapter.canScrollVertically(mViewPager.getCurrentItem(), direction);
             }
         });
 

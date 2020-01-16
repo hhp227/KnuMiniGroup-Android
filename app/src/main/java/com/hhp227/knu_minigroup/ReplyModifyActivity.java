@@ -15,7 +15,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
-import androidx.annotation.NonNull;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
 import com.google.firebase.database.*;
@@ -28,30 +27,28 @@ import java.util.Map;
 
 public class ReplyModifyActivity extends Activity {
     private static final String TAG = "댓글수정";
-    private EditText inputReply;
-    private ListView listView;
-    private ProgressDialog progressDialog;
-    private View headerView;
-    private String groupId, articleId, replyId, reply, articleKey, replyKey;
+    private EditText mInputReply;
+    private ProgressDialog mProgressDialog;
+    private String mGroupId, mArticleId, mReplyId, mReply, mArticleKey, mReplyKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reply_modify);
-        headerView = getLayoutInflater().inflate(R.layout.modify_text, null, false);
-        inputReply = headerView.findViewById(R.id.et_reply);
-        listView = findViewById(R.id.lv_write);
-        progressDialog = new ProgressDialog(this);
-
-        Intent intent = getIntent();
-        groupId = intent.getStringExtra("grp_id");
-        articleId = intent.getStringExtra("artl_num");
-        replyId = intent.getStringExtra("cmmt_num");
-        articleKey = intent.getStringExtra("artl_key");
-        replyKey = intent.getStringExtra("cmmt_key");
-        reply = intent.getStringExtra("cmt");
-        reply = reply.contains("※") ? reply.substring(0, reply.lastIndexOf("※")).trim() : reply;
+        View headerView = getLayoutInflater().inflate(R.layout.modify_text, null, false);
         ActionBar actionBar = getActionBar();
+        ListView listView = findViewById(R.id.lv_write);
+        Intent intent = getIntent();
+        mInputReply = headerView.findViewById(R.id.et_reply);
+        mProgressDialog = new ProgressDialog(this);
+
+        mGroupId = intent.getStringExtra("grp_id");
+        mArticleId = intent.getStringExtra("artl_num");
+        mReplyId = intent.getStringExtra("cmmt_num");
+        mArticleKey = intent.getStringExtra("artl_key");
+        mReplyKey = intent.getStringExtra("cmmt_key");
+        mReply = intent.getStringExtra("cmt");
+        mReply = mReply.contains("※") ? mReply.substring(0, mReply.lastIndexOf("※")).trim() : mReply;
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -64,8 +61,8 @@ public class ReplyModifyActivity extends Activity {
         }
         listView.addHeaderView(headerView);
         listView.setAdapter(null);
-        inputReply.setText(reply);
-        progressDialog.setCancelable(false);
+        mInputReply.setText(mReply);
+        mProgressDialog.setCancelable(false);
     }
 
     @Override
@@ -81,10 +78,10 @@ public class ReplyModifyActivity extends Activity {
                 finish();
                 return true;
             case R.id.action_send :
-                final String text = inputReply.getText().toString().trim();
+                final String text = mInputReply.getText().toString().trim();
                 if (!TextUtils.isEmpty(text)) {
                     String tag_string_req = "req_send";
-                    progressDialog.setMessage("전송중...");
+                    mProgressDialog.setMessage("전송중...");
                     showProgressDialog();
 
                     StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.MODIFY_REPLY, new Response.Listener<String>() {
@@ -124,9 +121,9 @@ public class ReplyModifyActivity extends Activity {
                         @Override
                         protected Map<String, String> getParams() {
                             Map<String, String> params = new HashMap<>();
-                            params.put("CLUB_GRP_ID", groupId);
-                            params.put("ARTL_NUM", articleId);
-                            params.put("CMMT_NUM", replyId);
+                            params.put("CLUB_GRP_ID", mGroupId);
+                            params.put("ARTL_NUM", mArticleId);
+                            params.put("CMMT_NUM", mReplyId);
                             params.put("CMT", text);
                             return params;
                         }
@@ -141,7 +138,7 @@ public class ReplyModifyActivity extends Activity {
 
     private void initFirebaseData() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Replys");
-        updateReplyDataToFirebase(databaseReference.child(articleKey).child(replyKey));
+        updateReplyDataToFirebase(databaseReference.child(mArticleKey).child(mReplyKey));
     }
 
     private void updateReplyDataToFirebase(final Query query) {
@@ -150,7 +147,7 @@ public class ReplyModifyActivity extends Activity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getValue() != null) {
                     ReplyItem replyItem = dataSnapshot.getValue(ReplyItem.class);
-                    replyItem.setReply(inputReply.getText().toString() + "\n");
+                    replyItem.setReply(mInputReply.getText().toString() + "\n");
                     query.getRef().setValue(replyItem);
                 }
             }
@@ -163,12 +160,12 @@ public class ReplyModifyActivity extends Activity {
     }
 
     private void showProgressDialog() {
-        if (!progressDialog.isShowing())
-            progressDialog.show();
+        if (!mProgressDialog.isShowing())
+            mProgressDialog.show();
     }
 
     private void hideProgressDialog() {
-        if (progressDialog.isShowing())
-            progressDialog.dismiss();
+        if (mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
     }
 }

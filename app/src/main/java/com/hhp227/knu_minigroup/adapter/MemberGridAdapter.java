@@ -19,24 +19,23 @@ import com.hhp227.knu_minigroup.dto.MemberItem;
 import java.util.List;
 
 public class MemberGridAdapter extends BaseAdapter {
-    private Activity activity;
-    private LayoutInflater inflater;
-    private List<MemberItem> memberItems;
-    private TextView name;
+    private Activity mActivity;
+    private LayoutInflater mInflater;
+    private List<MemberItem> mMemberItems;
 
     public MemberGridAdapter(Activity activity, List<MemberItem> memberItems) {
-        this.activity = activity;
-        this.memberItems = memberItems;
+        this.mActivity = activity;
+        this.mMemberItems = memberItems;
     }
 
     @Override
     public int getCount() {
-        return memberItems.size();
+        return mMemberItems.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return memberItems.get(position);
+        return mMemberItems.get(position);
     }
 
     @Override
@@ -46,22 +45,35 @@ public class MemberGridAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        if (inflater == null)
-            inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        if (convertView == null)
-            convertView = inflater.inflate(R.layout.member_item, null);
+        ViewHolder viewHolder;
+        if (mInflater == null)
+            mInflater = (LayoutInflater) mActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        if (convertView == null) {
+            convertView = mInflater.inflate(R.layout.member_item, null);
+            viewHolder = new ViewHolder(convertView);
+            convertView.setTag(viewHolder);
+        } else
+            viewHolder = (ViewHolder) convertView.getTag();
 
-        name = convertView.findViewById(R.id.tv_name);
-        ImageView profileImg = convertView.findViewById(R.id.iv_profile_image);
-        MemberItem memberItem = memberItems.get(position);
+        MemberItem memberItem = mMemberItems.get(position);
 
-        name.setText(memberItem.name);
-        Glide.with(activity)
+        viewHolder.name.setText(memberItem.name);
+        Glide.with(mActivity)
                 .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", memberItem.uid), new LazyHeaders.Builder()
                         .addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie())
                         .build()))
                 .apply(new RequestOptions().centerCrop())
-                .into(profileImg);
+                .into(viewHolder.profileImg);
         return convertView;
+    }
+
+    private static class ViewHolder {
+        private ImageView profileImg;
+        private TextView name;
+
+        public ViewHolder(View itemView) {
+            name = itemView.findViewById(R.id.tv_name);
+            profileImg = itemView.findViewById(R.id.iv_profile_image);
+        }
     }
 }

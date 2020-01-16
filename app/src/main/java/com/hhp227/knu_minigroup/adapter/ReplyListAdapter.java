@@ -17,25 +17,25 @@ import com.hhp227.knu_minigroup.dto.ReplyItem;
 import java.util.List;
 
 public class ReplyListAdapter extends BaseAdapter {
-    private Activity activity;
-    private LayoutInflater inflater;
-    private List<String> replyItemKeys;
-    private List<ReplyItem> replyItemValues;
+    private Activity mActivity;
+    private LayoutInflater mInflater;
+    private List<String> mReplyItemKeys;
+    private List<ReplyItem> mReplyItemValues;
 
     public ReplyListAdapter(Activity activity, List<String> replyItemKeys, List<ReplyItem> replyItemValues) {
-        this.activity = activity;
-        this.replyItemKeys = replyItemKeys;
-        this.replyItemValues = replyItemValues;
+        this.mActivity = activity;
+        this.mReplyItemKeys = replyItemKeys;
+        this.mReplyItemValues = replyItemValues;
     }
 
     @Override
     public int getCount() {
-        return replyItemValues.size();
+        return mReplyItemValues.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return replyItemValues.get(position);
+        return mReplyItemValues.get(position);
     }
 
     @Override
@@ -45,31 +45,43 @@ public class ReplyListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        if (inflater == null)
-            inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        if (convertView == null)
-            convertView = inflater.inflate(R.layout.reply_item, null);
-
-        ImageView profileImage = convertView.findViewById(R.id.iv_profile_image);
-        TextView name = convertView.findViewById(R.id.tv_name);
-        TextView reply = convertView.findViewById(R.id.tv_reply);
-        TextView timeStamp = convertView.findViewById(R.id.tv_timestamp);
+        ViewHolder viewHolder;
+        if (mInflater == null)
+            mInflater = (LayoutInflater) mActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        if (convertView == null) {
+            convertView = mInflater.inflate(R.layout.reply_item, null);
+            viewHolder = new ViewHolder(convertView);
+            convertView.setTag(viewHolder);
+        } else
+            viewHolder = (ViewHolder) convertView.getTag();
 
         // 댓글 데이터 얻기
-        ReplyItem replyItem = replyItemValues.get(position);
+        ReplyItem replyItem = mReplyItemValues.get(position);
 
-        Glide.with(activity)
+        Glide.with(mActivity)
                 .load(replyItem.getUid() != null ? EndPoint.USER_IMAGE.replace("{UID}", replyItem.getUid()) : null)
                 .apply(new RequestOptions().circleCrop().error(R.drawable.profile_img_circle))
-                .into(profileImage);
-        name.setText(replyItem.getName());
-        reply.setText(replyItem.getReply());
-        timeStamp.setText(replyItem.getDate());
+                .into(viewHolder.profileImage);
+        viewHolder.name.setText(replyItem.getName());
+        viewHolder.reply.setText(replyItem.getReply());
+        viewHolder.timeStamp.setText(replyItem.getDate());
 
         return convertView;
     }
 
     public String getKey(int position) {
-        return replyItemKeys.get(position);
+        return mReplyItemKeys.get(position);
+    }
+
+    private static class ViewHolder {
+        private ImageView profileImage;
+        private TextView name, reply, timeStamp;
+
+        public ViewHolder(View itemView) {
+            profileImage = itemView.findViewById(R.id.iv_profile_image);
+            name = itemView.findViewById(R.id.tv_name);
+            reply = itemView.findViewById(R.id.tv_reply);
+            timeStamp = itemView.findViewById(R.id.tv_timestamp);
+        }
     }
 }

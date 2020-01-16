@@ -28,13 +28,11 @@ import java.util.List;
 
 public class SangjuSeatFragment extends Fragment {
     private static final String TAG = "상주 열람실좌석";
-    private ListView listView;
-    private List<SeatItem> seatItemList;
-    private ProgressDialog progressDialog;
-    private SeatListAdapter adapter;
-    private SwipeRefreshLayout swipeRefreshLayout;
-
     private boolean isRefresh;
+    private List<SeatItem> mSeatItemList;
+    private ProgressDialog mProgressDialog;
+    private SeatListAdapter mAdapter;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     public SangjuSeatFragment() {
     }
@@ -52,14 +50,14 @@ public class SangjuSeatFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_list, container, false);
-        listView = rootView.findViewById(R.id.list_view);
-        swipeRefreshLayout = rootView.findViewById(R.id.sr_layout);
-        seatItemList = new ArrayList<>();
-        adapter = new SeatListAdapter(getActivity(), seatItemList);
-        progressDialog = new ProgressDialog(getActivity());
+        ListView listView = rootView.findViewById(R.id.list_view);
+        mSwipeRefreshLayout = rootView.findViewById(R.id.sr_layout);
+        mSeatItemList = new ArrayList<>();
+        mAdapter = new SeatListAdapter(getActivity(), mSeatItemList);
+        mProgressDialog = new ProgressDialog(getActivity());
 
-        listView.setAdapter(adapter);
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        listView.setAdapter(mAdapter);
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 new Handler().postDelayed(new Runnable() {
@@ -67,15 +65,13 @@ public class SangjuSeatFragment extends Fragment {
                     public void run() {
                         isRefresh = true;
                         fetchData();
-                        swipeRefreshLayout.setRefreshing(false);
+                        mSwipeRefreshLayout.setRefreshing(false);
                     }
                 }, 1000);
             }
         });
-
-        progressDialog.setCancelable(false);
-        progressDialog.setMessage("불러오는중...");
-
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.setMessage("불러오는중...");
         showProgressDialog();
         fetchData();
 
@@ -111,12 +107,12 @@ public class SangjuSeatFragment extends Fragment {
                                 data.getInt("available"),
                                 disable);
 
-                        if (isRefresh == false)
-                            seatItemList.add(listItem);
+                        if (!isRefresh)
+                            mSeatItemList.add(listItem);
                         else
-                            seatItemList.set(i, listItem);
+                            mSeatItemList.set(i, listItem);
                     }
-                    adapter.notifyDataSetChanged();
+                    mAdapter.notifyDataSetChanged();
                 } catch (JSONException e) {
                     Log.e(TAG, e.getMessage());
                 }
@@ -132,12 +128,12 @@ public class SangjuSeatFragment extends Fragment {
     }
 
     private void showProgressDialog() {
-        if (!progressDialog.isShowing())
-            progressDialog.show();
+        if (!mProgressDialog.isShowing())
+            mProgressDialog.show();
     }
 
     private void hideProgressDialog() {
-        if (progressDialog.isShowing())
-            progressDialog.dismiss();
+        if (mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
     }
 }

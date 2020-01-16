@@ -15,24 +15,22 @@ import com.hhp227.knu_minigroup.fragment.TabHostLayoutFragment;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 
 public class GroupActivity extends FragmentActivity {
-    private boolean isAdmin;
-    private int position;
-    private String groupId, groupName, key;
-    private TabHostLayoutFragment fragMain;
+    private boolean mIsAdmin;
+    private int mPosition;
+    private String mGroupId, mGroupName, mKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group);
-
-        Intent intent = getIntent();
-        isAdmin = intent.getBooleanExtra(getString(R.string.extra_admin), false);
-        groupId = intent.getStringExtra(getString(R.string.extra_group_id));
-        groupName = intent.getStringExtra(getString(R.string.extra_group_name));
-        position = intent.getIntExtra("position", 0);
-        key = intent.getStringExtra(getString(R.string.extra_key));
-        fragMain = TabHostLayoutFragment.newInstance(isAdmin, groupId, groupName, position, key);
         ActionBar actionBar = getActionBar();
+        Intent intent = getIntent();
+        mIsAdmin = intent.getBooleanExtra(getString(R.string.extra_admin), false);
+        mGroupId = intent.getStringExtra(getString(R.string.extra_group_id));
+        mGroupName = intent.getStringExtra(getString(R.string.extra_group_name));
+        mPosition = intent.getIntExtra("position", 0);
+        mKey = intent.getStringExtra(getString(R.string.extra_key));
+        TabHostLayoutFragment fragMain = TabHostLayoutFragment.newInstance(mIsAdmin, mGroupId, mGroupName, mPosition, mKey);
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
@@ -42,7 +40,7 @@ public class GroupActivity extends FragmentActivity {
                 }
             });
             actionBar.setDisplayShowHomeEnabled(false);
-            actionBar.setTitle(groupName);
+            actionBar.setTitle(mGroupName);
         }
         getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, fragMain).commit();
     }
@@ -61,8 +59,8 @@ public class GroupActivity extends FragmentActivity {
         else if (item.getItemId() == R.id.action_chat) {
             Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
             intent.putExtra("grp_chat", true);
-            intent.putExtra("chat_nm", groupName);
-            intent.putExtra("uid", groupId);
+            intent.putExtra("chat_nm", mGroupName);
+            intent.putExtra("uid", mGroupId);
             startActivity(intent);
         }
         return super.onOptionsItemSelected(item);

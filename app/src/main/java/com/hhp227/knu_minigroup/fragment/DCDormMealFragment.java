@@ -25,7 +25,7 @@ import java.util.ArrayList;
 
 public class DCDormMealFragment extends Fragment {
     private static final String TAG = "문화관 식단표";
-    private TextView[] menuView;
+    private TextView[] mMenuView;
 
     public static DCDormMealFragment newInstance() {
         DCDormMealFragment fragment = new DCDormMealFragment();
@@ -40,13 +40,11 @@ public class DCDormMealFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_dormmeal, container, false);
-
-        menuView = new TextView[] {
+        mMenuView = new TextView[] {
                 rootView.findViewById(R.id.breakfast),
                 rootView.findViewById(R.id.lunch),
                 rootView.findViewById(R.id.dinner)
         };
-
         String endPoint = EndPoint.URL_KNU_DORM_MEAL.replace("{ID}", "2");
         app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, endPoint, new Response.Listener<String>() {
             @Override
@@ -67,13 +65,11 @@ public class DCDormMealFragment extends Fragment {
                         }
                         eventType = parser.next();
                     }
-                } catch (XmlPullParserException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
+                } catch (XmlPullParserException | IOException e) {
                     e.printStackTrace();
                 }
-                for (int i = 0; i < menuView.length; i++)
-                    menuView[i].setText(arrayList.size() > 0 ? arrayList.get(i) : "등록된 식단이 없습니다.");
+                for (int i = 0; i < mMenuView.length; i++)
+                    mMenuView[i].setText(arrayList.size() > 0 ? arrayList.get(i) : "등록된 식단이 없습니다.");
             }
         }, new Response.ErrorListener() {
             @Override

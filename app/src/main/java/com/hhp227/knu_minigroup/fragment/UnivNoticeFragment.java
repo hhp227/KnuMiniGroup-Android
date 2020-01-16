@@ -32,19 +32,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UnivNoticeFragment extends Fragment {
+    private static final int MAX_PAGE = 5; // 최대볼수 있는 페이지 수
     private static final String TAG = "경북대공지사항";
-    private ArrayList<BbsItem> ListData;
-    private BbsListAdapter BBSAdapter;
-    private Element BBS_DIV;
-    private ListView BBSList;
-    private ProgressDialog progressDialog;
-    private SwipeRefreshLayout swipeRefreshLayout;
-    private Source source;
-
-    private boolean hasRequestedMore = false; // 데이터 불러올때 중복안되게 하기위한 변수
-    private boolean lastItemVisibleFlag = false;
-    private int offSet;
-    private int maxPage = 5; // 최대볼수 있는 페이지 수
+    private boolean mHasRequestedMore; // 데이터 불러올때 중복안되게 하기위한 변수
+    private boolean mLastItemVisibleFlag;
+    private int mOffSet;
+    private ArrayList<BbsItem> mBbsItemList;
+    private BbsListAdapter mAdapter;
+    private Element mBBS_DIV;
+    private ProgressDialog mProgressDialog;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     public UnivNoticeFragment() {
     }
@@ -57,21 +54,20 @@ public class UnivNoticeFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_list, container, false);
-        BBSList = rootView.findViewById(R.id.list_view);
-        swipeRefreshLayout = rootView.findViewById(R.id.sr_layout);
+        ListView mBBSList = rootView.findViewById(R.id.list_view);
+        mSwipeRefreshLayout = rootView.findViewById(R.id.sr_layout);
+        mBbsItemList = new ArrayList<>();
+        mAdapter = new BbsListAdapter(getActivity(), mBbsItemList);
+        mProgressDialog = new ProgressDialog(getActivity());
 
         // 처음 offSet은 1이다, 파싱이 되는 동안 업데이트 될것
-        offSet = 1;
-        ListData = new ArrayList<>();
+        mOffSet = 1;
 
-        BBSAdapter = new BbsListAdapter(getActivity(), ListData);
-        progressDialog = new ProgressDialog(getActivity());
-
-        BBSList.setAdapter(BBSAdapter);
-        BBSList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mBBSList.setAdapter(mAdapter);
+        mBBSList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                BbsItem bbsItem = ListData.get(position);
+                BbsItem bbsItem = mBbsItemList.get(position);
                 String URL_BBS = bbsItem.getUrl();
                 Intent intent = new Intent(getActivity(), WebViewActivity.class);
                 intent.putExtra(WebViewActivity.URL, EndPoint.URL_KNU + URL_BBS);
@@ -80,52 +76,48 @@ public class UnivNoticeFragment extends Fragment {
         });
 
         // 리스트뷰 스크롤 리스너
-        BBSList.setOnScrollListener(new AbsListView.OnScrollListener() {
+        mBBSList.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
-                if (scrollState == SCROLL_STATE_IDLE && lastItemVisibleFlag && hasRequestedMore == false) {
+                if (scrollState == SCROLL_STATE_IDLE && mLastItemVisibleFlag && !mHasRequestedMore) {
+
                     // offSet이 maxPage이면 더 안보여줌
                     // 페이지 보기 제한 최대 maxPage까지 더보기 할수 있다.
-                    if (offSet != maxPage) {
-                        offSet++; // offSet 증가
-                        hasRequestedMore = true; // HasRequestedMore가 true로 바뀌어 데이터를 불러온다
+                    if (mOffSet != MAX_PAGE) {
+                        mOffSet++; // offSet 증가
+                        mHasRequestedMore = true; // HasRequestedMore가 true로 바뀌어 데이터를 불러온다
                         onLoadMoreItems();
                     } else {
-                        hasRequestedMore = false;
+                        mHasRequestedMore = false;
                     }
                 }
             }
 
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                lastItemVisibleFlag = (totalItemCount > 0) && (firstVisibleItem + visibleItemCount >= totalItemCount);
+                mLastItemVisibleFlag = (totalItemCount > 0) && (firstVisibleItem + visibleItemCount >= totalItemCount);
             }
         });
-
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         updateListView();
-                        swipeRefreshLayout.setRefreshing(false); // 당겨서 새로고침 숨김
+                        mSwipeRefreshLayout.setRefreshing(false); // 당겨서 새로고침 숨김
                     }
 
                     private void updateListView() {
-                        offSet = 1; // offSet 초기화
-                        ListData = new ArrayList<>();
-                        BBSAdapter = new BbsListAdapter(getActivity(), ListData);
-                        BBSList.setAdapter(BBSAdapter);
+                        mOffSet = 1; // offSet 초기화
+                        mBbsItemList.clear();
                         fetchData();
                     }
                 }, 1000);
             }
         });
-
-        progressDialog.setCancelable(false);
-        progressDialog.setMessage("게시판 정보 불러오는중...");
-
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.setMessage("게시판 정보 불러오는중...");
         fetchData();
 
         return rootView;
@@ -134,7 +126,7 @@ public class UnivNoticeFragment extends Fragment {
     private void fetchData() {
         showProgressDialog();
         String tag_string_req = "req_knu_notice";
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, EndPoint.URL_KNU_NOTICE.replace("{PAGE}", String.valueOf(offSet)), new Response.Listener<String>() {
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, EndPoint.URL_KNU_NOTICE.replace("{PAGE}", String.valueOf(mOffSet)), new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 parseHTML(response);
@@ -151,17 +143,17 @@ public class UnivNoticeFragment extends Fragment {
     }
 
     private void parseHTML(String response) {
-        source = new Source(response);
+        Source source = new Source(response);
         List<StartTag> tabletags = source.getAllStartTags(HTMLElementName.DIV);
         for (int i = 0; i < tabletags.size(); i++) {
             if (tabletags.get(i).toString().equals("<div class=\"board_list\">")) {
-                BBS_DIV = source.getAllElements(HTMLElementName.DIV).get(i);
+                mBBS_DIV = source.getAllElements(HTMLElementName.DIV).get(i);
                 break;
             }
         }
 
         try {
-            for (Element BBS_TR : BBS_DIV.getAllElements(HTMLElementName.TBODY).get(0).getAllElements(HTMLElementName.TR)) {
+            for (Element BBS_TR : mBBS_DIV.getAllElements(HTMLElementName.TBODY).get(0).getAllElements(HTMLElementName.TR)) {
                 BbsItem bbsItem = new BbsItem();
                 Element BC_TYPE = BBS_TR.getAllElements(HTMLElementName.TD).get(0); // 타입 을 불러온다.
 
@@ -178,10 +170,10 @@ public class UnivNoticeFragment extends Fragment {
                 bbsItem.setWriter(BC_writer.getContent().toString()); // 작성자값을 담은 엘레먼트의 컨텐츠를 문자열로 변환시켜 가져온다.
                 bbsItem.setDate(BC_date.getContent().toString()); // 작성일자값을 담은 엘레먼트의 컨텐츠를 문자열로 변환시켜 가져온다.
 
-                ListData.add(bbsItem);
+                mBbsItemList.add(bbsItem);
             }
-            BBSAdapter.notifyDataSetChanged();
-            hasRequestedMore = false;
+            mAdapter.notifyDataSetChanged();
+            mHasRequestedMore = false;
         } catch (Exception e) {
             Log.e(TAG, "에러" + e);
         }
@@ -195,12 +187,12 @@ public class UnivNoticeFragment extends Fragment {
     }
 
     private void showProgressDialog() {
-        if (!progressDialog.isShowing())
-            progressDialog.show();
+        if (!mProgressDialog.isShowing())
+            mProgressDialog.show();
     }
 
     private void hideProgressDialog() {
-        if (progressDialog.isShowing())
-            progressDialog.dismiss();
+        if (mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
     }
 }

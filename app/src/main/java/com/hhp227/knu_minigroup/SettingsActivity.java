@@ -23,19 +23,20 @@ import java.util.Vector;
 
 public class SettingsActivity extends FragmentActivity {
     private static final String[] TAB_NAMES = {"회원관리", "기본정보"};
-    private TabHost tabHost;
-    private TabsPagerAdapter tabsPagerAdapter;
-    private ViewPager viewPager;
+    private TabHost mTabHost;
+    private ViewPager mViewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-        tabHost = findViewById(android.R.id.tabhost);
-        viewPager = findViewById(R.id.view_pager);
         String groupId = getIntent().getStringExtra("grp_id");
         String key = getIntent().getStringExtra("key");
         ActionBar actionBar = getActionBar();
+        List<Fragment> fragments = new Vector<>();
+        TabsPagerAdapter tabsPagerAdapter = new TabsPagerAdapter(getSupportFragmentManager(), fragments);
+        mTabHost = findViewById(android.R.id.tabhost);
+        mViewPager = findViewById(R.id.view_pager);
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -47,34 +48,32 @@ public class SettingsActivity extends FragmentActivity {
                 }
             });
         }
-        viewPager.setOffscreenPageLimit(TAB_NAMES.length);
-        tabHost.setup();
+        mViewPager.setOffscreenPageLimit(TAB_NAMES.length);
+        mTabHost.setup();
         for (String tabName : TAB_NAMES) {
             TabHost.TabSpec tabSpec;
-            tabSpec = tabHost.newTabSpec(tabName);
+            tabSpec = mTabHost.newTabSpec(tabName);
             tabSpec.setIndicator(tabName);
             tabSpec.setContent(new FakeContent(this));
-            tabHost.addTab(tabSpec);
+            mTabHost.addTab(tabSpec);
         }
-        tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
+        mTabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
             @Override
             public void onTabChanged(String tabId) {
-                viewPager.setCurrentItem(tabHost.getCurrentTab());
+                mViewPager.setCurrentItem(mTabHost.getCurrentTab());
             }
         });
-        List<Fragment> fragments = new Vector<>();
         fragments.add(MemberManagementFragment.newInstance(groupId));
         fragments.add(DefaultSettingFragment.newInstance(groupId, key));
-        tabsPagerAdapter = new TabsPagerAdapter(getSupportFragmentManager(), fragments);
-        viewPager.setAdapter(tabsPagerAdapter);
-        viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        mViewPager.setAdapter(tabsPagerAdapter);
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
             }
 
             @Override
             public void onPageSelected(int position) {
-                tabHost.setCurrentTab(position);
+                mTabHost.setCurrentTab(position);
             }
 
             @Override

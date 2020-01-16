@@ -36,13 +36,13 @@ public class GroupFragment extends Fragment {
     public static final int UPDATE_GROUP = 30;
     private static final String TAG = GroupFragment.class.getSimpleName();
     private long mLastClickTime; // 클릭시 걸리는 시간
-    private GroupGridAdapter groupGridAdapter;
-    private List<String> groupItemKeys;
-    private List<GroupItem> groupItemValues;
-    private PreferenceManager preferenceManager;
-    private ProgressBar progressBar;
-    private RelativeLayout relativeLayout;
-    private SwipeRefreshLayout swipeRefreshLayout;
+    private GroupGridAdapter mAdapter;
+    private List<String> mGroupItemKeys;
+    private List<GroupItem> mGroupItemValues;
+    private PreferenceManager mPreferenceManager;
+    private ProgressBar mProgressBar;
+    private RelativeLayout mRelativeLayout;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     public GroupFragment() {
     }
@@ -63,25 +63,25 @@ public class GroupFragment extends Fragment {
         Button findGroup = rootView.findViewById(R.id.b_find);
         Button requestGroup = rootView.findViewById(R.id.b_request);
         Button createGroup = rootView.findViewById(R.id.b_create);
-        GridView myGroupList = rootView.findViewById(R.id.gv_my_grouplist);
-        progressBar = rootView.findViewById(R.id.pb_group);
-        relativeLayout = rootView.findViewById(R.id.rl_group);
-        swipeRefreshLayout = rootView.findViewById(R.id.srl_group);
+        GridView gridView = rootView.findViewById(R.id.gv_my_grouplist);
+        mProgressBar = rootView.findViewById(R.id.pb_group);
+        mRelativeLayout = rootView.findViewById(R.id.rl_group);
+        mSwipeRefreshLayout = rootView.findViewById(R.id.srl_group);
 
-        preferenceManager = new PreferenceManager(getActivity());
-        groupItemKeys = new ArrayList<>();
-        groupItemValues = new ArrayList<>();
-        groupGridAdapter = new GroupGridAdapter(getContext(), groupItemKeys, groupItemValues);
+        mPreferenceManager = new PreferenceManager(getActivity());
+        mGroupItemKeys = new ArrayList<>();
+        mGroupItemValues = new ArrayList<>();
+        mAdapter = new GroupGridAdapter(getContext(), mGroupItemKeys, mGroupItemValues);
 
-        myGroupList.setAdapter(groupGridAdapter);
-        myGroupList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        gridView.setAdapter(mAdapter);
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 // 두번 클릭시 방지
                 if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
                     return;
                 mLastClickTime = SystemClock.elapsedRealtime();
-                GroupItem groupItem = groupItemValues.get(position);
+                GroupItem groupItem = mGroupItemValues.get(position);
                 if (groupItem.isAd())
                     Toast.makeText(getContext(), "광고", Toast.LENGTH_LONG).show();
                 else {
@@ -90,26 +90,26 @@ public class GroupFragment extends Fragment {
                     intent.putExtra(getString(R.string.extra_group_id), groupItem.getId());
                     intent.putExtra(getString(R.string.extra_group_name), groupItem.getName());
                     intent.putExtra(getString(R.string.extra_group_position), position);
-                    intent.putExtra(getString(R.string.extra_key), groupGridAdapter.getKey(position));
+                    intent.putExtra(getString(R.string.extra_key), mAdapter.getKey(position));
                     startActivityForResult(intent, UPDATE_GROUP);
                 }
             }
         });
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        groupItemKeys.clear();
-                        groupItemValues.clear();
+                        mGroupItemKeys.clear();
+                        mGroupItemValues.clear();
                         fetchDataTask();
-                        swipeRefreshLayout.setRefreshing(false);
+                        mSwipeRefreshLayout.setRefreshing(false);
                     }
                 }, 2000);
             }
         });
-        swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light, android.R.color.holo_red_light);
+        mSwipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light, android.R.color.holo_red_light);
         findGroup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -139,7 +139,7 @@ public class GroupFragment extends Fragment {
         });
         if (app.AppController.getInstance().getPreferenceManager().getUser() == null)
             logout();
-        progressBar.setVisibility(View.VISIBLE);
+        showProgressBar();
         fetchDataTask();
 
         return rootView;
@@ -149,17 +149,17 @@ public class GroupFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if ((requestCode == CREATE_CODE || requestCode == REGISTER_CODE) && resultCode == Activity.RESULT_OK) {
-            groupItemKeys.clear();
-            groupItemValues.clear();
+            mGroupItemKeys.clear();
+            mGroupItemValues.clear();
             fetchDataTask();
         } else if (requestCode == UPDATE_GROUP && resultCode == Activity.RESULT_OK) {
             int position = data.getIntExtra("position", 0);
-            GroupItem groupItem = groupItemValues.get(position);
+            GroupItem groupItem = mGroupItemValues.get(position);
             groupItem.setName(data.getStringExtra("grp_nm"));
             groupItem.setDescription(data.getStringExtra("grp_desc"));
             groupItem.setJoinType(data.getStringExtra("join_div"));
-            groupItemValues.set(position, groupItem);
-            groupGridAdapter.notifyDataSetChanged();
+            mGroupItemValues.set(position, groupItem);
+            mAdapter.notifyDataSetChanged();
         }
     }
 
@@ -182,20 +182,20 @@ public class GroupFragment extends Fragment {
                         groupItem.setImage(image);
                         groupItem.setName(name);
 
-                        groupItemKeys.add(id);
-                        groupItemValues.add(groupItem);
+                        mGroupItemKeys.add(id);
+                        mGroupItemValues.add(groupItem);
                     } catch (NullPointerException e) {
                         e.printStackTrace();
                     }
                 }
-                groupGridAdapter.notifyDataSetChanged();
+                mAdapter.notifyDataSetChanged();
                 insertAdvertisement();
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 VolleyLog.e(TAG, error.getMessage());
-                progressBar.setVisibility(View.GONE);
+                hideProgressBar();
             }
         }) {
             @Override
@@ -220,26 +220,26 @@ public class GroupFragment extends Fragment {
     }
 
     private void logout() {
-        preferenceManager.clear();
+        mPreferenceManager.clear();
         startActivity(new Intent(getContext(), LoginActivity.class));
         getActivity().finish();
     }
 
     private void insertAdvertisement() {
         initFirebaseData();
-        if (groupItemValues.size() % 2 != 0) {
+        if (mGroupItemValues.size() % 2 != 0) {
             GroupItem ad = new GroupItem();
             ad.setAd(true);
             ad.setName("광고");
-            groupItemValues.add(ad);
+            mGroupItemValues.add(ad);
         }
-        progressBar.setVisibility(View.GONE);
-        relativeLayout.setVisibility(groupItemValues.isEmpty() ? View.VISIBLE : View.GONE);
+        hideProgressBar();
+        mRelativeLayout.setVisibility(mGroupItemValues.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
     private void initFirebaseData() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
-        fetchDataTaskFromFirebase(databaseReference.child(preferenceManager.getUser().getUid()).orderByValue().equalTo(true), false);
+        fetchDataTaskFromFirebase(databaseReference.child(mPreferenceManager.getUser().getUid()).orderByValue().equalTo(true), false);
     }
 
     private void fetchDataTaskFromFirebase(Query query, final boolean isRecursion) {
@@ -251,12 +251,12 @@ public class GroupFragment extends Fragment {
                         String key = dataSnapshot.getKey();
                         GroupItem value = dataSnapshot.getValue(GroupItem.class);
                         assert value != null;
-                        int index = groupItemKeys.indexOf(value.getId());
+                        int index = mGroupItemKeys.indexOf(value.getId());
                         if (index > -1) {
-                            //groupItemValues.set(index, value); //isAdmin값때문에 주석처리
-                            groupItemKeys.set(index, key);
+                            //mGroupItemValues.set(index, value); //isAdmin값때문에 주석처리
+                            mGroupItemKeys.set(index, key);
                         }
-                        groupGridAdapter.notifyDataSetChanged();
+                        mAdapter.notifyDataSetChanged();
                     } catch (Exception e) {
                         Log.e(TAG, e.getMessage());
                     }
@@ -281,5 +281,15 @@ public class GroupFragment extends Fragment {
 
     private boolean adminCheck(String onClick) {
         return onClick.split("'")[1].trim().equals("0");
+    }
+
+    private void showProgressBar() {
+        if (mProgressBar != null)
+            mProgressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void hideProgressBar() {
+        if (mProgressBar != null)
+            mProgressBar.setVisibility(View.GONE);
     }
 }

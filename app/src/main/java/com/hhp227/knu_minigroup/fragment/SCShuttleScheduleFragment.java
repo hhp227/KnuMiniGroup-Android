@@ -26,12 +26,12 @@ import java.util.HashMap;
 
 public class SCShuttleScheduleFragment extends Fragment {
     private static final String TAG = "학교버스시간표";
-    private SwipeRefreshLayout SWPRefresh;
-    private Handler handler;
-    private Source source;
-    private ArrayList<HashMap<String, String>> data;
-    private ProgressDialog progressDialog;
-    private SimpleAdapter shuttleAdapter;
+    private ArrayList<HashMap<String, String>> mShuttleList;
+    private Handler mHandler;
+    private ProgressDialog mProgressDialog;
+    private SimpleAdapter mAdapter;
+    private Source mSource;
+    private SwipeRefreshLayout mSWPRefresh;
 
     public static SCShuttleScheduleFragment newInstance() {
         SCShuttleScheduleFragment fragment = new SCShuttleScheduleFragment();
@@ -46,41 +46,39 @@ public class SCShuttleScheduleFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_shuttle_schedule_sc, container, false);
-        ListView shuttleList = rootView.findViewById(R.id.lv_shuttle);
-        SWPRefresh = rootView.findViewById(R.id.srl_shuttle);
-        data = new ArrayList<>();
-        progressDialog = new ProgressDialog(getActivity());
-
-        shuttleAdapter = new SimpleAdapter(getActivity(), data, R.layout.shuttle_sc_item,
+        ListView listView = rootView.findViewById(R.id.lv_shuttle);
+        mSWPRefresh = rootView.findViewById(R.id.srl_shuttle);
+        mShuttleList = new ArrayList<>();
+        mProgressDialog = new ProgressDialog(getActivity());
+        mAdapter = new SimpleAdapter(getActivity(), mShuttleList, R.layout.shuttle_sc_item,
                 new String[] {"col1", "col2", "col3", "col4", "col5", "col6"},
                 new int[] {R.id.column1, R.id.column2, R.id.column3, R.id.column4, R.id.column5, R.id.column6});
 
-        shuttleList.setAdapter(shuttleAdapter);
-        SWPRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        listView.setAdapter(mAdapter);
+        mSWPRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 new Handler().postDelayed(new Runnable() {
                     public void run() {
-                        SWPRefresh.setRefreshing(false); // 당겨서 새로고침 숨김
+                        mSWPRefresh.setRefreshing(false); // 당겨서 새로고침 숨김
                     }
                 }, 1000);
             }
         });
-        progressDialog.setMessage("불러오는중...");
-        progressDialog.show();
-
+        mProgressDialog.setMessage("불러오는중...");
+        showProgressDialog();
         try {
             new Thread() {
                 public void run() {
                     try {
                         URL URL = new URL(EndPoint.URL_SHUTTLE.replace("{SHUTTLE}", "map03_02"));
                         InputStream html = URL.openStream();
-                        source = new Source(new InputStreamReader(html, "utf-8")); // 소스를 UTF-8 인코딩으로 불러온다.
-                        source.fullSequentialParse(); // 순차적으로 구문분석
+                        mSource = new Source(new InputStreamReader(html, "utf-8")); // 소스를 UTF-8 인코딩으로 불러온다.
+                        mSource.fullSequentialParse(); // 순차적으로 구문분석
                     } catch (Exception e) {
                         Log.e(TAG, "에러" + e);
                     }
-                    Element table = source.getAllElements(HTMLElementName.TABLE).get(0);
+                    Element table = mSource.getAllElements(HTMLElementName.TABLE).get(0);
 
                     for (int i = 1; i < table.getAllElements(HTMLElementName.TR).size(); i++) {
                         Element TR = table.getAllElements(HTMLElementName.TR).get(i);
@@ -100,15 +98,14 @@ public class SCShuttleScheduleFragment extends Fragment {
                         map.put("col5", (Col5).getContent().toString());
                         map.put("col6", (Col6).getContent().toString());
 
-                        data.add(map);
+                        mShuttleList.add(map);
                     }
-
-                    handler = new Handler(Looper.getMainLooper());
-                    handler.postDelayed(new Runnable() {
+                    mHandler = new Handler(Looper.getMainLooper());
+                    mHandler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            shuttleAdapter.notifyDataSetChanged(); // 모든 작업이 끝나면 리스트 갱신
-                            progressDialog.dismiss(); // 모든 작업이 끝나면 다이어로그 종료
+                            mAdapter.notifyDataSetChanged(); // 모든 작업이 끝나면 리스트 갱신
+                            hideProgressDialog();
                         }
                     }, 0);
                 }
@@ -118,5 +115,15 @@ public class SCShuttleScheduleFragment extends Fragment {
         }
 
         return rootView;
+    }
+
+    private void showProgressDialog() {
+        if (!mProgressDialog.isShowing())
+            mProgressDialog.show();
+    }
+
+    private void hideProgressDialog() {
+        if (mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
     }
 }

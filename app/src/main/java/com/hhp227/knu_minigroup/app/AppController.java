@@ -9,9 +9,9 @@ import com.hhp227.knu_minigroup.helper.PreferenceManager;
 
 public class AppController extends Application {
     public static final String TAG = AppController.class.getSimpleName();
-    private RequestQueue mRequestQueue;
     private static AppController mInstance;
-    private PreferenceManager preferenceManager;
+    private PreferenceManager mPreferenceManager;
+    private RequestQueue mRequestQueue;
 
     @Override
     public void onCreate() {
@@ -31,10 +31,10 @@ public class AppController extends Application {
     }
 
     public PreferenceManager getPreferenceManager() {
-        if (preferenceManager == null) {
-            preferenceManager = new PreferenceManager(this);
-        }
-        return preferenceManager;
+        if (mPreferenceManager == null)
+            mPreferenceManager = new PreferenceManager(this);
+
+        return mPreferenceManager;
     }
 
     public <T> void addToRequestQueue(Request<T> req, String tag) {
@@ -49,8 +49,7 @@ public class AppController extends Application {
     }
 
     public void cancelPendingRequests(Object tag) {
-        if (mRequestQueue != null) {
+        if (mRequestQueue != null)
             mRequestQueue.cancelAll(tag);
-        }
     }
 }
