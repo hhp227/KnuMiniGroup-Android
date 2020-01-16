@@ -122,7 +122,7 @@ public class FindActivity extends FragmentActivity {
                 }, 1000);
             }
         });
-        mProgressBar.setVisibility(View.VISIBLE);
+        showProgressBar();
         fetchGroupList();
     }
 
@@ -171,8 +171,7 @@ public class FindActivity extends FragmentActivity {
                 }
                 mAdapter.notifyDataSetChanged();
                 mHasRequestedMore = false;
-                mFooterLoading.setVisibility(View.GONE);
-                mProgressBar.setVisibility(View.GONE);
+                hideProgressBar();
                 mRelativeLayout.setVisibility(mGroupItemValues.isEmpty() ? View.VISIBLE : View.GONE);
                 initFirebaseData();
             }
@@ -180,7 +179,7 @@ public class FindActivity extends FragmentActivity {
             @Override
             public void onErrorResponse(VolleyError error) {
                 VolleyLog.e(TAG, error.getMessage());
-                mProgressBar.setVisibility(View.GONE);
+                hideProgressBar();
             }
         }) {
             @Override
@@ -253,5 +252,16 @@ public class FindActivity extends FragmentActivity {
 
     private int groupIdExtract(String onclick) {
         return Integer.parseInt(onclick.split("[(]|[)]|[,]")[1].trim());
+    }
+
+    private void showProgressBar() {
+        if (mProgressBar != null)
+            mProgressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void hideProgressBar() {
+        if (mProgressBar != null)
+            mProgressBar.setVisibility(View.GONE);
+        mFooterLoading.setVisibility(View.GONE);
     }
 }
