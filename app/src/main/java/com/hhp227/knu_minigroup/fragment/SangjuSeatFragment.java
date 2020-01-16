@@ -28,7 +28,7 @@ import java.util.List;
 
 public class SangjuSeatFragment extends Fragment {
     private static final String TAG = "상주 열람실좌석";
-    private boolean isRefresh;
+    private boolean mIsRefresh;
     private List<SeatItem> mSeatItemList;
     private ProgressDialog mProgressDialog;
     private SeatListAdapter mAdapter;
@@ -63,7 +63,7 @@ public class SangjuSeatFragment extends Fragment {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        isRefresh = true;
+                        mIsRefresh = true;
                         fetchData();
                         mSwipeRefreshLayout.setRefreshing(false);
                     }
@@ -107,7 +107,7 @@ public class SangjuSeatFragment extends Fragment {
                                 data.getInt("available"),
                                 disable);
 
-                        if (!isRefresh)
+                        if (!mIsRefresh)
                             mSeatItemList.add(listItem);
                         else
                             mSeatItemList.set(i, listItem);
