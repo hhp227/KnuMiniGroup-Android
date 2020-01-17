@@ -130,13 +130,15 @@ public class Tab1Fragment extends BaseFragment {
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
                 if (scrollState == SCROLL_STATE_IDLE && lastItemVisibleFlag && !mHasRequestedMore) {
+
                     // 화면이 바닦에 닿을때 처리
-                    // 로딩중을 알리는 프로그레스바를 보인다.
-                    mFooterLoading.setVisibility(View.VISIBLE);
+                    mHasRequestedMore = true;
 
                     // 다음 데이터를 불러온다.
                     mOffSet += LIMIT;
-                    mHasRequestedMore = true;
+
+                    // 로딩중을 알리는 프로그레스바를 보인다.
+                    mFooterLoading.setVisibility(View.VISIBLE);
                     fetchArticleList();
                 }
             }
@@ -170,8 +172,8 @@ public class Tab1Fragment extends BaseFragment {
                         mOffSet = 1;
                         mArticleItemKeys.clear();
                         mArticleItemValues.clear();
-                        fetchArticleList();
                         mSwipeRefreshLayout.setRefreshing(false);
+                        fetchArticleList();
                     }
                 }, 2000);
             }

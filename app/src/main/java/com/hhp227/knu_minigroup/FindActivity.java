@@ -75,9 +75,9 @@ public class FindActivity extends FragmentActivity {
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
                 if (scrollState == SCROLL_STATE_IDLE && lastItemVisibleFlag && !mHasRequestedMore) {
-                    mFooterLoading.setVisibility(View.VISIBLE);
-                    mOffSet += LIMIT;
                     mHasRequestedMore = true;
+                    mOffSet += LIMIT;
+                    mFooterLoading.setVisibility(View.VISIBLE);
                     fetchGroupList();
                 }
             }
