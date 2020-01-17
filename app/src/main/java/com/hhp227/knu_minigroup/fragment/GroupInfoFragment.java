@@ -166,7 +166,7 @@ public class GroupInfoFragment extends DialogFragment {
         info.setText(mGroupInfo);
         desc.setText(mGroupDesc);
         desc.setMaxLines(DESC_MAX_LINE);
-        button.setText(mButtonType == 0 ? "가입신청" : "신청취소");
+        button.setText(mButtonType == TYPE_REQUEST ? "가입신청" : "신청취소");
         Glide.with(this)
                 .load(mGroupImage)
                 .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background).error(R.drawable.ic_launcher_background))
