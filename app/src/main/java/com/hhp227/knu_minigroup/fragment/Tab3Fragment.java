@@ -72,9 +72,9 @@ public class Tab3Fragment extends BaseFragment {
 
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
-                if (scrollState == SCROLL_STATE_IDLE && lastItemVisibleFlag && mHasRequestedMore == false) {
-                    mOffSet += LIMIT;
+                if (scrollState == SCROLL_STATE_IDLE && lastItemVisibleFlag && !mHasRequestedMore) {
                     mHasRequestedMore = true;
+                    mOffSet += LIMIT;
                     fetchMemberList();
                 }
             }
