@@ -102,7 +102,7 @@ public class RequestActivity extends FragmentActivity {
                 args.putString("info", groupItem.getInfo());
                 args.putString("desc", groupItem.getDescription());
                 args.putString("type", groupItem.getJoinType());
-                args.putInt("btn_type", 1);
+                args.putInt("btn_type", GroupInfoFragment.TYPE_CANCEL);
                 args.putString("key", mGroupItemKeys.get(position));
 
                 GroupInfoFragment newFragment = GroupInfoFragment.newInstance();

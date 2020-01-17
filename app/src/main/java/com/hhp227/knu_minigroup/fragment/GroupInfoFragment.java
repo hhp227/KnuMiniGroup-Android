@@ -37,6 +37,9 @@ import java.util.Map;
 import static android.app.Activity.RESULT_OK;
 
 public class GroupInfoFragment extends DialogFragment {
+    public static final int TYPE_REQUEST = 0;
+    public static final int TYPE_CANCEL = 1;
+
     private static final int DESC_MAX_LINE = 6;
     private static final String TAG = "정보창";
     private static int mButtonType;
@@ -89,17 +92,17 @@ public class GroupInfoFragment extends DialogFragment {
                 mProgressDialog.setMessage("요청중...");
                 showProgressDialog();
                 String tag_json_req = "req_register";
-                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, mButtonType == 0 ? EndPoint.REGISTER_GROUP : EndPoint.WITHDRAWAL_GROUP, null, new Response.Listener<JSONObject>() {
+                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, mButtonType == TYPE_REQUEST ? EndPoint.REGISTER_GROUP : EndPoint.WITHDRAWAL_GROUP, null, new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            if (mButtonType == 0 && !response.getBoolean("isError")) {
+                            if (mButtonType == TYPE_REQUEST && !response.getBoolean("isError")) {
                                 Toast.makeText(getContext(), "신청완료", Toast.LENGTH_LONG).show();
                                 Intent intent = new Intent(getContext(), MainActivity.class);
                                 getActivity().setResult(RESULT_OK, intent);
                                 getActivity().finish();
                                 insertGroupToFirebase();
-                            } else if (mButtonType == 1 && !response.getBoolean("isError")) {
+                            } else if (mButtonType == TYPE_CANCEL && !response.getBoolean("isError")) {
                                 Toast.makeText(getContext(), "신청취소", Toast.LENGTH_LONG).show();
                                 ((RequestActivity) getActivity()).refresh();
                                 GroupInfoFragment.this.dismiss();

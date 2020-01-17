@@ -99,7 +99,7 @@ public class FindActivity extends FragmentActivity {
                 args.putString("info", groupItem.getInfo());
                 args.putString("desc", groupItem.getDescription());
                 args.putString("type", groupItem.getJoinType());
-                args.putInt("btn_type", 0);
+                args.putInt("btn_type", GroupInfoFragment.TYPE_REQUEST);
                 args.putString("key", mGroupItemKeys.get(position));
 
                 GroupInfoFragment newFragment = GroupInfoFragment.newInstance();
