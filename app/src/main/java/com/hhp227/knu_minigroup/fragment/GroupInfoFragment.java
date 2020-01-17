@@ -37,6 +37,7 @@ import java.util.Map;
 import static android.app.Activity.RESULT_OK;
 
 public class GroupInfoFragment extends DialogFragment {
+    private static final int DESC_MAX_LINE = 6;
     private static final String TAG = "정보창";
     private static int mButtonType;
     private static String mGroupId, mGroupName, mGroupImage, mGroupInfo, mGroupDesc, mJoinType, mKey;
@@ -161,7 +162,7 @@ public class GroupInfoFragment extends DialogFragment {
         name.setText(mGroupName);
         info.setText(mGroupInfo);
         desc.setText(mGroupDesc);
-        desc.setMaxLines(6);
+        desc.setMaxLines(DESC_MAX_LINE);
         button.setText(mButtonType == 0 ? "가입신청" : "신청취소");
         Glide.with(this)
                 .load(mGroupImage)
