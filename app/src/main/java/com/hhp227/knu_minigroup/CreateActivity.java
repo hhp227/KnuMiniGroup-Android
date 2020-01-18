@@ -37,11 +37,11 @@ import java.util.Map;
 import java.util.UUID;
 
 public class CreateActivity extends Activity {
-    private static final String TAG = CreateActivity.class.getSimpleName();
 
     // 인텐트값
     public static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
     public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 200;
+    private static final String TAG = CreateActivity.class.getSimpleName();
     private boolean mJoinTypeCheck;
     private String mCookie, mPushId;
     private Bitmap mBitmap;
