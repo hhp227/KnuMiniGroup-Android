@@ -44,6 +44,7 @@ import java.util.*;
 public class WriteActivity extends Activity {
     public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 100;
     public static final int REQUEST_IMAGE_CAPTURE = 200;
+
     private static final String TAG = WriteActivity.class.getSimpleName();
     private int mContextMenuRequest;
     private boolean mIsAdmin;

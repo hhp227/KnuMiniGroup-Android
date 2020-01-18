@@ -1,6 +1,7 @@
 package com.hhp227.knu_minigroup.app;
 
 public interface EndPoint {
+
     // 경북대 LMS URL
     String BASE_URL = "http://lms.knu.ac.kr";
     String LOGIN = BASE_URL + "/ilos/lo/login.acl";

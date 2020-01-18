@@ -34,6 +34,7 @@ public class GroupFragment extends Fragment {
     public static final int CREATE_CODE = 10;
     public static final int REGISTER_CODE = 20;
     public static final int UPDATE_GROUP = 30;
+
     private static final String TAG = GroupFragment.class.getSimpleName();
     private long mLastClickTime; // 클릭시 걸리는 시간
     private GroupGridAdapter mAdapter;
