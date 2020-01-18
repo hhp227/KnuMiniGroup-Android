@@ -66,6 +66,9 @@ public class GroupGridAdapter extends BaseAdapter {
         GroupItem groupItem = mGroupItemValues.get(position);
 
         if (!groupItem.isAd()) {
+            mViewHolder.groupName.setText(groupItem.getName());
+            Glide.with(mContext).load(groupItem.getImage()).transition(new DrawableTransitionOptions().crossFade(150)).into(mViewHolder.groupImage);
+
             mViewHolder.groupLayout.setVisibility(View.VISIBLE);
             mViewHolder.adView.setVisibility(View.GONE);
         } else {
@@ -110,9 +113,6 @@ public class GroupGridAdapter extends BaseAdapter {
             mViewHolder.groupLayout.setVisibility(View.GONE);
             mViewHolder.adView.setVisibility(View.VISIBLE);
         }
-
-        mViewHolder.groupName.setText(groupItem.getName());
-        Glide.with(mContext).load(groupItem.getImage()).transition(new DrawableTransitionOptions().crossFade(150)).into(mViewHolder.groupImage);
 
         return convertView;
     }
