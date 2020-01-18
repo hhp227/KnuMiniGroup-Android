@@ -200,49 +200,6 @@ public class CreateActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void groupImageUpdate(final String clubGrpId, final String grpNm, final String txt, final String joinDiv) {
-        app.AppController.getInstance().addToRequestQueue(new MultipartRequest(Request.Method.POST, EndPoint.GROUP_IMAGE_UPDATE, new Response.Listener<NetworkResponse>() {
-            @Override
-            public void onResponse(NetworkResponse response) {
-                insertGroupToFirebase(clubGrpId, grpNm, txt, joinDiv);
-                createGroupSuccess(clubGrpId, grpNm);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(TAG, error.getMessage());
-                hideProgressDialog();
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", mCookie);
-                return headers;
-            }
-
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-                params.put("CLUB_GRP_ID", clubGrpId);
-                return params;
-            }
-
-            @Override
-            protected Map<String, DataPart> getByteData() {
-                Map<String, DataPart> params = new HashMap<>();
-                params.put("file", new DataPart(UUID.randomUUID().toString().replace("-", "").concat(".jpg"), getFileDataFromDrawable(mBitmap)));
-                return params;
-            }
-
-            private byte[] getFileDataFromDrawable(Bitmap bitmap) {
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.PNG, 80, byteArrayOutputStream);
-                return byteArrayOutputStream.toByteArray();
-            }
-        });
-    }
-
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
@@ -298,6 +255,49 @@ public class CreateActivity extends Activity {
         finish();
         hideProgressDialog();
         Toast.makeText(getApplicationContext(), "그룹이 생성되었습니다.", Toast.LENGTH_LONG).show();
+    }
+
+    private void groupImageUpdate(final String clubGrpId, final String grpNm, final String txt, final String joinDiv) {
+        app.AppController.getInstance().addToRequestQueue(new MultipartRequest(Request.Method.POST, EndPoint.GROUP_IMAGE_UPDATE, new Response.Listener<NetworkResponse>() {
+            @Override
+            public void onResponse(NetworkResponse response) {
+                insertGroupToFirebase(clubGrpId, grpNm, txt, joinDiv);
+                createGroupSuccess(clubGrpId, grpNm);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e(TAG, error.getMessage());
+                hideProgressDialog();
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Cookie", mCookie);
+                return headers;
+            }
+
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+                params.put("CLUB_GRP_ID", clubGrpId);
+                return params;
+            }
+
+            @Override
+            protected Map<String, DataPart> getByteData() {
+                Map<String, DataPart> params = new HashMap<>();
+                params.put("file", new DataPart(UUID.randomUUID().toString().replace("-", "").concat(".jpg"), getFileDataFromDrawable(mBitmap)));
+                return params;
+            }
+
+            private byte[] getFileDataFromDrawable(Bitmap bitmap) {
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.PNG, 80, byteArrayOutputStream);
+                return byteArrayOutputStream.toByteArray();
+            }
+        });
     }
 
     private void insertGroupToFirebase(String groupId, String groupName, String description, String joinType) {
