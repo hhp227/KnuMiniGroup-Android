@@ -69,6 +69,7 @@ public class TabHostLayoutFragment extends Fragment {
         ScrollableLayout scrollableLayout = rootView.findViewById(R.id.scrollable_layout);
         mTabHost = rootView.findViewById(android.R.id.tabhost);
         mViewPager = rootView.findViewById(R.id.view_pager);
+        mAdapter = new TabsPagerAdapter(getChildFragmentManager(), fragments);
 
         mViewPager.setOffscreenPageLimit(TAB_NAMES.length);
         mTabHost.setup();
@@ -92,7 +93,6 @@ public class TabHostLayoutFragment extends Fragment {
         fragments.add(new Tab2Fragment());
         fragments.add(Tab3Fragment.newInstance(mGroupId));
         fragments.add(Tab4Fragment.newInstance(mIsAdmin, mGroupId, mPosition, mKey));
-        mAdapter = new TabsPagerAdapter(getChildFragmentManager(), fragments);
         mViewPager.setAdapter(mAdapter);
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
