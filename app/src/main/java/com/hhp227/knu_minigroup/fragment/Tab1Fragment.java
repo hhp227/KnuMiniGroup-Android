@@ -36,9 +36,9 @@ import java.util.Map;
 public class Tab1Fragment extends BaseFragment {
     public static final int LIMIT = 10;
     public static final int UPDATE_ARTICLE = 20;
-    public static boolean mIsAdmin;
-    public static String mGroupId, mGroupName, mKey;
 
+    private static boolean mIsAdmin;
+    private static String mGroupId, mGroupName, mKey;
     private boolean mHasRequestedMore; // 데이터 불러올때 중복안되게 하기위한 변수
     private int mOffSet;
     private long mLastClickTime; // 클릭시 걸리는 시간
