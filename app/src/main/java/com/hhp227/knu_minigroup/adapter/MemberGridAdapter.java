@@ -62,7 +62,7 @@ public class MemberGridAdapter extends BaseAdapter {
                 .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", memberItem.uid), new LazyHeaders.Builder()
                         .addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie())
                         .build()))
-                .apply(new RequestOptions().centerCrop())
+                .apply(new RequestOptions().centerCrop().error(R.drawable.profile_img_square))
                 .into(viewHolder.profileImg);
         return convertView;
     }
