@@ -65,6 +65,7 @@ public class TabHostLayoutFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_tab_host_layout, container, false);
+        List<BaseFragment> fragments = new Vector<>();
         ScrollableLayout scrollableLayout = rootView.findViewById(R.id.scrollable_layout);
         mTabHost = rootView.findViewById(android.R.id.tabhost);
         mViewPager = rootView.findViewById(R.id.view_pager);
@@ -87,8 +88,6 @@ public class TabHostLayoutFragment extends Fragment {
                 mViewPager.setCurrentItem(selectedItem);
             }
         });
-
-        List<BaseFragment> fragments = new Vector<>();
         fragments.add(Tab1Fragment.newInstance(mIsAdmin, mGroupId, mGroupName, mKey));
         fragments.add(new Tab2Fragment());
         fragments.add(Tab3Fragment.newInstance(mGroupId));
@@ -109,7 +108,6 @@ public class TabHostLayoutFragment extends Fragment {
             public void onPageScrollStateChanged(int state) {
             }
         });
-
         scrollableLayout.setCanScrollVerticallyDelegate(new CanScrollVerticallyDelegate() {
             @Override
             public boolean canScrollVertically(int direction) {
@@ -128,11 +126,6 @@ public class TabHostLayoutFragment extends Fragment {
             this.fragments = fragments;
         }
 
-        // 스크롤 관련
-        boolean canScrollVertically(int position, int direction) {
-            return getItem(position).canScrollVertically(direction);
-        }
-
         @Override
         public BaseFragment getItem(int position) {
             BaseFragment getItem = fragments.get(position);
@@ -142,6 +135,11 @@ public class TabHostLayoutFragment extends Fragment {
         @Override
         public int getCount() {
             return fragments.size();
+        }
+
+        // 스크롤 관련
+        boolean canScrollVertically(int position, int direction) {
+            return getItem(position).canScrollVertically(direction);
         }
     }
 }
