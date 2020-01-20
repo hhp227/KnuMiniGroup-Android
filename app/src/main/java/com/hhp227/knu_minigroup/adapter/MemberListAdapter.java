@@ -53,7 +53,7 @@ public class MemberListAdapter extends BaseAdapter {
             viewHolder = (ViewHolder) convertView.getTag();
 
         MemberItem memberItem = mMemberItems.get(position);
-        Glide.with(mContext).load(EndPoint.USER_IMAGE.replace("{UID}", memberItem.uid)).apply(RequestOptions.circleCropTransform()).into(viewHolder.profileImage);
+        Glide.with(mContext).load(EndPoint.USER_IMAGE.replace("{UID}", memberItem.uid)).apply(RequestOptions.circleCropTransform().error(R.drawable.profile_img_square)).into(viewHolder.profileImage);
         viewHolder.name.setText(memberItem.name);
         viewHolder.department.setText(memberItem.dept);
         viewHolder.division.setText(memberItem.div);
