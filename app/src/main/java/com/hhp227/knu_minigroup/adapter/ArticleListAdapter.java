@@ -4,16 +4,15 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
-import androidx.annotation.NonNull;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestOptions;
-import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.ArticleActivity;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.EndPoint;
@@ -70,7 +69,9 @@ public class ArticleListAdapter extends BaseAdapter {
         ArticleItem articleItem = mArticleItemValues.get(position);
 
         Glide.with(mActivity)
-                .load(articleItem.getUid() != null ? EndPoint.USER_IMAGE.replace("{UID}", articleItem.getUid()) : null)
+                .load(articleItem.getUid() != null ? new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", articleItem.getUid()), new LazyHeaders.Builder()
+                        .addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie())
+                        .build()) : null)
                 .apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop())
                 .into(viewHolder.profileImage);
         viewHolder.title.setText(articleItem.getName() != null ? articleItem.getTitle() + " - " + articleItem.getName() : articleItem.getTitle());
