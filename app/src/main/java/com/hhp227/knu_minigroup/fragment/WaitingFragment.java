@@ -11,7 +11,6 @@ import com.hhp227.knu_minigroup.R;
 public class WaitingFragment extends Fragment {
 
     public WaitingFragment() {
-        // Required empty public constructor
     }
 
     @Override

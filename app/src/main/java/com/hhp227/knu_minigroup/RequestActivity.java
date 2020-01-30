@@ -59,6 +59,7 @@ public class RequestActivity extends FragmentActivity {
         mGroupItemValues = new ArrayList<>();
         mAdapter = new GroupListAdapter(getBaseContext(), mGroupItemKeys, mGroupItemValues);
         mOffSet = 1;
+
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -167,14 +168,15 @@ public class RequestActivity extends FragmentActivity {
                         }
                     } catch (Exception e) {
                         Log.e(TAG, e.getMessage());
+                    } finally {
+                        initFirebaseData();
                     }
                 }
-                mAdapter.notifyDataSetChanged();
                 mHasRequestedMore = false;
+                mAdapter.notifyDataSetChanged();
                 mFooterLoading.setVisibility(View.GONE);
                 mProgressBar.setVisibility(View.GONE);
                 mRelativeLayout.setVisibility(mGroupItemValues.isEmpty() ? View.VISIBLE : View.GONE);
-                initFirebaseData();
             }
         }, new Response.ErrorListener() {
             @Override

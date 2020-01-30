@@ -85,6 +85,7 @@ public class GroupInfoFragment extends DialogFragment {
         TextView desc = rootView.findViewById(R.id.tv_desciption);
         mPreferenceManager = app.AppController.getInstance().getPreferenceManager();
         mProgressDialog = new ProgressDialog(getContext());
+
         mProgressDialog.setCancelable(false);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -95,6 +96,7 @@ public class GroupInfoFragment extends DialogFragment {
                 JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, mButtonType == TYPE_REQUEST ? EndPoint.REGISTER_GROUP : EndPoint.WITHDRAWAL_GROUP, null, new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
+                        hideProgressDialog();
                         try {
                             if (mButtonType == TYPE_REQUEST && !response.getBoolean("isError")) {
                                 Toast.makeText(getContext(), "신청완료", Toast.LENGTH_LONG).show();
@@ -111,7 +113,6 @@ public class GroupInfoFragment extends DialogFragment {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                        hideProgressDialog();
                     }
                 }, new Response.ErrorListener() {
                     @Override

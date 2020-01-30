@@ -220,8 +220,8 @@ public class LoginActivity extends Activity {
                 String uid = imageUrl.substring(imageUrl.indexOf("id=") + "id=".length(), imageUrl.lastIndexOf("&size"));
 
                 user.setUid(uid);
-
                 mPreferenceManager.storeUser(user);
+
                 // 화면이동
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);

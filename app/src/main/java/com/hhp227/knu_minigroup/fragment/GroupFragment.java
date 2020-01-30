@@ -68,7 +68,6 @@ public class GroupFragment extends Fragment {
         mProgressBar = rootView.findViewById(R.id.pb_group);
         mRelativeLayout = rootView.findViewById(R.id.rl_group);
         mSwipeRefreshLayout = rootView.findViewById(R.id.srl_group);
-
         mPreferenceManager = new PreferenceManager(getActivity());
         mGroupItemKeys = new ArrayList<>();
         mGroupItemValues = new ArrayList<>();
@@ -187,6 +186,8 @@ public class GroupFragment extends Fragment {
                         mGroupItemValues.add(groupItem);
                     } catch (NullPointerException e) {
                         e.printStackTrace();
+                    } finally {
+                        initFirebaseData();
                     }
                 }
                 mAdapter.notifyDataSetChanged();
@@ -227,7 +228,6 @@ public class GroupFragment extends Fragment {
     }
 
     private void insertAdvertisement() {
-        initFirebaseData();
         if (mGroupItemValues.size() % 2 != 0) {
             GroupItem ad = new GroupItem();
             ad.setAd(true);

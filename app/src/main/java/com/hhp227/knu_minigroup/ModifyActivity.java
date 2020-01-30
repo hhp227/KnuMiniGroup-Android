@@ -72,7 +72,6 @@ public class ModifyActivity extends Activity {
         mCookie = app.AppController.getInstance().getPreferenceManager().getCookie();
         mAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, mContents);
         mProgressDialog = new ProgressDialog(this);
-
         mGrpId = intent.getStringExtra("grp_id");
         mArtlNum = intent.getStringExtra("artl_num");
         mTitle = intent.getStringExtra("sbjt");
@@ -80,6 +79,7 @@ public class ModifyActivity extends Activity {
         mImageList = intent.getStringArrayListExtra("img");
         mGrpKey = intent.getStringExtra("grp_key");
         mArtlKey = intent.getStringExtra("artl_key");
+
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -145,7 +145,7 @@ public class ModifyActivity extends Activity {
 
                     if (mContents.size() > 0) {
                         int position = 0;
-                        uploadImage(position, mContents.get(0));
+                        uploadImage(position, mContents.get(position));
                     } else
                         actionSend(title, content);
                 } else
@@ -176,7 +176,6 @@ public class ModifyActivity extends Activity {
         switch (item.getItemId()) {
             case 1 :
                 int position = ((AdapterView.AdapterContextMenuInfo) item.getMenuInfo()).position - 1;
-                mImageList.remove(position);
                 mContents.remove(position);
                 mAdapter.notifyDataSetChanged();
                 return true;
@@ -376,8 +375,8 @@ public class ModifyActivity extends Activity {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.getValue() != null) {
-                    ArticleItem articleItem = dataSnapshot.getValue(ArticleItem.class);
+                ArticleItem articleItem = dataSnapshot.getValue(ArticleItem.class);
+                if (articleItem != null) {
                     articleItem.setTitle(mInputTitle.getText().toString());
                     articleItem.setContent(TextUtils.isEmpty(mInputContent.getText()) ? null : mInputContent.getText().toString());
                     articleItem.setImages(mImageList.isEmpty() ? null : mImageList);

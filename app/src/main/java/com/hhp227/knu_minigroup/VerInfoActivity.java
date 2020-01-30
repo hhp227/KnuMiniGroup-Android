@@ -13,6 +13,7 @@ public class VerInfoActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_verinfo);
         ActionBar actionBar = getActionBar();
+
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(true);

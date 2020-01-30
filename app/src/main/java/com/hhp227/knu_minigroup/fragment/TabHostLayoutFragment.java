@@ -118,6 +118,13 @@ public class TabHostLayoutFragment extends Fragment {
         return rootView;
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mViewPager.clearOnPageChangeListeners();
+        mTabHost.clearAllTabs();
+    }
+
     public class TabsPagerAdapter extends FragmentPagerAdapter {
         private List<BaseFragment> fragments;
 

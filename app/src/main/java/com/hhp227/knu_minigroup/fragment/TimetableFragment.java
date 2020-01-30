@@ -76,4 +76,11 @@ public class TimetableFragment extends Fragment {
         });
         return rootView;
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mViewPager.clearOnPageChangeListeners();
+        mTabHost.clearAllTabs();
+    }
 }

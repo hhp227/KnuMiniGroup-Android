@@ -27,7 +27,6 @@ public class SemesterTimeTableFragment extends Fragment {
     private TextView[] mDatas;
 
     public SemesterTimeTableFragment() {
-        // Required empty public constructor
     }
 
     public static SemesterTimeTableFragment newInstance() {

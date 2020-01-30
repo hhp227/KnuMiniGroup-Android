@@ -64,6 +64,7 @@ public class Tab3Fragment extends BaseFragment {
         mAdapter = new MemberGridAdapter(getActivity(), mMemberItems);
         mProgressDialog = new ProgressDialog(getActivity());
         mOffSet = 1;
+
         mProgressDialog.setMessage("불러오는중...");
         mProgressDialog.setCancelable(false);
         mGridView.setAdapter(mAdapter);
@@ -121,6 +122,7 @@ public class Tab3Fragment extends BaseFragment {
                 try {
                     Source source = new Source(response);
                     Element memberList = source.getElementById("member_list");
+
                     // 페이징 처리
                     String page = memberList.getFirstElementByClass("paging").getFirstElement("title", "현재 선택 목록", false).getTextExtractor().toString();
                     List<Element> inputElements = memberList.getAllElements("name", "memberIdCheck", false);

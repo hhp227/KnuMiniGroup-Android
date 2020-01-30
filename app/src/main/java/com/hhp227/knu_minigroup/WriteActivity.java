@@ -77,6 +77,7 @@ public class WriteActivity extends Activity {
         mGrpId = getIntent().getStringExtra(getString(R.string.extra_group_id));
         mGrpNm = getIntent().getStringExtra(getString(R.string.extra_group_name));
         mKey = getIntent().getStringExtra(getString(R.string.extra_key));
+
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -305,6 +306,7 @@ public class WriteActivity extends Activity {
                         intent.putExtra(getString(R.string.extra_group_id), grpId);
                         intent.putExtra(getString(R.string.extra_group_name), mGrpNm);
                         intent.putExtra(getString(R.string.extra_key), mKey);
+
                         // 이전 Activity 초기화
                         intent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         startActivity(intent);
@@ -354,7 +356,7 @@ public class WriteActivity extends Activity {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-
+                VolleyLog.e(error.getMessage());
             }
         }) {
             @Override

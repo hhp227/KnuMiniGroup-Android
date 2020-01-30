@@ -107,6 +107,7 @@ public class Tab1Fragment extends BaseFragment {
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
                 // 두번 클릭시 방지
                 if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
                     return;
@@ -180,7 +181,6 @@ public class Tab1Fragment extends BaseFragment {
             }
         });
         mSwipeRefreshLayout.setColorSchemeResources(android.R.color.holo_red_light, android.R.color.holo_orange_light, android.R.color.holo_green_light, android.R.color.holo_blue_bright);
-
         mProgressDialog = ProgressDialog.show(getActivity(), "", "불러오는중...");
         fetchArticleList();
 
@@ -213,11 +213,12 @@ public class Tab1Fragment extends BaseFragment {
             @Override
             public void onResponse(String response) {
                 Source source = new Source(response);
+                hideProgressDialog();
                 try {
+
                     // 페이징 처리
                     String page = source.getFirstElementByClass("paging").getFirstElement("title", "현재 선택 목록", false).getTextExtractor().toString();
                     List<Element> list = source.getAllElementsByClass("listbox2");
-
                     for (Element element : list) {
                         Element viewArt = element.getFirstElementByClass("view_art");
                         Element commentWrap = element.getFirstElementByClass("comment_wrap");
@@ -255,17 +256,17 @@ public class Tab1Fragment extends BaseFragment {
                         mArticleItemKeys.add(id);
                         mArticleItemValues.add(articleItem);
                     }
-                    mAdapter.notifyDataSetChanged();
+
                     // 중복 로딩 체크하는 Lock을 했던 mHasRequestedMore변수를 풀어준다.
                     mHasRequestedMore = false;
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
-                    hideProgressDialog();
-                    mRelativeLayout.setVisibility(!mArticleItemValues.isEmpty() ? View.GONE : View.VISIBLE);
-                    mFloatingActionButton.setVisibility(!mArticleItemValues.isEmpty() ? View.VISIBLE : View.GONE);
                     initFirebaseData();
                 }
+                mAdapter.notifyDataSetChanged();
+                mRelativeLayout.setVisibility(!mArticleItemValues.isEmpty() ? View.GONE : View.VISIBLE);
+                mFloatingActionButton.setVisibility(!mArticleItemValues.isEmpty() ? View.VISIBLE : View.GONE);
             }
         }, new Response.ErrorListener() {
             @Override

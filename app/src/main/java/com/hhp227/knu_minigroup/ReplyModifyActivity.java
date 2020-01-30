@@ -38,10 +38,9 @@ public class ReplyModifyActivity extends Activity {
         View headerView = getLayoutInflater().inflate(R.layout.modify_text, null, false);
         ActionBar actionBar = getActionBar();
         ListView listView = findViewById(R.id.lv_write);
-        Intent intent = getIntent();
         mInputReply = headerView.findViewById(R.id.et_reply);
         mProgressDialog = new ProgressDialog(this);
-
+        Intent intent = getIntent();
         mGroupId = intent.getStringExtra("grp_id");
         mArticleId = intent.getStringExtra("artl_num");
         mReplyId = intent.getStringExtra("cmmt_num");
@@ -49,6 +48,7 @@ public class ReplyModifyActivity extends Activity {
         mReplyKey = intent.getStringExtra("cmmt_key");
         mReply = intent.getStringExtra("cmt");
         mReply = mReply.contains("※") ? mReply.substring(0, mReply.lastIndexOf("※")).trim() : mReply;
+
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -88,6 +88,7 @@ public class ReplyModifyActivity extends Activity {
                         @Override
                         public void onResponse(String response) {
                             try {
+
                                 // 입력 자판 숨기기
                                 View view = ReplyModifyActivity.this.getCurrentFocus();
                                 if (view != null) {

@@ -82,17 +82,13 @@ public class MainActivity extends FragmentActivity {
 
         // Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713
         MobileAds.initialize(this, getString(R.string.admob_app_id));
-
         mActionBar.setDisplayShowHomeEnabled(false); // 제목앞에 아이콘 안보이기
         mActionBar.setDisplayHomeAsUpEnabled(true);
         mActionBar.setHomeButtonEnabled(true);
         mActionBar.setTitle(mTitleSection);
-
         mDrawerLayout.addDrawerListener(mActionBarDrawerToggle);
         mDrawerList.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, menu));
-
         getSupportFragmentManager().beginTransaction().replace(R.id.fl_content, fragMain).commit();
-
         mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -136,6 +132,12 @@ public class MainActivity extends FragmentActivity {
             }
         });
         mKnuId.setText(mPreferenceManager.getUser().getUserId());
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mDrawerLayout.removeDrawerListener(mActionBarDrawerToggle);
     }
 
     @Override

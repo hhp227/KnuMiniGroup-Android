@@ -63,6 +63,7 @@ public class CreateActivity extends Activity {
         mPreferenceManager = app.AppController.getInstance().getPreferenceManager();
         mCookie = mPreferenceManager.getCookie();
         mProgressDialog = new ProgressDialog(this);
+
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -191,9 +192,8 @@ public class CreateActivity extends Activity {
                             return null;
                         }
                     });
-                } else {
+                } else
                     Toast.makeText(getApplicationContext(), "그룹명 또는 그룹설명을 입력해주세요.", Toast.LENGTH_LONG).show();
-                }
                 return true;
         }
         return super.onOptionsItemSelected(item);

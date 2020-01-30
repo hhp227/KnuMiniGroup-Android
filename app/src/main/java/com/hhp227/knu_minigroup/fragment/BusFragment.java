@@ -40,6 +40,7 @@ public class BusFragment extends Fragment {
         TabsPagerAdapter tabsPagerAdapter = new TabsPagerAdapter(getChildFragmentManager(), fragments);
         mTabHost = rootView.findViewById(android.R.id.tabhost);
         mViewPager = rootView.findViewById(R.id.view_pager);
+
         mTabHost.setup();
         for (int i = 0; i < tabNames.length; i++) {
             TabHost.TabSpec tabSpec;

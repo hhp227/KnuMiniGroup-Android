@@ -75,9 +75,8 @@ public class ArticleActivity extends Activity {
         mInputReply = findViewById(R.id.et_reply);
         mListView = findViewById(R.id.lv_article);
         mSwipeRefreshLayout = findViewById(R.id.srl_article);
-
-        final Intent intent = getIntent();
         mPreferenceManager = app.AppController.getInstance().getPreferenceManager();
+        Intent intent = getIntent();
         mGroupId = intent.getStringExtra("grp_id");
         mGroupName = intent.getStringExtra("grp_nm");
         mArticleId = intent.getStringExtra("artl_num");
@@ -91,6 +90,7 @@ public class ArticleActivity extends Activity {
         mReplyItemValues = new ArrayList<>();
         mAdapter = new ReplyListAdapter(this, mReplyItemKeys, mReplyItemValues);
         mProgressDialog = new ProgressDialog(this);
+
         if (actionBar != null) {
             actionBar.setTitle(mGroupName);
             actionBar.setDisplayShowHomeEnabled(false);
@@ -168,10 +168,6 @@ public class ArticleActivity extends Activity {
         registerForContextMenu(mListView); // 콘텍스트메뉴
         showProgressDialog();
         fetchArticleData();
-
-        // isBotoom이 참이면 화면 아래로 이동
-        if (mIsBottom)
-            setListViewBottom();
     }
 
     @Override
@@ -214,15 +210,16 @@ public class ArticleActivity extends Activity {
                             JSONObject jsonObject = new JSONObject(response);
                             boolean error = jsonObject.getBoolean("isError");
                             if (!error) {
-                                Toast.makeText(getApplicationContext(), "삭제완료", Toast.LENGTH_LONG).show();
                                 Intent intent = new Intent(ArticleActivity.this, GroupActivity.class);
                                 intent.putExtra("admin", getIntent().getBooleanExtra("admin", false));
                                 intent.putExtra("grp_id", mGroupId);
                                 intent.putExtra("grp_nm", mGroupName);
                                 intent.putExtra("key", mGroupKey);
+
                                 // 모든 이전 activity 초기화
                                 intent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                 startActivity(intent);
+                                Toast.makeText(getApplicationContext(), "삭제완료", Toast.LENGTH_LONG).show();
                             } else {
                                 Toast.makeText(getApplicationContext(), "삭제할수 없습니다.", Toast.LENGTH_LONG).show();
                             }
@@ -386,7 +383,6 @@ public class ArticleActivity extends Activity {
                     String name = listTitle.substring(listTitle.lastIndexOf("-") + 1).trim();
                     String timeStamp = viewArt.getFirstElement(HTMLElementName.TD).getTextExtractor().toString();
                     String content = contentExtractor(viewArt.getFirstElementByClass("list_cont"), true);
-
                     List<Element> images = viewArt.getAllElements(HTMLElementName.IMG);
                     String replyCnt = commentWrap.getContent().getFirstElement(HTMLElementName.P).getTextExtractor().toString();
 
@@ -403,7 +399,10 @@ public class ArticleActivity extends Activity {
                         mArticleContent.setVisibility(View.GONE);
 
                     if (images.size() > 0) {
+                        mArticleImages.removeAllViews();
                         for (Element image : images) {
+                            if (mArticleImages.getChildCount() > images.size() - 1)
+                                break;
                             final int position = mImageList.size();
                             String imageUrl = !image.getAttributeValue("src").contains("http") ? EndPoint.BASE_URL + image.getAttributeValue("src") : image.getAttributeValue("src");
                             ImageView articleImage = new ImageView(getApplicationContext());
@@ -426,7 +425,6 @@ public class ArticleActivity extends Activity {
                         mArticleImages.setVisibility(View.VISIBLE);
                     } else
                         mArticleImages.setVisibility(View.GONE);
-
                     fetchReplyData(commentList);
                     if (mIsUpdate)
                         deliveryUpdate(title, contentExtractor(viewArt.getFirstElementByClass("list_cont"), true), mImageList, replyCnt);
@@ -475,6 +473,10 @@ public class ArticleActivity extends Activity {
                 mReplyItemValues.add(replyItem);
             }
             mAdapter.notifyDataSetChanged();
+
+            // isBotoom이 참이면 화면 아래로 이동
+            if (mIsBottom)
+                setListViewBottom();
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
         } finally {
@@ -497,6 +499,7 @@ public class ArticleActivity extends Activity {
                 try {
                     fetchReplyData(commentList);
                     hideProgressDialog();
+
                     // 전송할때마다 리스트뷰 아래로
                     setListViewBottom();
                 } catch (Exception e) {
@@ -539,7 +542,8 @@ public class ArticleActivity extends Activity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                final int articleHeight = mArticleDetail.getMeasuredHeight();
+                int articleHeight = mArticleDetail.getMeasuredHeight();
+                mIsBottom = false;
                 mListView.setSelection(articleHeight);
             }
         }, 300);
@@ -554,6 +558,15 @@ public class ArticleActivity extends Activity {
         intent.putExtra("cmmt_cnt", replyCnt);
 
         setResult(RESULT_OK, intent);
+    }
+
+    private void refresh() {
+        mIsUpdate = true;
+        mImageList.clear();
+        mReplyItemKeys.clear();
+        mReplyItemValues.clear();
+        mSwipeRefreshLayout.setRefreshing(false);
+        fetchArticleData();
     }
 
     private String contentExtractor(Element listCont, boolean isFlag) {

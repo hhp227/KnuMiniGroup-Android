@@ -174,12 +174,13 @@ public class FindActivity extends FragmentActivity {
                         }
                     } catch (Exception e) {
                         Log.e(TAG, e.getMessage());
+                    } finally {
+                        initFirebaseData();
                     }
                 }
                 mAdapter.notifyDataSetChanged();
                 hideProgressBar();
                 mRelativeLayout.setVisibility(mGroupItemValues.isEmpty() ? View.VISIBLE : View.GONE);
-                initFirebaseData();
             }
         }, new Response.ErrorListener() {
             @Override

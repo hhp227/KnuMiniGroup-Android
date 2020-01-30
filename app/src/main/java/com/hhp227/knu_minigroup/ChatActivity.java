@@ -59,6 +59,7 @@ public class ChatActivity extends Activity {
         mValue = intent.getStringExtra("value");
         mIsGroupChat = intent.getBooleanExtra("grp_chat", false);
         mAdapter = new MessageListAdapter(this, mMessageItemList, mSender);
+
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -157,7 +158,6 @@ public class ChatActivity extends Activity {
         query.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                //Toast.makeText(getApplicationContext(), "여부 : " + hasSelection + " 커서 : " + cursor + " 이전 커서" + prevCursor + " 이전갯수 : " + prevCnt, Toast.LENGTH_LONG).show();
                 if (mCursor == null)
                     mCursor = s;
                 else if (prevCursor.equals(dataSnapshot.getKey())) {

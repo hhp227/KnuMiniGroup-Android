@@ -35,6 +35,7 @@ public class WebViewActivity extends Activity {
                 }
             });
         }
+
         // 모바일에서 자바스크립트를 실행 시키기 위한 용도
         webSettings.setJavaScriptEnabled(true);
     }

@@ -30,6 +30,7 @@ public class ProfileActivity extends Activity {
         TextView email = findViewById(R.id.tv_email);
         PreferenceManager preferenceManager = app.AppController.getInstance().getPreferenceManager();
         User user = preferenceManager.getUser();
+
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(true);

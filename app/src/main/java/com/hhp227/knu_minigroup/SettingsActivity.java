@@ -37,6 +37,7 @@ public class SettingsActivity extends FragmentActivity {
         TabsPagerAdapter tabsPagerAdapter = new TabsPagerAdapter(getSupportFragmentManager(), fragments);
         mTabHost = findViewById(android.R.id.tabhost);
         mViewPager = findViewById(R.id.view_pager);
+
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -80,6 +81,12 @@ public class SettingsActivity extends FragmentActivity {
             public void onPageScrollStateChanged(int state) {
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mViewPager.clearOnPageChangeListeners();
     }
 
     @Override

@@ -35,13 +35,13 @@ public class UserFragment extends DialogFragment {
         TextView userName = rootView.findViewById(R.id.tv_name);
         Button send = rootView.findViewById(R.id.b_send);
         Button close = rootView.findViewById(R.id.b_close);
-
         Bundle bundle = getArguments();
         if (bundle != null) {
             mUid = bundle.getString("uid");
             mName = bundle.getString("name");
             mValue = bundle.getString("value");
         }
+
         Glide.with(getActivity()).load(EndPoint.USER_IMAGE.replace("{UID}", mUid)).apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop()).into(profileImage);
         userName.setText(mName);
         if (mUid.equals(app.AppController.getInstance().getPreferenceManager().getUser().getUid()))

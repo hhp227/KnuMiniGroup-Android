@@ -16,6 +16,7 @@ import java.util.List;
 public class PictureActivity extends Activity {
     private TextView mCount;
     private List<String> mImages;
+    private ViewPager mViewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,7 +26,8 @@ public class PictureActivity extends Activity {
         this.requestWindowFeature(Window.FEATURE_ACTION_BAR_OVERLAY);
         setContentView(R.layout.activity_picture);
         ActionBar actionBar = getActionBar();
-        ViewPager viewPager = findViewById(R.id.view_pager);
+        PicturePagerAdapter pagerAdapter = new PicturePagerAdapter(this, mImages);
+        mViewPager = findViewById(R.id.view_pager);
         mCount = findViewById(R.id.tv_count);
         int position = 0;
         Bundle b = getIntent().getExtras();
@@ -33,9 +35,9 @@ public class PictureActivity extends Activity {
             mImages = b.getStringArrayList("images");
             position = b.getInt("position");
         }
-        PicturePagerAdapter pagerAdapter = new PicturePagerAdapter(this, mImages);
-        viewPager.setAdapter(pagerAdapter);
-        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+
+        mViewPager.setAdapter(pagerAdapter);
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
             }
@@ -49,7 +51,7 @@ public class PictureActivity extends Activity {
             public void onPageScrollStateChanged(int state) {
             }
         });
-        viewPager.setCurrentItem(position, false);
+        mViewPager.setCurrentItem(position, false);
         if (actionBar != null) {
 
             // 뒤로가기버튼
@@ -72,10 +74,13 @@ public class PictureActivity extends Activity {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mViewPager.clearOnPageChangeListeners();
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         switch (id) {
             case android.R.id.home :
