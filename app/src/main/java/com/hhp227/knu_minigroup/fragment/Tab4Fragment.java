@@ -6,6 +6,7 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
@@ -88,6 +89,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
         LinearLayout profile = rootView.findViewById(R.id.ll_profile);
         LinearLayout withdrawal = rootView.findViewById(R.id.ll_withdrawal);
         LinearLayout settings = rootView.findViewById(R.id.ll_settings);
+        LinearLayout feedback = rootView.findViewById(R.id.ll_feedback);
         LinearLayout appStore = rootView.findViewById(R.id.ll_appstore);
         LinearLayout share = rootView.findViewById(R.id.ll_share);
         LinearLayout version = rootView.findViewById(R.id.ll_verinfo);
@@ -115,6 +117,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
             withdrawalText.setText("소모임 탈퇴");
             settings.setVisibility(View.GONE);
         }
+        feedback.setOnClickListener(this);
         appStore.setOnClickListener(this);
         share.setOnClickListener(this);
         version.setOnClickListener(this);
@@ -211,6 +214,15 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                 intent.putExtra("grp_id", mGroupId);
                 intent.putExtra("key", mKey);
                 startActivityForResult(intent, GroupFragment.UPDATE_GROUP);
+                break;
+            case R.id.ll_feedback:
+                Intent email = new Intent(Intent.ACTION_SEND);
+                email.setType("plain/Text");
+                email.putExtra(Intent.EXTRA_EMAIL, new String[] {"hong227@naver.com"});
+                email.putExtra(Intent.EXTRA_SUBJECT, "경북대소모임 건의사항");
+                email.putExtra(Intent.EXTRA_TEXT, "작성자 (Writer) : " + mUser.getName() + "\n기기 모델 (Model) : " + Build.MODEL + "\n앱 버전 (AppVer) : " + Build.VERSION.RELEASE + "\n내용 (Content) : " + "");
+                email.setType("message/rfc822");
+                startActivity(email);
                 break;
             case R.id.ll_appstore :
                 String appUrl = "https://play.google.com/store/apps/details?id=" + getContext().getPackageName();
