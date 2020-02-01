@@ -31,8 +31,8 @@ public class SplashActivity extends Activity {
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
-
         mPreferenceManager = app.AppController.getInstance().getPreferenceManager();
+
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -50,7 +50,7 @@ public class SplashActivity extends Activity {
                             }
                         } catch (JSONException e) {
                             Log.e(TAG, "JSON에러 : " + e);
-                            Toast.makeText(getApplicationContext(), "로그인 실패", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(), "LMS 서버에 접속할수 없습니다.", Toast.LENGTH_LONG).show();
                         } finally {
                             finish();
                         }
