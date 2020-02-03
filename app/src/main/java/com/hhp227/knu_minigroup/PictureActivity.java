@@ -26,7 +26,6 @@ public class PictureActivity extends Activity {
         this.requestWindowFeature(Window.FEATURE_ACTION_BAR_OVERLAY);
         setContentView(R.layout.activity_picture);
         ActionBar actionBar = getActionBar();
-        PicturePagerAdapter pagerAdapter = new PicturePagerAdapter(this, mImages);
         mViewPager = findViewById(R.id.view_pager);
         mCount = findViewById(R.id.tv_count);
         int position = 0;
@@ -35,6 +34,7 @@ public class PictureActivity extends Activity {
             mImages = b.getStringArrayList("images");
             position = b.getInt("position");
         }
+        PicturePagerAdapter pagerAdapter = new PicturePagerAdapter(this, mImages);
 
         mViewPager.setAdapter(pagerAdapter);
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {

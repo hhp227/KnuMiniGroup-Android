@@ -21,6 +21,8 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             android:usesCleartextTraffic="true">
+        <activity android:name=".YouTubeSearchActivity">
+        </activity>
         <activity android:name=".SettingsActivity">
         </activity>
         <activity android:name=".ChatActivity">
