@@ -30,7 +30,7 @@
                 android:id="@+id/ll_image"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
+                android:layout_marginStart="5dp"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:orientation="horizontal"
@@ -43,7 +43,7 @@
                     android:id="@+id/tv_image"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="3dp"
+                    android:layout_marginStart="3dp"
                     android:text="이미지"/>
 
         </LinearLayout>
@@ -57,7 +57,7 @@
                 android:id="@+id/ll_video"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
+                android:layout_marginStart="5dp"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:orientation="horizontal"
@@ -70,7 +70,7 @@
                     android:id="@+id/tv_video"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="3dp"
+                    android:layout_marginStart="3dp"
                     android:text="동영상"/>
 
         </LinearLayout>

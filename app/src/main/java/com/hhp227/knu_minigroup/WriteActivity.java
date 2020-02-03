@@ -65,6 +65,7 @@ public class WriteActivity extends Activity {
         ActionBar actionBar = getActionBar();
         View headerView = getLayoutInflater().inflate(R.layout.write_text, null, false);
         LinearLayout buttonImage = findViewById(R.id.ll_image);
+        LinearLayout buttonVideo = findViewById(R.id.ll_video);
         ListView listView = findViewById(R.id.lv_write);
         mInputTitle = headerView.findViewById(R.id.et_title);
         mInputContent = headerView.findViewById(R.id.et_content);
@@ -93,6 +94,15 @@ public class WriteActivity extends Activity {
             @Override
             public void onClick(View v) {
                 mContextMenuRequest = 2;
+                registerForContextMenu(v);
+                openContextMenu(v);
+                unregisterForContextMenu(v);
+            }
+        });
+        buttonVideo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mContextMenuRequest = 3;
                 registerForContextMenu(v);
                 openContextMenu(v);
                 unregisterForContextMenu(v);
@@ -159,6 +169,10 @@ public class WriteActivity extends Activity {
                 menu.add(Menu.NONE, 2, Menu.NONE, "갤러리");
                 menu.add(Menu.NONE, 3, Menu.NONE, "카메라");
                 break;
+            case 3 :
+                menu.setHeaderTitle("동영상 선택");
+                menu.add(Menu.NONE, 4, Menu.NONE, "유튜브");
+                break;
         }
     }
 
@@ -192,6 +206,9 @@ public class WriteActivity extends Activity {
                         startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
                     }
                 }
+                return true;
+            case 4 :
+                Toast.makeText(getApplicationContext(), "다음버젼에서 사용할수 있습니다.", Toast.LENGTH_LONG).show();
                 return true;
         }
         return false;
