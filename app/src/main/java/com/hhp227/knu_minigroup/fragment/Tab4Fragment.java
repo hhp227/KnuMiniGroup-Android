@@ -91,6 +91,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
         LinearLayout profile = rootView.findViewById(R.id.ll_profile);
         LinearLayout withdrawal = rootView.findViewById(R.id.ll_withdrawal);
         LinearLayout settings = rootView.findViewById(R.id.ll_settings);
+        LinearLayout notice = rootView.findViewById(R.id.ll_notice);
         LinearLayout feedback = rootView.findViewById(R.id.ll_feedback);
         LinearLayout appStore = rootView.findViewById(R.id.ll_appstore);
         LinearLayout share = rootView.findViewById(R.id.ll_share);
@@ -119,6 +120,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
             withdrawalText.setText("소모임 탈퇴");
             settings.setVisibility(View.GONE);
         }
+        notice.setOnClickListener(this);
         feedback.setOnClickListener(this);
         appStore.setOnClickListener(this);
         share.setOnClickListener(this);
@@ -217,6 +219,9 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                 intent.putExtra("grp_img", mGroupImage);
                 intent.putExtra("key", mKey);
                 startActivityForResult(intent, GroupFragment.UPDATE_GROUP);
+                break;
+            case R.id.ll_notice :
+                startActivity(new Intent(getContext(), NoticeActivity.class));
                 break;
             case R.id.ll_feedback:
                 Intent email = new Intent(Intent.ACTION_SEND);
