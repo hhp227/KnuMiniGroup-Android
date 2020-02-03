@@ -245,10 +245,10 @@ public class CreateActivity extends Activity {
 
     private void createGroupSuccess(String groupId, String groupName) {
         Intent intent = new Intent(CreateActivity.this, GroupActivity.class);
-        intent.putExtra(getString(R.string.extra_admin), true);
-        intent.putExtra(getString(R.string.extra_group_id), groupId);
-        intent.putExtra(getString(R.string.extra_group_name), groupName);
-        intent.putExtra(getString(R.string.extra_key), mPushId);
+        intent.putExtra("admin", true);
+        intent.putExtra("grp_id", groupId);
+        intent.putExtra("grp_nm", groupName);
+        intent.putExtra("key", mPushId);
         setResult(RESULT_OK, intent);
         startActivity(intent);
         finish();

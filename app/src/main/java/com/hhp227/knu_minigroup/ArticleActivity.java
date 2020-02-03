@@ -17,6 +17,8 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.adapter.ReplyListAdapter;
@@ -45,7 +47,7 @@ public class ArticleActivity extends Activity {
     private static final String TAG = ArticleActivity.class.getSimpleName();
     private boolean mIsBottom, mIsUpdate, mIsAuthorized;
     private int mPosition;
-    private String mGroupId, mArticleId, mGroupName, mGroupKey, mArticleKey;
+    private String mGroupId, mArticleId, mGroupName, mGroupImage, mGroupKey, mArticleKey;
     private EditText mInputReply;
     private ImageView mArticleProfile;
     private LinearLayout mArticleImages;
@@ -79,6 +81,7 @@ public class ArticleActivity extends Activity {
         Intent intent = getIntent();
         mGroupId = intent.getStringExtra("grp_id");
         mGroupName = intent.getStringExtra("grp_nm");
+        mGroupImage = intent.getStringExtra("grp_img");
         mArticleId = intent.getStringExtra("artl_num");
         mGroupKey = intent.getStringExtra("grp_key");
         mArticleKey = intent.getStringExtra("artl_key");
@@ -210,15 +213,16 @@ public class ArticleActivity extends Activity {
                             JSONObject jsonObject = new JSONObject(response);
                             boolean error = jsonObject.getBoolean("isError");
                             if (!error) {
-                                Intent intent = new Intent(ArticleActivity.this, GroupActivity.class);
-                                intent.putExtra("admin", getIntent().getBooleanExtra("admin", false));
-                                intent.putExtra("grp_id", mGroupId);
-                                intent.putExtra("grp_nm", mGroupName);
-                                intent.putExtra("key", mGroupKey);
+                                Intent groupIntent = new Intent(ArticleActivity.this, GroupActivity.class);
+                                groupIntent.putExtra("admin", getIntent().getBooleanExtra("admin", false));
+                                groupIntent.putExtra("grp_id", mGroupId);
+                                groupIntent.putExtra("grp_nm", mGroupName);
+                                groupIntent.putExtra("grp_img", mGroupImage);
+                                groupIntent.putExtra("key", mGroupKey);
 
                                 // 모든 이전 activity 초기화
-                                intent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                startActivity(intent);
+                                groupIntent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                startActivity(groupIntent);
                                 Toast.makeText(getApplicationContext(), "삭제완료", Toast.LENGTH_LONG).show();
                             } else {
                                 Toast.makeText(getApplicationContext(), "삭제할수 없습니다.", Toast.LENGTH_LONG).show();
@@ -264,7 +268,7 @@ public class ArticleActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == UPDATE_ARTICLE && resultCode == RESULT_OK) {
             mIsUpdate = true;
-            onCreate(new Bundle());
+            onCreate(new Bundle()); // 후에 refresh로 대체
         } else if (requestCode == UPDATE_REPLY && resultCode == RESULT_OK && data != null) {
             mSource = new Source(data.getStringExtra("update_reply"));
             mReplyItemKeys.clear();
@@ -322,6 +326,7 @@ public class ArticleActivity extends Activity {
                     @Override
                     public void onResponse(String response) {
                         mSource = new Source(response);
+                        hideProgressDialog();
                         try {
                             if (!response.contains("처리를 실패했습니다")) {
                                 mReplyItemKeys.clear();
@@ -333,7 +338,6 @@ public class ArticleActivity extends Activity {
                             Log.e(TAG, e.getMessage());
                         } finally {
                             deleteReplyFromFirebase(replyKey);
-                            hideProgressDialog();
                         }
                     }
                 }, new Response.ErrorListener() {
@@ -371,6 +375,7 @@ public class ArticleActivity extends Activity {
             @Override
             public void onResponse(String response) {
                 mSource = new Source(response.trim());
+                hideProgressDialog();
                 try {
                     Element element = mSource.getFirstElementByClass("listbox2");
                     Element viewArt = element.getFirstElementByClass("view_art");
@@ -432,7 +437,6 @@ public class ArticleActivity extends Activity {
                     Toast.makeText(getApplicationContext(), "값이 없습니다.", Toast.LENGTH_LONG).show();
                 } finally {
                     fetchArticleDataFromFirebase();
-                    hideProgressDialog();
                 }
             }
         }, new Response.ErrorListener() {
@@ -584,7 +588,9 @@ public class ArticleActivity extends Activity {
                 if (dataSnapshot.getValue() != null) {
                     ArticleItem articleItem = dataSnapshot.getValue(ArticleItem.class);
                     Glide.with(getApplicationContext())
-                            .load(EndPoint.USER_IMAGE.replace("{UID}", articleItem.getUid()))
+                            .load(articleItem.getUid() != null ? new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", articleItem.getUid()), new LazyHeaders.Builder()
+                                    .addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie())
+                                    .build()) : null)
                             .apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop())
                             .into(mArticleProfile);
                     mArticleTimeStamp.setText(new SimpleDateFormat("yyyy.MM.dd a h:mm:ss").format(articleItem.getTimestamp()));

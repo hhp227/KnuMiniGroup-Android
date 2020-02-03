@@ -31,6 +31,7 @@ public class SettingsActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         String groupId = getIntent().getStringExtra("grp_id");
+        String groupImage = getIntent().getStringExtra("grp_img");
         String key = getIntent().getStringExtra("key");
         ActionBar actionBar = getActionBar();
         List<Fragment> fragments = new Vector<>();
@@ -65,7 +66,7 @@ public class SettingsActivity extends FragmentActivity {
             }
         });
         fragments.add(MemberManagementFragment.newInstance(groupId));
-        fragments.add(DefaultSettingFragment.newInstance(groupId, key));
+        fragments.add(DefaultSettingFragment.newInstance(groupId, groupImage, key));
         mViewPager.setAdapter(tabsPagerAdapter);
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override

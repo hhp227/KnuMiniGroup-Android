@@ -86,11 +86,12 @@ public class GroupFragment extends Fragment {
                     Toast.makeText(getContext(), "광고", Toast.LENGTH_LONG).show();
                 else {
                     Intent intent = new Intent(getContext(), GroupActivity.class);
-                    intent.putExtra(getString(R.string.extra_admin), groupItem.isAdmin());
-                    intent.putExtra(getString(R.string.extra_group_id), groupItem.getId());
-                    intent.putExtra(getString(R.string.extra_group_name), groupItem.getName());
-                    intent.putExtra(getString(R.string.extra_group_position), position);
-                    intent.putExtra(getString(R.string.extra_key), mAdapter.getKey(position));
+                    intent.putExtra("admin", groupItem.isAdmin());
+                    intent.putExtra("grp_id", groupItem.getId());
+                    intent.putExtra("grp_nm", groupItem.getName());
+                    intent.putExtra("grp_img", groupItem.getImage());
+                    intent.putExtra("pos", position);
+                    intent.putExtra("key", mAdapter.getKey(position));
                     startActivityForResult(intent, UPDATE_GROUP);
                 }
             }

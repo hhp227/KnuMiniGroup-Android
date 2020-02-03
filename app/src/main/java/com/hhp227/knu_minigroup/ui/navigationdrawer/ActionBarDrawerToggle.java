@@ -44,10 +44,8 @@ public class ActionBarDrawerToggle extends androidx.legacy.app.ActionBarDrawerTo
             super.syncState();
             return;
         }
-        if (animateEnabled) {
-            if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) mDrawerImage.setProgress(1.f);
-            else mDrawerImage.setProgress(0.f);
-        }
+        if (animateEnabled)
+            mDrawerImage.setProgress(mDrawerLayout.isDrawerOpen(GravityCompat.START) ? 1.f : 0.f);
         setActionBarUpIndicator();
         setActionBarDescription();
     }

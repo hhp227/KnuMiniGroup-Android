@@ -48,7 +48,7 @@ public class WriteActivity extends Activity {
     private static final String TAG = WriteActivity.class.getSimpleName();
     private int mContextMenuRequest;
     private boolean mIsAdmin;
-    private String mGrpId, mGrpNm, mCurrentPhotoPath, mCookie, mKey;
+    private String mGrpId, mGrpNm, mGrpImg, mCurrentPhotoPath, mCookie, mKey;
     private EditText mInputTitle, mInputContent;
     private List<String> mImages;
     private List<WriteItem> mContents;
@@ -73,10 +73,11 @@ public class WriteActivity extends Activity {
         mPreferenceManager = app.AppController.getInstance().getPreferenceManager();
         mCookie = mPreferenceManager.getCookie();
         mProgressDialog = new ProgressDialog(this);
-        mIsAdmin = getIntent().getBooleanExtra(getString(R.string.extra_admin), false);
-        mGrpId = getIntent().getStringExtra(getString(R.string.extra_group_id));
-        mGrpNm = getIntent().getStringExtra(getString(R.string.extra_group_name));
-        mKey = getIntent().getStringExtra(getString(R.string.extra_key));
+        mIsAdmin = getIntent().getBooleanExtra("admin", false);
+        mGrpId = getIntent().getStringExtra("grp_id");
+        mGrpNm = getIntent().getStringExtra("grp_nm");
+        mGrpImg = getIntent().getStringExtra("grp_img");
+        mKey = getIntent().getStringExtra("key");
 
         if (actionBar != null) {
             actionBar.setDisplayShowHomeEnabled(false);
@@ -302,10 +303,11 @@ public class WriteActivity extends Activity {
                     if (!error) {
                         Toast.makeText(getApplicationContext(), "전송완료", Toast.LENGTH_LONG).show();
                         Intent intent = new Intent(WriteActivity.this, GroupActivity.class);
-                        intent.putExtra(getString(R.string.extra_admin), mIsAdmin);
-                        intent.putExtra(getString(R.string.extra_group_id), grpId);
-                        intent.putExtra(getString(R.string.extra_group_name), mGrpNm);
-                        intent.putExtra(getString(R.string.extra_key), mKey);
+                        intent.putExtra("admin", mIsAdmin);
+                        intent.putExtra("grp_id", grpId);
+                        intent.putExtra("grp_nm", mGrpNm);
+                        intent.putExtra("grp_img", mGrpImg);
+                        intent.putExtra("key", mKey);
 
                         // 이전 Activity 초기화
                         intent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME | Intent.FLAG_ACTIVITY_CLEAR_TOP);

@@ -17,7 +17,8 @@ import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 public class GroupActivity extends FragmentActivity {
     private boolean mIsAdmin;
     private int mPosition;
-    private String mGroupId, mGroupName, mKey;
+    private String mGroupId, mGroupName, mGroupImage, mKey;
+    private TabHostLayoutFragment mFragMain;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,12 +26,13 @@ public class GroupActivity extends FragmentActivity {
         setContentView(R.layout.activity_group);
         ActionBar actionBar = getActionBar();
         Intent intent = getIntent();
-        TabHostLayoutFragment fragMain = TabHostLayoutFragment.newInstance(mIsAdmin, mGroupId, mGroupName, mPosition, mKey);
-        mIsAdmin = intent.getBooleanExtra(getString(R.string.extra_admin), false);
-        mGroupId = intent.getStringExtra(getString(R.string.extra_group_id));
-        mGroupName = intent.getStringExtra(getString(R.string.extra_group_name));
-        mPosition = intent.getIntExtra("position", 0);
-        mKey = intent.getStringExtra(getString(R.string.extra_key));
+        mIsAdmin = intent.getBooleanExtra("admin", false);
+        mGroupId = intent.getStringExtra("grp_id");
+        mGroupName = intent.getStringExtra("grp_nm");
+        mGroupImage = intent.getStringExtra("grp_img");
+        mPosition = intent.getIntExtra("pos", 0);
+        mKey = intent.getStringExtra("key");
+        mFragMain = TabHostLayoutFragment.newInstance(mIsAdmin, mGroupId, mGroupName, mGroupImage, mPosition, mKey);
 
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -43,7 +45,7 @@ public class GroupActivity extends FragmentActivity {
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setTitle(mGroupName);
         }
-        getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, fragMain).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, mFragMain).commit();
     }
 
     @Override

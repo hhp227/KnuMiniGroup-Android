@@ -18,11 +18,4 @@
     <string name="afew">지금</string>
     <string name="title_activity_detail">DetailActivity</string>
     <string name="title_activity_web_view">WebViewActivity</string>
-
-    <!-- intent 전달값 -->
-    <string name="extra_admin">admin</string>
-    <string name="extra_group_id">grp_id</string>
-    <string name="extra_group_name">grp_nm</string>
-    <string name="extra_group_position">position</string>
-    <string name="extra_key">key</string>
 </resources>

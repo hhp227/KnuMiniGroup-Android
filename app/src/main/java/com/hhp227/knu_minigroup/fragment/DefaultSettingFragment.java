@@ -16,6 +16,9 @@ import androidx.fragment.app.Fragment;
 import com.android.volley.*;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.EndPoint;
@@ -35,21 +38,21 @@ import static com.hhp227.knu_minigroup.CreateActivity.CAMERA_CAPTURE_IMAGE_REQUE
 import static com.hhp227.knu_minigroup.CreateActivity.CAMERA_PICK_IMAGE_REQUEST_CODE;
 
 public class DefaultSettingFragment extends Fragment {
-    private static String mGroupId, mGroupKey;
+    private static String mGroupId, mGroupImage, mGroupKey;
     private boolean mJoinTypeCheck;
     private Bitmap mBitmap;
     private EditText mInputTitle, mInputDescription;
-    private ImageView mGroupImage, mResetTitle;
+    private ImageView mImageView, mResetTitle;
     private RadioGroup mJoinType;
 
     public DefaultSettingFragment() {
-        // Required empty public constructor
     }
 
-    public static DefaultSettingFragment newInstance(String grpId, String key) {
+    public static DefaultSettingFragment newInstance(String grpId, String grpImg, String key) {
         DefaultSettingFragment fragment = new DefaultSettingFragment();
         Bundle args = new Bundle();
         args.putString("grp_id", grpId);
+        args.putString("grp_img", grpImg);
         args.putString("key", key);
         fragment.setArguments(args);
         return fragment;
@@ -61,6 +64,7 @@ public class DefaultSettingFragment extends Fragment {
         setHasOptionsMenu(true);
         if (getArguments() != null) {
             mGroupId = getArguments().getString("grp_id");
+            mGroupImage = getArguments().getString("grp_img");
             mGroupKey = getArguments().getString("key");
         }
     }
@@ -68,13 +72,13 @@ public class DefaultSettingFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_default_setting, container, false);
-        mGroupImage = rootView.findViewById(R.id.iv_group_image);
+        mImageView = rootView.findViewById(R.id.iv_group_image);
         mInputTitle = rootView.findViewById(R.id.et_title);
         mInputDescription = rootView.findViewById(R.id.et_description);
         mJoinType = rootView.findViewById(R.id.rg_jointype);
         mResetTitle = rootView.findViewById(R.id.iv_reset);
 
-        mGroupImage.setOnClickListener(new View.OnClickListener() {
+        mImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 registerForContextMenu(v);
@@ -108,6 +112,11 @@ public class DefaultSettingFragment extends Fragment {
                 mInputTitle.setText("");
             }
         });
+        Glide.with(getActivity())
+                .load(mGroupImage)
+                .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
+                .transition(DrawableTransitionOptions.withCrossFade(150))
+                .into(mImageView);
         String params = "?CLUB_GRP_ID=" + mGroupId;
         app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.MODIFY_GROUP + params, new Response.Listener<String>() {
             @Override
@@ -248,7 +257,7 @@ public class DefaultSettingFragment extends Fragment {
                 startActivityForResult(galleryIntent, CAMERA_PICK_IMAGE_REQUEST_CODE);
                 break;
             case "이미지 없음" :
-                mGroupImage.setImageResource(R.drawable.add_photo);
+                mImageView.setImageResource(R.drawable.add_photo);
                 mBitmap = null;
                 Toast.makeText(getContext(), "이미지 없음 선택", Toast.LENGTH_LONG).show();
                 break;

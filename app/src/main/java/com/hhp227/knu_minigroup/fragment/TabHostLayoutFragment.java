@@ -25,12 +25,13 @@ public class TabHostLayoutFragment extends Fragment {
     private static final String IS_ADMIN = "admin";
     private static final String GROUP_ID = "grp_id";
     private static final String GROUP_NAME = "grp_nm";
-    private static final String POSITION = "position";
+    private static final String GROUP_IMAGE = "grp_img";
+    private static final String POSITION = "pos";
     private static final String KEY = "key";
     private static final String[] TAB_NAMES = {"소식", "일정", "맴버", "설정"};
     private boolean mIsAdmin;
     private int mPosition;
-    private String mGroupId, mGroupName, mKey;
+    private String mGroupId, mGroupName, mGroupImage, mKey;
     private TabHost mTabHost;
     private TabsPagerAdapter mAdapter;
     private ViewPager mViewPager;
@@ -38,12 +39,13 @@ public class TabHostLayoutFragment extends Fragment {
     public TabHostLayoutFragment() {
     }
 
-    public static TabHostLayoutFragment newInstance(boolean isAdmin, String groupId, String groupName, int position, String key) {
+    public static TabHostLayoutFragment newInstance(boolean isAdmin, String groupId, String groupName, String groupImage, int position, String key) {
         TabHostLayoutFragment fragment = new TabHostLayoutFragment();
         Bundle args = new Bundle();
         args.putBoolean(IS_ADMIN, isAdmin);
         args.putString(GROUP_ID, groupId);
         args.putString(GROUP_NAME, groupName);
+        args.putString(GROUP_IMAGE, groupImage);
         args.putInt(POSITION, position);
         args.putString(KEY, key);
         fragment.setArguments(args);
@@ -57,6 +59,7 @@ public class TabHostLayoutFragment extends Fragment {
             mIsAdmin = getArguments().getBoolean(IS_ADMIN);
             mGroupId = getArguments().getString(GROUP_ID);
             mGroupName = getArguments().getString(GROUP_NAME);
+            mGroupImage = getArguments().getString(GROUP_IMAGE);
             mPosition = getArguments().getInt(POSITION);
             mKey = getArguments().getString(KEY);
         }
@@ -89,10 +92,10 @@ public class TabHostLayoutFragment extends Fragment {
                 mViewPager.setCurrentItem(selectedItem);
             }
         });
-        fragments.add(Tab1Fragment.newInstance(mIsAdmin, mGroupId, mGroupName, mKey));
+        fragments.add(Tab1Fragment.newInstance(mIsAdmin, mGroupId, mGroupName, mGroupImage, mKey));
         fragments.add(new Tab2Fragment());
         fragments.add(Tab3Fragment.newInstance(mGroupId));
-        fragments.add(Tab4Fragment.newInstance(mIsAdmin, mGroupId, mPosition, mKey));
+        fragments.add(Tab4Fragment.newInstance(mIsAdmin, mGroupId, mGroupImage, mPosition, mKey));
         mViewPager.setAdapter(mAdapter);
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override

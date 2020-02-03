@@ -48,7 +48,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     private static final String TAG = "설정";
     private static boolean mIsAdmin;
     private static int mPosition;
-    private static String mGroupId, mKey;
+    private static String mGroupId, mGroupImage, mKey;
     private long mLastClickTime;
     private ProgressDialog mProgressDialog;
     private User mUser;
@@ -56,11 +56,12 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     public Tab4Fragment() {
     }
 
-    public static Tab4Fragment newInstance(boolean isAdmin, String grpId, int position, String key) {
+    public static Tab4Fragment newInstance(boolean isAdmin, String grpId, String grpImg, int position, String key) {
         Bundle args = new Bundle();
         args.putBoolean("admin", isAdmin);
         args.putString("grp_id", grpId);
-        args.putInt("position", position);
+        args.putString("grp_img", grpImg);
+        args.putInt("pos", position);
         args.putString("key", key);
         Tab4Fragment fragment = new Tab4Fragment();
         fragment.setArguments(args);
@@ -73,7 +74,8 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
         if (getArguments() != null) {
             mIsAdmin = getArguments().getBoolean("admin");
             mGroupId = getArguments().getString("grp_id");
-            mPosition = getArguments().getInt("position");
+            mGroupImage = getArguments().getString("grp_img");
+            mPosition = getArguments().getInt("pos");
             mKey = getArguments().getString("key");
         }
     }
@@ -212,6 +214,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
             case R.id.ll_settings :
                 Intent intent = new Intent(getContext(), SettingsActivity.class);
                 intent.putExtra("grp_id", mGroupId);
+                intent.putExtra("grp_img", mGroupImage);
                 intent.putExtra("key", mKey);
                 startActivityForResult(intent, GroupFragment.UPDATE_GROUP);
                 break;
@@ -261,7 +264,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
             intent.putExtra("grp_nm", groupName);
             intent.putExtra("grp_desc", groupDescription);
             intent.putExtra("join_div", joinType);
-            intent.putExtra("position", mPosition);
+            intent.putExtra("pos", mPosition);
             getActivity().setResult(Activity.RESULT_OK, intent);
         }
     }
