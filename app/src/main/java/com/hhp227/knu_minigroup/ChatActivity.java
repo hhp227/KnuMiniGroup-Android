@@ -38,7 +38,7 @@ public class ChatActivity extends Activity {
     private List<MessageItem> mMessageItemList;
     private ListView mListView;
     private MessageListAdapter mAdapter;
-    private String mCursor, mSender, mReceiver, mValue;
+    private String mCursor, mSender, mReceiver, mValue, mFirstMessageKey;
     private TextView mButtonSend;
     private User mUser;
 
@@ -158,6 +158,10 @@ public class ChatActivity extends Activity {
         query.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                if (mFirstMessageKey != null && mFirstMessageKey.equals(dataSnapshot.getKey()))
+                    return;
+                else if (s == null)
+                    mFirstMessageKey = dataSnapshot.getKey();
                 if (mCursor == null)
                     mCursor = s;
                 else if (prevCursor.equals(dataSnapshot.getKey())) {
