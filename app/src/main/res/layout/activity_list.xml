@@ -1,22 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".FindActivity">
+        android:layout_height="match_parent">
 
     <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-                android:id="@+id/srl_group_list"
+                android:id="@+id/srl_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
             <ListView
-                    android:id="@+id/lv_group"
+                    android:id="@+id/list_view"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:divider="@null"/>
@@ -41,6 +39,7 @@
             android:visibility="gone">
 
         <TextView
+                android:id="@+id/text"
                 android:text="가입신청중인 그룹이 없습니다."
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

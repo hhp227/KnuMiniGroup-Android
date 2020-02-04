@@ -50,11 +50,11 @@ public class RequestActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
         ActionBar actionBar = getActionBar();
-        ListView listView = findViewById(R.id.lv_group);
+        ListView listView = findViewById(R.id.list_view);
         mFooterLoading = View.inflate(this, R.layout.load_more, null);
         mRelativeLayout = findViewById(R.id.rl_group);
         mProgressBar = findViewById(R.id.pb_group);
-        mSwipeRefreshLayout = findViewById(R.id.srl_group_list);
+        mSwipeRefreshLayout = findViewById(R.id.srl_list);
         mGroupItemKeys = new ArrayList<>();
         mGroupItemValues = new ArrayList<>();
         mAdapter = new GroupListAdapter(getBaseContext(), mGroupItemKeys, mGroupItemValues);

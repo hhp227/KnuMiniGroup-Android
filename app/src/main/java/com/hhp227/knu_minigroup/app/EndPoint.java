@@ -45,4 +45,7 @@ public interface EndPoint {
 
     // 외부 URL
     String URL_INTER_CITY_SHUTTLE = "http://www.gobus.co.kr/north/inquiry/inquiry_see.asp?code=300&explice=경북대상주";
+
+    // 유튜브 API
+    String URL_YOUTUBE_API = "https://www.googleapis.com/youtube/v3/search";
 }

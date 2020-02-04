@@ -208,7 +208,8 @@ public class WriteActivity extends Activity {
                 }
                 return true;
             case 4 :
-                Toast.makeText(getApplicationContext(), "다음버젼에서 사용할수 있습니다.", Toast.LENGTH_LONG).show();
+                Intent ysIntent = new Intent(getApplicationContext(), YouTubeSearchActivity.class);
+                startActivity(ysIntent);
                 return true;
         }
         return false;
