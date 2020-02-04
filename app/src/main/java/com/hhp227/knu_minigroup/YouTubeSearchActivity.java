@@ -73,7 +73,7 @@ public class YouTubeSearchActivity extends Activity {
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.search, menu);
         MenuItem search = menu.findItem(R.id.search);
-        SearchView searchView = (SearchView) search.getActionView();
+        final SearchView searchView = (SearchView) search.getActionView();
 
         search.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
             @Override
@@ -86,6 +86,7 @@ public class YouTubeSearchActivity extends Activity {
                 return true;
             }
         });
+        searchView.setQueryHint("검색어를 입력하세요.");
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -93,6 +94,7 @@ public class YouTubeSearchActivity extends Activity {
                 mYouTubeItemList.clear();
                 searchText = query;
                 fetchDataTask();
+                searchView.clearFocus();
                 return false;
             }
 
