@@ -1,10 +1,8 @@
 package com.hhp227.knu_minigroup;
 
-import android.app.ActionBar;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -19,7 +17,6 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.hhp227.knu_minigroup.adapter.YouTubeListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
-import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
