@@ -6,6 +6,7 @@
         android:padding="8dp">
 
     <LinearLayout
+            android:id="@+id/ll_reply"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -45,7 +46,8 @@
             android:id="@+id/tv_timestamp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
+            android:layout_below="@id/ll_reply"
+            android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
             android:textColor="#888888"
             android:textSize="12dp"/>
