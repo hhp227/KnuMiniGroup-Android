@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.*;
 import androidx.fragment.app.Fragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -165,6 +166,7 @@ public class GroupFragment extends Fragment {
     }
 
     private void fetchDataTask() {
+        getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
         app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -261,6 +263,8 @@ public class GroupFragment extends Fragment {
                         mAdapter.notifyDataSetChanged();
                     } catch (Exception e) {
                         Log.e(TAG, e.getMessage());
+                    } finally {
+                        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
                     }
                 } else {
                     for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
