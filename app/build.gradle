@@ -7,8 +7,8 @@ android {
         applicationId "com.hhp227.knu_minigroup"
         minSdkVersion 19
         targetSdkVersion 28
-        versionCode 16
-        versionName "1.36"
+        versionCode 17
+        versionName "1.37"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
