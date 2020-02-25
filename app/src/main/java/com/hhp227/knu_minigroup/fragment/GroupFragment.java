@@ -276,9 +276,8 @@ public class GroupFragment extends Fragment {
                             DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
                             fetchDataTaskFromFirebase(databaseReference.child(snapshot.getKey()), true);
                         }
-                    } else {
+                    } else
                         getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-                    }
                 }
             }
 
