@@ -36,7 +36,7 @@ public class BusFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_tabs, container, false);
         List<Fragment> fragments = new Vector<>();
-        String[] tabNames = {"학교(대구)", "학교(상주)", "시외(대구→상주)"};
+        String[] tabNames = {"학교(대구)", "학교(상주)"/*, "시외(대구→상주)"*/};
         TabsPagerAdapter tabsPagerAdapter = new TabsPagerAdapter(getChildFragmentManager(), fragments);
         mTabHost = rootView.findViewById(android.R.id.tabhost);
         mViewPager = rootView.findViewById(R.id.view_pager);
@@ -59,7 +59,7 @@ public class BusFragment extends Fragment {
         mViewPager.setOffscreenPageLimit(tabNames.length);
         fragments.add(new DCShuttleScheduleFragment());
         fragments.add(new SCShuttleScheduleFragment());
-        fragments.add(new InterCityFragment());
+        //fragments.add(new InterCityFragment());
         mViewPager.setAdapter(tabsPagerAdapter);
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override

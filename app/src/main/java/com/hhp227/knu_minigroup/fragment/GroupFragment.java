@@ -171,30 +171,34 @@ public class GroupFragment extends Fragment {
             @Override
             public void onResponse(String response) {
                 Source source = new Source(response);
-                List<Element> listElementA = source.getAllElements(HTMLElementName.A);
-                for (Element elementA : listElementA) {
-                    try {
-                        String id = groupIdExtract(elementA.getAttributeValue("onclick"));
-                        boolean isAdmin = adminCheck(elementA.getAttributeValue("onclick"));
-                        String image = EndPoint.BASE_URL + elementA.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
-                        String name = elementA.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
+                try {
+                    List<Element> listElementA = source.getAllElements(HTMLElementName.A);
+                    for (Element elementA : listElementA) {
+                        try {
+                            String id = groupIdExtract(elementA.getAttributeValue("onclick"));
+                            boolean isAdmin = adminCheck(elementA.getAttributeValue("onclick"));
+                            String image = EndPoint.BASE_URL + elementA.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
+                            String name = elementA.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
 
-                        GroupItem groupItem = new GroupItem();
-                        groupItem.setId(id);
-                        groupItem.setAdmin(isAdmin);
-                        groupItem.setImage(image);
-                        groupItem.setName(name);
+                            GroupItem groupItem = new GroupItem();
+                            groupItem.setId(id);
+                            groupItem.setAdmin(isAdmin);
+                            groupItem.setImage(image);
+                            groupItem.setName(name);
 
-                        mGroupItemKeys.add(id);
-                        mGroupItemValues.add(groupItem);
-                    } catch (NullPointerException e) {
-                        e.printStackTrace();
-                    } finally {
-                        initFirebaseData();
+                            mGroupItemKeys.add(id);
+                            mGroupItemValues.add(groupItem);
+                        } catch (NullPointerException e) {
+                            e.printStackTrace();
+                        }
                     }
+                    mAdapter.notifyDataSetChanged();
+                    insertAdvertisement();
+                } catch (Exception e) {
+                    Log.e(TAG, e.getMessage());
+                } finally {
+                    initFirebaseData();
                 }
-                mAdapter.notifyDataSetChanged();
-                insertAdvertisement();
             }
         }, new Response.ErrorListener() {
             @Override
@@ -263,14 +267,19 @@ public class GroupFragment extends Fragment {
                         mAdapter.notifyDataSetChanged();
                     } catch (Exception e) {
                         Log.e(TAG, e.getMessage());
+                    } finally {
+                        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
                     }
                 } else {
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
-                        fetchDataTaskFromFirebase(databaseReference.child(snapshot.getKey()), true);
+                    if (dataSnapshot.hasChildren()) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
+                            fetchDataTaskFromFirebase(databaseReference.child(snapshot.getKey()), true);
+                        }
+                    } else {
+                        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
                     }
                 }
-                getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
             }
 
             @Override
