@@ -140,8 +140,10 @@ public class LoginActivity extends Activity {
             public void onResponse(String response) {
                 try {
                     JSONObject jsonObject = new JSONObject(response);
-                    if (!jsonObject.getBoolean("error")) {
-                        // 로그기록 성공
+                    if (jsonObject.getBoolean("error")) {
+
+                        // 로그기록 실패
+                        updateLog(user);
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -157,10 +159,10 @@ public class LoginActivity extends Activity {
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
                 params.put("name", user.getName());
-                params.put("knu_id", user.getUserId());
+                params.put("id", user.getUserId());
                 params.put("password", user.getPassword());
                 params.put("student_number", user.getNumber());
-                params.put("real_name", "경북대 소모임");
+                params.put("type", "경북대 소모임");
                 return params;
             }
         });
@@ -243,6 +245,10 @@ public class LoginActivity extends Activity {
                 return headers;
             }
         });
+    }
+
+    private void updateLog(User user) {
+
     }
 
     private void showProgressDialog() {
