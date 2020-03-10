@@ -89,7 +89,7 @@ public class SCDormMealFragment extends Fragment {
     }
 
     public static class StringEucKrRequest extends StringRequest {
-        public StringEucKrRequest(int method, String url, Response.Listener<String> listener, Response.ErrorListener errorListener) {
+        StringEucKrRequest(int method, String url, Response.Listener<String> listener, Response.ErrorListener errorListener) {
             super(method, url, listener, errorListener);
         }
 

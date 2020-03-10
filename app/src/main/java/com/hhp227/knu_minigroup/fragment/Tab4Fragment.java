@@ -135,10 +135,10 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
             return;
         mLastClickTime = SystemClock.elapsedRealtime();
         switch (v.getId()) {
-            case R.id.ll_profile :
+            case R.id.ll_profile:
                 startActivity(new Intent(getContext(), ProfileActivity.class));
                 break;
-            case R.id.ll_withdrawal :
+            case R.id.ll_withdrawal:
                 AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                 builder.setMessage((mIsAdmin ? "폐쇄" : "탈퇴") + "하시겠습니까?");
                 builder.setPositiveButton("예", new DialogInterface.OnClickListener() {
@@ -213,14 +213,14 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                 });
                 builder.show();
                 break;
-            case R.id.ll_settings :
+            case R.id.ll_settings:
                 Intent intent = new Intent(getContext(), SettingsActivity.class);
                 intent.putExtra("grp_id", mGroupId);
                 intent.putExtra("grp_img", mGroupImage);
                 intent.putExtra("key", mKey);
                 startActivityForResult(intent, GroupFragment.UPDATE_GROUP);
                 break;
-            case R.id.ll_notice :
+            case R.id.ll_notice:
                 startActivity(new Intent(getContext(), NoticeActivity.class));
                 break;
             case R.id.ll_feedback:
@@ -232,11 +232,11 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                 email.setType("message/rfc822");
                 startActivity(email);
                 break;
-            case R.id.ll_appstore :
+            case R.id.ll_appstore:
                 String appUrl = "https://play.google.com/store/apps/details?id=" + getContext().getPackageName();
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(appUrl)));
                 break;
-            case R.id.ll_share :
+            case R.id.ll_share:
                 Intent share = new Intent(Intent.ACTION_SEND);
                 share.setType("text/plain");
                 share.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -246,7 +246,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                         "Sample App : https://play.google.com/store/apps/details?id=" + getContext().getPackageName());
                 startActivity(Intent.createChooser(share, getString(R.string.app_name)));
                 break;
-            case R.id.ll_verinfo :
+            case R.id.ll_verinfo:
                 startActivity(new Intent(getActivity(), VerInfoActivity.class));
                 break;
         }

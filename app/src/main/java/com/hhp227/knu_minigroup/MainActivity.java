@@ -93,25 +93,25 @@ public class MainActivity extends FragmentActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 switch (position) {
-                    case 0 :
+                    case 0:
                         getSupportFragmentManager().beginTransaction().replace(R.id.fl_content, fragMain).commit();
                         break;
-                    case 1 :
+                    case 1:
                         getSupportFragmentManager().beginTransaction().replace(R.id.fl_content, fragUnivNotice).commit();
                         break;
-                    case 2 :
+                    case 2:
                         getSupportFragmentManager().beginTransaction().replace(R.id.fl_content, fragTimetable).commit();
                         break;
-                    case 3 :
+                    case 3:
                         getSupportFragmentManager().beginTransaction().replace(R.id.fl_content, fragBus).commit();
                         break;
-                    case 4 :
+                    case 4:
                         getSupportFragmentManager().beginTransaction().replace(R.id.fl_content, fragMeal).commit();
                         break;
-                    case 5 :
+                    case 5:
                         getSupportFragmentManager().beginTransaction().replace(R.id.fl_content, fragSeat).commit();
                         break;
-                    case 6 :
+                    case 6:
                         logoutUser();
                         break;
                 }
@@ -157,7 +157,7 @@ public class MainActivity extends FragmentActivity {
         if (mActionBarDrawerToggle.onOptionsItemSelected(item))
             return true;
         switch (item.getItemId()) {
-            default :
+            default:
                 return super.onOptionsItemSelected(item);
         }
     }

@@ -11,7 +11,6 @@ import android.util.Log;
 import android.view.*;
 
 import android.widget.*;
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import com.android.volley.*;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -157,7 +156,7 @@ public class DefaultSettingFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_send :
+            case R.id.action_send:
                 final String groupName = mInputTitle.getText().toString();
                 final String groupDescription = mInputDescription.getText().toString();
 
@@ -246,17 +245,17 @@ public class DefaultSettingFragment extends Fragment {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         switch (item.getTitle().toString()) {
-            case "카메라" :
+            case "카메라":
                 Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 startActivityForResult(cameraIntent, CAMERA_CAPTURE_IMAGE_REQUEST_CODE);
                 break;
-            case "갤러리" :
+            case "갤러리":
                 Intent galleryIntent = new Intent(Intent.ACTION_PICK);
                 galleryIntent.setType(MediaStore.Images.Media.CONTENT_TYPE);
                 galleryIntent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 startActivityForResult(galleryIntent, CAMERA_PICK_IMAGE_REQUEST_CODE);
                 break;
-            case "이미지 없음" :
+            case "이미지 없음":
                 mImageView.setImageResource(R.drawable.add_photo);
                 mBitmap = null;
                 Toast.makeText(getContext(), "이미지 없음 선택", Toast.LENGTH_LONG).show();

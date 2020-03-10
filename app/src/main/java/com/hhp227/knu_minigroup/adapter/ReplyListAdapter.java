@@ -81,7 +81,7 @@ public class ReplyListAdapter extends BaseAdapter {
         private ImageView profileImage;
         private TextView name, reply, timeStamp;
 
-        public ViewHolder(View itemView) {
+        ViewHolder(View itemView) {
             profileImage = itemView.findViewById(R.id.iv_profile_image);
             name = itemView.findViewById(R.id.tv_name);
             reply = itemView.findViewById(R.id.tv_reply);

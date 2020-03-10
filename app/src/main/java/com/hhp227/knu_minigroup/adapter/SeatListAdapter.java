@@ -87,7 +87,7 @@ public class SeatListAdapter extends BaseAdapter {
     private static class ViewHolder {
         private TextView name, text, status;
 
-        public ViewHolder(View itemView) {
+        ViewHolder(View itemView) {
             name = itemView.findViewById(R.id.name);
             text = itemView.findViewById(R.id.text);
             status = itemView.findViewById(R.id.seat);

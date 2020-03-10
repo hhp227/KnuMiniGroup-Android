@@ -122,10 +122,10 @@ public class CreateActivity extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case android.R.id.home :
+            case android.R.id.home:
                 finish();
                 return true;
-            case R.id.action_send :
+            case R.id.action_send:
                 final String title = mGroupTitle.getText().toString().trim();
                 final String description = mGroupDescription.getText().toString().trim();
                 final String join = !mJoinTypeCheck ? "0" : "1";
@@ -211,17 +211,17 @@ public class CreateActivity extends Activity {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         switch (item.getTitle().toString()) {
-            case "카메라" :
+            case "카메라":
                 Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 startActivityForResult(cameraIntent, CAMERA_CAPTURE_IMAGE_REQUEST_CODE);
                 break;
-            case "갤러리" :
+            case "갤러리":
                 Intent galleryIntent = new Intent(Intent.ACTION_PICK);
                 galleryIntent.setType(MediaStore.Images.Media.CONTENT_TYPE);
                 galleryIntent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 startActivityForResult(galleryIntent, CAMERA_PICK_IMAGE_REQUEST_CODE);
                 break;
-            case "이미지 없음" :
+            case "이미지 없음":
                 mGroupImage.setImageResource(R.drawable.add_photo);
                 mBitmap = null;
                 Toast.makeText(getBaseContext(), "이미지 없음 선택", Toast.LENGTH_LONG).show();

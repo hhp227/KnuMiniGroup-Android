@@ -207,12 +207,12 @@ public class ScrollableScroller {
 
         if (timePassed < mDuration) {
             switch (mMode) {
-                case SCROLL_MODE :
+                case SCROLL_MODE:
                     final float x = mInterpolator.getInterpolation(timePassed * mDurationReciprocal);
                     mCurrX = mStartX + Math.round(x * mDeltaX);
                     mCurrY = mStartY + Math.round(x * mDeltaY);
                     break;
-                case FLING_MODE :
+                case FLING_MODE:
                     final float t = (float) timePassed / mDuration;
                     final int index = (int) (NB_SAMPLES * t);
                     float distanceCoef = 1.f;
@@ -393,7 +393,7 @@ public class ScrollableScroller {
             x *= VISCOUS_FLUID_SCALE;
             if (x < 1.0f)
                 x -= (1.0f - (float) Math.exp(-x));
-             else {
+            else {
                 float start = 0.36787944117f;   // 1/e == exp(-1)
                 x = 1.0f - (float) Math.exp(1.0f - x);
                 x = start + x * (1.0f - start);

@@ -107,15 +107,15 @@ public class Tab2Fragment extends BaseFragment {
 
                     while (eventType != XmlPullParser.END_DOCUMENT) {
                         switch (eventType) {
-                            case XmlPullParser.START_TAG :
+                            case XmlPullParser.START_TAG:
                                 switch (parser.getName()) {
-                                    case "entry" :
+                                    case "entry":
                                         mMap = new HashMap<>();
                                         break;
-                                    case "date" :
+                                    case "date":
                                         mMap.put("날짜", getTimeStamp(parser.nextText()));
                                         break;
-                                    case "title" :
+                                    case "title":
                                         try {
                                             mMap.put("내용", parser.nextText());
                                         } catch (Exception e) {
@@ -124,7 +124,7 @@ public class Tab2Fragment extends BaseFragment {
                                         break;
                                 }
                                 break;
-                            case XmlPullParser.END_TAG :
+                            case XmlPullParser.END_TAG:
                                 if (parser.getName().equals("entry"))
                                     mList.add(mMap);
                         }

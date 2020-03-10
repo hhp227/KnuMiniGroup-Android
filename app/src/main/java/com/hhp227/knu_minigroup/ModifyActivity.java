@@ -140,10 +140,10 @@ public class ModifyActivity extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case android.R.id.home :
+            case android.R.id.home:
                 finish();
                 return true;
-            case R.id.action_send :
+            case R.id.action_send:
                 String title = mInputTitle.getEditableText().toString();
                 String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(mInputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(mInputContent.getText());
                 if (!mInputTitle.getText().toString().isEmpty() && !(TextUtils.isEmpty(mInputContent.getText()) && mContents.size() == 0)) {
@@ -187,18 +187,18 @@ public class ModifyActivity extends Activity {
     public boolean onContextItemSelected(MenuItem item) {
         Intent intent;
         switch (item.getItemId()) {
-            case 1 :
+            case 1:
                 int position = ((AdapterView.AdapterContextMenuInfo) item.getMenuInfo()).position - 1;
                 mContents.remove(position);
                 mAdapter.notifyDataSetChanged();
                 return true;
-            case 2 :
+            case 2:
                 intent = new Intent(Intent.ACTION_PICK);
                 intent.setType(MediaStore.Images.Media.CONTENT_TYPE);
                 intent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 startActivityForResult(intent, CAMERA_PICK_IMAGE_REQUEST_CODE);
                 return true;
-            case 3 :
+            case 3:
                 intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 if (intent.resolveActivity(getPackageManager()) != null) {
                     File photoFile = null;
@@ -215,7 +215,7 @@ public class ModifyActivity extends Activity {
                     }
                 }
                 return true;
-            case 4 :
+            case 4:
                 Intent ysIntent = new Intent(getApplicationContext(), YouTubeSearchActivity.class);
                 startActivity(ysIntent);
                 return true;

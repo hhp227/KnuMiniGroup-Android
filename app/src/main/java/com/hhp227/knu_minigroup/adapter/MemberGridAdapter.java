@@ -71,7 +71,7 @@ public class MemberGridAdapter extends BaseAdapter {
         private ImageView profileImg;
         private TextView name;
 
-        public ViewHolder(View itemView) {
+        ViewHolder(View itemView) {
             name = itemView.findViewById(R.id.tv_name);
             profileImg = itemView.findViewById(R.id.iv_profile_image);
         }

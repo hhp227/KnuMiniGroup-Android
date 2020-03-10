@@ -83,7 +83,7 @@ public class PictureActivity extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         switch (id) {
-            case android.R.id.home :
+            case android.R.id.home:
                 finish();
                 return true;
         }

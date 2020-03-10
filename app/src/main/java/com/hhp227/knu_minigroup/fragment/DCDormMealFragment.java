@@ -57,7 +57,7 @@ public class DCDormMealFragment extends Fragment {
                     int eventType = parser.getEventType();
                     while (eventType != XmlPullParser.END_DOCUMENT) {
                         switch (eventType) {
-                            case XmlPullParser.START_TAG :
+                            case XmlPullParser.START_TAG:
                                 String startTag = parser.getName();
                                 if (startTag.equals("data"))
                                     arrayList.add(new SpannableString(Html.fromHtml(parser.nextText())).toString());

@@ -49,7 +49,7 @@ public class WriteListAdapter extends ArrayAdapter<WriteItem> {
     private static class ViewHolder {
         private ImageView imageView;
 
-        public ViewHolder(View itemView) {
+        ViewHolder(View itemView) {
             imageView = itemView.findViewById(R.id.iv_image_preview);
         }
     }

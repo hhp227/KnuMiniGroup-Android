@@ -64,7 +64,7 @@ public class BbsListAdapter extends BaseAdapter {
     private static class ViewHolder {
         private TextView title, writer, date;
 
-        public ViewHolder(View itemView) {
+        ViewHolder(View itemView) {
             title = itemView.findViewById(R.id.item_title);
             writer = itemView.findViewById(R.id.item_writer);
             date = itemView.findViewById(R.id.item_date);

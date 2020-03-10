@@ -186,10 +186,10 @@ public class ArticleActivity extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         switch (id) {
-            case android.R.id.home :
+            case android.R.id.home:
                 finish();
                 return true;
-            case 1 :
+            case 1:
                 Intent intent = new Intent(this, ModifyActivity.class);
                 intent.putExtra("grp_id", mGroupId);
                 intent.putExtra("artl_num", mArticleId);
@@ -200,7 +200,7 @@ public class ArticleActivity extends Activity {
                 intent.putExtra("artl_key", mArticleKey);
                 startActivityForResult(intent, UPDATE_ARTICLE);
                 return true;
-            case 2 :
+            case 2:
                 String tag_string_req = "req_delete";
 
                 mProgressDialog.setMessage("요청중 ...");
@@ -301,12 +301,12 @@ public class ArticleActivity extends Activity {
         ReplyItem replyItem = mReplyItemValues.isEmpty() || info.position == 0 ? null : mReplyItemValues.get(info.position - 1); // 헤더가 있기때문에 포지션에서 -1을 해준다.
         final String replyId = replyItem == null ? "0" : replyItem.getId();
         switch (item.getItemId()) {
-            case 1 :
+            case 1:
                 android.content.ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                 clipboard.setText(info.position == 0 ? mArticleContent.getText().toString() : replyItem.getReply());
                 Toast.makeText(getApplicationContext(), "클립보드에 복사되었습니다!", Toast.LENGTH_SHORT).show();
                 return true;
-            case 2 :
+            case 2:
                 Intent intent = new Intent(getBaseContext(), ReplyModifyActivity.class);
                 String reply = replyItem.getReply();
                 intent.putExtra("grp_id", mGroupId);
@@ -317,7 +317,7 @@ public class ArticleActivity extends Activity {
                 intent.putExtra("cmmt_key", replyKey);
                 startActivityForResult(intent, UPDATE_REPLY);
                 return true;
-            case 3 :
+            case 3:
                 String tag_string_req = "req_delete";
 
                 mProgressDialog.setMessage("요청중...");

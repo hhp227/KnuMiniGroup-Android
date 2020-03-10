@@ -74,10 +74,10 @@ public class ReplyModifyActivity extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case android.R.id.home :
+            case android.R.id.home:
                 finish();
                 return true;
-            case R.id.action_send :
+            case R.id.action_send:
                 final String text = mInputReply.getText().toString().trim();
                 if (!TextUtils.isEmpty(text)) {
                     String tag_string_req = "req_send";

@@ -132,12 +132,12 @@ public class ZoomImageView extends ImageView implements View.OnTouchListener {
         ImageView view = (ImageView) v;
 
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
-            case MotionEvent.ACTION_DOWN :
+            case MotionEvent.ACTION_DOWN:
                 savedMatrix.set(matrix);
                 start.set(event.getX(), event.getY());
                 mode = DRAG;
                 break;
-            case MotionEvent.ACTION_POINTER_DOWN :
+            case MotionEvent.ACTION_POINTER_DOWN:
                 oldDist = spacing(event);
                 if (oldDist > 10f) {
                     savedMatrix.set(matrix);
@@ -145,12 +145,12 @@ public class ZoomImageView extends ImageView implements View.OnTouchListener {
                     mode = ZOOM;
                 }
                 break;
-            case MotionEvent.ACTION_UP :
+            case MotionEvent.ACTION_UP:
 
-            case MotionEvent.ACTION_POINTER_UP :
+            case MotionEvent.ACTION_POINTER_UP:
                 mode = NONE;
                 break;
-            case MotionEvent.ACTION_MOVE :
+            case MotionEvent.ACTION_MOVE:
                 if (mode == DRAG) {
                     matrix.set(savedMatrix);
                     matrix.postTranslate(event.getX() - start.x, event.getY() - start.y);
