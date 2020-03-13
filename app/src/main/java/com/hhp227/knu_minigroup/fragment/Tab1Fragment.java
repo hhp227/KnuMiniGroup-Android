@@ -22,6 +22,7 @@ import com.hhp227.knu_minigroup.WriteActivity;
 import com.hhp227.knu_minigroup.adapter.ArticleListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
+import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.ui.floatingactionbutton.FloatingActionButton;
 import com.hhp227.knu_minigroup.ui.scrollable.BaseFragment;
 import net.htmlparser.jericho.Element;
@@ -40,7 +41,7 @@ public class Tab1Fragment extends BaseFragment {
     public static String mGroupId, mGroupName, mGroupImage, mKey;
 
     private boolean mHasRequestedMore; // 데이터 불러올때 중복안되게 하기위한 변수
-    private int mOffSet;
+    private int mOffSet, mMinId;
     private long mLastClickTime; // 클릭시 걸리는 시간
     private ArticleListAdapter mAdapter;
     private FloatingActionButton mFloatingActionButton;
@@ -58,6 +59,7 @@ public class Tab1Fragment extends BaseFragment {
     public static Tab1Fragment newInstance(boolean isAdmin, String grpId, String grpNm, String grpImg, String key) {
         Tab1Fragment fragment = new Tab1Fragment();
         Bundle args = new Bundle();
+
         args.putBoolean("admin", isAdmin);
         args.putString("grp_id", grpId);
         args.putString("grp_nm", grpNm);
@@ -91,12 +93,14 @@ public class Tab1Fragment extends BaseFragment {
         mArticleItemValues = new ArrayList<>();
         mAdapter = new ArticleListAdapter(getActivity(), mArticleItemKeys, mArticleItemValues, mKey);
         mOffSet = 1; // offSet 초기화
+        mProgressDialog = ProgressDialog.show(getActivity(), "", "불러오는중...");
 
         mListView.addFooterView(mFooterLoading);
         mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getActivity(), WriteActivity.class);
+
                 intent.putExtra("admin", mIsAdmin);
                 intent.putExtra("grp_id", mGroupId);
                 intent.putExtra("grp_nm", mGroupName);
@@ -115,9 +119,9 @@ public class Tab1Fragment extends BaseFragment {
                 if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
                     return;
                 mLastClickTime = SystemClock.elapsedRealtime();
-
                 ArticleItem articleItem = mArticleItemValues.get(position);
                 Intent intent = new Intent(getContext(), ArticleActivity.class);
+
                 intent.putExtra("admin", mIsAdmin);
                 intent.putExtra("grp_id", mGroupId);
                 intent.putExtra("grp_nm", mGroupName);
@@ -161,6 +165,7 @@ public class Tab1Fragment extends BaseFragment {
                     return;
                 mLastClickTime = SystemClock.elapsedRealtime();
                 Intent intent = new Intent(getActivity(), WriteActivity.class);
+
                 intent.putExtra("admin", mIsAdmin);
                 intent.putExtra("grp_id", mGroupId);
                 intent.putExtra("grp_nm", mGroupName);
@@ -176,7 +181,9 @@ public class Tab1Fragment extends BaseFragment {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
+                        mMinId = 0;
                         mOffSet = 1;
+
                         mArticleItemKeys.clear();
                         mArticleItemValues.clear();
                         mSwipeRefreshLayout.setRefreshing(false);
@@ -186,7 +193,6 @@ public class Tab1Fragment extends BaseFragment {
             }
         });
         mSwipeRefreshLayout.setColorSchemeResources(android.R.color.holo_red_light, android.R.color.holo_orange_light, android.R.color.holo_green_light, android.R.color.holo_blue_bright);
-        mProgressDialog = ProgressDialog.show(getActivity(), "", "불러오는중...");
         fetchArticleList();
 
         return rootView;
@@ -198,10 +204,12 @@ public class Tab1Fragment extends BaseFragment {
         if (requestCode == UPDATE_ARTICLE && resultCode == Activity.RESULT_OK) {
             int position = data.getIntExtra("position", 0) - 1;
             ArticleItem articleItem = mArticleItemValues.get(position);
+
             articleItem.setTitle(data.getStringExtra("sbjt"));
             articleItem.setContent(data.getStringExtra("txt"));
             articleItem.setImages(data.getStringArrayListExtra("img")); // firebase data
             articleItem.setReplyCount(data.getStringExtra("cmmt_cnt"));
+            articleItem.setYoutube((YouTubeItem) data.getParcelableExtra("youtube"));
             mArticleItemValues.set(position, articleItem);
             mAdapter.notifyDataSetChanged();
         }
@@ -218,11 +226,9 @@ public class Tab1Fragment extends BaseFragment {
             @Override
             public void onResponse(String response) {
                 Source source = new Source(response);
+
                 hideProgressDialog();
                 try {
-
-                    // 페이징 처리
-                    String page = source.getFirstElementByClass("paging").getFirstElement("title", "현재 선택 목록", false).getTextExtractor().toString();
                     List<Element> list = source.getAllElementsByClass("listbox2");
                     for (Element element : list) {
                         Element viewArt = element.getFirstElementByClass("view_art");
@@ -247,8 +253,14 @@ public class Tab1Fragment extends BaseFragment {
                             content.append(childElement.getTextExtractor().toString().concat("\n"));
 
                         String replyCnt = commentWrap.getContent().getFirstElement(HTMLElementName.P).getTextExtractor().toString();
-
+                        mMinId = mMinId == 0 ? Integer.parseInt(id) : Math.min(mMinId, Integer.parseInt(id));
+                        if (Integer.parseInt(id) > mMinId) {
+                            mHasRequestedMore = true;
+                            break;
+                        } else
+                            mHasRequestedMore = false;
                         ArticleItem articleItem = new ArticleItem();
+
                         articleItem.setId(id);
                         articleItem.setTitle(title.trim());
                         articleItem.setName(name.trim());
@@ -257,13 +269,18 @@ public class Tab1Fragment extends BaseFragment {
                         articleItem.setImages(imageList);
                         articleItem.setReplyCount(replyCnt);
                         articleItem.setAuth(auth);
+                        if (viewArt.getFirstElementByClass("youtube-player") != null) {
+                            String youtubeUrl = viewArt.getFirstElementByClass("youtube-player").getAttributeValue("src");
+                            String youtubeId = youtubeUrl.substring(youtubeUrl.lastIndexOf("/") + 1, youtubeUrl.lastIndexOf("?"));
+                            String thumbnail = "https://i.ytimg.com/vi/" + youtubeId + "/mqdefault.jpg";
+                            YouTubeItem youTubeItem = new YouTubeItem(youtubeId, null, null, thumbnail, null);
+
+                            articleItem.setYoutube(youTubeItem);
+                        }
 
                         mArticleItemKeys.add(id);
                         mArticleItemValues.add(articleItem);
                     }
-
-                    // 중복 로딩 체크하는 Lock을 했던 mHasRequestedMore변수를 풀어준다.
-                    mHasRequestedMore = false;
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {

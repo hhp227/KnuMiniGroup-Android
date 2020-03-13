@@ -88,7 +88,17 @@ public class ArticleListAdapter extends BaseAdapter {
         viewHolder.contentMore.setVisibility(!TextUtils.isEmpty(articleItem.getContent()) && viewHolder.content.getLineCount() > CONTENT_MAX_LINE ? View.VISIBLE : View.GONE);
 
         // 피드 이미지
-        if (articleItem.getImages() != null && articleItem.getImages().size() > 0) {
+        if (articleItem.getYoutube() != null) {
+            viewHolder.imageContainer.setVisibility(View.VISIBLE);
+            viewHolder.videoMark.setVisibility(View.VISIBLE);
+            Glide.with(mActivity)
+                    .load(articleItem.getYoutube().thumbnail)
+                    .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
+                    .transition(DrawableTransitionOptions.withCrossFade(150))
+                    .into(viewHolder.articleImage);
+        } else if (articleItem.getImages() != null && articleItem.getImages().size() > 0) {
+            viewHolder.imageContainer.setVisibility(View.VISIBLE);
+            viewHolder.videoMark.setVisibility(View.INVISIBLE);
             viewHolder.articleImage.setVisibility(View.VISIBLE);
             Glide.with(mActivity)
                     .load(articleItem.getImages().get(0))
@@ -96,7 +106,7 @@ public class ArticleListAdapter extends BaseAdapter {
                     .transition(DrawableTransitionOptions.withCrossFade(150))
                     .into(viewHolder.articleImage);
         } else
-            viewHolder.articleImage.setVisibility(View.GONE);
+            viewHolder.imageContainer.setVisibility(View.GONE);
         viewHolder.replyCount.setText(articleItem.getReplyCount());
 
         // 댓글 버튼을 누르면 댓글쓰는곳으로 이동
@@ -128,8 +138,9 @@ public class ArticleListAdapter extends BaseAdapter {
     }
 
     public static class ViewHolder {
-        private ImageView profileImage, articleImage;
+        private ImageView profileImage, articleImage, videoMark;
         private LinearLayout replyButton, likeButton;
+        private RelativeLayout imageContainer;
         private TextView title, timestamp, content, contentMore, replyCount, likeCount;
 
         ViewHolder(View itemView) {
@@ -138,7 +149,9 @@ public class ArticleListAdapter extends BaseAdapter {
             timestamp = itemView.findViewById(R.id.tv_timestamp);
             content = itemView.findViewById(R.id.tv_content);
             contentMore = itemView.findViewById(R.id.tv_content_more);
+            imageContainer = itemView.findViewById(R.id.rl_article_image);
             articleImage = itemView.findViewById(R.id.iv_article_image);
+            videoMark = itemView.findViewById(R.id.iv_video_preview);
             replyCount = itemView.findViewById(R.id.tv_replycount);
             replyButton = itemView.findViewById(R.id.ll_reply);
         }
