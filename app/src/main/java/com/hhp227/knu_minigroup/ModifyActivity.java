@@ -6,6 +6,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 
+import android.text.Spanned;
 import androidx.exifinterface.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -31,7 +32,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.hhp227.knu_minigroup.adapter.WriteListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
-import com.hhp227.knu_minigroup.dto.WriteItem;
+import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
@@ -42,20 +43,20 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.hhp227.knu_minigroup.WriteActivity.CAMERA_PICK_IMAGE_REQUEST_CODE;
-import static com.hhp227.knu_minigroup.WriteActivity.REQUEST_IMAGE_CAPTURE;
+import static com.hhp227.knu_minigroup.WriteActivity.*;
 
 public class ModifyActivity extends Activity {
     private static final String TAG = ModifyActivity.class.getSimpleName();
     private int mContextMenuRequest;
     private String mGrpId, mArtlNum, mCurrentPhotoPath, mCookie, mTitle, mContent, mGrpKey, mArtlKey;
     private EditText mInputTitle, mInputContent;
-    private List<WriteItem> mContents;
-    private ProgressDialog mProgressDialog;
-    private StringBuilder mMakeHtmlImages;
-    private Uri mPhotoUri;
     private List<String> mImageList;
+    private List<Object> mContents;
+    private ProgressDialog mProgressDialog;
+    private StringBuilder mMakeHtmlContents;
+    private Uri mPhotoUri;
     private WriteListAdapter mAdapter;
+    private YouTubeItem mYouTubeItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +79,7 @@ public class ModifyActivity extends Activity {
         mTitle = intent.getStringExtra("sbjt");
         mContent = intent.getStringExtra("txt");
         mImageList = intent.getStringArrayListExtra("img");
+        mYouTubeItem = intent.getParcelableExtra("vid");
         mGrpKey = intent.getStringExtra("grp_key");
         mArtlKey = intent.getStringExtra("artl_key");
 
@@ -95,6 +97,7 @@ public class ModifyActivity extends Activity {
             @Override
             public void onClick(View v) {
                 mContextMenuRequest = 2;
+
                 registerForContextMenu(v);
                 openContextMenu(v);
                 unregisterForContextMenu(v);
@@ -104,6 +107,7 @@ public class ModifyActivity extends Activity {
             @Override
             public void onClick(View v) {
                 mContextMenuRequest = 3;
+
                 registerForContextMenu(v);
                 openContextMenu(v);
                 unregisterForContextMenu(v);
@@ -117,17 +121,17 @@ public class ModifyActivity extends Activity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 mContextMenuRequest = 1;
+
                 view.showContextMenu();
             }
         });
         mProgressDialog.setCancelable(false);
         if (mImageList.size() > 0) {
-            for (String imageUrl : mImageList) {
-                WriteItem writeItem = new WriteItem(null, null, imageUrl);
-                mContents.add(writeItem);
-            }
+            mContents.addAll(mImageList);
             mAdapter.notifyDataSetChanged();
         }
+        if (mYouTubeItem != null)
+            mContents.add(mYouTubeItem.position + 1, mYouTubeItem);
         registerForContextMenu(listView);
     }
 
@@ -147,15 +151,27 @@ public class ModifyActivity extends Activity {
                 String title = mInputTitle.getEditableText().toString();
                 String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(mInputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(mInputContent.getText());
                 if (!mInputTitle.getText().toString().isEmpty() && !(TextUtils.isEmpty(mInputContent.getText()) && mContents.size() == 0)) {
-                    mMakeHtmlImages = new StringBuilder();
+                    mMakeHtmlContents = new StringBuilder();
+
                     mImageList.clear();
                     mProgressDialog.setMessage("전송중...");
                     mProgressDialog.setProgressStyle(mContents.size() > 0 ? ProgressDialog.STYLE_HORIZONTAL : ProgressDialog.STYLE_SPINNER);
                     showProgressDialog();
-
                     if (mContents.size() > 0) {
                         int position = 0;
-                        uploadImage(position, mContents.get(position));
+                        if (mContents.get(position) instanceof String) {
+                            String image = (String) mContents.get(position);
+
+                            uploadProcess(position, image, false);
+                        } else if (mContents.get(position) instanceof Bitmap) {
+                            Bitmap bitmap = (Bitmap) mContents.get(position);
+
+                            uploadImage(position, bitmap);//
+                        } else if (mContents.get(position) instanceof YouTubeItem) {
+                            YouTubeItem youTubeItem = (YouTubeItem) mContents.get(position);
+
+                            uploadProcess(position, youTubeItem.videoId, true);
+                        }
                     } else
                         actionSend(title, content);
                 } else
@@ -189,11 +205,15 @@ public class ModifyActivity extends Activity {
         switch (item.getItemId()) {
             case 1:
                 int position = ((AdapterView.AdapterContextMenuInfo) item.getMenuInfo()).position - 1;
+                if (mContents.get(position) instanceof YouTubeItem)
+                    mYouTubeItem = null;
+
                 mContents.remove(position);
                 mAdapter.notifyDataSetChanged();
                 return true;
             case 2:
                 intent = new Intent(Intent.ACTION_PICK);
+
                 intent.setType(MediaStore.Images.Media.CONTENT_TYPE);
                 intent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 startActivityForResult(intent, CAMERA_PICK_IMAGE_REQUEST_CODE);
@@ -216,8 +236,14 @@ public class ModifyActivity extends Activity {
                 }
                 return true;
             case 4:
-                Intent ysIntent = new Intent(getApplicationContext(), YouTubeSearchActivity.class);
-                startActivity(ysIntent);
+                if (mYouTubeItem != null)
+                    Toast.makeText(getApplicationContext(), "동영상은 하나만 첨부 할수 있습니다.", Toast.LENGTH_LONG).show();
+                else {
+                    Intent ysIntent = new Intent(getApplicationContext(), YouTubeSearchActivity.class);
+
+                    ysIntent.putExtra("type", 1);
+                    startActivityForResult(ysIntent, REQUEST_YOUTUBE_PICK);
+                }
                 return true;
         }
         return false;
@@ -231,11 +257,7 @@ public class ModifyActivity extends Activity {
             Uri fileUri = data.getData();
             bitmap = new BitmapUtil(this).bitmapResize(fileUri, 200);
 
-            WriteItem writeItem = new WriteItem();
-            writeItem.setBitmap(bitmap);
-            writeItem.setFileUri(fileUri);
-
-            mContents.add(writeItem);
+            mContents.add(bitmap);
             mAdapter.notifyDataSetChanged();
         } else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             try {
@@ -248,71 +270,91 @@ public class ModifyActivity extends Activity {
                             : orientation == ExifInterface.ORIENTATION_ROTATE_270 ? 270
                             : 0;
                     Bitmap rotatedBitmap = new BitmapUtil(this).rotateImage(bitmap, angle);
-                    WriteItem writeItem = new WriteItem(mPhotoUri, rotatedBitmap, null);
 
-                    mContents.add(writeItem);
+                    mContents.add(rotatedBitmap);
                     mAdapter.notifyDataSetChanged();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        } else if (requestCode == REQUEST_YOUTUBE_PICK && resultCode == RESULT_OK) {//
+            mYouTubeItem = data.getParcelableExtra("youtube");
+
+            mContents.add(mYouTubeItem);
+            mAdapter.notifyDataSetChanged();
         }
     }
 
-    private void uploadImage(final int position, final WriteItem writeItem) {
-        if (writeItem.getImage() != null) {
-            imageUploadProcess(position, writeItem.getImage(), false);
-        } else {
-            MultipartRequest multipartRequest = new MultipartRequest(Request.Method.POST, EndPoint.IMAGE_UPLOAD, new Response.Listener<NetworkResponse>() {
-                @Override
-                public void onResponse(NetworkResponse response) {
-                    String imageSrc = new String(response.data);
-                    imageSrc = EndPoint.BASE_URL + imageSrc.substring(imageSrc.lastIndexOf("/ilosfiles2/"), imageSrc.lastIndexOf("\""));
-                    imageUploadProcess(position, imageSrc, true);
-                }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    VolleyLog.e(TAG, error.getMessage());
-                    hideProgressDialog();
-                }
-            }) {
-                @Override
-                public Map<String, String> getHeaders() {
-                    Map<String, String> headers = new HashMap<>();
-                    headers.put("Cookie", mCookie);
-                    return headers;
-                }
+    private void uploadImage(final int position, final Bitmap bitmap) {
+        MultipartRequest multipartRequest = new MultipartRequest(Request.Method.POST, EndPoint.IMAGE_UPLOAD, new Response.Listener<NetworkResponse>() {
+            @Override
+            public void onResponse(NetworkResponse response) {
+                String imageSrc = new String(response.data);
+                imageSrc = EndPoint.BASE_URL + imageSrc.substring(imageSrc.lastIndexOf("/ilosfiles2/"), imageSrc.lastIndexOf("\""));
 
-                @Override
-                protected Map<String, DataPart> getByteData() {
-                    Map<String, DataPart> params = new HashMap<>();
-                    params.put("file", new DataPart(System.currentTimeMillis() + position + ".jpg", getFileDataFromDrawable(writeItem.getBitmap())));
-                    return params;
-                }
+                uploadProcess(position, imageSrc, false);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e(TAG, error.getMessage());
+                hideProgressDialog();
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Cookie", mCookie);
+                return headers;
+            }
 
-                private byte[] getFileDataFromDrawable(Bitmap bitmap) {
-                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 80, byteArrayOutputStream);
-                    return byteArrayOutputStream.toByteArray();
-                }
-            };
-            app.AppController.getInstance().addToRequestQueue(multipartRequest);
-        }
+            @Override
+            protected Map<String, DataPart> getByteData() {
+                Map<String, DataPart> params = new HashMap<>();
+                params.put("file", new DataPart(System.currentTimeMillis() + position + ".jpg", getFileDataFromDrawable(bitmap)));
+                return params;
+            }
+
+            private byte[] getFileDataFromDrawable(Bitmap bitmap) {
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.PNG, 80, byteArrayOutputStream);
+                return byteArrayOutputStream.toByteArray();
+            }
+        };
+        app.AppController.getInstance().addToRequestQueue(multipartRequest);
     }
 
-    private void imageUploadProcess(int count, String imageUrl, boolean isFlag) {
-        mImageList.add(imageUrl);
-        mProgressDialog.setProgress((int) ((double) (count) / mContents.size() * 100));
+    private void uploadProcess(int position, String imageUrl, boolean isYoutube) { // 수정
+        if (!isYoutube)
+            mImageList.add(imageUrl);
+        mProgressDialog.setProgress((int) ((double) (position) / (mContents.size() - 1) * 100));
         try {
-            mMakeHtmlImages.append("<p><img src=\"" + imageUrl + "\" width=\"488\"><p>" + (count < mContents.size() - 1 ? "<br>": ""));
-            if (count < mContents.size() - 1) {
-                count++;
-                Thread.sleep(isFlag ? 700 : 0);
-                uploadImage(count, mContents.get(count));
+            String test = (isYoutube ? "<p><embed title=\"YouTube video player\" class=\"youtube-player\" autostart=\"true\" src=\"//www.youtube.com/embed/" + imageUrl + "?autoplay=1\"  width=\"488\" height=\"274\"></embed><p>" // 유튜브 태그
+                    : ("<p><img src=\"" + imageUrl + "\" width=\"488\"><p>")) + (position < mContents.size() - 1 ? "<br>": "");
+
+            mMakeHtmlContents.append(test);
+            if (position < mContents.size() - 1) {
+                position++;
+                Thread.sleep(!isYoutube ? 700 : 0);
+
+                // 분기
+                if (mContents.get(position) instanceof Bitmap) {////////////// 리팩토링 요망
+                    Bitmap bitmap = (Bitmap) mContents.get(position);// 수정
+
+                    uploadImage(position, bitmap); // 수정
+                } else if (mContents.get(position) instanceof String) {
+                    String imageSrc = (String) mContents.get(position);
+
+                    uploadProcess(position, imageSrc, false);
+                } else if (mContents.get(position) instanceof YouTubeItem) {
+                    YouTubeItem youTubeItem = (YouTubeItem) mContents.get(position);
+
+                    uploadProcess(position, youTubeItem.videoId, true);
+                }
             } else {
                 String title = mInputTitle.getEditableText().toString();
-                String content = (!TextUtils.isEmpty(mInputContent.getText()) ? Html.toHtml(mInputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) + "<p><br data-mce-bogus=\"1\"></p>" : "") + mMakeHtmlImages.toString();
+                String content = (!TextUtils.isEmpty(mInputContent.getText()) ? Html.toHtml(mInputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) + "<p><br data-mce-bogus=\"1\"></p>" : "") + mMakeHtmlContents.toString();
+
                 actionSend(title, content);
             }
         } catch (InterruptedException e) {
@@ -324,15 +366,14 @@ public class ModifyActivity extends Activity {
 
     private void actionSend(final String title, final String content) {
         String tagStringReq = "req_send";
-
         StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.MODIFY_ARTICLE, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
+                hideProgressDialog();
                 try {
-                    hideProgressDialog();
+                    Intent intent = new Intent(ModifyActivity.this, ArticleActivity.class);
 
                     Toast.makeText(getApplicationContext(), "수정완료", Toast.LENGTH_LONG).show();
-                    Intent intent = new Intent(ModifyActivity.this, ArticleActivity.class);
                     setResult(RESULT_OK, intent);
                     finish();
                 } catch (Exception e) {
@@ -366,6 +407,7 @@ public class ModifyActivity extends Activity {
                 return params;
             }
         };
+
         app.AppController.getInstance().addToRequestQueue(stringRequest, tagStringReq);
     }
 
@@ -378,13 +420,14 @@ public class ModifyActivity extends Activity {
                 ".jpg",         /* suffix */
                 storageDir      /* directory */
         );
-
         mCurrentPhotoPath = image.getAbsolutePath();
+
         return image;
     }
 
     private void initFirebaseData() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
+
         updateArticleDataToFirebase(databaseReference.child(mGrpKey).child(mArtlKey));
     }
 
@@ -397,6 +440,7 @@ public class ModifyActivity extends Activity {
                     articleItem.setTitle(mInputTitle.getText().toString());
                     articleItem.setContent(TextUtils.isEmpty(mInputContent.getText()) ? null : mInputContent.getText().toString());
                     articleItem.setImages(mImageList.isEmpty() ? null : mImageList);
+                    articleItem.setYoutube(mYouTubeItem);
                     query.getRef().setValue(articleItem);
                 }
             }
