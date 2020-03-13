@@ -131,7 +131,7 @@ public class ModifyActivity extends Activity {
             mAdapter.notifyDataSetChanged();
         }
         if (mYouTubeItem != null)
-            mContents.add(mYouTubeItem.position + 1, mYouTubeItem);
+            mContents.add(mYouTubeItem.position, mYouTubeItem);
         registerForContextMenu(listView);
     }
 
@@ -311,12 +311,14 @@ public class ModifyActivity extends Activity {
             @Override
             protected Map<String, DataPart> getByteData() {
                 Map<String, DataPart> params = new HashMap<>();
+
                 params.put("file", new DataPart(System.currentTimeMillis() + position + ".jpg", getFileDataFromDrawable(bitmap)));
                 return params;
             }
 
             private byte[] getFileDataFromDrawable(Bitmap bitmap) {
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
                 bitmap.compress(Bitmap.CompressFormat.PNG, 80, byteArrayOutputStream);
                 return byteArrayOutputStream.toByteArray();
             }
@@ -393,6 +395,7 @@ public class ModifyActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
+
                 headers.put("Cookie", mCookie);
                 return headers;
             }
@@ -400,6 +403,7 @@ public class ModifyActivity extends Activity {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
+
                 params.put("CLUB_GRP_ID", mGrpId);
                 params.put("ARTL_NUM", mArtlNum);
                 params.put("SBJT", title);

@@ -6,7 +6,6 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.app.Activity;
 import android.os.Handler;
 import android.text.*;
 import android.util.Log;
@@ -20,11 +19,14 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.youtube.player.YouTubeBaseActivity;
+import com.google.android.youtube.player.YouTubePlayerView;
 import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.adapter.ReplyListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.dto.ReplyItem;
+import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.fragment.Tab1Fragment;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
@@ -42,7 +44,7 @@ import java.util.Map;
 
 import static com.hhp227.knu_minigroup.fragment.Tab1Fragment.UPDATE_ARTICLE;
 
-public class ArticleActivity extends Activity {
+public class ArticleActivity extends YouTubeBaseActivity {
     private static final int UPDATE_REPLY = 10;
     private static final String TAG = ArticleActivity.class.getSimpleName();
     private boolean mIsBottom, mIsUpdate, mIsAuthorized;
@@ -61,6 +63,8 @@ public class ArticleActivity extends Activity {
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private TextView mArticleTitle, mArticleTimeStamp, mArticleContent, mButtonSend;
     private View mArticleDetail;
+    private YouTubeItem mYouTubeItem;
+    private YouTubePlayerView mYouTubePlayerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -161,8 +165,7 @@ public class ArticleActivity extends Activity {
                 Runnable runnable = new Runnable() {
                     @Override
                     public void run() {
-
-                        mSwipeRefreshLayout.setRefreshing(false);
+                        refresh();
                     }
                 };
                 handler.postDelayed(runnable, 1000);
@@ -191,21 +194,19 @@ public class ArticleActivity extends Activity {
                 return true;
             case 1:
                 Intent intent = new Intent(this, ModifyActivity.class);
+
                 intent.putExtra("grp_id", mGroupId);
                 intent.putExtra("artl_num", mArticleId);
                 intent.putExtra("sbjt", mArticleTitle.getText().toString().substring(0, mArticleTitle.getText().toString().lastIndexOf("-")).trim());
                 intent.putExtra("txt", mArticleContent.getText().toString());
                 intent.putStringArrayListExtra("img", (ArrayList<String>) mImageList);
+                intent.putExtra("vid", mYouTubeItem);
                 intent.putExtra("grp_key", mGroupKey);
                 intent.putExtra("artl_key", mArticleKey);
                 startActivityForResult(intent, UPDATE_ARTICLE);
                 return true;
             case 2:
                 String tag_string_req = "req_delete";
-
-                mProgressDialog.setMessage("요청중 ...");
-                showProgressDialog();
-
                 StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.DELETE_ARTICLE, new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -214,6 +215,7 @@ public class ArticleActivity extends Activity {
                             boolean error = jsonObject.getBoolean("isError");
                             if (!error) {
                                 Intent groupIntent = new Intent(ArticleActivity.this, GroupActivity.class);
+
                                 groupIntent.putExtra("admin", getIntent().getBooleanExtra("admin", false));
                                 groupIntent.putExtra("grp_id", mGroupId);
                                 groupIntent.putExtra("grp_nm", mGroupName);
@@ -245,6 +247,7 @@ public class ArticleActivity extends Activity {
                     @Override
                     public Map<String, String> getHeaders() {
                         Map<String, String> headers = new HashMap<>();
+
                         headers.put("Cookie", mPreferenceManager.getCookie());
                         return headers;
                     }
@@ -252,11 +255,15 @@ public class ArticleActivity extends Activity {
                     @Override
                     protected Map<String, String> getParams() {
                         Map<String, String> params = new HashMap<>();
+
                         params.put("CLUB_GRP_ID", mGroupId);
                         params.put("ARTL_NUM", mArticleId);
                         return params;
                     }
                 };
+
+                mProgressDialog.setMessage("요청중 ...");
+                showProgressDialog();
                 app.AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
                 return true;
         }
@@ -268,12 +275,15 @@ public class ArticleActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == UPDATE_ARTICLE && resultCode == RESULT_OK) {
             mIsUpdate = true;
-            onCreate(new Bundle()); // 후에 refresh로 대체
+
+            // 이전코드 : onCreate(new Bundle());
+            refresh();
         } else if (requestCode == UPDATE_REPLY && resultCode == RESULT_OK && data != null) {
             mSource = new Source(data.getStringExtra("update_reply"));
+            List<Element> commentList = mSource.getAllElementsByClass("comment-list");
+
             mReplyItemKeys.clear();
             mReplyItemValues.clear();
-            List<Element> commentList = mSource.getAllElementsByClass("comment-list");
             fetchReplyData(commentList);
         }
     }
@@ -285,8 +295,9 @@ public class ArticleActivity extends Activity {
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         int position = ((AdapterView.AdapterContextMenuInfo) menuInfo).position;
-        menu.setHeaderTitle("작업선택");
         boolean auth = !mReplyItemValues.isEmpty() && position != 0 && mReplyItemValues.get((position - 1)).isAuth();
+
+        menu.setHeaderTitle("작업선택");
         menu.add(Menu.NONE, 1, Menu.NONE, "내용 복사");
         if (position != 0 && auth) {
             menu.add(Menu.NONE, 2, Menu.NONE, "댓글 수정");
@@ -309,6 +320,7 @@ public class ArticleActivity extends Activity {
             case 2:
                 Intent intent = new Intent(getBaseContext(), ReplyModifyActivity.class);
                 String reply = replyItem.getReply();
+
                 intent.putExtra("grp_id", mGroupId);
                 intent.putExtra("artl_num", mArticleId);
                 intent.putExtra("cmt", reply);
@@ -319,9 +331,6 @@ public class ArticleActivity extends Activity {
                 return true;
             case 3:
                 String tag_string_req = "req_delete";
-
-                mProgressDialog.setMessage("요청중...");
-                showProgressDialog();
                 StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.DELETE_REPLY, new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -329,9 +338,10 @@ public class ArticleActivity extends Activity {
                         hideProgressDialog();
                         try {
                             if (!response.contains("처리를 실패했습니다")) {
+                                List<Element> commentList = mSource.getAllElementsByClass("comment-list");
+
                                 mReplyItemKeys.clear();
                                 mReplyItemValues.clear();
-                                List<Element> commentList = mSource.getAllElementsByClass("comment-list");
                                 fetchReplyData(commentList);
                             }
                         } catch (Exception e) {
@@ -350,6 +360,7 @@ public class ArticleActivity extends Activity {
                     @Override
                     public Map<String, String> getHeaders() {
                         Map<String, String> headers = new HashMap<>();
+
                         headers.put("Cookie", mPreferenceManager.getCookie());
                         return headers;
                     }
@@ -357,12 +368,16 @@ public class ArticleActivity extends Activity {
                     @Override
                     protected Map<String, String> getParams() {
                         Map<String, String> params = new HashMap<>();
+
                         params.put("CLUB_GRP_ID", mGroupId);
                         params.put("CMMT_NUM", replyId);
                         params.put("ARTL_NUM", mArticleId);
                         return params;
                     }
                 };
+
+                mProgressDialog.setMessage("요청중...");
+                showProgressDialog();
                 app.AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
                 return true;
         }
@@ -387,8 +402,7 @@ public class ArticleActivity extends Activity {
                     String title = listTitle.substring(0, listTitle.lastIndexOf("-")).trim();
                     String name = listTitle.substring(listTitle.lastIndexOf("-") + 1).trim();
                     String timeStamp = viewArt.getFirstElement(HTMLElementName.TD).getTextExtractor().toString();
-                    String content = contentExtractor(viewArt.getFirstElementByClass("list_cont"), true);
-                    List<Element> images = viewArt.getAllElements(HTMLElementName.IMG);
+                    String content = contentExtractor(viewArt.getFirstElementByClass("list_cont"));
                     String replyCnt = commentWrap.getContent().getFirstElement(HTMLElementName.P).getTextExtractor().toString();
 
                     Glide.with(getApplicationContext())
@@ -402,14 +416,13 @@ public class ArticleActivity extends Activity {
                         mArticleContent.setVisibility(View.VISIBLE);
                     } else
                         mArticleContent.setVisibility(View.GONE);
-
-                    if (images.size() > 0) {
-                        for (Element image : images) {
-                            if (mArticleImages.getChildCount() > images.size() - 1)
+                    if (!mImageList.isEmpty() || mYouTubeItem != null) {
+                        for (int i = 0; i < mImageList.size(); i++) {
+                            if (mArticleImages.getChildCount() > mImageList.size() - 1)
                                 break;
-                            final int position = mImageList.size();
-                            String imageUrl = !image.getAttributeValue("src").contains("http") ? EndPoint.BASE_URL + image.getAttributeValue("src") : image.getAttributeValue("src");
+                            final int position = i;
                             ImageView articleImage = new ImageView(getApplicationContext());
+
                             articleImage.setAdjustViewBounds(true);
                             articleImage.setPadding(0, 0, 0, 30);
                             articleImage.setScaleType(ImageView.ScaleType.FIT_XY);
@@ -417,21 +430,32 @@ public class ArticleActivity extends Activity {
                                 @Override
                                 public void onClick(View v) {
                                     Intent intent = new Intent(getApplicationContext(), PictureActivity.class);
+
                                     intent.putStringArrayListExtra("images", (ArrayList<String>) mImageList);
                                     intent.putExtra("position", position);
                                     startActivity(intent);
                                 }
                             });
-                            Glide.with(getApplicationContext()).load(imageUrl).apply(RequestOptions.errorOf(R.drawable.ic_launcher_background)).into(articleImage);
+                            Glide.with(getApplicationContext())
+                                    .load(mImageList.get(i))
+                                    .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
+                                    .into(articleImage);
                             mArticleImages.addView(articleImage);
-                            mImageList.add(imageUrl);
+                        }
+                        if (mYouTubeItem != null) {
+                            LinearLayout youtubeContainer = new LinearLayout(getApplicationContext());
+                            mYouTubePlayerView = new YouTubePlayerView(getBaseContext());
+
+                            youtubeContainer.addView(mYouTubePlayerView);
+                            youtubeContainer.setPadding(0, 0, 0, 30);
+                            mArticleImages.addView(youtubeContainer, mYouTubeItem.position);
                         }
                         mArticleImages.setVisibility(View.VISIBLE);
                     } else
                         mArticleImages.setVisibility(View.GONE);
                     fetchReplyData(commentList);
                     if (mIsUpdate)
-                        deliveryUpdate(title, contentExtractor(viewArt.getFirstElementByClass("list_cont"), true), replyCnt);
+                        deliveryUpdate(title, content, replyCnt);
                 } catch (Exception e) {
                     Toast.makeText(getApplicationContext(), "값이 없습니다.", Toast.LENGTH_LONG).show();
                 } finally {
@@ -448,10 +472,12 @@ public class ArticleActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
+
                 headers.put("Cookie", mPreferenceManager.getCookie());
                 return headers;
             }
         };
+
         app.AppController.getInstance().addToRequestQueue(stringRequest);
     }
 
@@ -465,8 +491,8 @@ public class ArticleActivity extends Activity {
                 String timeStamp = commentName.getFirstElement(HTMLElementName.SPAN).getContent().toString().trim();
                 String replyContent = commentAddr.getContent().toString().trim();
                 boolean authorization = commentName.getAllElements(HTMLElementName.INPUT).size() > 0;
-
                 ReplyItem replyItem = new ReplyItem();
+
                 replyItem.setId(replyId);
                 replyItem.setName(name.substring(0, name.lastIndexOf("(")));
                 replyItem.setReply(Html.fromHtml(replyContent).toString());
@@ -489,16 +515,14 @@ public class ArticleActivity extends Activity {
 
     private void actionSend(final String text) {
         String tag_string_req = "req_send";
-
-        mProgressDialog.setMessage("전송중...");
-        showProgressDialog();
         StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.INSERT_REPLY, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 mSource = new Source(response);
+                List<Element> commentList = mSource.getAllElementsByClass("comment-list");
+
                 mReplyItemKeys.clear();
                 mReplyItemValues.clear();
-                List<Element> commentList = mSource.getAllElementsByClass("comment-list");
                 try {
                     fetchReplyData(commentList);
                     hideProgressDialog();
@@ -522,6 +546,7 @@ public class ArticleActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
+
                 headers.put("Cookie", mPreferenceManager.getCookie());
                 return headers;
             }
@@ -529,12 +554,16 @@ public class ArticleActivity extends Activity {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
+
                 params.put("CLUB_GRP_ID", mGroupId);
                 params.put("ARTL_NUM", mArticleId);
                 params.put("CMT", text);
                 return params;
             }
         };
+
+        mProgressDialog.setMessage("전송중...");
+        showProgressDialog();
         app.AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
     }
 
@@ -547,6 +576,7 @@ public class ArticleActivity extends Activity {
             public void run() {
                 int articleHeight = mArticleDetail.getMeasuredHeight();
                 mIsBottom = false;
+
                 mListView.setSelection(articleHeight);
             }
         }, 300);
@@ -560,12 +590,13 @@ public class ArticleActivity extends Activity {
         intent.putExtra("txt", content);
         intent.putStringArrayListExtra("img", (ArrayList<String>) mImageList);
         intent.putExtra("cmmt_cnt", replyCnt);
-        //intent.putExtra("youtube", mYoutubeItem);
+        intent.putExtra("youtube", mYouTubeItem);
         setResult(RESULT_OK, intent);
     }
 
     private void refresh() {
         mIsUpdate = true;
+        mYouTubeItem = null;
 
         mArticleImages.removeAllViews();
         mImageList.clear();
@@ -575,20 +606,41 @@ public class ArticleActivity extends Activity {
         fetchArticleData();
     }
 
-    private String contentExtractor(Element listCont, boolean isFlag) {
+    private String contentExtractor(Element listCont) {
         StringBuilder sb = new StringBuilder();
-        for (Element childElement : isFlag ? listCont.getChildElements() : listCont.getAllElements(HTMLElementName.P))
+        for (Element childElement : listCont.getChildElements()) {// listCont.getAllElements(HTMLElementName.P)
             sb.append(childElement.getTextExtractor().toString().concat("\n"));
+            try {
+                Element p = childElement.getFirstElement(HTMLElementName.P);
+                if (p.getFirstElement(HTMLElementName.IMG) != null) {
+                    Element image = p.getFirstElement(HTMLElementName.IMG);
+                    String imageUrl = !image.getAttributeValue("src").contains("http") ? EndPoint.BASE_URL + image.getAttributeValue("src") : image.getAttributeValue("src");
+
+                    mImageList.add(imageUrl);
+                } else if (p.getFirstElementByClass("youtube-player") != null) {
+                    Element youtube = p.getFirstElementByClass("youtube-player");
+                    String youtubeUrl = youtube.getAttributeValue("src");
+                    String youtubeId = youtubeUrl.substring(youtubeUrl.lastIndexOf("/") + 1, youtubeUrl.lastIndexOf("?"));
+                    String thumbnail = "https://i.ytimg.com/vi/" + youtubeId + "/mqdefault.jpg";
+                    mYouTubeItem = new YouTubeItem(youtubeId, null, null, thumbnail, null);
+                    mYouTubeItem.position = mImageList.size();
+                }
+            } catch (Exception e) {
+                Log.e(TAG, e.getMessage());
+            }
+        }
         return sb.toString().trim();
     }
 
     private void fetchArticleDataFromFirebase() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
+
         databaseReference.child(mGroupKey).child(mArticleKey).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getValue() != null) {
                     ArticleItem articleItem = dataSnapshot.getValue(ArticleItem.class);
+
                     Glide.with(getApplicationContext())
                             .load(articleItem.getUid() != null ? new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", articleItem.getUid()), new LazyHeaders.Builder()
                                     .addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie())
@@ -609,12 +661,14 @@ public class ArticleActivity extends Activity {
     private void deleteArticleFromFirebase() {
         DatabaseReference articlesReference = FirebaseDatabase.getInstance().getReference("Articles");
         DatabaseReference replysReference = FirebaseDatabase.getInstance().getReference("Replys");
+
         articlesReference.child(mGroupKey).child(mArticleKey).removeValue();
         replysReference.child(mArticleKey).removeValue();
     }
 
     private void fetchReplyListFromFirebase() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Replys");
+
         databaseReference.child(mArticleKey).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -625,6 +679,7 @@ public class ArticleActivity extends Activity {
                         int index = mReplyItemKeys.indexOf(value.getId());
                         if (index > -1) {
                             ReplyItem replyItem = mReplyItemValues.get(index);
+
                             replyItem.setUid(value.getUid());
                             mReplyItemValues.set(index, replyItem);
                             mReplyItemKeys.set(index, key);
@@ -644,17 +699,18 @@ public class ArticleActivity extends Activity {
     private void insertReplyToFirebase(String replyId, String text) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Replys");
         ReplyItem replyItem = new ReplyItem();
+
         replyItem.setId(replyId);
         replyItem.setUid(mPreferenceManager.getUser().getUid());
         replyItem.setName(mPreferenceManager.getUser().getName());
         replyItem.setTimestamp(System.currentTimeMillis());
         replyItem.setReply(text);
-
         databaseReference.child(mArticleKey).push().setValue(replyItem);
     }
 
     private void deleteReplyFromFirebase(String replyKey) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Replys");
+
         databaseReference.child(mArticleKey).child(replyKey).removeValue();
     }
 
