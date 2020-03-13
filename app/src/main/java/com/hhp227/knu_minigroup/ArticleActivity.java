@@ -444,7 +444,7 @@ public class ArticleActivity extends YouTubeBaseActivity {
                         }
                         if (mYouTubeItem != null) {
                             LinearLayout youtubeContainer = new LinearLayout(getApplicationContext());
-                            mYouTubePlayerView = new YouTubePlayerView(getBaseContext());
+                            mYouTubePlayerView = new YouTubePlayerView(ArticleActivity.this);
 
                             youtubeContainer.addView(mYouTubePlayerView);
                             youtubeContainer.setPadding(0, 0, 0, 30);
