@@ -11,6 +11,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.fragment.app.DialogFragment;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.ChatActivity;
 import com.hhp227.knu_minigroup.R;
@@ -42,7 +45,13 @@ public class UserFragment extends DialogFragment {
             mValue = bundle.getString("value");
         }
 
-        Glide.with(getActivity()).load(EndPoint.USER_IMAGE.replace("{UID}", mUid)).apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop()).into(profileImage);
+        Glide.with(this)
+                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUid), new LazyHeaders.Builder().addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie()).build()))
+                .apply(RequestOptions.errorOf(R.drawable.profile_img_circle)
+                        .circleCrop()
+                        .skipMemoryCache(true)
+                        .diskCacheStrategy(DiskCacheStrategy.NONE))
+                .into(profileImage);
         userName.setText(mName);
         if (mUid.equals(app.AppController.getInstance().getPreferenceManager().getUser().getUid()))
             send.setVisibility(View.GONE);

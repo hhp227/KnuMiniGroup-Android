@@ -16,11 +16,11 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
-import com.google.android.youtube.player.YouTubeBaseActivity;
-import com.google.android.youtube.player.YouTubePlayerView;
+import com.google.android.youtube.player.*;
 import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.adapter.ReplyListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.hhp227.knu_minigroup.YouTubeSearchActivity.API_KEY;
 import static com.hhp227.knu_minigroup.fragment.Tab1Fragment.UPDATE_ARTICLE;
 
 public class ArticleActivity extends YouTubeBaseActivity {
@@ -407,7 +408,11 @@ public class ArticleActivity extends YouTubeBaseActivity {
 
                     Glide.with(getApplicationContext())
                             .load(profileImg)
-                            .apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop())
+                            .apply(RequestOptions
+                                    .errorOf(R.drawable.profile_img_circle)
+                                    .circleCrop()
+                                    .skipMemoryCache(true)
+                                    .diskCacheStrategy(DiskCacheStrategy.NONE))
                             .into(mArticleProfile);
                     mArticleTitle.setText(title + " - " + name);
                     mArticleTimeStamp.setText(timeStamp);
@@ -446,6 +451,29 @@ public class ArticleActivity extends YouTubeBaseActivity {
                             LinearLayout youtubeContainer = new LinearLayout(getApplicationContext());
                             mYouTubePlayerView = new YouTubePlayerView(ArticleActivity.this);
 
+                            mYouTubePlayerView.initialize(API_KEY, new YouTubePlayer.OnInitializedListener() {
+                                @Override
+                                public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
+                                    youTubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT);
+                                    youTubePlayer.setShowFullscreenButton(true);
+
+                                    if (b) {
+                                        youTubePlayer.play();
+                                    } else {
+                                        try {
+                                            youTubePlayer.cueVideo(mYouTubeItem.videoId);
+                                        } catch (IllegalStateException e) {
+                                            mYouTubePlayerView.initialize(API_KEY, this);
+                                        }
+                                    }
+                                }
+
+                                @Override
+                                public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
+                                    if (youTubeInitializationResult.isUserRecoverableError())
+                                        youTubeInitializationResult.getErrorDialog(getParent(), 0).show();
+                                }
+                            });
                             youtubeContainer.addView(mYouTubePlayerView);
                             youtubeContainer.setPadding(0, 0, 0, 30);
                             mArticleImages.addView(youtubeContainer, mYouTubeItem.position);
@@ -645,7 +673,11 @@ public class ArticleActivity extends YouTubeBaseActivity {
                             .load(articleItem.getUid() != null ? new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", articleItem.getUid()), new LazyHeaders.Builder()
                                     .addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie())
                                     .build()) : null)
-                            .apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop())
+                            .apply(RequestOptions
+                                    .errorOf(R.drawable.profile_img_circle)
+                                    .circleCrop()
+                                    .skipMemoryCache(true)
+                                    .diskCacheStrategy(DiskCacheStrategy.NONE))
                             .into(mArticleProfile);
                     mArticleTimeStamp.setText(new SimpleDateFormat("yyyy.MM.dd a h:mm:ss").format(articleItem.getTimestamp()));
                 }

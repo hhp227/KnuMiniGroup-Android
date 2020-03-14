@@ -1,221 +1,417 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+        android:orientation="vertical"
+        android:background="#EEEEEE"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingLeft="8dp"
-        android:paddingRight="8dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp"
-        tools:context=".ProfileActivity">
+        android:splitMotionEvents="false">
 
-    <RelativeLayout
-            android:layout_width="fill_parent"
-            android:layout_height="match_parent"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:padding="16dp"
-            android:background="@drawable/bg_parent_rounded_corner">
-
-        <ImageView
-                android:id="@+id/iv_profile_image"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="30dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/profile_img_square"/>
+    <ScrollView
+            android:scrollbarStyle="outsideOverlay"
+            android:background="@android:color/transparent"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
 
         <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="130dp"
-                android:gravity="center"
                 android:orientation="vertical"
-                android:padding="10dp">
+                android:splitMotionEvents="false">
 
-            <TextView
-                    android:id="@+id/tv_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/profileimage"
-                    android:layout_centerHorizontal="true"
-                    android:padding="10dp"
-                    android:text="이름"
-                    android:textAppearance="?android:attr/textAppearanceLarge"/>
-
-            <LinearLayout
-                    android:layout_width="fill_parent"
-                    android:layout_height="50dp"
-                    android:orientation="horizontal"
-                    android:paddingLeft="15dp"
-                    android:paddingRight="15dp">
-
-                <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="15dp"
-                        android:layout_marginTop="15dp"
-                        android:text="아이디"
-                        android:textStyle="bold"/>
-
-                <TextView
-                        android:id="@+id/tv_knu_id"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@+id/tv_name"
-                        android:layout_marginTop="15dp"
-                        android:padding="10dp"
-                        android:text="아이디"/>
-
-            </LinearLayout>
-
-            <LinearLayout
+            <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="2px"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="10dp"
-                    android:background="@android:color/darker_gray">
+                    android:layout_height="wrap_content">
 
-            </LinearLayout>
+                <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
 
-            <LinearLayout
-                    android:layout_width="fill_parent"
-                    android:layout_height="50dp"
-                    android:orientation="horizontal"
-                    android:paddingLeft="15dp"
-                    android:paddingRight="15dp">
+                    <LinearLayout
+                            android:orientation="vertical"
+                            android:background="#FFFFFF"
+                            android:paddingLeft="20dp"
+                            android:paddingRight="20dp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="120dp">
 
-                <TextView
+                        <LinearLayout
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:layout_width="match_parent"
+                                android:layout_height="35dp"
+                                android:layout_marginTop="15dp">
+
+                            <TextView
+                                    android:ellipsize="end"
+                                    android:layout_width="80dp"
+                                    android:layout_height="wrap_content"
+                                    android:text="아이디"
+                                    android:singleLine="true"/>
+
+                            <TextView
+                                    android:ellipsize="end"
+                                    android:gravity="right|center_vertical|center_horizontal|center|end"
+                                    android:id="@+id/tv_knu_id"
+                                    android:layout_width="0dp"
+                                    android:layout_height="match_parent"
+                                    android:singleLine="true"
+                                    android:layout_weight="1"/>
+
+                        </LinearLayout>
+
+                        <View
+                                android:background="@android:color/darker_gray"
+                                android:layout_width="match_parent"
+                                android:layout_height="2px"/>
+
+                        <LinearLayout
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:layout_width="match_parent"
+                                android:layout_height="35dp"
+                                android:layout_marginTop="15dp">
+
+                            <TextView
+                                    android:ellipsize="end"
+                                    android:layout_width="80dp"
+                                    android:layout_height="wrap_content"
+                                    android:text="접속 IP"
+                                    android:singleLine="true"/>
+
+                            <TextView
+                                    android:ellipsize="end"
+                                    android:gravity="right|center_vertical|center_horizontal|center|end"
+                                    android:id="@+id/tv_ip"
+                                    android:background="@android:color/transparent"
+                                    android:layout_width="0dp"
+                                    android:layout_height="match_parent"
+                                    android:singleLine="true"
+                                    android:drawablePadding="15dp"
+                                    android:layout_weight="1"/>
+
+                        </LinearLayout>
+
+                        <View
+                                android:background="@android:color/darker_gray"
+                                android:layout_width="match_parent"
+                                android:layout_height="2px"/>
+
+                        <LinearLayout
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:layout_width="match_parent"
+                                android:layout_height="35dp"
+                                android:layout_marginTop="15dp">
+
+                            <TextView
+                                    android:ellipsize="end"
+                                    android:layout_width="80dp"
+                                    android:layout_height="wrap_content"
+                                    android:text="캠퍼스"
+                                    android:singleLine="true"/>
+
+                            <LinearLayout
+                                    android:gravity="bottom|right|center_vertical|center_horizontal|center|end"
+                                    android:orientation="horizontal"
+                                    android:id="@+id/linear_public"
+                                    android:layout_width="0dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_weight="1">
+
+                                <TextView
+                                        android:ellipsize="end"
+                                        android:gravity="right|center_vertical|center_horizontal|center|end"
+                                        android:id="@+id/tv_campus"
+                                        android:layout_width="0dp"
+                                        android:layout_height="match_parent"
+                                        android:singleLine="true"
+                                        android:layout_weight="1"/>
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <View
+                            android:background="@android:color/darker_gray"
+                            android:layout_width="match_parent"
+                            android:layout_height="2px"/>
+
+                    <LinearLayout
+                            android:orientation="vertical"
+                            android:background="#FFFFFF"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                        <TextView
+                                android:gravity="bottom|left|center_vertical|center_horizontal|center|start"
+                                android:background="#EEEEEE"
+                                android:paddingLeft="10dp"
+                                android:paddingBottom="5dp"
+                                android:layout_width="match_parent"
+                                android:layout_height="40dp"
+                                android:text="기본 정보"/>
+
+                        <LinearLayout
+                                android:orientation="vertical"
+                                android:paddingLeft="20dp"
+                                android:paddingRight="20dp"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                            <LinearLayout
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="35dp"
+                                    android:layout_marginTop="15dp">
+
+                                <TextView
+                                        android:ellipsize="end"
+                                        android:layout_width="80dp"
+                                        android:layout_height="wrap_content"
+                                        android:text="이름"
+                                        android:singleLine="true"/>
+
+                                <TextView
+                                        android:ellipsize="end"
+                                        android:gravity="right|center_vertical|center_horizontal|center|end"
+                                        android:id="@+id/tv_name"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:singleLine="true"/>
+
+                            </LinearLayout>
+
+                            <View
+                                    android:background="@android:color/darker_gray"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="2px"/>
+
+                            <LinearLayout
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="35dp"
+                                    android:layout_marginTop="15dp">
+
+                                <TextView
+                                        android:ellipsize="end"
+                                        android:layout_width="80dp"
+                                        android:layout_height="wrap_content"
+                                        android:text="소속"
+                                        android:singleLine="true"/>
+
+                                <TextView
+                                        android:ellipsize="end"
+                                        android:gravity="right|center_vertical|center_horizontal|center|end"
+                                        android:id="@+id/tv_dept"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:singleLine="true"/>
+
+                            </LinearLayout>
+
+                            <View
+                                    android:background="@android:color/darker_gray"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="2px"/>
+
+                            <LinearLayout
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="35dp"
+                                    android:layout_marginTop="15dp">
+
+                                <TextView
+                                        android:ellipsize="end"
+                                        android:layout_width="80dp"
+                                        android:layout_height="wrap_content"
+                                        android:text="학번"
+                                        android:singleLine="true"/>
+
+                                <TextView
+                                        android:ellipsize="end"
+                                        android:gravity="right|center_vertical|center_horizontal|center|end"
+                                        android:id="@+id/tv_stu_num"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:singleLine="true"/>
+
+                            </LinearLayout>
+
+                            <View
+                                    android:background="@android:color/darker_gray"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="2px"/>
+
+                            <LinearLayout
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="35dp"
+                                    android:layout_marginTop="15dp">
+
+                                <TextView
+                                        android:ellipsize="end"
+                                        android:layout_width="80dp"
+                                        android:layout_height="wrap_content"
+                                        android:text="학년"
+                                        android:singleLine="true"/>
+
+                                <TextView
+                                        android:ellipsize="end"
+                                        android:gravity="right|center_vertical|center_horizontal|center|end"
+                                        android:id="@+id/tv_grade"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:singleLine="true"/>
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <View
+                            android:background="@android:color/darker_gray"
+                            android:layout_width="match_parent"
+                            android:layout_height="2px"/>
+
+                    <LinearLayout
+                            android:orientation="vertical"
+                            android:background="#FFFFFF"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                        <TextView
+                                android:gravity="bottom|left|center_vertical|center_horizontal|center|start"
+                                android:background="#EEEEEE"
+                                android:paddingLeft="10dp"
+                                android:paddingBottom="5dp"
+                                android:layout_width="match_parent"
+                                android:layout_height="40dp"
+                                android:text="추가 정보"/>
+
+                        <LinearLayout
+                                android:orientation="vertical"
+                                android:paddingLeft="20dp"
+                                android:paddingRight="20dp"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                            <LinearLayout
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="35dp"
+                                    android:layout_marginTop="15dp">
+
+                                <TextView
+                                        android:ellipsize="end"
+                                        android:layout_width="80dp"
+                                        android:layout_height="wrap_content"
+                                        android:text="이메일"
+                                        android:singleLine="true"/>
+
+                                <TextView
+                                        android:gravity="right|center_vertical|center_horizontal|center|end"
+                                        android:id="@+id/tv_email"
+                                        android:background="@android:color/transparent"
+                                        android:layout_width="0dp"
+                                        android:layout_height="match_parent"
+                                        android:singleLine="true"
+                                        android:drawablePadding="15dp"
+                                        android:layout_weight="1"/>
+
+                            </LinearLayout>
+
+                            <View
+                                    android:background="@android:color/darker_gray"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="2px"/>
+
+                            <LinearLayout
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="35dp"
+                                    android:layout_marginTop="15dp">
+
+                                <TextView
+                                        android:ellipsize="end"
+                                        android:layout_width="80dp"
+                                        android:layout_height="wrap_content"
+                                        android:text="연락처"
+                                        android:singleLine="true"/>
+
+                                <TextView
+                                        android:gravity="right|center_vertical|center_horizontal|center|end"
+                                        android:id="@+id/tv_phone_num"
+                                        android:background="@android:color/transparent"
+                                        android:layout_width="0dp"
+                                        android:layout_height="match_parent"
+                                        android:text=""
+                                        android:singleLine="true"
+                                        android:drawablePadding="15dp"
+                                        android:layout_weight="1"/>
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <View
+                            android:background="@android:color/darker_gray"
+                            android:layout_width="match_parent"
+                            android:layout_height="2px"/>
+
+                </LinearLayout>
+
+                <FrameLayout
+                        android:layout_gravity="top|center_vertical|center_horizontal|center"
+                        android:orientation="vertical"
+                        android:background="@drawable/transparent"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="15dp"
-                        android:layout_marginTop="15dp"
-                        android:text="소   속"
-                        android:textStyle="bold"/>
+                        android:layout_marginTop="15dp">
 
-                <TextView
-                        android:id="@+id/tv_dept"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="15dp"
-                        android:padding="10dp"
-                        android:text="학부/학과"/>
+                    <ImageView
+                            android:layout_gravity="center"
+                            android:id="@+id/iv_profile_image"
+                            android:background="@android:color/transparent"
+                            android:layout_width="120dp"
+                            android:layout_height="120dp"
+                            android:src="@drawable/profile_img_circle"
+                            android:scaleType="centerCrop"/>
 
-            </LinearLayout>
+                    <ImageView
+                            android:layout_gravity="bottom|right|center_vertical|center_horizontal|center|end"
+                            android:id="@+id/btn_profile_change"
+                            android:layout_width="35dp"
+                            android:layout_height="35dp"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/profile_add"/>
 
-            <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="2px"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="10dp"
-                    android:background="@android:color/darker_gray"/>
+                </FrameLayout>
 
-            <LinearLayout
-                    android:layout_width="fill_parent"
-                    android:layout_height="50dp"
-                    android:orientation="horizontal"
-                    android:paddingLeft="15dp"
-                    android:paddingRight="15dp">
-
-                <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="15dp"
-                        android:layout_marginTop="15dp"
-                        android:text="학   번"
-                        android:textStyle="bold"/>
-
-                <TextView
-                        android:id="@+id/tv_stu_num"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="15dp"
-                        android:padding="10dp"
-                        android:text="학번"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="2px"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="10dp"
-                    android:background="@android:color/darker_gray"/>
-
-            <LinearLayout
-                    android:layout_width="fill_parent"
-                    android:layout_height="50dp"
-                    android:orientation="horizontal"
-                    android:paddingLeft="15dp"
-                    android:paddingRight="15dp">
-
-                <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="15dp"
-                        android:layout_marginTop="15dp"
-                        android:text="학   년"
-                        android:textStyle="bold"/>
-
-                <TextView
-                        android:id="@+id/tv_grade"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="15dp"
-                        android:padding="10dp"
-                        android:text="학년"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="2px"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="10dp"
-                    android:background="@android:color/darker_gray"/>
-
-            <LinearLayout
-                    android:layout_width="fill_parent"
-                    android:layout_height="50dp"
-                    android:orientation="horizontal"
-                    android:paddingLeft="15dp"
-                    android:paddingRight="15dp">
-
-                <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="15dp"
-                        android:layout_marginTop="15dp"
-                        android:text="이메일"
-                        android:textStyle="bold"/>
-
-                <TextView
-                        android:id="@+id/tv_email"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="15dp"
-                        android:padding="10dp"
-                        android:text="메일"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="2px"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="10dp"
-                    android:background="@android:color/darker_gray"/>
+            </FrameLayout>
 
         </LinearLayout>
 
-    </RelativeLayout>
+    </ScrollView>
+
+    <Button
+            android:id="@+id/b_sync"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="동기화"/>
 
 </LinearLayout>

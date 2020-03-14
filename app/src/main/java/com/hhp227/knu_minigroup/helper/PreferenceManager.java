@@ -20,6 +20,9 @@ public class PreferenceManager {
     private static final String KEY_USER_GRADE = "usr_grade";
     private static final String KEY_USER_EMAIL = "usr_mail";
     private static final String KEY_USER_UNIQUE_ID = "usr_uid";
+    private static final String KEY_USER_IP = "usr_ip";
+    private static final String KEY_USER_CAMPUS = "usr_campus";
+    private static final String KEY_HP = "usr_hp";
     private static final String KEY_COOKIE = "cookie";
     private SharedPreferences mSharedPreferences;
     private SharedPreferences.Editor mEditor;
@@ -38,6 +41,9 @@ public class PreferenceManager {
         mEditor.putString(KEY_USER_GRADE, user.getGrade());
         mEditor.putString(KEY_USER_EMAIL, user.getEmail());
         mEditor.putString(KEY_USER_UNIQUE_ID, user.getUid());
+        mEditor.putString(KEY_USER_IP, user.getUserIp());
+        mEditor.putString(KEY_USER_CAMPUS, user.getCampus());
+        mEditor.putString(KEY_HP, user.getPhoneNumber());
         mEditor.commit();
 
         Log.i(TAG, "사용자 Session 저장 : " + user.getUserId());
@@ -53,7 +59,10 @@ public class PreferenceManager {
             String grade = mSharedPreferences.getString(KEY_USER_GRADE, null);
             String email = mSharedPreferences.getString(KEY_USER_EMAIL, null);
             String uid = mSharedPreferences.getString(KEY_USER_UNIQUE_ID, null);
-            User user = new User(knuId, password, name, deptName, number, grade, email, uid);
+            String userIp = mSharedPreferences.getString(KEY_USER_IP, null);
+            String campus = mSharedPreferences.getString(KEY_USER_CAMPUS, null);
+            String hp = mSharedPreferences.getString(KEY_HP, null);
+            User user = new User(knuId, password, name, deptName, number, grade, email, uid, userIp, campus, hp);
 
             return user;
         }

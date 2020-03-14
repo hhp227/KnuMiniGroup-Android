@@ -9,6 +9,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
@@ -64,7 +65,11 @@ public class ReplyListAdapter extends BaseAdapter {
                 .load(replyItem.getUid() != null ? new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", replyItem.getUid()), new LazyHeaders.Builder()
                         .addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie())
                         .build()) : null)
-                .apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop())
+                .apply(RequestOptions
+                        .errorOf(R.drawable.profile_img_circle)
+                        .circleCrop()
+                        .skipMemoryCache(true)
+                        .diskCacheStrategy(DiskCacheStrategy.NONE))
                 .into(viewHolder.profileImage);
         viewHolder.name.setText(replyItem.getName());
         viewHolder.reply.setText(replyItem.getReply());

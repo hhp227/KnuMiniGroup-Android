@@ -44,6 +44,7 @@ public class LoginActivity extends Activity {
         mInputPassword = findViewById(R.id.et_password);
         mPreferenceManager = app.AppController.getInstance().getPreferenceManager();
         mProgressDialog = new ProgressDialog(this);
+
         mProgressDialog.setCancelable(false);
 
         // 사용자가 이미 로그인되어있는지 아닌지 확인
@@ -60,9 +61,6 @@ public class LoginActivity extends Activity {
                 final String password = mInputPassword.getText().toString();
 
                 if (!id.isEmpty() && !password.isEmpty()) {
-                    mProgressDialog.setMessage("로그인중...");
-                    showProgressDialog();
-
                     StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.LOGIN, new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
@@ -92,6 +90,7 @@ public class LoginActivity extends Activity {
                         @Override
                         protected Response<String> parseNetworkResponse(NetworkResponse response) {
                             List<Header> headers = response.allHeaders;
+
                             for (Header header : headers)
                                 if (header.getName().equals("Set-Cookie") && header.getValue().contains("SESSION_NEWLMS"))
                                     mPreferenceManager.storeCookie(header.getValue());
@@ -106,6 +105,7 @@ public class LoginActivity extends Activity {
                         @Override
                         public byte[] getBody() {
                             Map<String, String> params = new HashMap<>();
+
                             params.put("usr_id", id);
                             params.put("usr_pwd", password);
                             if (params.size() > 0) {
@@ -125,6 +125,9 @@ public class LoginActivity extends Activity {
                             return null;
                         }
                     };
+
+                    mProgressDialog.setMessage("로그인중...");
+                    showProgressDialog();
                     app.AppController.getInstance().addToRequestQueue(stringRequest);
                 } else {
                     mInputId.setError(id.isEmpty() ? "아이디를 입력하세요." : null);
@@ -158,6 +161,7 @@ public class LoginActivity extends Activity {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
+
                 params.put("name", user.getName());
                 params.put("user_id", user.getUserId());
                 params.put("password", user.getPassword());
@@ -180,8 +184,11 @@ public class LoginActivity extends Activity {
                         String number = param.getString("session.stu_id");
                         String grade = param.getString("session.grade");
                         String email = param.getString("session.email");
-
+                        String ip = param.getString("session.user_ip");
+                        String campus = param.getString("session.campus");
+                        String hp = param.getString("session.hp_no");
                         User user = new User();
+
                         user.setUserId(id);
                         user.setPassword(password);
                         user.setName(name);
@@ -189,7 +196,9 @@ public class LoginActivity extends Activity {
                         user.setNumber(number);
                         user.setGrade(grade);
                         user.setEmail(email);
-
+                        user.setUserIp(ip);
+                        user.setCampus(campus);
+                        user.setPhoneNumber(hp);
                         createLog(user);
                         getUserUniqueId(user);
                     } else
@@ -208,6 +217,7 @@ public class LoginActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
+
                 headers.put("Cookie", mPreferenceManager.getCookie());
                 return headers;
             }
@@ -241,6 +251,7 @@ public class LoginActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
+
                 headers.put("Cookie", mPreferenceManager.getCookie());
                 return headers;
             }

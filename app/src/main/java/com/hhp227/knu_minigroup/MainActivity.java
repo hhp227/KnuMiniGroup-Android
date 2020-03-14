@@ -7,9 +7,11 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
+import androidx.annotation.Nullable;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentActivity;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
@@ -19,6 +21,8 @@ import com.hhp227.knu_minigroup.fragment.*;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.ActionBarDrawerToggle;
 import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
+
+import static com.hhp227.knu_minigroup.fragment.GroupFragment.UPDATE_GROUP;
 
 public class MainActivity extends FragmentActivity {
     private ActionBar mActionBar;
@@ -123,7 +127,7 @@ public class MainActivity extends FragmentActivity {
         mDrawerList.setItemChecked(0, true);
         Glide.with(getApplicationContext())
                     .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mPreferenceManager.getUser().getUid()), new LazyHeaders.Builder().addHeader("Cookie", mPreferenceManager.getCookie()).build()))
-                    .apply(new RequestOptions().circleCrop())
+                    .apply(new RequestOptions().circleCrop().skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE))
                     .into(mProfileImage);
         mProfileImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -132,6 +136,15 @@ public class MainActivity extends FragmentActivity {
             }
         });
         mKnuId.setText(mPreferenceManager.getUser().getUserId());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Glide.with(getApplicationContext())
+                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mPreferenceManager.getUser().getUid()), new LazyHeaders.Builder().addHeader("Cookie", mPreferenceManager.getCookie()).build()))
+                .apply(new RequestOptions().circleCrop().skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE))
+                .into(mProfileImage);
     }
 
     @Override

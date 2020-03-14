@@ -304,6 +304,7 @@ public class ModifyActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
+
                 headers.put("Cookie", mCookie);
                 return headers;
             }

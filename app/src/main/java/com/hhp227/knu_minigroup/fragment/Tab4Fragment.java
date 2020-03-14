@@ -24,6 +24,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
@@ -50,6 +51,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     private static int mPosition;
     private static String mGroupId, mGroupImage, mKey;
     private long mLastClickTime;
+    private ImageView mProfileImage;
     private ProgressDialog mProgressDialog;
     private User mUser;
 
@@ -57,13 +59,14 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     }
 
     public static Tab4Fragment newInstance(boolean isAdmin, String grpId, String grpImg, int position, String key) {
+        Tab4Fragment fragment = new Tab4Fragment();
         Bundle args = new Bundle();
+
         args.putBoolean("admin", isAdmin);
         args.putString("grp_id", grpId);
         args.putString("grp_img", grpImg);
         args.putInt("pos", position);
         args.putString("key", key);
-        Tab4Fragment fragment = new Tab4Fragment();
         fragment.setArguments(args);
         return fragment;
     }
@@ -87,7 +90,6 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
         TextView knuId = rootView.findViewById(R.id.tv_knu_id);
         TextView withdrawalText = rootView.findViewById(R.id.tv_withdrawal);
         AdView adView = rootView.findViewById(R.id.adView);
-        ImageView profileImage = rootView.findViewById(R.id.iv_profile_image);
         LinearLayout profile = rootView.findViewById(R.id.ll_profile);
         LinearLayout withdrawal = rootView.findViewById(R.id.ll_withdrawal);
         LinearLayout settings = rootView.findViewById(R.id.ll_settings);
@@ -97,6 +99,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
         LinearLayout share = rootView.findViewById(R.id.ll_share);
         LinearLayout version = rootView.findViewById(R.id.ll_verinfo);
         AdRequest adRequest = new AdRequest.Builder().build();
+        mProfileImage = rootView.findViewById(R.id.iv_profile_image);
         mProgressDialog = new ProgressDialog(getContext());
         mUser = app.AppController.getInstance().getPreferenceManager().getUser();
         String stuKnuId = mUser.getUserId();
@@ -105,8 +108,11 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
         mProgressDialog.setCancelable(false);
         Glide.with(getContext())
                 .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUser.getUid()), new LazyHeaders.Builder().addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie()).build()))
-                .apply(RequestOptions.circleCropTransform())
-                .into(profileImage);
+                .apply(RequestOptions
+                        .circleCropTransform()
+                        .skipMemoryCache(true)
+                        .diskCacheStrategy(DiskCacheStrategy.NONE))
+                .into(mProfileImage);
         adView.loadAd(adRequest);
         name.setText(userName);
         knuId.setText(stuKnuId);
@@ -130,6 +136,18 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        Glide.with(getContext())
+                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUser.getUid()), new LazyHeaders.Builder().addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie()).build()))
+                .apply(RequestOptions
+                        .circleCropTransform()
+                        .skipMemoryCache(true)
+                        .diskCacheStrategy(DiskCacheStrategy.NONE))
+                .into(mProfileImage);
+    }
+
+    @Override
     public void onClick(View v) {
         if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
             return;
@@ -140,6 +158,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                 break;
             case R.id.ll_withdrawal:
                 AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+
                 builder.setMessage((mIsAdmin ? "폐쇄" : "탈퇴") + "하시겠습니까?");
                 builder.setPositiveButton("예", new DialogInterface.OnClickListener() {
                     @Override
@@ -151,10 +170,11 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                             public void onResponse(JSONObject response) {
                                 try {
                                     if (!response.getBoolean("isError")) {
-                                        Toast.makeText(getContext(), "소모임 " + (mIsAdmin ? "폐쇄" : "탈퇴") + " 완료", Toast.LENGTH_LONG).show();
                                         Intent intent = new Intent(getContext(), MainActivity.class);
+
                                         intent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                         startActivity(intent);
+                                        Toast.makeText(getContext(), "소모임 " + (mIsAdmin ? "폐쇄" : "탈퇴") + " 완료", Toast.LENGTH_LONG).show();
                                     }
                                 } catch (JSONException e) {
                                     e.printStackTrace();
@@ -173,6 +193,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                             @Override
                             public Map<String, String> getHeaders() {
                                 Map<String, String> headers = new HashMap<>();
+
                                 headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
                                 return headers;
                             }
@@ -185,6 +206,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                             @Override
                             public byte[] getBody() {
                                 Map<String, String> params = new HashMap<>();
+
                                 params.put("CLUB_GRP_ID", mGroupId);
                                 if (params.size() > 0) {
                                     StringBuilder encodedParams = new StringBuilder();
@@ -215,6 +237,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                 break;
             case R.id.ll_settings:
                 Intent intent = new Intent(getContext(), SettingsActivity.class);
+
                 intent.putExtra("grp_id", mGroupId);
                 intent.putExtra("grp_img", mGroupImage);
                 intent.putExtra("key", mKey);
@@ -225,6 +248,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                 break;
             case R.id.ll_feedback:
                 Intent email = new Intent(Intent.ACTION_SEND);
+
                 email.setType("plain/Text");
                 email.putExtra(Intent.EXTRA_EMAIL, new String[] {"hong227@naver.com"});
                 email.putExtra(Intent.EXTRA_SUBJECT, "경북대소모임 건의사항");
@@ -234,10 +258,12 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                 break;
             case R.id.ll_appstore:
                 String appUrl = "https://play.google.com/store/apps/details?id=" + getContext().getPackageName();
+
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(appUrl)));
                 break;
             case R.id.ll_share:
                 Intent share = new Intent(Intent.ACTION_SEND);
+
                 share.setType("text/plain");
                 share.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 share.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.app_name));
@@ -264,13 +290,14 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
             String groupName = data.getStringExtra("grp_nm");
             String groupDescription = data.getStringExtra("grp_desc");
             String joinType = data.getStringExtra("join_div");
-            getActivity().getActionBar().setTitle(groupName);
             Intent intent = new Intent(getContext(), GroupFragment.class);
+
             intent.putExtra("grp_nm", groupName);
             intent.putExtra("grp_desc", groupDescription);
             intent.putExtra("join_div", joinType);
             intent.putExtra("pos", mPosition);
             getActivity().setResult(Activity.RESULT_OK, intent);
+            getActivity().getActionBar().setTitle(groupName);
         }
     }
 
@@ -295,6 +322,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     DatabaseReference replysReference = FirebaseDatabase.getInstance().getReference("Replys");
+
                     for (DataSnapshot snapshot : dataSnapshot.getChildren())
                         replysReference.child(snapshot.getKey()).removeValue();
                     articlesReference.child(mKey).removeValue();
@@ -315,6 +343,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                     GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
                     if (groupItem.getMembers() != null && groupItem.getMembers().containsKey(mUser.getUid())) {
                         Map<String, Boolean> members = groupItem.getMembers();
+
                         members.remove(mUser.getUid());
                         groupItem.setMembers(members);
                         groupItem.setMemberCount(members.size());

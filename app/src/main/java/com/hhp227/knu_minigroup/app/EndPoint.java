@@ -30,6 +30,9 @@ public interface EndPoint {
     String SEND_MESSAGE = BASE_URL + "/ilos/co/club_send_msg_insert.acl";
     String GROUP_IMAGE = BASE_URL + "/ilosfiles2/club/photo/{FILE}";
     String DEFAULT_GROUP_IMAGE = BASE_URL + "/ilos/images/community/share_nophoto.gif";
+    String SYNC_PROFILE = BASE_URL + "/ilos/mp/myinfo_sync.acl";
+    String PROFILE_IMAGE_PREVIEW = BASE_URL + "/ilos/mp/myinfo_file_update.acl";
+    String PROFILE_IMAGE_UPDATE = BASE_URL + "/ilos/mp/myinfo_insert.acl";
 
     // 로그기록
     String CREATE_LOG = "http://knu.dothome.co.kr/knu/v1/register";

@@ -9,8 +9,5 @@
     <item
             android:id="@+id/album"
             android:title="앨범"/>
-    <item
-            android:id="@+id/remove"
-            android:title="삭제"/>
 
 </menu>

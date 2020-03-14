@@ -97,6 +97,7 @@ public class WriteActivity extends Activity {
             @Override
             public void onClick(View v) {
                 mContextMenuRequest = 2;
+
                 registerForContextMenu(v);
                 openContextMenu(v);
                 unregisterForContextMenu(v);
@@ -106,6 +107,7 @@ public class WriteActivity extends Activity {
             @Override
             public void onClick(View v) {
                 mContextMenuRequest = 3;
+
                 registerForContextMenu(v);
                 openContextMenu(v);
                 unregisterForContextMenu(v);
@@ -117,6 +119,7 @@ public class WriteActivity extends Activity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 mContextMenuRequest = 1;
+
                 view.showContextMenu();
             }
         });
@@ -292,6 +295,7 @@ public class WriteActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
+
                 headers.put("Cookie", mCookie);
                 return headers;
             }
@@ -299,12 +303,14 @@ public class WriteActivity extends Activity {
             @Override
             protected Map<String, DataPart> getByteData() {
                 Map<String, DataPart> params = new HashMap<>();
+
                 params.put("file", new DataPart(System.currentTimeMillis() + position + ".jpg", getFileDataFromDrawable(bitmap)));
                 return params;
             }
 
             private byte[] getFileDataFromDrawable(Bitmap bitmap) {
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
                 bitmap.compress(Bitmap.CompressFormat.PNG, 80, byteArrayOutputStream);
                 return byteArrayOutputStream.toByteArray();
             }
@@ -388,6 +394,7 @@ public class WriteActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
+
                 headers.put("Cookie", mCookie);
                 return headers;
             }
@@ -395,6 +402,7 @@ public class WriteActivity extends Activity {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
+
                 params.put("SBJT", title);
                 params.put("CLUB_GRP_ID", grpId);
                 params.put("TXT", content);
@@ -423,6 +431,7 @@ public class WriteActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
+
                 headers.put("Cookie", mCookie);
                 return headers;
             }

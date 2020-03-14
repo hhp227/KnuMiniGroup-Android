@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.EndPoint;
@@ -70,7 +71,13 @@ public class MessageListAdapter extends BaseAdapter {
             viewHolder.name.setVisibility(getItemViewType(position) == MSG_TYPE_RIGHT ? View.GONE : View.VISIBLE);
             viewHolder.profileImage.setVisibility(View.VISIBLE);
             viewHolder.messageBox.setPadding(10, 10, 10, 10);
-            Glide.with(mContext).load(EndPoint.USER_IMAGE.replace("{UID}", messageItem.getFrom())).apply(new RequestOptions().circleCrop()).into(viewHolder.profileImage);
+            Glide.with(mContext)
+                    .load(EndPoint.USER_IMAGE.replace("{UID}", messageItem.getFrom()))
+                    .apply(new RequestOptions()
+                            .circleCrop()
+                            .skipMemoryCache(true)
+                            .diskCacheStrategy(DiskCacheStrategy.NONE))
+                    .into(viewHolder.profileImage);
         }
         if (position + 1 != mMessageItems.size() && getTimeStamp(messageItem.getTimeStamp()).equals(getTimeStamp(mMessageItems.get(position + 1).getTimeStamp())) && messageItem.getFrom().equals(mMessageItems.get(position + 1).getFrom()))
             viewHolder.timeStamp.setText("");

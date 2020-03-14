@@ -9,6 +9,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
@@ -62,7 +63,7 @@ public class MemberGridAdapter extends BaseAdapter {
                 .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", memberItem.uid), new LazyHeaders.Builder()
                         .addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie())
                         .build()))
-                .apply(new RequestOptions().centerCrop().error(R.drawable.profile_img_square))
+                .apply(new RequestOptions().centerCrop().error(R.drawable.profile_img_square).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE))
                 .into(viewHolder.profileImg);
         return convertView;
     }
