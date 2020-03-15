@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
-import androidx.annotation.Nullable;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentActivity;
 import com.bumptech.glide.Glide;
@@ -132,19 +131,35 @@ public class MainActivity extends FragmentActivity {
         mProfileImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(getApplicationContext(), ProfileActivity.class));
+                Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+
+                startActivityForResult(intent, UPDATE_GROUP);
             }
         });
         mKnuId.setText(mPreferenceManager.getUser().getUserId());
     }
 
-    @Override
+    /*@Override
     protected void onResume() {
         super.onResume();
         Glide.with(getApplicationContext())
                 .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mPreferenceManager.getUser().getUid()), new LazyHeaders.Builder().addHeader("Cookie", mPreferenceManager.getCookie()).build()))
                 .apply(new RequestOptions().circleCrop().skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE))
                 .into(mProfileImage);
+    }*/
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            Glide.with(getApplicationContext())
+                    .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mPreferenceManager.getUser().getUid()), new LazyHeaders.Builder().addHeader("Cookie", mPreferenceManager.getCookie()).build()))
+                    .apply(new RequestOptions().circleCrop()
+                            .error(R.drawable.profile_img_circle)
+                            .skipMemoryCache(true)
+                            .diskCacheStrategy(DiskCacheStrategy.NONE))
+                    .into(mProfileImage);
+        }
     }
 
     @Override

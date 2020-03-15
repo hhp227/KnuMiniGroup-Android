@@ -41,8 +41,8 @@ public class Tab1Fragment extends BaseFragment {
     public static String mGroupId, mGroupName, mGroupImage, mKey;
 
     private boolean mHasRequestedMore; // 데이터 불러올때 중복안되게 하기위한 변수
-    private int mOffSet, mMinId;
-    private long mLastClickTime; // 클릭시 걸리는 시간
+    private int mOffSet;
+    private long mMinId, mLastClickTime; // 클릭시 걸리는 시간
     private ArticleListAdapter mAdapter;
     private FloatingActionButton mFloatingActionButton;
     private List<String> mArticleItemKeys;
@@ -172,7 +172,6 @@ public class Tab1Fragment extends BaseFragment {
                 intent.putExtra("grp_img", mGroupImage);
                 intent.putExtra("key", mKey);
                 startActivity(intent);
-                return;
             }
         });
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -199,12 +198,6 @@ public class Tab1Fragment extends BaseFragment {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        mAdapter.notifyDataSetChanged();
-    }
-
-    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == UPDATE_ARTICLE && resultCode == Activity.RESULT_OK) {
@@ -218,7 +211,8 @@ public class Tab1Fragment extends BaseFragment {
             articleItem.setYoutube((YouTubeItem) data.getParcelableExtra("youtube"));
             mArticleItemValues.set(position, articleItem);
             mAdapter.notifyDataSetChanged();
-        }
+        } else if (resultCode == Activity.RESULT_OK)
+            mAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -239,7 +233,6 @@ public class Tab1Fragment extends BaseFragment {
                     for (Element element : list) {
                         Element viewArt = element.getFirstElementByClass("view_art");
                         Element commentWrap = element.getFirstElementByClass("comment_wrap");
-
                         boolean auth = viewArt.getAllElementsByClass("btn-small-gray").size() > 0;
                         String id = commentWrap.getAttributeValue("num");
                         String listTitle = viewArt.getFirstElementByClass("list_title").getTextExtractor().toString();
@@ -248,19 +241,20 @@ public class Tab1Fragment extends BaseFragment {
                         String date = viewArt.getFirstElement(HTMLElementName.TD).getTextExtractor().toString();
                         List<Element> images = viewArt.getAllElements(HTMLElementName.IMG);
                         List<String> imageList = new ArrayList<>();
+                        StringBuilder content = new StringBuilder();
+                        String replyCnt = commentWrap.getContent().getFirstElement(HTMLElementName.P).getTextExtractor().toString();
                         if (images.size() > 0) {
                             for (Element image : images) {
                                 String imageUrl = !image.getAttributeValue("src").contains("http") ? EndPoint.BASE_URL + image.getAttributeValue("src") : image.getAttributeValue("src");
+
                                 imageList.add(imageUrl);
                             }
                         }
-                        StringBuilder content = new StringBuilder();
                         for (Element childElement : viewArt.getFirstElementByClass("list_cont").getChildElements())
                             content.append(childElement.getTextExtractor().toString().concat("\n"));
 
-                        String replyCnt = commentWrap.getContent().getFirstElement(HTMLElementName.P).getTextExtractor().toString();
-                        mMinId = mMinId == 0 ? Integer.parseInt(id) : Math.min(mMinId, Integer.parseInt(id));
-                        if (Integer.parseInt(id) > mMinId) {
+                        mMinId = mMinId == 0 ? Long.parseLong(id) : Math.min(mMinId, Long.parseLong(id));
+                        if (Long.parseLong(id) > mMinId) {
                             mHasRequestedMore = true;
                             break;
                         } else
@@ -306,6 +300,7 @@ public class Tab1Fragment extends BaseFragment {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
+
                 headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
                 return headers;
             }
@@ -315,6 +310,7 @@ public class Tab1Fragment extends BaseFragment {
 
     private void initFirebaseData() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
+
         fetchArticleListFromFirebase(databaseReference.child(mKey));
     }
 
@@ -328,6 +324,7 @@ public class Tab1Fragment extends BaseFragment {
                     int index = mArticleItemKeys.indexOf(value.getId());
                     if (index > -1) {
                         ArticleItem articleItem = mArticleItemValues.get(index);
+
                         articleItem.setUid(value.getUid());
                         mArticleItemValues.set(index, articleItem);
                         mArticleItemKeys.set(index, key);

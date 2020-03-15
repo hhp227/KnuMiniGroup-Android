@@ -87,6 +87,7 @@ public class GroupFragment extends Fragment {
                     Toast.makeText(getContext(), "광고", Toast.LENGTH_LONG).show();
                 else {
                     Intent intent = new Intent(getContext(), GroupActivity.class);
+
                     intent.putExtra("admin", groupItem.isAdmin());
                     intent.putExtra("grp_id", groupItem.getId());
                     intent.putExtra("grp_nm", groupItem.getName());
@@ -118,6 +119,7 @@ public class GroupFragment extends Fragment {
                 if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
                     return;
                 mLastClickTime = SystemClock.elapsedRealtime();
+
                 startActivityForResult(new Intent(getContext(), FindActivity.class), REGISTER_CODE);
             }
         });
@@ -127,6 +129,7 @@ public class GroupFragment extends Fragment {
                 if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
                     return;
                 mLastClickTime = SystemClock.elapsedRealtime();
+
                 startActivity(new Intent(getActivity(), RequestActivity.class));
             }
         });
@@ -136,6 +139,7 @@ public class GroupFragment extends Fragment {
                 if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
                     return;
                 mLastClickTime = SystemClock.elapsedRealtime();
+
                 startActivityForResult(new Intent(getContext(), CreateActivity.class), CREATE_CODE);
             }
         });
@@ -154,9 +158,10 @@ public class GroupFragment extends Fragment {
             mGroupItemKeys.clear();
             mGroupItemValues.clear();
             fetchDataTask();
-        } else if (requestCode == UPDATE_GROUP && resultCode == Activity.RESULT_OK) {
+        } else if (requestCode == UPDATE_GROUP && resultCode == Activity.RESULT_OK && data != null) {//
             int position = data.getIntExtra("position", 0);
             GroupItem groupItem = mGroupItemValues.get(position);
+
             groupItem.setName(data.getStringExtra("grp_nm"));
             groupItem.setDescription(data.getStringExtra("grp_desc"));
             groupItem.setJoinType(data.getStringExtra("join_div"));
@@ -179,13 +184,12 @@ public class GroupFragment extends Fragment {
                             boolean isAdmin = adminCheck(elementA.getAttributeValue("onclick"));
                             String image = EndPoint.BASE_URL + elementA.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
                             String name = elementA.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
-
                             GroupItem groupItem = new GroupItem();
+
                             groupItem.setId(id);
                             groupItem.setAdmin(isAdmin);
                             groupItem.setImage(image);
                             groupItem.setName(name);
-
                             mGroupItemKeys.add(id);
                             mGroupItemValues.add(groupItem);
                         } catch (NullPointerException e) {
@@ -210,19 +214,19 @@ public class GroupFragment extends Fragment {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
 
+                headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
                 return headers;
             }
 
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
+
                 params.put("panel_id", "2");
                 params.put("start", "1");
                 params.put("display", "10");
                 params.put("encoding", "utf-8");
-
                 return params;
             }
         });
@@ -237,6 +241,7 @@ public class GroupFragment extends Fragment {
     private void insertAdvertisement() {
         if (mGroupItemValues.size() % 2 != 0) {
             GroupItem ad = new GroupItem();
+
             ad.setAd(true);
             ad.setName("광고");
             mGroupItemValues.add(ad);
@@ -247,6 +252,7 @@ public class GroupFragment extends Fragment {
 
     private void initFirebaseData() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
+
         fetchDataTaskFromFirebase(databaseReference.child(mPreferenceManager.getUser().getUid()).orderByValue().equalTo(true), false);
     }
 
@@ -268,12 +274,14 @@ public class GroupFragment extends Fragment {
                     } catch (Exception e) {
                         Log.e(TAG, e.getMessage());
                     } finally {
-                        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                        if (getActivity() != null)
+                            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
                     }
                 } else {
                     if (dataSnapshot.hasChildren()) {
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                             DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
+
                             fetchDataTaskFromFirebase(databaseReference.child(snapshot.getKey()), true);
                         }
                     } else

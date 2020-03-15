@@ -1,6 +1,8 @@
 package com.hhp227.knu_minigroup.fragment;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,6 +28,8 @@ import net.htmlparser.jericho.Source;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.hhp227.knu_minigroup.fragment.Tab4Fragment.UPDATE_PROFILE;
 
 public class Tab3Fragment extends BaseFragment {
     private static final int LIMIT = 40;
@@ -77,6 +81,7 @@ public class Tab3Fragment extends BaseFragment {
                 if (scrollState == SCROLL_STATE_IDLE && lastItemVisibleFlag && !mHasRequestedMore) {
                     mHasRequestedMore = true;
                     mOffSet += LIMIT;
+
                     fetchMemberList();
                 }
             }
@@ -93,13 +98,12 @@ public class Tab3Fragment extends BaseFragment {
                 String uid = memberItem.uid;
                 String name = memberItem.name;
                 String value = memberItem.value;
-
                 Bundle args = new Bundle();
+                UserFragment newFragment = UserFragment.newInstance();
+
                 args.putString("uid", uid);
                 args.putString("name", name);
                 args.putString("value", value);
-
-                UserFragment newFragment = UserFragment.newInstance();
                 newFragment.setArguments(args);
                 newFragment.show(getChildFragmentManager(), "dialog");
             }
@@ -111,9 +115,10 @@ public class Tab3Fragment extends BaseFragment {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        mAdapter.notifyDataSetChanged();
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK)
+            mAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -140,6 +145,7 @@ public class Tab3Fragment extends BaseFragment {
                         String name = spanElements.get(i).getContent().toString();
                         String imageUrl = imgElements.get(i).getAttributeValue("src");
                         String value = inputElements.get(i).getAttributeValue("value");
+
                         mMemberItems.add(new MemberItem(imageUrl.substring(imageUrl.indexOf("id=") + "id=".length(), imageUrl.lastIndexOf("&ext")), name, value));
                     }
                     mAdapter.notifyDataSetChanged();

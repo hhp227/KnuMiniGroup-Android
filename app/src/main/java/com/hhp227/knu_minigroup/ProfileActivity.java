@@ -114,6 +114,7 @@ public class ProfileActivity extends Activity {
                                                 .skipMemoryCache(true)
                                                 .diskCacheStrategy(DiskCacheStrategy.NONE))
                                         .into(mProfileImage);
+                                setResult(RESULT_OK);
                                 Toast.makeText(getApplicationContext(), response.getString("message"), Toast.LENGTH_LONG).show();
                             } else
                                 Toast.makeText(getApplicationContext(), "동기화 실패", Toast.LENGTH_LONG).show();
@@ -235,6 +236,7 @@ public class ProfileActivity extends Activity {
             public void onResponse(NetworkResponse response) {
                 if (isUpdate) {
                     hideProgressDialog();
+                    setResult(RESULT_OK);
                     Toast.makeText(getApplicationContext(), new String(response.data).contains("성공") ? "수정되었습니다." : "실패했습니다.", Toast.LENGTH_LONG).show();
                 } else
                     uploadImage(true);

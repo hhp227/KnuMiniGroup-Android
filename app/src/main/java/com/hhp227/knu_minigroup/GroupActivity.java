@@ -69,4 +69,10 @@ public class GroupActivity extends FragmentActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        mFragMain.onActivityResult(requestCode, resultCode, data);
+    }
 }

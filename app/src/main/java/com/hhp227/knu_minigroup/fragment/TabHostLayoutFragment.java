@@ -1,5 +1,7 @@
 package com.hhp227.knu_minigroup.fragment;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -8,6 +10,7 @@ import android.view.ViewGroup;
 
 import android.widget.TabHost;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
@@ -42,6 +45,7 @@ public class TabHostLayoutFragment extends Fragment {
     public static TabHostLayoutFragment newInstance(boolean isAdmin, String groupId, String groupName, String groupImage, int position, String key) {
         TabHostLayoutFragment fragment = new TabHostLayoutFragment();
         Bundle args = new Bundle();
+
         args.putBoolean(IS_ADMIN, isAdmin);
         args.putString(GROUP_ID, groupId);
         args.putString(GROUP_NAME, groupName);
@@ -77,12 +81,13 @@ public class TabHostLayoutFragment extends Fragment {
         mViewPager.setOffscreenPageLimit(TAB_NAMES.length);
         mTabHost.setup();
         for (int i = 0; i < TAB_NAMES.length; i++) {
-            TabHost.TabSpec tabSpec;
-            tabSpec = mTabHost.newTabSpec(TAB_NAMES[i]);
+            TabHost.TabSpec tabSpec = mTabHost.newTabSpec(TAB_NAMES[i]);
+
             tabSpec.setIndicator(TAB_NAMES[i]);
             tabSpec.setContent(new FakeContent(getActivity()));
             mTabHost.addTab(tabSpec);
             TextView textView = mTabHost.getTabWidget().getChildAt(i).findViewById(android.R.id.title);
+
             textView.setTextColor(Color.parseColor("#FFFFFF"));
         }
         mTabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
@@ -126,6 +131,13 @@ public class TabHostLayoutFragment extends Fragment {
         super.onDestroy();
         mViewPager.clearOnPageChangeListeners();
         mTabHost.clearAllTabs();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        for (BaseFragment fragment : mAdapter.fragments)
+            fragment.onActivityResult(requestCode, resultCode, data);
     }
 
     public class TabsPagerAdapter extends FragmentPagerAdapter {

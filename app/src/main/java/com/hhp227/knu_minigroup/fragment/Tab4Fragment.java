@@ -46,6 +46,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
+    public static final int UPDATE_PROFILE = 0;
+
     private static final String TAG = "설정";
     private static boolean mIsAdmin;
     private static int mPosition;
@@ -136,25 +138,13 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        Glide.with(getContext())
-                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUser.getUid()), new LazyHeaders.Builder().addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie()).build()))
-                .apply(RequestOptions
-                        .circleCropTransform()
-                        .skipMemoryCache(true)
-                        .diskCacheStrategy(DiskCacheStrategy.NONE))
-                .into(mProfileImage);
-    }
-
-    @Override
     public void onClick(View v) {
         if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
             return;
         mLastClickTime = SystemClock.elapsedRealtime();
         switch (v.getId()) {
             case R.id.ll_profile:
-                startActivity(new Intent(getContext(), ProfileActivity.class));
+                startActivityForResult(new Intent(getContext(), ProfileActivity.class), UPDATE_PROFILE);
                 break;
             case R.id.ll_withdrawal:
                 AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
@@ -298,6 +288,15 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
             intent.putExtra("pos", mPosition);
             getActivity().setResult(Activity.RESULT_OK, intent);
             getActivity().getActionBar().setTitle(groupName);
+        } else if (requestCode == UPDATE_PROFILE && resultCode == Activity.RESULT_OK) {
+            Glide.with(getContext())
+                    .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUser.getUid()), new LazyHeaders.Builder().addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie()).build()))
+                    .apply(RequestOptions
+                            .circleCropTransform()
+                            .skipMemoryCache(true)
+                            .diskCacheStrategy(DiskCacheStrategy.NONE))
+                    .into(mProfileImage);
+            getActivity().setResult(Activity.RESULT_OK);
         }
     }
 
