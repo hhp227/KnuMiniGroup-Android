@@ -103,28 +103,70 @@
                 android:layout_height="match_parent"
                 android:visibility="gone">
 
-            <ImageView
-                    android:layout_width="186dp"
-                    android:layout_height="110dp"
-                    android:src="@drawable/knu_minigroup"
-                    android:layout_above="@id/tv_nogroups"
-                    android:layout_centerHorizontal="true"
-                    android:layout_marginBottom="20dp"/>
+            <com.hhp227.knu_minigroup.ui.loopviewpager.LoopViewPager
+                    android:id="@+id/lvp_theme_slider_pager"
+                    android:layout_width="match_parent"
+                    android:layout_height="290dp"/>
 
-            <TextView
-                    android:text="가입한 그룹이 없습니다."
+            <com.hhp227.knu_minigroup.ui.pageindicator.LoopingCirclePageIndicator
+                    android:id="@+id/cpi_theme_slider_indicator"
+                    android:padding="10dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="3dp"
+                    android:layout_alignBottom="@+id/lvp_theme_slider_pager"
                     android:layout_centerHorizontal="true"
-                    android:layout_above="@id/tv_nogroups"/>
+                    tools:extraSpacing="9.2dp"
+                    tools:fillColor="#ffffff"
+                    tools:pageColor="@android:color/transparent"
+                    tools:radius="2.5dp"
+                    tools:snap="true"
+                    tools:strokeColor="#fafafa"
+                    tools:strokeWidth="1dp"/>
 
-            <TextView
-                    android:id="@+id/tv_nogroups"
-                    android:text="그룹찾기를 통해 가입하거나 새로운 모임을 생성하세요."
-                    android:layout_width="wrap_content"
+            <RelativeLayout
+                    android:id="@+id/rl_loop"
+                    android:layout_width="match_parent"
+                    android:layout_height="35dp"
+                    android:paddingBottom="5dp"
+                    android:paddingTop="5dp"
+                    android:layout_below="@id/lvp_theme_slider_pager">
+
+                <TextView
+                        android:id="@+id/tv_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentBottom="true"
+                        android:layout_marginLeft="15dp"
+                        android:layout_marginStart="15dp"
+                        android:textSize="16dp"
+                        android:textColor="#bc1c1e"
+                        android:textStyle="bold"
+                        android:text="인기 모임"/>
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:layout_marginTop="20dp"/>
+                    android:paddingTop="10dp"
+                    android:layout_below="@id/rl_loop">
+
+                <androidx.viewpager.widget.ViewPager
+                        android:id="@+id/view_pager"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"/>
+
+                <ProgressBar
+                        android:id="@+id/pb_group2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:visibility="gone"/>
+
+            </RelativeLayout>
 
         </RelativeLayout>
 
