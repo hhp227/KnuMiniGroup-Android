@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="colorPrimary">#db2428</color>
+    <color name="colorPrimaryDark">#C51216</color>
+    <color name="colorAccent">#888888</color>
+
     <color name="bg_ad_attribution">#FFCC66</color>
     <color name="txt_ad_attribution">#FFFFFF</color>
 </resources>

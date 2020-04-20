@@ -44,10 +44,8 @@
                         android:id="@+id/tv_knu_id"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_alignParentBottom="true"
-                        android:layout_centerHorizontal="true"
                         android:layout_marginBottom="7dp"
-                        android:paddingLeft="8dp"
+                        android:paddingStart="8dp"
                         android:text="아이디"
                         android:textSize="12dp"/>
 

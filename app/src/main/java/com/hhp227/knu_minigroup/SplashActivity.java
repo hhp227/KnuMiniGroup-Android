@@ -59,6 +59,8 @@ public class SplashActivity extends Activity {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         VolleyLog.e(SplashActivity.class.getSimpleName(), error.getMessage());
+                        Toast.makeText(SplashActivity.this, "네트워크 연결을 확인해주세요.", Toast.LENGTH_SHORT).show();
+                        finish();
                     }
                 }) {
                     @Override

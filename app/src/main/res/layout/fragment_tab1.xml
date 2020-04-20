@@ -31,7 +31,6 @@
                 android:layout_gravity="bottom|end"
                 android:layout_marginBottom="16dp"
                 android:layout_marginEnd="16dp"
-                android:layout_marginRight="16dp"
                 app:color="#9f49d1"
                 app:drawable="@drawable/ic_content_new"/>
 
