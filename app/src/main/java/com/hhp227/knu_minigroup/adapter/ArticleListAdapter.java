@@ -1,36 +1,35 @@
 package com.hhp227.knu_minigroup.adapter;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
+import androidx.cardview.widget.CardView;
+import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestOptions;
-import com.hhp227.knu_minigroup.ArticleActivity;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
-import com.hhp227.knu_minigroup.fragment.Tab1Fragment;
-
 import java.text.SimpleDateFormat;
 import java.util.List;
 
-import static com.hhp227.knu_minigroup.fragment.Tab1Fragment.UPDATE_ARTICLE;
-
-public class ArticleListAdapter extends BaseAdapter {
+public class ArticleListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private static final int TYPE_ARTICLE = 0;
+    private static final int TYPE_LOADER = 1;
     private static final int CONTENT_MAX_LINE = 4;
+    private int mProgressBarVisibility;
     private Activity mActivity;
-    private LayoutInflater mInflater;
     private List<String> mArticleItemKeys;
     private List<ArticleItem> mArticleItemValues;
+    private OnItemClickListener mOnItemClickListener;
     private String mGroupKey;
 
     public ArticleListAdapter(Activity activity, List<String> articleItemKeys, List<ArticleItem> articleItemValues, String groupKey) {
@@ -41,110 +40,118 @@ public class ArticleListAdapter extends BaseAdapter {
     }
 
     @Override
-    public int getCount() {
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        switch (viewType) {
+            case TYPE_ARTICLE:
+                View itemView = LayoutInflater.from(mActivity).inflate(R.layout.article_item, parent, false);
+                return new ItemHolder(itemView);
+            case TYPE_LOADER:
+                View footerView = LayoutInflater.from(mActivity).inflate(R.layout.load_more, parent, false);
+                return new FooterHolder(footerView);
+        }
+        throw new RuntimeException();
+    }
+
+    @Override
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
+        if (holder instanceof ItemHolder) {
+            ArticleItem articleItem = mArticleItemValues.get(position);
+
+            ((ItemHolder) holder).article.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (mOnItemClickListener != null)
+                        mOnItemClickListener.onItemClick(v, position);
+                }
+            });
+            Glide.with(mActivity)
+                    .load(articleItem.getUid() != null ? new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", articleItem.getUid()), new LazyHeaders.Builder()
+                            .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
+                            .build()) : null)
+                    .apply(RequestOptions.errorOf(R.drawable.user_image_view_circle)
+                            .circleCrop()
+                            .skipMemoryCache(true)
+                            .diskCacheStrategy(DiskCacheStrategy.NONE))
+                    .into(((ItemHolder) holder).profileImage);
+            ((ItemHolder) holder).title.setText(articleItem.getName() != null ? articleItem.getTitle() + " - " + articleItem.getName() : articleItem.getTitle());
+            ((ItemHolder) holder).timestamp.setText(articleItem.getDate() != null ? articleItem.getDate() : new SimpleDateFormat("yyyy.MM.dd a h:mm:ss").format(articleItem.getTimestamp()));
+            if (!TextUtils.isEmpty(articleItem.getContent())) {
+                ((ItemHolder) holder).content.setText(articleItem.getContent());
+                ((ItemHolder) holder).content.setMaxLines(CONTENT_MAX_LINE);
+                ((ItemHolder) holder).content.setVisibility(View.VISIBLE);
+            } else
+                ((ItemHolder) holder).content.setVisibility(View.GONE);
+
+            ((ItemHolder) holder).contentMore.setVisibility(!TextUtils.isEmpty(articleItem.getContent()) && ((ItemHolder) holder).content.getLineCount() > CONTENT_MAX_LINE ? View.VISIBLE : View.GONE);
+            if (articleItem.getYoutube() != null) {
+                ((ItemHolder) holder).imageContainer.setVisibility(View.VISIBLE);
+                ((ItemHolder) holder).videoMark.setVisibility(View.VISIBLE);
+                Glide.with(mActivity)
+                        .load(articleItem.getYoutube().thumbnail)
+                        .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
+                        .transition(DrawableTransitionOptions.withCrossFade(150))
+                        .into(((ItemHolder) holder).articleImage);
+            } else if (articleItem.getImages() != null && articleItem.getImages().size() > 0) {
+                ((ItemHolder) holder).imageContainer.setVisibility(View.VISIBLE);
+                ((ItemHolder) holder).videoMark.setVisibility(View.INVISIBLE);
+                Glide.with(mActivity)
+                        .load(articleItem.getImages().get(0))
+                        .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
+                        .transition(DrawableTransitionOptions.withCrossFade(150))
+                        .into(((ItemHolder) holder).articleImage);
+            } else
+                ((ItemHolder) holder).imageContainer.setVisibility(View.GONE);
+            ((ItemHolder) holder).replyCount.setText(articleItem.getReplyCount());
+
+            ((ItemHolder) holder).replyButton.setTag(position);
+            ((ItemHolder) holder).replyButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (mOnItemClickListener != null)
+                        mOnItemClickListener.onItemClick(v, position);
+                }
+            });
+        } else if (holder instanceof FooterHolder)
+            ((FooterHolder) holder).progressBar.setVisibility(mProgressBarVisibility);
+    }
+
+    @Override
+    public int getItemCount() {
         return mArticleItemValues.size();
     }
 
     @Override
-    public Object getItem(int position) {
-        return mArticleItemValues.get(position);
+    public int getItemViewType(int position) {
+        return mArticleItemValues.get(position) != null ? TYPE_ARTICLE : TYPE_LOADER;
     }
 
-    @Override
-    public long getItemId(int position) {
-        return position;
+    public void addFooterView() {
+        mArticleItemKeys.add("");
+        mArticleItemValues.add(null);
     }
 
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        ViewHolder viewHolder;
-        if (mInflater == null)
-            mInflater = (LayoutInflater) mActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        if (convertView == null) {
-            convertView = mInflater.inflate(R.layout.article_item, null);
-            viewHolder = new ViewHolder(convertView);
-            convertView.setTag(viewHolder);
-        } else
-            viewHolder = (ViewHolder) convertView.getTag();
+    public void setFooterProgressBarVisibility(int visibility) {
+        this.mProgressBarVisibility = visibility;
+    }
 
-        ArticleItem articleItem = mArticleItemValues.get(position);
-
-        Glide.with(mActivity)
-                .load(articleItem.getUid() != null ? new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", articleItem.getUid()), new LazyHeaders.Builder()
-                        .addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie())
-                        .build()) : null)
-                .apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop().skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE))
-                .into(viewHolder.profileImage);
-        viewHolder.title.setText(articleItem.getName() != null ? articleItem.getTitle() + " - " + articleItem.getName() : articleItem.getTitle());
-        viewHolder.timestamp.setText(articleItem.getDate() != null ? articleItem.getDate() : new SimpleDateFormat("yyyy.MM.dd a h:mm:ss").format(articleItem.getTimestamp()));
-        // 피드의 메시지가 비었는지 확인
-        if (!TextUtils.isEmpty(articleItem.getContent())) {
-            viewHolder.content.setText(articleItem.getContent());
-            viewHolder.content.setMaxLines(CONTENT_MAX_LINE);
-            viewHolder.content.setVisibility(View.VISIBLE);
-        } else {
-            // 피드 내용이 비었으면 화면에서 삭제
-            viewHolder.content.setVisibility(View.GONE);
-        }
-        viewHolder.contentMore.setVisibility(!TextUtils.isEmpty(articleItem.getContent()) && viewHolder.content.getLineCount() > CONTENT_MAX_LINE ? View.VISIBLE : View.GONE);
-
-        // 피드 이미지
-        if (articleItem.getYoutube() != null) {
-            viewHolder.imageContainer.setVisibility(View.VISIBLE);
-            viewHolder.videoMark.setVisibility(View.VISIBLE);
-            Glide.with(mActivity)
-                    .load(articleItem.getYoutube().thumbnail)
-                    .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
-                    .transition(DrawableTransitionOptions.withCrossFade(150))
-                    .into(viewHolder.articleImage);
-        } else if (articleItem.getImages() != null && articleItem.getImages().size() > 0) {
-            viewHolder.imageContainer.setVisibility(View.VISIBLE);
-            viewHolder.videoMark.setVisibility(View.INVISIBLE);
-            viewHolder.articleImage.setVisibility(View.VISIBLE);
-            Glide.with(mActivity)
-                    .load(articleItem.getImages().get(0))
-                    .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
-                    .transition(DrawableTransitionOptions.withCrossFade(150))
-                    .into(viewHolder.articleImage);
-        } else
-            viewHolder.imageContainer.setVisibility(View.GONE);
-        viewHolder.replyCount.setText(articleItem.getReplyCount());
-
-        // 댓글 버튼을 누르면 댓글쓰는곳으로 이동
-        viewHolder.replyButton.setTag(position);
-        viewHolder.replyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int position = (int) v.getTag();
-                ArticleItem articleItem = mArticleItemValues.get(position);
-
-                Intent intent = new Intent(mActivity, ArticleActivity.class);
-                intent.putExtra("grp_id", Tab1Fragment.mGroupId);
-                intent.putExtra("grp_nm", Tab1Fragment.mGroupName);
-                intent.putExtra("artl_num", articleItem.getId());
-                intent.putExtra("position", position + 1);
-                intent.putExtra("auth", articleItem.isAuth());
-                intent.putExtra("isbottom", true);
-                intent.putExtra("grp_key", mGroupKey);
-                intent.putExtra("artl_key", getKey(position));
-                mActivity.startActivityForResult(intent, UPDATE_ARTICLE);
-            }
-        });
-
-        return convertView;
+    public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
+        this.mOnItemClickListener = onItemClickListener;
     }
 
     public String getKey(int position) {
         return mArticleItemKeys.get(position);
     }
 
-    public static class ViewHolder {
+    public static class ItemHolder extends RecyclerView.ViewHolder {
+        private CardView article;
         private ImageView profileImage, articleImage, videoMark;
         private LinearLayout replyButton, likeButton;
         private RelativeLayout imageContainer;
         private TextView title, timestamp, content, contentMore, replyCount, likeCount;
 
-        ViewHolder(View itemView) {
+        ItemHolder(View itemView) {
+            super(itemView);
+            article = itemView.findViewById(R.id.cv_article);
             profileImage = itemView.findViewById(R.id.iv_profile_image);
             title = itemView.findViewById(R.id.tv_title);
             timestamp = itemView.findViewById(R.id.tv_timestamp);
@@ -156,5 +163,18 @@ public class ArticleListAdapter extends BaseAdapter {
             replyCount = itemView.findViewById(R.id.tv_replycount);
             replyButton = itemView.findViewById(R.id.ll_reply);
         }
+    }
+
+    public static class FooterHolder extends RecyclerView.ViewHolder {
+        private ProgressBar progressBar;
+
+        FooterHolder(View itemView) {
+            super(itemView);
+            progressBar = itemView.findViewById(R.id.pb_more);
+        }
+    }
+
+    public interface OnItemClickListener {
+        void onItemClick(View v, int position);
     }
 }

@@ -10,6 +10,7 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.*;
 
+import android.webkit.CookieManager;
 import android.widget.*;
 import androidx.fragment.app.Fragment;
 import com.android.volley.*;
@@ -20,6 +21,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import net.htmlparser.jericho.Element;
@@ -40,9 +42,11 @@ public class DefaultSettingFragment extends Fragment {
     private static String mGroupId, mGroupImage, mGroupKey;
     private boolean mJoinTypeCheck;
     private Bitmap mBitmap;
+    private CookieManager mCookieManager;
     private EditText mInputTitle, mInputDescription;
     private ImageView mImageView, mResetTitle;
     private RadioGroup mJoinType;
+    private TextWatcher mTextWatcher;
 
     public DefaultSettingFragment() {
     }
@@ -76,16 +80,8 @@ public class DefaultSettingFragment extends Fragment {
         mInputDescription = rootView.findViewById(R.id.et_description);
         mJoinType = rootView.findViewById(R.id.rg_jointype);
         mResetTitle = rootView.findViewById(R.id.iv_reset);
-
-        mImageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                registerForContextMenu(v);
-                getActivity().openContextMenu(v);
-                unregisterForContextMenu(v);
-            }
-        });
-        mInputTitle.addTextChangedListener(new TextWatcher() {
+        mCookieManager = AppController.getInstance().getCookieManager();
+        mTextWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
@@ -98,7 +94,17 @@ public class DefaultSettingFragment extends Fragment {
             @Override
             public void afterTextChanged(Editable s) {
             }
+        };
+
+        mImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                registerForContextMenu(v);
+                getActivity().openContextMenu(v);
+                unregisterForContextMenu(v);
+            }
         });
+        mInputTitle.addTextChangedListener(mTextWatcher);
         mJoinType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -117,7 +123,7 @@ public class DefaultSettingFragment extends Fragment {
                 .transition(DrawableTransitionOptions.withCrossFade(150))
                 .into(mImageView);
         String params = "?CLUB_GRP_ID=" + mGroupId;
-        app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.MODIFY_GROUP + params, new Response.Listener<String>() {
+        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.MODIFY_GROUP + params, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 Source source = new Source(response);
@@ -140,11 +146,18 @@ public class DefaultSettingFragment extends Fragment {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+
+                headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
                 return headers;
             }
         });
         return rootView;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mInputTitle.removeTextChangedListener(mTextWatcher);
     }
 
     @Override
@@ -162,7 +175,7 @@ public class DefaultSettingFragment extends Fragment {
 
                 if (!TextUtils.isEmpty(groupName) && !TextUtils.isEmpty(groupDescription)) {
                     String tagJsonReq = "req_send";
-                    app.AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, EndPoint.UPDATE_GROUP, null, new Response.Listener<JSONObject>() {
+                    AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, EndPoint.UPDATE_GROUP, null, new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
                             try {
@@ -220,7 +233,7 @@ public class DefaultSettingFragment extends Fragment {
                         @Override
                         public Map<String, String> getHeaders() {
                             Map<String, String> headers = new HashMap<>();
-                            headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+                            headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
                             return headers;
                         }
                     }, tagJsonReq);

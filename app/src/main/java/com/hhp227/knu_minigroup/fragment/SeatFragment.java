@@ -4,18 +4,30 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TabHost;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
+import com.google.android.material.tabs.TabLayout;
 import com.hhp227.knu_minigroup.R;
-import com.hhp227.knu_minigroup.ui.tabhostviewpager.FakeContent;
-import com.hhp227.knu_minigroup.ui.tabhostviewpager.TabsPagerAdapter;
 
 import java.util.List;
 import java.util.Vector;
 
 public class SeatFragment extends Fragment {
-    private TabHost mTabHost;
+    public static final String TAG = "도서관 좌석";
+
+    private static final String[] TAB_NAMES = {"대구 열람실", "상주 열람실"};
+    private AppCompatActivity mActivity;
+    private DrawerLayout mDrawerLayout;
+    private TabLayout mTabLayout;
+    private Toolbar mToolbar;
     private ViewPager mViewPager;
 
     public SeatFragment() {
@@ -33,51 +45,54 @@ public class SeatFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_tabs, container, false);
-        List<Fragment> fragments = new Vector<>();
-        String[] tabNames = {"대구 열람실", "상주 열람실"};
-        TabsPagerAdapter tabsPagerAdapter = new TabsPagerAdapter(getChildFragmentManager(), fragments);
-        mTabHost = rootView.findViewById(android.R.id.tabhost);
-        mViewPager = rootView.findViewById(R.id.view_pager);
-        mTabHost.setup();
-        for (int i = 0; i < tabNames.length; i++) {
-            TabHost.TabSpec tabSpec;
-            tabSpec = mTabHost.newTabSpec(tabNames[i]);
-            tabSpec.setIndicator(tabNames[i]);
-            tabSpec.setContent(new FakeContent(getActivity()));
-            mTabHost.addTab(tabSpec);
-        }
-        mTabHost.setOnTabChangedListener(new android.widget.TabHost.OnTabChangeListener() {
-            // 탭호스트 리스너
+        return inflater.inflate(R.layout.fragment_tabs, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        final List<Fragment> fragments = new Vector<>();
+        FragmentPagerAdapter adapter = new FragmentPagerAdapter(getChildFragmentManager(), FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+            @NonNull
             @Override
-            public void onTabChanged(String tabId) {
-                int selectedItem = mTabHost.getCurrentTab();
-                mViewPager.setCurrentItem(selectedItem);
+            public Fragment getItem(int position) {
+                return fragments.get(position);
             }
-        });
+
+            @Override
+            public int getCount() {
+                return fragments.size();
+            }
+        };
+        mActivity = (AppCompatActivity) getActivity();
+        mDrawerLayout = mActivity.findViewById(R.id.drawer_layout);
+        mToolbar = view.findViewById(R.id.toolbar);
+        mTabLayout = view.findViewById(R.id.tab_layout);
+        mViewPager = view.findViewById(R.id.view_pager);
+
+        mActivity.setTitle(getString(R.string.library_seat));
+        mActivity.setSupportActionBar(mToolbar);
+        setDrawerToggle();
         fragments.add(new DaeguSeatFragment());
         fragments.add(new SangjuSeatFragment());
-        mViewPager.setAdapter(tabsPagerAdapter);
-        mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            // 뷰페이져 리스너
-            @Override
-            public void onPageScrollStateChanged(int arg0) {
-                // TODO Auto-generated method stub
+        for (String s : TAB_NAMES)
+            mTabLayout.addTab(mTabLayout.newTab().setText(s));
+        mTabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
+        mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(mTabLayout));
+        mViewPager.setAdapter(adapter);
+    }
 
-            }
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mViewPager.clearOnPageChangeListeners();
+        mTabLayout.clearOnTabSelectedListeners();
+        mTabLayout.removeAllTabs();
+    }
 
-            @Override
-            public void onPageScrolled(int arg0, float arg1, int arg2) {
-                // TODO Auto-generated method stub
-
-            }
-
-            @Override
-            public void onPageSelected(int selectedItem) {
-                mTabHost.setCurrentTab(selectedItem);
-            }
-        });
-
-        return rootView;
+    private void setDrawerToggle() {
+        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(mActivity, mDrawerLayout, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        mDrawerLayout.addDrawerListener(drawerToggle);
+        drawerToggle.syncState();
     }
 }

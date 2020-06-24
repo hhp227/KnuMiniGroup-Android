@@ -7,12 +7,14 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.webkit.CookieManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import com.android.volley.*;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
@@ -28,6 +30,7 @@ import java.util.Map;
 
 public class LoginActivity extends Activity {
     private static final String TAG = "로그인화면";
+    private CookieManager mCookieManager;
     private EditText mInputId, mInputPassword;
     private ProgressDialog mProgressDialog;
     private PreferenceManager mPreferenceManager;
@@ -42,8 +45,9 @@ public class LoginActivity extends Activity {
         Button login = findViewById(R.id.b_login);
         mInputId = findViewById(R.id.et_id);
         mInputPassword = findViewById(R.id.et_password);
-        mPreferenceManager = app.AppController.getInstance().getPreferenceManager();
+        mPreferenceManager = AppController.getInstance().getPreferenceManager();
         mProgressDialog = new ProgressDialog(this);
+        mCookieManager = AppController.getInstance().getCookieManager();
 
         mProgressDialog.setCancelable(false);
 
@@ -93,7 +97,7 @@ public class LoginActivity extends Activity {
 
                             for (Header header : headers)
                                 if (header.getName().equals("Set-Cookie") && header.getValue().contains("SESSION_NEWLMS"))
-                                    mPreferenceManager.storeCookie(header.getValue());
+                                    mCookieManager.setCookie(EndPoint.LOGIN, header.getValue());
                             return super.parseNetworkResponse(response);
                         }
 
@@ -128,7 +132,7 @@ public class LoginActivity extends Activity {
 
                     mProgressDialog.setMessage("로그인중...");
                     showProgressDialog();
-                    app.AppController.getInstance().addToRequestQueue(stringRequest);
+                    AppController.getInstance().addToRequestQueue(stringRequest);
                 } else {
                     mInputId.setError(id.isEmpty() ? "아이디를 입력하세요." : null);
                     mInputPassword.setError(password.isEmpty() ? "패스워드를 입력하세요." : null);
@@ -138,7 +142,7 @@ public class LoginActivity extends Activity {
     }
 
     private void createLog(final User user) {
-        app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.CREATE_LOG, new Response.Listener<String>() {
+        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.CREATE_LOG, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 try {
@@ -162,10 +166,7 @@ public class LoginActivity extends Activity {
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
 
-                params.put("name", user.getName());
                 params.put("user_id", user.getUserId());
-                params.put("password", user.getPassword());
-                params.put("student_number", user.getNumber());
                 params.put("type", "경북대 소모임");
                 return params;
             }
@@ -173,7 +174,7 @@ public class LoginActivity extends Activity {
     }
 
     private void getUserInfo(final String id, final String password) {
-        app.AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.GET, EndPoint.NEW_MESSAGE, null, new Response.Listener<JSONObject>() {
+        AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.GET, EndPoint.NEW_MESSAGE, null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 try {
@@ -218,14 +219,14 @@ public class LoginActivity extends Activity {
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
 
-                headers.put("Cookie", mPreferenceManager.getCookie());
+                headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
                 return headers;
             }
         });
     }
 
     private void getUserUniqueId(final User user) {
-        app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.GET_USER_IMAGE, new Response.Listener<String>() {
+        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.GET_USER_IMAGE, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 Source source = new Source(response);
@@ -252,7 +253,7 @@ public class LoginActivity extends Activity {
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
 
-                headers.put("Cookie", mPreferenceManager.getCookie());
+                headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
                 return headers;
             }
         });

@@ -1,38 +1,34 @@
 package com.hhp227.knu_minigroup;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.*;
+import android.webkit.CookieManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import com.android.volley.*;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.User;
-import com.hhp227.knu_minigroup.fragment.Tab4Fragment;
-import com.hhp227.knu_minigroup.fragment.TabHostLayoutFragment;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
-import com.hhp227.knu_minigroup.helper.PreferenceManager;
-import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -40,20 +36,20 @@ import java.util.UUID;
 import static com.hhp227.knu_minigroup.CreateActivity.CAMERA_CAPTURE_IMAGE_REQUEST_CODE;
 import static com.hhp227.knu_minigroup.CreateActivity.CAMERA_PICK_IMAGE_REQUEST_CODE;
 
-public class ProfileActivity extends Activity {
+public class ProfileActivity extends AppCompatActivity {
     private static final String TAG = "프로필";
     private boolean mIsVisible;
     private Bitmap mBitmap;
+    private CookieManager mCookieManager;
     private ImageView mProfileImage;
     private ProgressDialog mProgressDialog;
-    private PreferenceManager mPreferenceManager;
     private User mUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
-        ActionBar actionBar = getActionBar();
+        Toolbar toolbar = findViewById(R.id.toolbar);
         TextView name = findViewById(R.id.tv_name);
         TextView knuId = findViewById(R.id.tv_knu_id);
         TextView department = findViewById(R.id.tv_dept);
@@ -64,27 +60,19 @@ public class ProfileActivity extends Activity {
         TextView campus = findViewById(R.id.tv_campus);
         TextView hp = findViewById(R.id.tv_phone_num);
         Button sync = findViewById(R.id.b_sync);
-        mPreferenceManager = app.AppController.getInstance().getPreferenceManager();
+        mCookieManager = AppController.getInstance().getCookieManager();
+        mUser = AppController.getInstance().getPreferenceManager().getUser();
         mProfileImage = findViewById(R.id.iv_profile_image);
         mProgressDialog = new ProgressDialog(this);
-        mUser = mPreferenceManager.getUser();
 
-        if (actionBar != null) {
-            actionBar.setDisplayShowHomeEnabled(false);
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-                @Override
-                public boolean isLayoutRtl() {
-                    return false;
-                }
-            });
-        }
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mProgressDialog.setCancelable(false);
         mProgressDialog.setMessage("요청중 ...");
         Glide.with(getApplicationContext())
-                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUser.getUid()), new LazyHeaders.Builder().addHeader("Cookie", mPreferenceManager.getCookie()).build()))
+                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUser.getUid()), new LazyHeaders.Builder().addHeader("Cookie", mCookieManager.getCookie(EndPoint.LOGIN)).build()))
                 .apply(RequestOptions
-                        .errorOf(R.drawable.profile_img_circle)
+                        .errorOf(R.drawable.user_image_view_circle)
                         .circleCrop()
                         .skipMemoryCache(true)
                         .diskCacheStrategy(DiskCacheStrategy.NONE))
@@ -107,9 +95,9 @@ public class ProfileActivity extends Activity {
                         try {
                             if (!response.getBoolean("isError")) {
                                 Glide.with(getApplicationContext())
-                                        .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUser.getUid()), new LazyHeaders.Builder().addHeader("Cookie", mPreferenceManager.getCookie()).build()))
+                                        .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUser.getUid()), new LazyHeaders.Builder().addHeader("Cookie", mCookieManager.getCookie(EndPoint.LOGIN)).build()))
                                         .apply(RequestOptions
-                                                .errorOf(R.drawable.profile_img_circle)
+                                                .errorOf(R.drawable.user_image_view_circle)
                                                 .circleCrop()
                                                 .skipMemoryCache(true)
                                                 .diskCacheStrategy(DiskCacheStrategy.NONE))
@@ -134,13 +122,13 @@ public class ProfileActivity extends Activity {
                     public Map<String, String> getHeaders() {
                         HashMap<String, String> headers = new HashMap<>();
 
-                        headers.put("Cookie", mPreferenceManager.getCookie());
+                        headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
                         return headers;
                     }
                 };
 
                 showProgressDialog();
-                app.AppController.getInstance().addToRequestQueue(jsonObjectRequest);
+                AppController.getInstance().addToRequestQueue(jsonObjectRequest);
             }
         });
         name.setText(mUser.getName());
@@ -196,7 +184,7 @@ public class ProfileActivity extends Activity {
             }
             Glide.with(getApplicationContext())
                     .load(mBitmap)
-                    .apply(RequestOptions.errorOf(R.drawable.profile_img_circle).circleCrop())
+                    .apply(RequestOptions.errorOf(R.drawable.user_image_view_circle).circleCrop())
                     .into(mProfileImage);
             invalidateOptionsMenu();
         }
@@ -252,7 +240,7 @@ public class ProfileActivity extends Activity {
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
 
-                headers.put("Cookie", mPreferenceManager.getCookie());
+                headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
                 return headers;
             }
 
@@ -280,7 +268,7 @@ public class ProfileActivity extends Activity {
             }
         };
 
-        app.AppController.getInstance().addToRequestQueue(multipartRequest);
+        AppController.getInstance().addToRequestQueue(multipartRequest);
     }
 
     private void showProgressDialog() {

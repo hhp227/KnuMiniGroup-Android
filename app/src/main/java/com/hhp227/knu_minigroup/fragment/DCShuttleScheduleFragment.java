@@ -17,6 +17,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
@@ -71,7 +72,7 @@ public class DCShuttleScheduleFragment extends Fragment {
     }
 
     private void fetchDataTask() {
-        app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.URL_SHUTTLE.replace("{SHUTTLE}", "map03"), new Response.Listener<String>() {
+        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.URL_SHUTTLE.replace("{SHUTTLE}", "map03"), new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 Source source = new Source(response);
@@ -98,7 +99,7 @@ public class DCShuttleScheduleFragment extends Fragment {
                             } else
                                 mShuttleList.add(a == 0 ? i : mShuttleList.size(), map1);
                         } catch (Exception e) {
-                            Log.e(TAG, e.getMessage());
+                            //Log.e(TAG, e.getMessage());
                         }
                     }
                 }

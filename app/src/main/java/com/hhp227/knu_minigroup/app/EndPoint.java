@@ -45,6 +45,7 @@ public interface EndPoint {
     String URL_KNULIBRARY_SEAT = "http://seat.knu.ac.kr/smufu-api/pc/{ID}/rooms-at-seat";
     String URL_KNU_DORM_MEAL = "http://dorm.knu.ac.kr/xml/food.php?get_mode={ID}";
     String URL_KNU_SC_DORM_MEAL = "http://dorm.knu.ac.kr/scdorm/_new_ver/";
+    String URL_KNU_MEAL = "http://coop.knu.ac.kr/pages/xml_menu.php?get_mode={ID}";
 
     // 외부 URL
     String URL_INTER_CITY_SHUTTLE = "http://www.gobus.co.kr/north/inquiry/inquiry_see.asp?code=300&explice=경북대상주";

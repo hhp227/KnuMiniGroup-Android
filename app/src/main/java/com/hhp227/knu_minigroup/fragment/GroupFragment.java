@@ -2,65 +2,75 @@ package com.hhp227.knu_minigroup.fragment;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.graphics.Rect;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
-import android.os.SystemClock;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
+import android.util.TypedValue;
+import android.view.*;
+import android.webkit.CookieManager;
+import android.webkit.ValueCallback;
 import android.widget.*;
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import androidx.viewpager.widget.ViewPager;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.*;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.GroupGridAdapter;
-import com.hhp227.knu_minigroup.adapter.GroupPagerAdapter;
-import com.hhp227.knu_minigroup.adapter.LoopPagerAdapter;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
-import com.hhp227.knu_minigroup.ui.loopviewpager.LoopViewPager;
-import com.hhp227.knu_minigroup.ui.pageindicator.LoopingCirclePageIndicator;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.*;
+
+import static com.hhp227.knu_minigroup.adapter.GroupGridAdapter.TYPE_AD;
+import static com.hhp227.knu_minigroup.adapter.GroupGridAdapter.TYPE_GROUP;
 
 public class GroupFragment extends Fragment {
     public static final int CREATE_CODE = 10;
     public static final int REGISTER_CODE = 20;
     public static final int UPDATE_GROUP = 30;
 
-    private static final int MARGIN = 120;
+    private static final int PORTAIT_SPAN_COUNT = 2;
+    private static final int LANDSCAPE_SPAN_COUNT = 4;
     private static final String TAG = GroupFragment.class.getSimpleName();
-    private long mLastClickTime; // 클릭시 걸리는 시간
+    private int mSpanCount;
+    private AppCompatActivity mActivity;
+    private CookieManager mCookieManager;
     private CountDownTimer mCountDownTimer;
+    private DrawerLayout mDrawerLayout;
+    private GridLayoutManager mGridLayoutManager;
+    private GridLayoutManager.SpanSizeLookup mSpanSizeLookup;
     private GroupGridAdapter mAdapter;
     private List<String> mGroupItemKeys;
-    private List<GroupItem> mGroupItemValues;
-    private LoopViewPager mLoopViewPager;
-    private LoopPagerAdapter mLoopPagerAdapter;
-    private LoopingCirclePageIndicator mCirclePageIndicator;
+    private List<Object> mGroupItemValues;
     private PreferenceManager mPreferenceManager;
-    private ProgressBar mProgressBar, mPopularProgressBar;
-    private RelativeLayout mRelativeLayout;
-    private List<GroupItem> mPopularItemList;
-    private GroupPagerAdapter mGroupPagerAdapter;
+    private ProgressBar mProgressBar;
+    private RecyclerView mRecyclerView;
+    private RecyclerView.ItemDecoration mItemDecoration;
     private SwipeRefreshLayout mSwipeRefreshLayout;
-    private ViewPager mPopularViewPager;
+    private Toolbar mToolbar;
 
     public GroupFragment() {
     }
@@ -77,29 +87,61 @@ public class GroupFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_group, container, false);
-        Button findGroup = rootView.findViewById(R.id.b_find);
-        Button requestGroup = rootView.findViewById(R.id.b_request);
-        Button createGroup = rootView.findViewById(R.id.b_create);
-        GridView gridView = rootView.findViewById(R.id.gv_my_grouplist);
-        mProgressBar = rootView.findViewById(R.id.pb_group);
-        mRelativeLayout = rootView.findViewById(R.id.rl_group);//
-        mSwipeRefreshLayout = rootView.findViewById(R.id.srl_group);
-        mPreferenceManager = new PreferenceManager(getActivity());
+        return inflater.inflate(R.layout.fragment_group, container, false);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        BottomNavigationView bottomNavigationView = view.findViewById(R.id.bnv_group_button);
+        mActivity = (AppCompatActivity) getActivity();
+        mDrawerLayout = mActivity.findViewById(R.id.drawer_layout);
+        mToolbar = view.findViewById(R.id.toolbar);
+        mSwipeRefreshLayout = view.findViewById(R.id.srl_group);
+        mProgressBar = view.findViewById(R.id.pb_group);
+        mRecyclerView = view.findViewById(R.id.rv_group);
+        mSpanCount = getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ? PORTAIT_SPAN_COUNT :
+                getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? LANDSCAPE_SPAN_COUNT :
+                        0;
+        mSpanSizeLookup = new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                return mAdapter.getItemViewType(position) == GroupGridAdapter.TYPE_TEXT
+                        || mAdapter.getItemViewType(position) == GroupGridAdapter.TYPE_BANNER
+                        || mAdapter.getItemViewType(position) == GroupGridAdapter.TYPE_VIEW_PAGER ? mSpanCount : 1;
+            }
+        };
+        mGridLayoutManager = new GridLayoutManager(getContext(), mSpanCount);
+        mItemDecoration = new RecyclerView.ItemDecoration() {
+            @Override
+            public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+                super.getItemOffsets(outRect, view, parent, state);
+                if (parent.getAdapter().getItemViewType(parent.getChildAdapterPosition(view)) == TYPE_GROUP || parent.getAdapter().getItemViewType(parent.getChildAdapterPosition(view)) == TYPE_AD) {
+                    outRect.top = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10, getResources().getDisplayMetrics());
+                    outRect.bottom = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 5, getResources().getDisplayMetrics());
+                    if (parent.getChildAdapterPosition(view) % mSpanCount == 0) {
+                        outRect.left = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 7, getResources().getDisplayMetrics());
+                        outRect.right = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, getResources().getDisplayMetrics());
+                    } else if (parent.getChildAdapterPosition(view) % mSpanCount == 1) {
+                        outRect.left = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, getResources().getDisplayMetrics());
+                        outRect.right = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 7, getResources().getDisplayMetrics());
+                    } else {
+                        outRect.left = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 7, getResources().getDisplayMetrics());
+                        outRect.right = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 7, getResources().getDisplayMetrics());
+                    }
+                }
+            }
+        };
         mGroupItemKeys = new ArrayList<>();
         mGroupItemValues = new ArrayList<>();
-        mAdapter = new GroupGridAdapter(getContext(), mGroupItemKeys, mGroupItemValues);
-        mLoopViewPager = rootView.findViewById(R.id.lvp_theme_slider_pager);//
-        mLoopPagerAdapter = new LoopPagerAdapter(Arrays.asList("이미지2", "메인", "이미지1"));//
-        mCirclePageIndicator = rootView.findViewById(R.id.cpi_theme_slider_indicator);//
-        mPopularViewPager = rootView.findViewById(R.id.view_pager);//
-        mPopularProgressBar = rootView.findViewById(R.id.pb_group2);//
-        mPopularItemList = new ArrayList<>();//
-        mGroupPagerAdapter = new GroupPagerAdapter(mPopularItemList);//
+        mAdapter = new GroupGridAdapter(mActivity, mGroupItemKeys, mGroupItemValues);
+        mCookieManager = AppController.getInstance().getCookieManager();
+        mPreferenceManager = AppController.getInstance().getPreferenceManager();
         mCountDownTimer = new CountDownTimer(80000, 8000) {
             @Override
             public void onTick(long millisUntilFinished) {
-                moveSliderPager();
+                mAdapter.moveSliderPager();
             }
 
             @Override
@@ -108,84 +150,28 @@ public class GroupFragment extends Fragment {
             }
         };
 
-        gridView.setAdapter(mAdapter);
-        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mActivity.setTitle(getString(R.string.main));
+        mActivity.setSupportActionBar(mToolbar);
+        setDrawerToggle();
+        mAdapter.setHasStableIds(true);
+        mAdapter.setOnItemClickListener(new GroupGridAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                // 두번 클릭시 방지
-                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
-                    return;
-                mLastClickTime = SystemClock.elapsedRealtime();
-                GroupItem groupItem = mGroupItemValues.get(position);
-                if (groupItem.isAd())
-                    Toast.makeText(getContext(), "광고", Toast.LENGTH_LONG).show();
-                else {
+            public void onItemClick(View v, int position) {
+                if (mGroupItemValues.get(position) instanceof GroupItem) {
+                    GroupItem groupItem = (GroupItem) mGroupItemValues.get(position);
                     Intent intent = new Intent(getContext(), GroupActivity.class);
 
                     intent.putExtra("admin", groupItem.isAdmin());
                     intent.putExtra("grp_id", groupItem.getId());
                     intent.putExtra("grp_nm", groupItem.getName());
-                    intent.putExtra("grp_img", groupItem.getImage());
+                    intent.putExtra("grp_img", groupItem.getImage()); // 경북대 소모임에는 없음
                     intent.putExtra("pos", position);
                     intent.putExtra("key", mAdapter.getKey(position));
                     startActivityForResult(intent, UPDATE_GROUP);
                 }
             }
         });
-        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        mGroupItemKeys.clear();
-                        mGroupItemValues.clear();
-                        fetchDataTask();
-                        mSwipeRefreshLayout.setRefreshing(false);
-                    }
-                }, 2000);
-            }
-        });
-        mSwipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light, android.R.color.holo_red_light);
-        findGroup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
-                    return;
-                mLastClickTime = SystemClock.elapsedRealtime();
-
-                startActivityForResult(new Intent(getContext(), FindActivity.class), REGISTER_CODE);
-            }
-        });
-        requestGroup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
-                    return;
-                mLastClickTime = SystemClock.elapsedRealtime();
-
-                startActivity(new Intent(getActivity(), RequestActivity.class));
-            }
-        });
-        createGroup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
-                    return;
-                mLastClickTime = SystemClock.elapsedRealtime();
-
-                startActivityForResult(new Intent(getContext(), CreateActivity.class), CREATE_CODE);
-            }
-        });
-        if (app.AppController.getInstance().getPreferenceManager().getUser() == null)
-            logout();
-        showProgressBar();
-        fetchDataTask();
-
-        // 업데이트하면 지워질것
-        mLoopViewPager.setAdapter(mLoopPagerAdapter);
-        mCirclePageIndicator.setViewPager(mLoopViewPager);
-        mLoopPagerAdapter.setOnClickListener(new View.OnClickListener() {
+        mAdapter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 switch (v.getId()) {
@@ -197,24 +183,54 @@ public class GroupFragment extends Fragment {
                 }
             }
         });
-        mPopularViewPager.setAdapter(mGroupPagerAdapter);
-        mPopularViewPager.setClipToPadding(false);
-        mPopularViewPager.setPadding(MARGIN, 0, MARGIN, 0);
-        mPopularViewPager.setPageTransformer(false, new ViewPager.PageTransformer() {
+        mGridLayoutManager.setSpanSizeLookup(mSpanSizeLookup);
+        mRecyclerView.setLayoutManager(mGridLayoutManager);
+        mRecyclerView.setAdapter(mAdapter);
+        mRecyclerView.addItemDecoration(mItemDecoration);
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
-            public void transformPage(View page, float position) {
-                if (mPopularViewPager.getCurrentItem() == 0) {
-                    page.setTranslationX(-(MARGIN * 3) / 4);
-                } else if (mPopularViewPager.getCurrentItem() == mGroupPagerAdapter.getCount() - 1) {
-                    page.setTranslationX(MARGIN * 3 / 4);
-                } else {
-                    page.setTranslationX(-((MARGIN / 2) + (MARGIN / 8)));
-                }
+            public void onRefresh() {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mGroupItemKeys.clear();
+                        mGroupItemValues.clear();
+                        mSwipeRefreshLayout.setRefreshing(false);
+                        fetchDataTask();
+                    }
+                }, 1700);
             }
         });
-        mPopularViewPager.setPageMargin(MARGIN / 4);
+        mSwipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light, android.R.color.holo_red_light);
+        bottomNavigationView.getMenu().getItem(0).setCheckable(false);
+        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                item.setCheckable(false);
+                switch (item.getItemId()) {
+                    case R.id.navigation_find:
+                        startActivityForResult(new Intent(getContext(), FindActivity.class), REGISTER_CODE);
+                        return true;
+                    case R.id.navigation_request:
+                        startActivity(new Intent(getContext(), RequestActivity.class));
+                        return true;
+                    case R.id.navigation_create:
+                        startActivityForResult(new Intent(getContext(), CreateActivity.class), CREATE_CODE);
+                        return true;
+                }
+                return false;
+            }
+        });
+        if (AppController.getInstance().getPreferenceManager().getUser() == null)
+            logout();
+        showProgressBar();
+        fetchDataTask();
+    }
 
-        return rootView;
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mRecyclerView.removeItemDecoration(mItemDecoration);
     }
 
     @Override
@@ -240,19 +256,44 @@ public class GroupFragment extends Fragment {
             fetchDataTask();
         } else if (requestCode == UPDATE_GROUP && resultCode == Activity.RESULT_OK && data != null) {//
             int position = data.getIntExtra("position", 0);
-            GroupItem groupItem = mGroupItemValues.get(position);
+            if (mGroupItemValues.get(position) instanceof GroupItem) {
+                GroupItem groupItem = (GroupItem) mGroupItemValues.get(position);
 
-            groupItem.setName(data.getStringExtra("grp_nm"));
-            groupItem.setDescription(data.getStringExtra("grp_desc"));
-            groupItem.setJoinType(data.getStringExtra("join_div"));
-            mGroupItemValues.set(position, groupItem);
-            mAdapter.notifyDataSetChanged();
+                groupItem.setName(data.getStringExtra("grp_nm"));
+                groupItem.setDescription(data.getStringExtra("grp_desc"));
+                groupItem.setJoinType(data.getStringExtra("join_div"));
+                mGroupItemValues.set(position, groupItem);
+                mAdapter.notifyDataSetChanged();
+            }
         }
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        switch (newConfig.orientation) {
+            case Configuration.ORIENTATION_PORTRAIT:
+                mSpanCount = PORTAIT_SPAN_COUNT;
+                break;
+            case Configuration.ORIENTATION_LANDSCAPE:
+                mSpanCount = LANDSCAPE_SPAN_COUNT;
+                break;
+        }
+        mGridLayoutManager.setSpanSizeLookup(mSpanSizeLookup);
+        mGridLayoutManager.setSpanCount(mSpanCount);
+        mRecyclerView.invalidateItemDecorations();
+    }
+
+    private void setDrawerToggle() {
+        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(mActivity, mDrawerLayout, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+
+        mDrawerLayout.addDrawerListener(drawerToggle);
+        drawerToggle.syncState();
     }
 
     private void fetchDataTask() {
         getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-        app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
+        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 Source source = new Source(response);
@@ -295,7 +336,7 @@ public class GroupFragment extends Fragment {
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
 
-                headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+                headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
                 return headers;
             }
 
@@ -312,118 +353,30 @@ public class GroupFragment extends Fragment {
         });
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void logout() {
         mPreferenceManager.clear();
+        mCookieManager.removeAllCookies(new ValueCallback<Boolean>() {
+            @Override
+            public void onReceiveValue(Boolean value) {
+                Log.d(TAG, "onReceiveValue " + value);
+            }
+        });
         startActivity(new Intent(getContext(), LoginActivity.class));
         getActivity().finish();
     }
 
     private void insertAdvertisement() {
         if (!mGroupItemValues.isEmpty()) {
-            if (mGroupItemValues.size() % 2 != 0) {
-                GroupItem ad = new GroupItem();
-
-                ad.setAd(true);
-                ad.setName("광고");
-                mGroupItemValues.add(ad);
-            }
-            mRelativeLayout.setVisibility(View.GONE);
+            mAdapter.addHeaderView("가입중인 그룹", 0);
+            if (mGroupItemValues.size() % 2 == 0)
+                mGroupItemValues.add("광고");
         } else {
-            setNothingGroup();
-            mRelativeLayout.setVisibility(View.VISIBLE);
+            mGroupItemValues.add("없음");
+            mAdapter.addHeaderView("인기 모임");
+            mGroupItemValues.add("뷰페이져");
         }
         hideProgressBar();
-    }
-
-    private void setNothingGroup() {
-        mPopularProgressBar.setVisibility(View.VISIBLE);
-        app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Source source = new Source(response);
-                List<Element> list = source.getAllElements("id", "accordion", false);
-                for (Element element : list) {
-                    try {
-                        Element menuList = element.getFirstElementByClass("menu_list");
-                        if (element.getAttributeValue("class").equals("accordion")) {
-                            int id = Integer.parseInt(menuList.getFirstElementByClass("button").getAttributeValue("onclick").split("[(]|[)]|[,]")[1].trim());
-                            String imageUrl = EndPoint.BASE_URL + element.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
-                            String name = element.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
-                            StringBuilder info = new StringBuilder();
-                            String description = menuList.getAllElementsByClass("info").get(0).getContent().toString();
-                            String joinType = menuList.getAllElementsByClass("info").get(1).getTextExtractor().toString().trim();
-                            for (Element span : element.getFirstElement(HTMLElementName.A).getAllElementsByClass("info")) {
-                                String extractedText = span.getTextExtractor().toString();
-                                info.append(extractedText.contains("회원수") ?
-                                        extractedText.substring(0, extractedText.lastIndexOf("생성일")).trim() + "\n" :
-                                        extractedText + "\n");
-                            }
-                            GroupItem groupItem = new GroupItem();
-                            groupItem.setId(String.valueOf(id));
-                            groupItem.setImage(imageUrl);
-                            groupItem.setName(name);
-                            groupItem.setInfo(info.toString().trim());
-                            groupItem.setDescription(description);
-                            groupItem.setJoinType(joinType.equals("가입방식: 자동 승인") ? "0" : "1");
-                            mPopularItemList.add(groupItem);
-                        }
-                    } catch (Exception e) {
-                        Log.e(TAG, e.getMessage());
-                    }
-                }
-                mGroupPagerAdapter.notifyDataSetChanged();
-                mPopularProgressBar.setVisibility(View.GONE);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(TAG, error.getMessage());
-                mPopularProgressBar.setVisibility(View.GONE);
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
-                return headers;
-            }
-
-            @Override
-            public String getBodyContentType() {
-                return "application/x-www-form-urlencoded; charset=" + getParamsEncoding();
-            }
-
-            @Override
-            public byte[] getBody() {
-                Map<String, String> params = new HashMap<>();
-                params.put("panel_id", "3");
-                params.put("encoding", "utf-8");
-                if (params.size() > 0) {
-                    StringBuilder encodedParams = new StringBuilder();
-                    try {
-                        for (Map.Entry<String, String> entry : params.entrySet()) {
-                            encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));
-                            encodedParams.append('=');
-                            encodedParams.append(URLEncoder.encode(entry.getValue(), getParamsEncoding()));
-                            encodedParams.append('&');
-                        }
-                        return encodedParams.toString().getBytes(getParamsEncoding());
-                    } catch (UnsupportedEncodingException uee) {
-                        throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), uee);
-                    }
-                }
-                return null;
-            }
-        });
-    }
-
-    private void moveSliderPager() {
-        if (mLoopViewPager == null || mLoopPagerAdapter.getCount() <= 0) {
-            return;
-        }
-
-        LoopViewPager loopViewPager = mLoopViewPager;
-        loopViewPager.setCurrentItem(loopViewPager.getCurrentItem() + 1);
     }
 
     private void initFirebaseData() {

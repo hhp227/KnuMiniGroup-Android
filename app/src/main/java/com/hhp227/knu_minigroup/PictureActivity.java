@@ -7,13 +7,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.TextView;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.viewpager.widget.ViewPager;
 import com.hhp227.knu_minigroup.adapter.PicturePagerAdapter;
-import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 
 import java.util.List;
 
-public class PictureActivity extends Activity {
+public class PictureActivity extends AppCompatActivity {
     private TextView mCount;
     private List<String> mImages;
     private ViewPager mViewPager;
@@ -21,11 +22,8 @@ public class PictureActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // 상단 타이틀바를 투명하게
-        this.requestWindowFeature(Window.FEATURE_ACTION_BAR_OVERLAY);
         setContentView(R.layout.activity_picture);
-        ActionBar actionBar = getActionBar();
+        Toolbar toolbar = findViewById(R.id.toolbar);
         mViewPager = findViewById(R.id.view_pager);
         mCount = findViewById(R.id.tv_count);
         int position = 0;
@@ -36,6 +34,8 @@ public class PictureActivity extends Activity {
         }
         PicturePagerAdapter pagerAdapter = new PicturePagerAdapter(this, mImages);
 
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mViewPager.setAdapter(pagerAdapter);
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -52,23 +52,6 @@ public class PictureActivity extends Activity {
             }
         });
         mViewPager.setCurrentItem(position, false);
-        if (actionBar != null) {
-
-            // 뒤로가기버튼
-            actionBar.setDisplayHomeAsUpEnabled(true);
-
-            // 앱 아이콘 숨기기
-            actionBar.setDisplayShowHomeEnabled(false);
-
-            // 액션바 투명
-            actionBar.setBackgroundDrawable(getResources().getDrawable(R.drawable.transparent));
-            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-                @Override
-                public boolean isLayoutRtl() {
-                    return false;
-                }
-            });
-        }
         mCount.setVisibility(mImages.size() > 1 ? View.VISIBLE : View.GONE);
         mCount.setText((position + 1) + " / " + mImages.size());
     }

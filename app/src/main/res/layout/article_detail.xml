@@ -26,11 +26,11 @@
                     android:id="@+id/iv_profile_image"
                     android:layout_width="45dp"
                     android:layout_height="45dp"
-                    android:src="@drawable/profile_img_circle"
+                    android:src="@drawable/user_image_view_circle"
                     android:scaleType="centerCrop"/>
 
             <LinearLayout
-                    android:layout_width="fill_parent"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:paddingLeft="10dp">

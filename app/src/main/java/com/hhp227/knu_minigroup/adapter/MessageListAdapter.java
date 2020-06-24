@@ -10,8 +10,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.MessageItem;
 
@@ -72,7 +75,9 @@ public class MessageListAdapter extends BaseAdapter {
             viewHolder.profileImage.setVisibility(View.VISIBLE);
             viewHolder.messageBox.setPadding(10, 10, 10, 10);
             Glide.with(mContext)
-                    .load(EndPoint.USER_IMAGE.replace("{UID}", messageItem.getFrom()))
+                    .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", messageItem.getFrom()), new LazyHeaders.Builder()
+                            .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
+                            .build()))
                     .apply(new RequestOptions()
                             .circleCrop()
                             .skipMemoryCache(true)

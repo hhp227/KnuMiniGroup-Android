@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.webkit.CookieManager;
 import android.widget.*;
 import androidx.fragment.app.DialogFragment;
 import com.android.volley.Request;
@@ -21,6 +22,7 @@ import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.MainActivity;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.RequestActivity;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
@@ -42,6 +44,7 @@ public class GroupInfoFragment extends DialogFragment {
     private static final String TAG = "정보창";
     private static int mButtonType;
     private static String mGroupId, mGroupName, mGroupImage, mGroupInfo, mGroupDesc, mJoinType, mKey;
+    private CookieManager mCookieManager;
     private PreferenceManager mPreferenceManager;
     private ProgressDialog mProgressDialog;
 
@@ -81,7 +84,8 @@ public class GroupInfoFragment extends DialogFragment {
         TextView name = rootView.findViewById(R.id.tv_name);
         TextView info = rootView.findViewById(R.id.tv_info);
         TextView desc = rootView.findViewById(R.id.tv_desciption);
-        mPreferenceManager = app.AppController.getInstance().getPreferenceManager();
+        mPreferenceManager = AppController.getInstance().getPreferenceManager();
+        mCookieManager = AppController.getInstance().getCookieManager();
         mProgressDialog = new ProgressDialog(getContext());
 
         mProgressDialog.setCancelable(false);
@@ -122,7 +126,7 @@ public class GroupInfoFragment extends DialogFragment {
                     @Override
                     public Map<String, String> getHeaders() {
                         Map<String, String> headers = new HashMap<>();
-                        headers.put("Cookie", mPreferenceManager.getCookie());
+                        headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
                         return headers;
                     }
 
@@ -152,7 +156,7 @@ public class GroupInfoFragment extends DialogFragment {
                         return null;
                     }
                 };
-                app.AppController.getInstance().addToRequestQueue(jsonObjectRequest, tag_json_req);
+                AppController.getInstance().addToRequestQueue(jsonObjectRequest, tag_json_req);
             }
         });
         close.setOnClickListener(new View.OnClickListener() {

@@ -1,17 +1,18 @@
 package com.hhp227.knu_minigroup.fragment;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.GridView;
-import android.widget.Toast;
+import android.widget.ProgressBar;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -19,9 +20,9 @@ import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.MemberGridAdapter;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.MemberItem;
-import com.hhp227.knu_minigroup.ui.scrollable.BaseFragment;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
@@ -29,18 +30,15 @@ import net.htmlparser.jericho.Source;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.hhp227.knu_minigroup.fragment.Tab4Fragment.UPDATE_PROFILE;
-
-public class Tab3Fragment extends BaseFragment {
+public class Tab3Fragment extends Fragment {
     private static final int LIMIT = 40;
     private static final String TAG = "맴버목록";
     private boolean mHasRequestedMore;
     private int mOffSet;
     private String mGroupId;
-    private ProgressDialog mProgressDialog;
-    private GridView mGridView;
-    private MemberGridAdapter mAdapter;
     private List<MemberItem> mMemberItems;
+    private MemberGridAdapter mAdapter;
+    private ProgressBar mProgressBar;
 
     public Tab3Fragment() {
     }
@@ -63,37 +61,24 @@ public class Tab3Fragment extends BaseFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_tab3, container, false);
-        mGridView = rootView.findViewById(R.id.gv_member);
+        return inflater.inflate(R.layout.fragment_tab3, container, false);
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        final SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.srl_member);
+        GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 4);
+        RecyclerView recyclerView = view.findViewById(R.id.rv_member);
+        mProgressBar = view.findViewById(R.id.pb_member);
         mMemberItems = new ArrayList<>();
         mAdapter = new MemberGridAdapter(getActivity(), mMemberItems);
-        mProgressDialog = new ProgressDialog(getActivity());
         mOffSet = 1;
 
-        mProgressDialog.setMessage("불러오는중...");
-        mProgressDialog.setCancelable(false);
-        mGridView.setAdapter(mAdapter);
-        mGridView.setOnScrollListener(new AbsListView.OnScrollListener() {
-            boolean lastItemVisibleFlag = false;
-
+        mAdapter.setHasStableIds(true);
+        mAdapter.setOnItemClickListener(new MemberGridAdapter.OnItemClickListener() {
             @Override
-            public void onScrollStateChanged(AbsListView view, int scrollState) {
-                if (scrollState == SCROLL_STATE_IDLE && lastItemVisibleFlag && !mHasRequestedMore) {
-                    mHasRequestedMore = true;
-                    mOffSet += LIMIT;
-
-                    fetchMemberList();
-                }
-            }
-
-            @Override
-            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                lastItemVisibleFlag = totalItemCount > 0 && firstVisibleItem + visibleItemCount >= totalItemCount;
-            }
-        });
-        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onItemClick(View view, int position) {
                 MemberItem memberItem = mMemberItems.get(position);
                 String uid = memberItem.uid;
                 String name = memberItem.name;
@@ -108,10 +93,41 @@ public class Tab3Fragment extends BaseFragment {
                 newFragment.show(getChildFragmentManager(), "dialog");
             }
         });
-        showProgressDialog();
-        fetchMemberList();
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setAdapter(mAdapter);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if (!mHasRequestedMore && !recyclerView.canScrollVertically(1)) {
+                    mHasRequestedMore = true;
+                    mOffSet += LIMIT;
 
-        return rootView;
+                    fetchMemberList();
+                }
+            }
+
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+            }
+        });
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mMemberItems.clear();
+                        mOffSet = 1;
+                        fetchMemberList();
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+                }, 1000);
+            }
+        });
+        showProgressBar();
+        fetchMemberList();
     }
 
     @Override
@@ -121,14 +137,9 @@ public class Tab3Fragment extends BaseFragment {
             mAdapter.notifyDataSetChanged();
     }
 
-    @Override
-    public boolean canScrollVertically(int direction) {
-        return mGridView != null && mGridView.canScrollVertically(direction);
-    }
-
     private void fetchMemberList() {
         String params = "?CLUB_GRP_ID=" + mGroupId + "&startM=" + mOffSet + "&displayM=" + LIMIT;
-        app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.MEMBER_LIST + params, new Response.Listener<String>() {
+        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.MEMBER_LIST + params, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 try {
@@ -153,24 +164,24 @@ public class Tab3Fragment extends BaseFragment {
                     e.printStackTrace();
                 }
                 mHasRequestedMore = false;
-                hideProgressDialog();
+                hideProgressBar();
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 VolleyLog.e(TAG, error.getMessage());
-                hideProgressDialog();
+                hideProgressBar();
             }
         }));
     }
 
-    private void showProgressDialog() {
-        if (!mProgressDialog.isShowing())
-            mProgressDialog.show();
+    private void showProgressBar() {
+        if (mProgressBar != null && mProgressBar.getVisibility() == View.INVISIBLE)
+            mProgressBar.setVisibility(View.VISIBLE);
     }
 
-    private void hideProgressDialog() {
-        if (mProgressDialog.isShowing())
-            mProgressDialog.dismiss();
+    private void hideProgressBar() {
+        if (mProgressBar != null && mProgressBar.getVisibility() == View.VISIBLE)
+            mProgressBar.setVisibility(View.INVISIBLE);
     }
 }

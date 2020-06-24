@@ -12,15 +12,26 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
+import com.google.android.material.snackbar.Snackbar;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.WebViewActivity;
 import com.hhp227.knu_minigroup.adapter.BbsListAdapter;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.BbsItem;
 import net.htmlparser.jericho.Element;
@@ -32,16 +43,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UnivNoticeFragment extends Fragment {
-    private static final int MAX_PAGE = 5; // 최대볼수 있는 페이지 수
+    private static final int MAX_PAGE = 10; // 최대볼수 있는 페이지 수
     private static final String TAG = "경북대공지사항";
     private boolean mHasRequestedMore; // 데이터 불러올때 중복안되게 하기위한 변수
-    private boolean mLastItemVisibleFlag;
     private int mOffSet;
+    private AppCompatActivity mActivity;
     private ArrayList<BbsItem> mBbsItemList;
     private BbsListAdapter mAdapter;
+    private DrawerLayout mDrawerLayout;
+    private ProgressBar mProgressBar;
     private Element mBBS_DIV;
-    private ProgressDialog mProgressDialog;
+    private RecyclerView mRecyclerView;
+    private RecyclerView.OnScrollListener mOnScrollListener;
     private SwipeRefreshLayout mSwipeRefreshLayout;
+    private Toolbar mToolbar;
 
     public UnivNoticeFragment() {
     }
@@ -53,93 +68,100 @@ public class UnivNoticeFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_list, container, false);
-        ListView mBBSList = rootView.findViewById(R.id.list_view);
-        mSwipeRefreshLayout = rootView.findViewById(R.id.sr_layout);
+        return inflater.inflate(R.layout.fragment_list, container, false);
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(mActivity);
+        mRecyclerView = view.findViewById(R.id.recycler_view);
+        mActivity = (AppCompatActivity) getActivity();
+        mDrawerLayout = mActivity.findViewById(R.id.drawer_layout);
+        mProgressBar = view.findViewById(R.id.progress_circular);
+        mToolbar = view.findViewById(R.id.toolbar);
+        mSwipeRefreshLayout = view.findViewById(R.id.srl);
         mBbsItemList = new ArrayList<>();
-        mAdapter = new BbsListAdapter(getActivity(), mBbsItemList);
-        mProgressDialog = new ProgressDialog(getActivity());
-
-        // 처음 offSet은 1이다, 파싱이 되는 동안 업데이트 될것
-        mOffSet = 1;
-
-        mBBSList.setAdapter(mAdapter);
-        mBBSList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mAdapter = new BbsListAdapter(mActivity, mBbsItemList);
+        mOnScrollListener = new RecyclerView.OnScrollListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                BbsItem bbsItem = mBbsItemList.get(position);
-                String URL_BBS = bbsItem.getUrl();
-                Intent intent = new Intent(getActivity(), WebViewActivity.class);
-                intent.putExtra(WebViewActivity.URL, EndPoint.URL_KNU + URL_BBS);
-                startActivity(intent);
-            }
-        });
-
-        // 리스트뷰 스크롤 리스너
-        mBBSList.setOnScrollListener(new AbsListView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(AbsListView view, int scrollState) {
-                if (scrollState == SCROLL_STATE_IDLE && mLastItemVisibleFlag && !mHasRequestedMore) {
-
-                    // offSet이 maxPage이면 더 안보여줌
-                    // 페이지 보기 제한 최대 maxPage까지 더보기 할수 있다.
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if (!mHasRequestedMore && !recyclerView.canScrollVertically(1)) {
                     if (mOffSet != MAX_PAGE) {
+                        mHasRequestedMore = true;
                         mOffSet++; // offSet 증가
-                        mHasRequestedMore = true; // HasRequestedMore가 true로 바뀌어 데이터를 불러온다
-                        onLoadMoreItems();
-                    } else {
+                        fetchDataList();
+                        Snackbar.make(recyclerView, "게시판 정보 불러오는 중...", Snackbar.LENGTH_LONG).setAction("Action", null).show();
+                    } else
                         mHasRequestedMore = false;
-                    }
                 }
             }
 
             @Override
-            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                mLastItemVisibleFlag = (totalItemCount > 0) && (firstVisibleItem + visibleItemCount >= totalItemCount);
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
             }
-        });
+        };
+
+        // 처음 offSet은 1이다, 파싱이 되는 동안 업데이트 될것
+        mOffSet = 1;
+
+        mActivity.setTitle(getString(R.string.knu_board));
+        mActivity.setSupportActionBar(mToolbar);
+        setDrawerToggle();
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        updateListView();
-                        mSwipeRefreshLayout.setRefreshing(false); // 당겨서 새로고침 숨김
-                    }
-
-                    private void updateListView() {
                         mOffSet = 1; // offSet 초기화
                         mBbsItemList.clear();
-                        fetchData();
+                        mSwipeRefreshLayout.setRefreshing(false);
+                        fetchDataList();
                     }
                 }, 1000);
             }
         });
-        mProgressDialog.setCancelable(false);
-        mProgressDialog.setMessage("게시판 정보 불러오는중...");
-        fetchData();
-
-        return rootView;
+        mRecyclerView.addOnScrollListener(mOnScrollListener);
+        mRecyclerView.setLayoutManager(linearLayoutManager);
+        mRecyclerView.setAdapter(mAdapter);
+        showProgressBar();
+        fetchDataList();
     }
 
-    private void fetchData() {
-        showProgressDialog();
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mOnScrollListener != null)
+            mRecyclerView.removeOnScrollListener(mOnScrollListener);
+        mOnScrollListener = null;
+    }
+
+    private void setDrawerToggle() {
+        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(mActivity, mDrawerLayout, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        mDrawerLayout.addDrawerListener(drawerToggle);
+        drawerToggle.syncState();
+    }
+
+    private void fetchDataList() {
+        showProgressBar();
         String tag_string_req = "req_knu_notice";
         StringRequest stringRequest = new StringRequest(Request.Method.GET, EndPoint.URL_KNU_NOTICE.replace("{PAGE}", String.valueOf(mOffSet)), new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 parseHTML(response);
-                hideProgressDialog();
+                hideProgressBar();
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Log.e(TAG, error.getMessage());
-                hideProgressDialog();
+                hideProgressBar();
             }
         });
-        app.AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
+        AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
     }
 
     private void parseHTML(String response) {
@@ -179,20 +201,13 @@ public class UnivNoticeFragment extends Fragment {
         }
     }
 
-    /**
-     * 리스트 하단으로 가면 더 불러오기
-     */
-    private void onLoadMoreItems() {
-        fetchData();
+    private void showProgressBar() {
+        if (mProgressBar != null && mProgressBar.getVisibility() == View.GONE)
+            mProgressBar.setVisibility(View.VISIBLE);
     }
 
-    private void showProgressDialog() {
-        if (!mProgressDialog.isShowing())
-            mProgressDialog.show();
-    }
-
-    private void hideProgressDialog() {
-        if (mProgressDialog.isShowing())
-            mProgressDialog.dismiss();
+    private void hideProgressBar() {
+        if (mProgressBar != null && mProgressBar.getVisibility() == View.VISIBLE)
+            mProgressBar.setVisibility(View.GONE);
     }
 }

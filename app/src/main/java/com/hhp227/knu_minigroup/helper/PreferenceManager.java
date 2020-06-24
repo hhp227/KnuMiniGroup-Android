@@ -23,7 +23,6 @@ public class PreferenceManager {
     private static final String KEY_USER_IP = "usr_ip";
     private static final String KEY_USER_CAMPUS = "usr_campus";
     private static final String KEY_HP = "usr_hp";
-    private static final String KEY_COOKIE = "cookie";
     private SharedPreferences mSharedPreferences;
     private SharedPreferences.Editor mEditor;
 
@@ -67,15 +66,6 @@ public class PreferenceManager {
             return user;
         }
         return null;
-    }
-
-    public void storeCookie(String cookie) {
-        mEditor.putString(KEY_COOKIE, cookie);
-        mEditor.commit();
-    }
-
-    public String getCookie() {
-        return mSharedPreferences.getString(KEY_COOKIE, null);
     }
 
     public void clear() {

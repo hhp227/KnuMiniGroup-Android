@@ -1,40 +1,33 @@
 package com.hhp227.knu_minigroup;
 
-import android.app.ActionBar;
-import android.content.Intent;
 import android.os.Bundle;
-import android.app.Activity;
 import android.view.MenuItem;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 
-public class WebViewActivity extends Activity {
+public class WebViewActivity extends AppCompatActivity {
     public static String URL = "url";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_web_view);
+        ActionBar actionBar = getSupportActionBar();
         WebView webView = findViewById(R.id.wv_notice);
         WebSettings webSettings = webView.getSettings();
-        ActionBar actionBar = getActionBar();
         URL = getIntent().getStringExtra(URL);
 
-        webView.loadUrl(URL);
-        webView.getSettings().setLoadWithOverviewMode(true);
-        webView.getSettings().setUseWideViewPort(true);
         if (actionBar != null) {
-            actionBar.setDisplayShowHomeEnabled(false);
+            actionBar.setTitle(getIntent().getStringExtra("title"));
             actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setTitle("경북대 게시판");
-            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-                @Override
-                public boolean isLayoutRtl() {
-                    return false;
-                }
-            });
         }
+        webView.loadUrl(URL);
+        webSettings.setLoadWithOverviewMode(true);
+        webSettings.setUseWideViewPort(true);
+        webSettings.setBuiltInZoomControls(true);
+        webSettings.setSupportZoom(true);
 
         // 모바일에서 자바스크립트를 실행 시키기 위한 용도
         webSettings.setJavaScriptEnabled(true);

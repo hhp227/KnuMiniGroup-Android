@@ -1,7 +1,5 @@
 package com.hhp227.knu_minigroup;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -16,15 +14,17 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import com.android.volley.*;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
-import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,7 +36,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class CreateActivity extends Activity {
+import static com.hhp227.knu_minigroup.app.EndPoint.GROUP_IMAGE;
+
+public class CreateActivity extends AppCompatActivity {
     public static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
     public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 200;
 
@@ -54,26 +56,18 @@ public class CreateActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create);
-        ActionBar actionBar = getActionBar();
+        Toolbar toolbar = findViewById(R.id.toolbar);
         mGroupTitle = findViewById(R.id.et_title);
         mGroupDescription = findViewById(R.id.et_description);
         mResetTitle = findViewById(R.id.iv_reset);
         mGroupImage = findViewById(R.id.iv_group_image);
         mJoinType = findViewById(R.id.rg_jointype);
-        mPreferenceManager = app.AppController.getInstance().getPreferenceManager();
-        mCookie = mPreferenceManager.getCookie();
+        mPreferenceManager = AppController.getInstance().getPreferenceManager();
+        mCookie = AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN);
         mProgressDialog = new ProgressDialog(this);
 
-        if (actionBar != null) {
-            actionBar.setDisplayShowHomeEnabled(false);
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-                @Override
-                public boolean isLayoutRtl() {
-                    return false;
-                }
-            });
-        }
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mProgressDialog.setCancelable(false);
         mProgressDialog.setMessage("전송중...");
         mGroupTitle.addTextChangedListener(new TextWatcher() {
@@ -131,7 +125,7 @@ public class CreateActivity extends Activity {
                 final String join = !mJoinTypeCheck ? "0" : "1";
                 if (!title.isEmpty() && !description.isEmpty()) {
                     showProgressDialog();
-                    app.AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, EndPoint.CREATE_GROUP, null, new Response.Listener<JSONObject>() {
+                    AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, EndPoint.CREATE_GROUP, null, new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
                             try {
@@ -248,6 +242,7 @@ public class CreateActivity extends Activity {
         intent.putExtra("admin", true);
         intent.putExtra("grp_id", groupId);
         intent.putExtra("grp_nm", groupName);
+        intent.putExtra("grp_img", mBitmap != null ? GROUP_IMAGE.replace("{FILE}", groupId.concat(".jpg")) : EndPoint.BASE_URL + "/ilos/images/community/share_nophoto.gif"); // 영남대 소모임에도 적용할것
         intent.putExtra("key", mPushId);
         setResult(RESULT_OK, intent);
         startActivity(intent);
@@ -257,7 +252,7 @@ public class CreateActivity extends Activity {
     }
 
     private void groupImageUpdate(final String clubGrpId, final String grpNm, final String txt, final String joinDiv) {
-        app.AppController.getInstance().addToRequestQueue(new MultipartRequest(Request.Method.POST, EndPoint.GROUP_IMAGE_UPDATE, new Response.Listener<NetworkResponse>() {
+        AppController.getInstance().addToRequestQueue(new MultipartRequest(Request.Method.POST, EndPoint.GROUP_IMAGE_UPDATE, new Response.Listener<NetworkResponse>() {
             @Override
             public void onResponse(NetworkResponse response) {
                 insertGroupToFirebase(clubGrpId, grpNm, txt, joinDiv);

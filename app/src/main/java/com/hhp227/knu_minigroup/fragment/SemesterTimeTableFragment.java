@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
@@ -69,7 +70,7 @@ public class SemesterTimeTableFragment extends Fragment {
         lay[21] = rootView.findViewById(R.id.lay_21);
 
         showProgressBar();
-        app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.TIMETABLE, new Response.Listener<String>() {
+        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.TIMETABLE, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 Element timeTable = new Source(response).getFirstElementByClass("bbslist");
@@ -116,7 +117,7 @@ public class SemesterTimeTableFragment extends Fragment {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+                headers.put("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN));
                 return headers;
             }
         });

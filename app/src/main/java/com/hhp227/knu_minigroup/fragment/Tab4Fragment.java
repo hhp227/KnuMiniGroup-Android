@@ -2,22 +2,25 @@ package com.hhp227.knu_minigroup.fragment;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.CookieManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -33,10 +36,10 @@ import com.google.android.gms.ads.AdView;
 import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.*;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.dto.User;
-import com.hhp227.knu_minigroup.ui.scrollable.BaseFragment;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -45,7 +48,7 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
+public class Tab4Fragment extends Fragment implements View.OnClickListener {
     public static final int UPDATE_PROFILE = 0;
 
     private static final String TAG = "설정";
@@ -53,9 +56,9 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
     private static int mPosition;
     private static String mGroupId, mGroupImage, mKey;
     private long mLastClickTime;
-    private ImageView mProfileImage;
-    private ProgressDialog mProgressDialog;
+    private CookieManager mCookieManager;
     private User mUser;
+    private RecyclerView mRecyclerView;
 
     public Tab4Fragment() {
     }
@@ -87,61 +90,151 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_tab4, container, false);
-        TextView name = rootView.findViewById(R.id.tv_name);
-        TextView knuId = rootView.findViewById(R.id.tv_knu_id);
-        TextView withdrawalText = rootView.findViewById(R.id.tv_withdrawal);
-        AdView adView = rootView.findViewById(R.id.adView);
-        LinearLayout profile = rootView.findViewById(R.id.ll_profile);
-        LinearLayout withdrawal = rootView.findViewById(R.id.ll_withdrawal);
-        LinearLayout settings = rootView.findViewById(R.id.ll_settings);
-        LinearLayout notice = rootView.findViewById(R.id.ll_notice);
-        LinearLayout feedback = rootView.findViewById(R.id.ll_feedback);
-        LinearLayout appStore = rootView.findViewById(R.id.ll_appstore);
-        LinearLayout share = rootView.findViewById(R.id.ll_share);
-        LinearLayout version = rootView.findViewById(R.id.ll_verinfo);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mProfileImage = rootView.findViewById(R.id.iv_profile_image);
-        mProgressDialog = new ProgressDialog(getContext());
-        mUser = app.AppController.getInstance().getPreferenceManager().getUser();
-        String stuKnuId = mUser.getUserId();
-        String userName = mUser.getName();
+        return inflater.inflate(R.layout.fragment_tab4, container, false);
+    }
 
-        mProgressDialog.setCancelable(false);
-        Glide.with(getContext())
-                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUser.getUid()), new LazyHeaders.Builder().addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie()).build()))
-                .apply(RequestOptions
-                        .circleCropTransform()
-                        .skipMemoryCache(true)
-                        .diskCacheStrategy(DiskCacheStrategy.NONE))
-                .into(mProfileImage);
-        adView.loadAd(adRequest);
-        name.setText(userName);
-        knuId.setText(stuKnuId);
-        profile.setOnClickListener(this);
-        withdrawal.setOnClickListener(this);
-        if (mIsAdmin) {
-            withdrawalText.setText("소모임 폐쇄");
-            settings.setOnClickListener(this);
-            settings.setVisibility(View.VISIBLE);
-        } else {
-            withdrawalText.setText("소모임 탈퇴");
-            settings.setVisibility(View.GONE);
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mRecyclerView = view.findViewById(R.id.recycler_view);
+        mCookieManager = AppController.getInstance().getCookieManager();
+
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        mRecyclerView.setAdapter(new RecyclerView.Adapter<Tab4Holder>() {
+
+            @Override
+            public Tab4Holder onCreateViewHolder(ViewGroup parent, int viewType) {
+                View view = LayoutInflater.from(getContext()).inflate(R.layout.content_tab4, parent, false);
+
+                return new Tab4Holder(view);
+            }
+
+            @Override
+            public void onBindViewHolder(Tab4Holder holder, int position) {
+                mUser = AppController.getInstance().getPreferenceManager().getUser();
+                String stuYuId = mUser.getUserId();
+                String userName = mUser.getName();
+
+                Glide.with(getActivity())
+                        .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUser.getUid()), new LazyHeaders.Builder()
+                                .addHeader("Cookie", mCookieManager.getCookie(EndPoint.LOGIN))
+                                .build()))
+                        .apply(RequestOptions
+                                .circleCropTransform()
+                                .error(R.drawable.user_image_view_circle)
+                                .skipMemoryCache(true)
+                                .diskCacheStrategy(DiskCacheStrategy.NONE))
+                        .into(holder.profileImage);
+                holder.name.setText(userName);
+                holder.yuId.setText(stuYuId);
+                holder.profile.setOnClickListener(Tab4Fragment.this);
+                holder.withdrawal.setOnClickListener(Tab4Fragment.this);
+                if (mIsAdmin) {
+                    holder.withdrawalText.setText("소모임 폐쇄");
+                    holder.settings.setOnClickListener(Tab4Fragment.this);
+                    holder.settings.setVisibility(View.VISIBLE);
+                } else {
+                    holder.withdrawalText.setText("소모임 탈퇴");
+                    holder.settings.setVisibility(View.GONE);
+                }
+                holder.notice.setOnClickListener(Tab4Fragment.this);
+                holder.feedback.setOnClickListener(Tab4Fragment.this);
+                holder.appStore.setOnClickListener(Tab4Fragment.this);
+                holder.share.setOnClickListener(Tab4Fragment.this);
+                holder.version.setOnClickListener(Tab4Fragment.this);
+                holder.adView.loadAd(new AdRequest.Builder().build());
+            }
+
+            @Override
+            public int getItemCount() {
+                return 1;
+            }
+        });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == GroupFragment.UPDATE_GROUP && resultCode == Activity.RESULT_OK) {
+            String groupName = data.getStringExtra("grp_nm");
+            String groupDescription = data.getStringExtra("grp_desc");
+            String joinType = data.getStringExtra("join_div");
+            Intent intent = new Intent(getContext(), GroupFragment.class);
+
+            intent.putExtra("grp_nm", groupName);
+            intent.putExtra("grp_desc", groupDescription);
+            intent.putExtra("join_div", joinType);
+            intent.putExtra("pos", mPosition);
+            getActivity().setResult(Activity.RESULT_OK, intent);
+            ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(groupName);
+        } else if (requestCode == UPDATE_PROFILE && resultCode == Activity.RESULT_OK) {
+            mRecyclerView.getAdapter().notifyDataSetChanged();
+            getActivity().setResult(Activity.RESULT_OK);
         }
-        notice.setOnClickListener(this);
-        feedback.setOnClickListener(this);
-        appStore.setOnClickListener(this);
-        share.setOnClickListener(this);
-        version.setOnClickListener(this);
+    }
 
-        return rootView;
+    private void deleteGroupFromFirebase() {
+        final DatabaseReference userGroupListReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
+        final DatabaseReference articlesReference = FirebaseDatabase.getInstance().getReference("Articles");
+        final DatabaseReference groupsReference = FirebaseDatabase.getInstance().getReference("Groups");
+        if (mIsAdmin) {
+            groupsReference.child(mKey).child("members").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren())
+                        userGroupListReference.child(snapshot.getKey()).child(mKey).removeValue();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
+                }
+            });
+            articlesReference.child(mKey).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    DatabaseReference replysReference = FirebaseDatabase.getInstance().getReference("Replys");
+
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren())
+                        replysReference.child(snapshot.getKey()).removeValue();
+
+                    articlesReference.child(mKey).removeValue();
+                    groupsReference.child(mKey).removeValue();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.e(TAG, databaseError.getMessage());
+                }
+            });
+        } else {
+            groupsReference.child(mKey).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.getValue() == null)
+                        return;
+                    GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
+                    if (groupItem.getMembers() != null && groupItem.getMembers().containsKey(mUser.getUid())) {
+                        Map<String, Boolean> members = groupItem.getMembers();
+
+                        members.remove(mUser.getUid());
+                        groupItem.setMembers(members);
+                        groupItem.setMemberCount(members.size());
+                    }
+                    groupsReference.child(mKey).setValue(groupItem);
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
+                }
+            });
+            userGroupListReference.child(AppController.getInstance().getPreferenceManager().getUser().getUid()).child(mKey).removeValue();
+        }
     }
 
     @Override
     public void onClick(View v) {
-        if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
-            return;
-        mLastClickTime = SystemClock.elapsedRealtime();
         switch (v.getId()) {
             case R.id.ll_profile:
                 startActivityForResult(new Intent(getContext(), ProfileActivity.class), UPDATE_PROFILE);
@@ -153,9 +246,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                 builder.setPositiveButton("예", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        mProgressDialog.setMessage("요청중...");
-                        showProgressDialog();
-                        app.AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, mIsAdmin ? EndPoint.DELETE_GROUP : EndPoint.WITHDRAWAL_GROUP, null, new Response.Listener<JSONObject>() {
+                        AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, mIsAdmin ? EndPoint.DELETE_GROUP : EndPoint.WITHDRAWAL_GROUP, null, new Response.Listener<JSONObject>() {
                             @Override
                             public void onResponse(JSONObject response) {
                                 try {
@@ -169,7 +260,7 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 } finally {
-                                    hideProgressDialog();
+                                    //hideProgressDialog();
                                     deleteGroupFromFirebase();
                                 }
                             }
@@ -177,14 +268,14 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
                             @Override
                             public void onErrorResponse(VolleyError error) {
                                 VolleyLog.e(TAG, error.getMessage());
-                                hideProgressDialog();
+                                //hideProgressDialog();
                             }
                         }) {
                             @Override
                             public Map<String, String> getHeaders() {
                                 Map<String, String> headers = new HashMap<>();
 
-                                headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+                                headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
                                 return headers;
                             }
 
@@ -268,104 +359,27 @@ public class Tab4Fragment extends BaseFragment implements View.OnClickListener {
         }
     }
 
-    @Override
-    public boolean canScrollVertically(int direction) {
-        return false;
-    }
+    public class Tab4Holder extends RecyclerView.ViewHolder {
+        private AdView adView;
+        private LinearLayout profile, withdrawal, settings, notice, feedback, appStore, share, version;
+        private ImageView profileImage;
+        private TextView name, yuId, withdrawalText;
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == GroupFragment.UPDATE_GROUP && resultCode == Activity.RESULT_OK) {
-            String groupName = data.getStringExtra("grp_nm");
-            String groupDescription = data.getStringExtra("grp_desc");
-            String joinType = data.getStringExtra("join_div");
-            Intent intent = new Intent(getContext(), GroupFragment.class);
-
-            intent.putExtra("grp_nm", groupName);
-            intent.putExtra("grp_desc", groupDescription);
-            intent.putExtra("join_div", joinType);
-            intent.putExtra("pos", mPosition);
-            getActivity().setResult(Activity.RESULT_OK, intent);
-            getActivity().getActionBar().setTitle(groupName);
-        } else if (requestCode == UPDATE_PROFILE && resultCode == Activity.RESULT_OK) {
-            Glide.with(getContext())
-                    .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUser.getUid()), new LazyHeaders.Builder().addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie()).build()))
-                    .apply(RequestOptions
-                            .circleCropTransform()
-                            .skipMemoryCache(true)
-                            .diskCacheStrategy(DiskCacheStrategy.NONE))
-                    .into(mProfileImage);
-            getActivity().setResult(Activity.RESULT_OK);
+        public Tab4Holder(View itemView) {
+            super(itemView);
+            adView = itemView.findViewById(R.id.ad_view);
+            appStore = itemView.findViewById(R.id.ll_appstore);
+            feedback = itemView.findViewById(R.id.ll_feedback);
+            name = itemView.findViewById(R.id.tv_name);
+            notice = itemView.findViewById(R.id.ll_notice);
+            profile = itemView.findViewById(R.id.ll_profile);
+            profileImage = itemView.findViewById(R.id.iv_profile_image);
+            settings = itemView.findViewById(R.id.ll_settings);
+            share = itemView.findViewById(R.id.ll_share);
+            version = itemView.findViewById(R.id.ll_verinfo);
+            withdrawal = itemView.findViewById(R.id.ll_withdrawal);
+            withdrawalText = itemView.findViewById(R.id.tv_withdrawal);
+            yuId = itemView.findViewById(R.id.tv_yu_id);
         }
-    }
-
-    private void deleteGroupFromFirebase() {
-        final DatabaseReference userGroupListReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
-        final DatabaseReference articlesReference = FirebaseDatabase.getInstance().getReference("Articles");
-        final DatabaseReference groupsReference = FirebaseDatabase.getInstance().getReference("Groups");
-        if (mIsAdmin) {
-            groupsReference.child(mKey).child("members").addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren())
-                        userGroupListReference.child(snapshot.getKey()).child(mKey).removeValue();
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
-                }
-            });
-            articlesReference.child(mKey).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    DatabaseReference replysReference = FirebaseDatabase.getInstance().getReference("Replys");
-
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren())
-                        replysReference.child(snapshot.getKey()).removeValue();
-                    articlesReference.child(mKey).removeValue();
-                    groupsReference.child(mKey).removeValue();
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    Log.e(TAG, databaseError.getMessage());
-                }
-            });
-        } else {
-            groupsReference.child(mKey).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    if (dataSnapshot.getValue() == null)
-                        return;
-                    GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
-                    if (groupItem.getMembers() != null && groupItem.getMembers().containsKey(mUser.getUid())) {
-                        Map<String, Boolean> members = groupItem.getMembers();
-
-                        members.remove(mUser.getUid());
-                        groupItem.setMembers(members);
-                        groupItem.setMemberCount(members.size());
-                    }
-                    groupsReference.child(mKey).setValue(groupItem);
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
-                }
-            });
-            userGroupListReference.child(app.AppController.getInstance().getPreferenceManager().getUser().getUid()).child(mKey).removeValue();
-        }
-    }
-
-    private void showProgressDialog() {
-        if (!mProgressDialog.isShowing())
-            mProgressDialog.show();
-    }
-
-    private void hideProgressDialog() {
-        if (mProgressDialog.isShowing())
-            mProgressDialog.dismiss();
     }
 }

@@ -1,7 +1,6 @@
 package com.hhp227.knu_minigroup.fragment;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,6 +11,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.*;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
@@ -20,11 +22,10 @@ import com.hhp227.knu_minigroup.ArticleActivity;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.WriteActivity;
 import com.hhp227.knu_minigroup.adapter.ArticleListAdapter;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
-import com.hhp227.knu_minigroup.ui.floatingactionbutton.FloatingActionButton;
-import com.hhp227.knu_minigroup.ui.scrollable.BaseFragment;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
@@ -34,24 +35,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Tab1Fragment extends BaseFragment {
+public class Tab1Fragment extends Fragment {
     public static final int LIMIT = 10;
     public static final int UPDATE_ARTICLE = 20;
     public static boolean mIsAdmin;
     public static String mGroupId, mGroupName, mGroupImage, mKey;
 
-    private boolean mHasRequestedMore; // 데이터 불러올때 중복안되게 하기위한 변수
+    private static final String TAG = "소식";
+    private boolean mHasRequestedMore;
     private int mOffSet;
-    private long mMinId, mLastClickTime; // 클릭시 걸리는 시간
+    private long  mMinId, mLastClickTime;
     private ArticleListAdapter mAdapter;
-    private FloatingActionButton mFloatingActionButton;
     private List<String> mArticleItemKeys;
     private List<ArticleItem> mArticleItemValues;
-    private ListView mListView;
-    private ProgressDialog mProgressDialog;
+    private ProgressBar mProgressBar;
     private RelativeLayout mRelativeLayout;
-    private SwipeRefreshLayout mSwipeRefreshLayout;
-    private View mFooterLoading;
 
     public Tab1Fragment() {
     }
@@ -83,42 +81,48 @@ public class Tab1Fragment extends BaseFragment {
 
     @Override
     public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_tab1, container, false);
-        mFloatingActionButton = rootView.findViewById(R.id.fab_button);
-        mFooterLoading = View.inflate(getContext(), R.layout.load_more, null);
-        mListView = rootView.findViewById(R.id.lv_article);
-        mRelativeLayout = rootView.findViewById(R.id.rl_write);
-        mSwipeRefreshLayout = rootView.findViewById(R.id.srl_article_list);
+        return inflater.inflate(R.layout.fragment_tab1, container, false);
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        final SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.srl_article_list);
+        RecyclerView recyclerView = view.findViewById(R.id.rv_article);
+        mProgressBar = view.findViewById(R.id.pb_article);
+        mRelativeLayout = view.findViewById(R.id.rl_write);
         mArticleItemKeys = new ArrayList<>();
         mArticleItemValues = new ArrayList<>();
         mAdapter = new ArticleListAdapter(getActivity(), mArticleItemKeys, mArticleItemValues, mKey);
-        mOffSet = 1; // offSet 초기화
-        mProgressDialog = ProgressDialog.show(getActivity(), "", "불러오는중...");
+        mOffSet = 1;
 
-        mListView.addFooterView(mFooterLoading);
-        mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setAdapter(mAdapter);
+        recyclerView.post(new Runnable() {
             @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), WriteActivity.class);
-
-                intent.putExtra("admin", mIsAdmin);
-                intent.putExtra("grp_id", mGroupId);
-                intent.putExtra("grp_nm", mGroupName);
-                intent.putExtra("grp_img", mGroupImage);
-                intent.putExtra("key", mKey);
-                startActivity(intent);
-                return;
+            public void run() {
+                mAdapter.setFooterProgressBarVisibility(View.INVISIBLE);
+                mAdapter.addFooterView();
             }
         });
-        mListView.setAdapter(mAdapter);
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                if (!mHasRequestedMore && dy > 0 && layoutManager != null && layoutManager.findLastCompletelyVisibleItemPosition() >= layoutManager.getItemCount() - 1) {
+                    mHasRequestedMore = true;
+                    mOffSet += LIMIT;
 
-                // 두번 클릭시 방지
-                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
-                    return;
-                mLastClickTime = SystemClock.elapsedRealtime();
+                    mAdapter.setFooterProgressBarVisibility(View.VISIBLE);
+                    mAdapter.notifyDataSetChanged();
+                    fetchArticleList();
+                }
+            }
+        });
+        mAdapter.setOnItemClickListener(new ArticleListAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position) {
                 ArticleItem articleItem = mArticleItemValues.get(position);
                 Intent intent = new Intent(getContext(), ArticleActivity.class);
 
@@ -128,34 +132,11 @@ public class Tab1Fragment extends BaseFragment {
                 intent.putExtra("grp_img", mGroupImage);
                 intent.putExtra("artl_num", articleItem.getId());
                 intent.putExtra("position", position + 1);
-                intent.putExtra("auth", articleItem.isAuth() || app.AppController.getInstance().getPreferenceManager().getUser().getUid().equals(articleItem.getUid()));
+                intent.putExtra("auth", articleItem.isAuth() || AppController.getInstance().getPreferenceManager().getUser().getUid().equals(articleItem.getUid()));
+                intent.putExtra("isbottom", v.getId() == R.id.ll_reply);
                 intent.putExtra("grp_key", mKey);
                 intent.putExtra("artl_key", mAdapter.getKey(position));
                 startActivityForResult(intent, UPDATE_ARTICLE);
-            }
-        });
-        mListView.setOnScrollListener(new AbsListView.OnScrollListener() {
-            boolean lastItemVisibleFlag;
-
-            @Override
-            public void onScrollStateChanged(AbsListView view, int scrollState) {
-                if (scrollState == SCROLL_STATE_IDLE && lastItemVisibleFlag && !mHasRequestedMore) {
-
-                    // 화면이 바닦에 닿을때 처리
-                    mHasRequestedMore = true;
-
-                    // 다음 데이터를 불러온다.
-                    mOffSet += LIMIT;
-
-                    // 로딩중을 알리는 프로그레스바를 보인다.
-                    mFooterLoading.setVisibility(View.VISIBLE);
-                    fetchArticleList();
-                }
-            }
-
-            @Override
-            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                lastItemVisibleFlag = totalItemCount > 0 && firstVisibleItem + visibleItemCount >= totalItemCount;
             }
         });
         mRelativeLayout.setOnClickListener(new View.OnClickListener() {
@@ -174,7 +155,7 @@ public class Tab1Fragment extends BaseFragment {
                 startActivity(intent);
             }
         });
-        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 new Handler().postDelayed(new Runnable() {
@@ -185,16 +166,16 @@ public class Tab1Fragment extends BaseFragment {
 
                         mArticleItemKeys.clear();
                         mArticleItemValues.clear();
-                        mSwipeRefreshLayout.setRefreshing(false);
+                        mAdapter.addFooterView();
+                        swipeRefreshLayout.setRefreshing(false);
                         fetchArticleList();
                     }
                 }, 2000);
             }
         });
-        mSwipeRefreshLayout.setColorSchemeResources(android.R.color.holo_red_light, android.R.color.holo_orange_light, android.R.color.holo_green_light, android.R.color.holo_blue_bright);
+        swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_red_light, android.R.color.holo_orange_light, android.R.color.holo_green_light, android.R.color.holo_blue_bright);
+        showProgressBar();
         fetchArticleList();
-
-        return rootView;
     }
 
     @Override
@@ -215,11 +196,6 @@ public class Tab1Fragment extends BaseFragment {
             mAdapter.notifyDataSetChanged();
     }
 
-    @Override
-    public boolean canScrollVertically(int direction) {
-        return mListView != null && mListView.canScrollVertically(direction);
-    }
-
     private void fetchArticleList() {
         String params = "?CLUB_GRP_ID=" + mGroupId + "&startL=" + mOffSet + "&displayL=" + LIMIT;
         StringRequest stringRequest = new StringRequest(Request.Method.GET, EndPoint.GROUP_ARTICLE_LIST + params, new Response.Listener<String>() {
@@ -227,7 +203,7 @@ public class Tab1Fragment extends BaseFragment {
             public void onResponse(String response) {
                 Source source = new Source(response);
 
-                hideProgressDialog();
+                hideProgressBar();
                 try {
                     List<Element> list = source.getAllElementsByClass("listbox2");
                     for (Element element : list) {
@@ -278,34 +254,34 @@ public class Tab1Fragment extends BaseFragment {
                             articleItem.setYoutube(youTubeItem);
                         }
 
-                        mArticleItemKeys.add(id);
-                        mArticleItemValues.add(articleItem);
+                        mArticleItemKeys.add(mArticleItemKeys.size() - 1, id);
+                        mArticleItemValues.add(mArticleItemValues.size() - 1, articleItem);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
                     initFirebaseData();
                 }
+                mAdapter.setFooterProgressBarVisibility(View.INVISIBLE);
                 mAdapter.notifyDataSetChanged();
-                mRelativeLayout.setVisibility(!mArticleItemValues.isEmpty() ? View.GONE : View.VISIBLE);
-                mFloatingActionButton.setVisibility(!mArticleItemValues.isEmpty() ? View.VISIBLE : View.GONE);
+                mRelativeLayout.setVisibility(mArticleItemValues.size() > 1 ? View.GONE : View.VISIBLE);
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 VolleyLog.e(error.getMessage());
-                hideProgressDialog();
+                hideProgressBar();
             }
         }) {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
 
-                headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+                headers.put("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN));
                 return headers;
             }
         };
-        app.AppController.getInstance().addToRequestQueue(stringRequest);
+        AppController.getInstance().addToRequestQueue(stringRequest);
     }
 
     private void initFirebaseData() {
@@ -340,9 +316,13 @@ public class Tab1Fragment extends BaseFragment {
         });
     }
 
-    private void hideProgressDialog() {
-        if (mProgressDialog.isShowing())
-            mProgressDialog.dismiss();
-        mFooterLoading.setVisibility(View.GONE);
+    private void showProgressBar() {
+        if (mProgressBar != null && mProgressBar.getVisibility() == View.GONE)
+            mProgressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void hideProgressBar() {
+        if (mProgressBar != null && mProgressBar.getVisibility() == View.VISIBLE)
+            mProgressBar.setVisibility(View.GONE);
     }
 }

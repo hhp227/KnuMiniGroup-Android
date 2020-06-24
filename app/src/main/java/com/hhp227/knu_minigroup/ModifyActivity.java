@@ -1,12 +1,12 @@
 package com.hhp227.knu_minigroup;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 
-import android.text.Spanned;
+import android.os.Build;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.exifinterface.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -30,11 +30,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.hhp227.knu_minigroup.adapter.WriteListAdapter;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
-import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 
 import java.io.ByteArrayOutputStream;
@@ -45,7 +45,7 @@ import java.util.*;
 
 import static com.hhp227.knu_minigroup.WriteActivity.*;
 
-public class ModifyActivity extends Activity {
+public class ModifyActivity extends AppCompatActivity {
     private static final String TAG = ModifyActivity.class.getSimpleName();
     private int mContextMenuRequest;
     private String mGrpId, mArtlNum, mCurrentPhotoPath, mCookie, mTitle, mContent, mGrpKey, mArtlKey;
@@ -62,7 +62,7 @@ public class ModifyActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_write);
-        ActionBar actionBar = getActionBar();
+        Toolbar toolbar = findViewById(R.id.toolbar);
         LinearLayout buttonImage = findViewById(R.id.ll_image);
         LinearLayout buttonVideo = findViewById(R.id.ll_video);
         ListView listView = findViewById(R.id.lv_write);
@@ -71,7 +71,7 @@ public class ModifyActivity extends Activity {
         mInputTitle = headerView.findViewById(R.id.et_title);
         mInputContent = headerView.findViewById(R.id.et_content);
         mContents = new ArrayList<>();
-        mCookie = app.AppController.getInstance().getPreferenceManager().getCookie();
+        mCookie = AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN);
         mAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, mContents);
         mProgressDialog = new ProgressDialog(this);
         mGrpId = intent.getStringExtra("grp_id");
@@ -83,16 +83,8 @@ public class ModifyActivity extends Activity {
         mGrpKey = intent.getStringExtra("grp_key");
         mArtlKey = intent.getStringExtra("artl_key");
 
-        if (actionBar != null) {
-            actionBar.setDisplayShowHomeEnabled(false);
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-                @Override
-                public boolean isLayoutRtl() {
-                    return false;
-                }
-            });
-        }
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         buttonImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -324,7 +316,7 @@ public class ModifyActivity extends Activity {
                 return byteArrayOutputStream.toByteArray();
             }
         };
-        app.AppController.getInstance().addToRequestQueue(multipartRequest);
+        AppController.getInstance().addToRequestQueue(multipartRequest);
     }
 
     private void uploadProcess(int position, String imageUrl, boolean isYoutube) { // 수정
@@ -356,7 +348,7 @@ public class ModifyActivity extends Activity {
                 }
             } else {
                 String title = mInputTitle.getEditableText().toString();
-                String content = (!TextUtils.isEmpty(mInputContent.getText()) ? Html.toHtml(mInputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) + "<p><br data-mce-bogus=\"1\"></p>" : "") + mMakeHtmlContents.toString();
+                String content = (!TextUtils.isEmpty(mInputContent.getText()) ? Html.toHtml(mInputContent.getText()) + "<p><br data-mce-bogus=\"1\"></p>" : "") + mMakeHtmlContents.toString();
 
                 actionSend(title, content);
             }
@@ -413,7 +405,7 @@ public class ModifyActivity extends Activity {
             }
         };
 
-        app.AppController.getInstance().addToRequestQueue(stringRequest, tagStringReq);
+        AppController.getInstance().addToRequestQueue(stringRequest, tagStringReq);
     }
 
     private File createImageFile() throws IOException {

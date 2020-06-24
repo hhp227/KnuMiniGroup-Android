@@ -30,7 +30,7 @@
                     android:padding="5dp"
                     android:layout_centerHorizontal="true"
                     android:layout_centerVertical="true"
-                    android:src="@drawable/profile_img_circle"
+                    android:src="@drawable/user_image_view_circle"
                     android:scaleType="fitCenter"/>
 
             <TextView

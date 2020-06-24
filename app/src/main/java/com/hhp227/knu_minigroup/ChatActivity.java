@@ -1,7 +1,5 @@
 package com.hhp227.knu_minigroup;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -10,14 +8,15 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
-import app.AppController;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import com.android.volley.*;
 import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.adapter.MessageListAdapter;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.MessageItem;
 import com.hhp227.knu_minigroup.dto.User;
-import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import com.hhp227.knu_minigroup.volley.util.JsonObjectRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -29,7 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ChatActivity extends Activity {
+public class ChatActivity extends AppCompatActivity {
     private static final int LIMIT = 20;
     private boolean mHasRequestedMore, mHasSelection, mIsGroupChat;
     private int mCurrentScrollState;
@@ -46,31 +45,23 @@ public class ChatActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
-        ActionBar actionBar = getActionBar();
         Intent intent = getIntent();
+        Toolbar toolbar = findViewById(R.id.toolbar);
         mButtonSend = findViewById(R.id.tv_btn_send);
         mInputMessage = findViewById(R.id.et_input_msg);
         mListView = findViewById(R.id.lv_message);
         mDatabaseReference = FirebaseDatabase.getInstance().getReference("Messages");
         mMessageItemList = new ArrayList<>();
-        mUser = app.AppController.getInstance().getPreferenceManager().getUser();
+        mUser = AppController.getInstance().getPreferenceManager().getUser();
         mSender = mUser.getUid();
         mReceiver = intent.getStringExtra("uid");
         mValue = intent.getStringExtra("value");
         mIsGroupChat = intent.getBooleanExtra("grp_chat", false);
         mAdapter = new MessageListAdapter(this, mMessageItemList, mSender);
 
-        if (actionBar != null) {
-            actionBar.setDisplayShowHomeEnabled(false);
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setTitle(intent.getStringExtra("chat_nm") + (mIsGroupChat ? " 그룹채팅방" : ""));
-            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-                @Override
-                public boolean isLayoutRtl() {
-                    return false;
-                }
-            });
-        }
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(intent.getStringExtra("chat_nm") + (mIsGroupChat ? " 그룹채팅방" : ""));
         mButtonSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -242,7 +233,7 @@ public class ChatActivity extends Activity {
     }
 
     private void sendLMSMessage() {
-        app.AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, EndPoint.SEND_MESSAGE, null, new Response.Listener<JSONObject>() {
+        AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, EndPoint.SEND_MESSAGE, null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 try {
@@ -262,7 +253,7 @@ public class ChatActivity extends Activity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", AppController.getInstance().getPreferenceManager().getCookie());
+                headers.put("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN));
                 return headers;
             }
 

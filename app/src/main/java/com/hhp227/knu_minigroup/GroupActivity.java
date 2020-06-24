@@ -1,21 +1,14 @@
 package com.hhp227.knu_minigroup;
 
-import android.app.ActionBar;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Toast;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentActivity;
-import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.initialization.InitializationStatus;
-import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
+import androidx.appcompat.app.AppCompatActivity;
 import com.hhp227.knu_minigroup.fragment.TabHostLayoutFragment;
-import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 
-public class GroupActivity extends FragmentActivity {
+public class GroupActivity extends AppCompatActivity {
     private boolean mIsAdmin;
     private int mPosition;
     private String mGroupId, mGroupName, mGroupImage, mKey;
@@ -25,7 +18,6 @@ public class GroupActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group);
-        ActionBar actionBar = getActionBar();
         Intent intent = getIntent();
         mIsAdmin = intent.getBooleanExtra("admin", false);
         mGroupId = intent.getStringExtra("grp_id");
@@ -35,17 +27,6 @@ public class GroupActivity extends FragmentActivity {
         mKey = intent.getStringExtra("key");
         mFragMain = TabHostLayoutFragment.newInstance(mIsAdmin, mGroupId, mGroupName, mGroupImage, mPosition, mKey);
 
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-                @Override
-                public boolean isLayoutRtl() {
-                    return false;
-                }
-            });
-            actionBar.setDisplayShowHomeEnabled(false);
-            actionBar.setTitle(mGroupName);
-        }
         getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, mFragMain).commit();
     }
 

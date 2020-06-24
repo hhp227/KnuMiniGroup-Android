@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">경북대 소모임</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="admob_app_id">ca-app-pub-6359051986076073~2419334882</string>
     <string name="banner_ad_unit_id_settings">ca-app-pub-6359051986076073/6935134700</string>
     <string name="native_ad_unit_id">ca-app-pub-6359051986076073/6522231429</string>
@@ -7,6 +9,17 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="app_version">Ver 1.42</string>
+    <string name="main">메인화면</string>
+    <string name="knu_board">본관게시판</string>
+    <string name="timetable">시간표</string>
+    <string name="library_seat">도서관 좌석</string>
+    <string name="shuttle_bus">통학버스 시간표</string>
+    <string name="meal">식단표</string>
+    <string name="logout">로그아웃</string>
+    <string name="title_find">그룹찾기</string>
+    <string name="title_request">가입신청중 그룹</string>
+    <string name="title_create">그룹 만들기</string>
+
     <string name="action_settings">Settings</string>
     <string name="ad_attribution">Ad</string>
     <!-- 날짜 -->
@@ -17,6 +30,9 @@
     <string name="minute">분전</string>
     <string name="second">초전</string>
     <string name="afew">지금</string>
-    <string name="title_activity_detail">DetailActivity</string>
     <string name="title_activity_web_view">WebViewActivity</string>
+    <string name="action_group_menu1">Test1</string>
+    <string name="action_group_menu2">Test2</string>
+    <string name="title_activity_ver_info">버젼 정보</string>
+    <string name="native_ad">ca-app-pub-3940256099942544/2247696110</string>
 </resources>

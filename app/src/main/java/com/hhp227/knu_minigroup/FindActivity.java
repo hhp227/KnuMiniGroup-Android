@@ -1,22 +1,25 @@
 package com.hhp227.knu_minigroup;
 
-import android.app.ActionBar;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
-import androidx.fragment.app.FragmentActivity;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
+import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.adapter.GroupListAdapter;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.fragment.GroupInfoFragment;
-import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
@@ -28,7 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FindActivity extends FragmentActivity {
+public class FindActivity extends AppCompatActivity {
     private static final int LIMIT = 15;
     private static final String TAG = FindActivity.class.getSimpleName();
     private boolean mHasRequestedMore;
@@ -38,75 +41,54 @@ public class FindActivity extends FragmentActivity {
     private List<GroupItem> mGroupItemValues;
     private ProgressBar mProgressBar;
     private RelativeLayout mRelativeLayout;
+    private RecyclerView mRecyclerView;
+    private RecyclerView.OnScrollListener mOnScrollListener;
+    private ShimmerFrameLayout mShimmerFrameLayout;
     private SwipeRefreshLayout mSwipeRefreshLayout;
-    private View mFooterLoading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
-        ActionBar actionBar = getActionBar();
-        ListView listView = findViewById(R.id.list_view);
-        mFooterLoading = View.inflate(this, R.layout.load_more, null);
-        mRelativeLayout = findViewById(R.id.rl_group);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        mRecyclerView = findViewById(R.id.recycler_view);
         mProgressBar = findViewById(R.id.pb_group);
+        mRelativeLayout = findViewById(R.id.rl_group);
+        mShimmerFrameLayout = findViewById(R.id.sfl_group);
         mSwipeRefreshLayout = findViewById(R.id.srl_list);
         mGroupItemKeys = new ArrayList<>();
         mGroupItemValues = new ArrayList<>();
-        mAdapter = new GroupListAdapter(getBaseContext(), mGroupItemKeys, mGroupItemValues);
+        mAdapter = new GroupListAdapter(this, mGroupItemKeys, mGroupItemValues);
         mOffSet = 1;
-
-        if (actionBar != null) {
-            actionBar.setDisplayShowHomeEnabled(false);
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-                @Override
-                public boolean isLayoutRtl() {
-                    return false;
-                }
-            });
-        }
-        mFooterLoading.setVisibility(View.GONE);
-        listView.addFooterView(mFooterLoading);
-        listView.setAdapter(mAdapter);
-        listView.setOnScrollListener(new AbsListView.OnScrollListener() {
-            boolean lastItemVisibleFlag;
-
+        mOnScrollListener = new RecyclerView.OnScrollListener() {
             @Override
-            public void onScrollStateChanged(AbsListView view, int scrollState) {
-                if (scrollState == SCROLL_STATE_IDLE && lastItemVisibleFlag && !mHasRequestedMore) {
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                LinearLayoutManager manager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                if (!mHasRequestedMore && dy > 0 && manager != null && manager.findLastCompletelyVisibleItemPosition() >= manager.getItemCount() - 1) {
                     mHasRequestedMore = true;
                     mOffSet += LIMIT;
-                    mFooterLoading.setVisibility(View.VISIBLE);
+                    mAdapter.setFooterProgressBarVisibility(View.VISIBLE);
+                    mAdapter.notifyDataSetChanged();
                     fetchGroupList();
                 }
             }
+        };
 
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        mRecyclerView.setHasFixedSize(true);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mRecyclerView.setAdapter(mAdapter);
+        mRecyclerView.post(new Runnable() {
             @Override
-            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                lastItemVisibleFlag = totalItemCount > 0 && firstVisibleItem + visibleItemCount >= totalItemCount;
+            public void run() {
+                mAdapter.setFooterProgressBarVisibility(View.INVISIBLE);
+                mAdapter.addFooterView();
+                mAdapter.setButtonType(GroupInfoFragment.TYPE_REQUEST);
             }
         });
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                GroupItem groupItem = mGroupItemValues.get(position);
-
-                Bundle args = new Bundle();
-                args.putString("grp_id", groupItem.getId());
-                args.putString("grp_nm", groupItem.getName());
-                args.putString("img", groupItem.getImage());
-                args.putString("info", groupItem.getInfo());
-                args.putString("desc", groupItem.getDescription());
-                args.putString("type", groupItem.getJoinType());
-                args.putInt("btn_type", GroupInfoFragment.TYPE_REQUEST);
-                args.putString("key", mGroupItemKeys.get(position));
-
-                GroupInfoFragment newFragment = GroupInfoFragment.newInstance();
-                newFragment.setArguments(args);
-                newFragment.show(getSupportFragmentManager(), "dialog");
-            }
-        });
+        mRecyclerView.addOnScrollListener(mOnScrollListener);
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -117,14 +99,30 @@ public class FindActivity extends FragmentActivity {
                         mOffSet = 1;
                         mGroupItemKeys.clear();
                         mGroupItemValues.clear();
-                        fetchGroupList();
+                        mAdapter.addFooterView();
                         mSwipeRefreshLayout.setRefreshing(false);
+                        fetchGroupList();
                     }
                 }, 1000);
             }
         });
         showProgressBar();
-        fetchGroupList();
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                fetchGroupList();
+            }
+        }, 500);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mOnScrollListener != null)
+            mRecyclerView.removeOnScrollListener(mOnScrollListener);
+        mOnScrollListener = null;
+        mShimmerFrameLayout.clearAnimation();
+        mShimmerFrameLayout.removeAllViews();
     }
 
     @Override
@@ -135,7 +133,7 @@ public class FindActivity extends FragmentActivity {
     }
 
     private void fetchGroupList() {
-        app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
+        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 Source source = new Source(response);
@@ -169,8 +167,8 @@ public class FindActivity extends FragmentActivity {
                             groupItem.setInfo(info.toString().trim());
                             groupItem.setDescription(description);
                             groupItem.setJoinType(joinType.equals("가입방식: 자동 승인") ? "0" : "1");
-                            mGroupItemKeys.add(String.valueOf(id));
-                            mGroupItemValues.add(groupItem);
+                            mGroupItemKeys.add(mGroupItemKeys.size() - 1, String.valueOf(id));
+                            mGroupItemValues.add(mGroupItemValues.size() - 1, groupItem);
                         }
                     } catch (Exception e) {
                         Log.e(TAG, e.getMessage());
@@ -178,6 +176,7 @@ public class FindActivity extends FragmentActivity {
                         initFirebaseData();
                     }
                 }
+                mAdapter.setFooterProgressBarVisibility(View.INVISIBLE);
                 mAdapter.notifyDataSetChanged();
                 hideProgressBar();
                 mRelativeLayout.setVisibility(mGroupItemValues.isEmpty() ? View.VISIBLE : View.GONE);
@@ -192,7 +191,7 @@ public class FindActivity extends FragmentActivity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+                headers.put("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN));
                 return headers;
             }
 
@@ -262,13 +261,20 @@ public class FindActivity extends FragmentActivity {
     }
 
     private void showProgressBar() {
-        if (mProgressBar != null)
+        if (mProgressBar != null && mProgressBar.getVisibility() == View.GONE)
             mProgressBar.setVisibility(View.VISIBLE);
+        if (!mShimmerFrameLayout.isShimmerStarted())
+            mShimmerFrameLayout.startShimmer();
+        if (!mShimmerFrameLayout.isShimmerVisible())
+            mShimmerFrameLayout.setVisibility(View.VISIBLE);
     }
 
     private void hideProgressBar() {
-        if (mProgressBar != null)
+        if (mProgressBar != null && mProgressBar.getVisibility() == View.VISIBLE)
             mProgressBar.setVisibility(View.GONE);
-        mFooterLoading.setVisibility(View.GONE);
+        if (mShimmerFrameLayout.isShimmerStarted())
+            mShimmerFrameLayout.stopShimmer();
+        if (mShimmerFrameLayout.isShimmerVisible())
+            mShimmerFrameLayout.setVisibility(View.GONE);
     }
 }

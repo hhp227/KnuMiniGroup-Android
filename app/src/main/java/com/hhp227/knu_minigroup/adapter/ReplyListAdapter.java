@@ -14,6 +14,7 @@ import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ReplyItem;
 
@@ -63,10 +64,10 @@ public class ReplyListAdapter extends BaseAdapter {
 
         Glide.with(mActivity)
                 .load(replyItem.getUid() != null ? new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", replyItem.getUid()), new LazyHeaders.Builder()
-                        .addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie())
+                        .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
                         .build()) : null)
                 .apply(RequestOptions
-                        .errorOf(R.drawable.profile_img_circle)
+                        .errorOf(R.drawable.user_image_view_circle)
                         .circleCrop()
                         .skipMemoryCache(true)
                         .diskCacheStrategy(DiskCacheStrategy.NONE))

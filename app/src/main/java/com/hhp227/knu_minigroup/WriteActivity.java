@@ -1,7 +1,5 @@
 package com.hhp227.knu_minigroup;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -18,6 +16,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.FileProvider;
 import androidx.exifinterface.media.ExifInterface;
 import com.android.volley.*;
@@ -26,11 +26,11 @@ import com.android.volley.toolbox.Volley;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.hhp227.knu_minigroup.adapter.WriteListAdapter;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
-import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 import net.htmlparser.jericho.Source;
 import org.json.JSONException;
@@ -42,7 +42,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class WriteActivity extends Activity {
+public class WriteActivity extends AppCompatActivity {
     public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 100;
     public static final int REQUEST_IMAGE_CAPTURE = 200;
     public static final int REQUEST_YOUTUBE_PICK = 300;
@@ -65,7 +65,7 @@ public class WriteActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_write);
-        ActionBar actionBar = getActionBar();
+        Toolbar toolbar = findViewById(R.id.toolbar);
         View headerView = getLayoutInflater().inflate(R.layout.write_text, null, false);
         LinearLayout buttonImage = findViewById(R.id.ll_image);
         LinearLayout buttonVideo = findViewById(R.id.ll_video);
@@ -74,8 +74,8 @@ public class WriteActivity extends Activity {
         mInputContent = headerView.findViewById(R.id.et_content);
         mContents = new ArrayList<>();
         mAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, mContents);
-        mPreferenceManager = app.AppController.getInstance().getPreferenceManager();
-        mCookie = mPreferenceManager.getCookie();
+        mPreferenceManager = AppController.getInstance().getPreferenceManager();
+        mCookie = AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN);
         mProgressDialog = new ProgressDialog(this);
         mIsAdmin = getIntent().getBooleanExtra("admin", false);
         mGrpId = getIntent().getStringExtra("grp_id");
@@ -83,16 +83,8 @@ public class WriteActivity extends Activity {
         mGrpImg = getIntent().getStringExtra("grp_img");
         mKey = getIntent().getStringExtra("key");
 
-        if (actionBar != null) {
-            actionBar.setDisplayShowHomeEnabled(false);
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-                @Override
-                public boolean isLayoutRtl() {
-                    return false;
-                }
-            });
-        }
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         buttonImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -343,7 +335,7 @@ public class WriteActivity extends Activity {
                 }
             } else {
                 String title = mInputTitle.getEditableText().toString();
-                String content = (!TextUtils.isEmpty(mInputContent.getText().toString()) ? Html.toHtml((Spanned) mInputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) + "<p><br data-mce-bogus=\"1\"></p>" : "") + mMakeHtmlContents.toString();
+                String content = (!TextUtils.isEmpty(mInputContent.getText().toString()) ? Html.toHtml(mInputContent.getText()) + "<p><br data-mce-bogus=\"1\"></p>" : "") + mMakeHtmlContents.toString();
 
                 actionSend(mGrpId, title, content);
             }
@@ -409,12 +401,12 @@ public class WriteActivity extends Activity {
                 return params;
             }
         };
-        app.AppController.getInstance().addToRequestQueue(stringRequest, tagStringReq);
+        AppController.getInstance().addToRequestQueue(stringRequest, tagStringReq);
     }
 
     private void getArticleId() {
         String params = "?CLUB_GRP_ID=" + mGrpId + "&displayL=1";
-        app.AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.GROUP_ARTICLE_LIST + params, new Response.Listener<String>() {
+        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.GROUP_ARTICLE_LIST + params, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 Source source = new Source(response);

@@ -7,8 +7,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -17,6 +18,7 @@ import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.SeatListAdapter;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.SeatItem;
 import org.json.JSONArray;
@@ -31,6 +33,7 @@ public class SangjuSeatFragment extends Fragment {
     private boolean mIsRefresh;
     private List<SeatItem> mSeatItemList;
     private ProgressDialog mProgressDialog;
+    private RecyclerView mRecyclerView;
     private SeatListAdapter mAdapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
 
@@ -49,14 +52,15 @@ public class SangjuSeatFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_list, container, false);
-        ListView listView = rootView.findViewById(R.id.list_view);
-        mSwipeRefreshLayout = rootView.findViewById(R.id.sr_layout);
+        View rootView = inflater.inflate(R.layout.fragment_seat, container, false);
+        mRecyclerView = rootView.findViewById(R.id.recycler_view);
+        mSwipeRefreshLayout = rootView.findViewById(R.id.srl);
         mSeatItemList = new ArrayList<>();
         mAdapter = new SeatListAdapter(getActivity(), mSeatItemList);
         mProgressDialog = new ProgressDialog(getActivity());
 
-        listView.setAdapter(mAdapter);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        mRecyclerView.setAdapter(mAdapter);
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -79,7 +83,7 @@ public class SangjuSeatFragment extends Fragment {
     }
 
     private void fetchData() {
-        app.AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.GET, EndPoint.URL_KNULIBRARY_SEAT.replace("{ID}", "2"), null, new Response.Listener<JSONObject>() {
+        AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.GET, EndPoint.URL_KNULIBRARY_SEAT.replace("{ID}", "2"), null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 try {

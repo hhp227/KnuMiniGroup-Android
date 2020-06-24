@@ -1,33 +1,32 @@
 package com.hhp227.knu_minigroup;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
+import android.view.*;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.Toast;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
 import com.google.firebase.database.*;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ReplyItem;
-import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ReplyModifyActivity extends Activity {
+public class ReplyModifyActivity extends AppCompatActivity {
     private static final String TAG = "댓글수정";
-    private EditText mInputReply;
+    private Holder mHolder;
     private ProgressDialog mProgressDialog;
     private String mGroupId, mArticleId, mReplyId, mReply, mArticleKey, mReplyKey;
 
@@ -35,10 +34,9 @@ public class ReplyModifyActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reply_modify);
-        View headerView = getLayoutInflater().inflate(R.layout.modify_text, null, false);
-        ActionBar actionBar = getActionBar();
-        ListView listView = findViewById(R.id.lv_write);
-        mInputReply = headerView.findViewById(R.id.et_reply);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        RecyclerView recyclerView = findViewById(R.id.rv_write);
+
         mProgressDialog = new ProgressDialog(this);
         Intent intent = getIntent();
         mGroupId = intent.getStringExtra("grp_id");
@@ -49,20 +47,29 @@ public class ReplyModifyActivity extends Activity {
         mReply = intent.getStringExtra("cmt");
         mReply = mReply.contains("※") ? mReply.substring(0, mReply.lastIndexOf("※")).trim() : mReply;
 
-        if (actionBar != null) {
-            actionBar.setDisplayShowHomeEnabled(false);
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-                @Override
-                public boolean isLayoutRtl() {
-                    return false;
-                }
-            });
-        }
-        listView.addHeaderView(headerView);
-        listView.setAdapter(null);
-        mInputReply.setText(mReply);
         mProgressDialog.setCancelable(false);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(new RecyclerView.Adapter<Holder>() {
+
+            @Override
+            public Holder onCreateViewHolder(ViewGroup parent, int viewType) {
+                View view = LayoutInflater.from(getApplicationContext()).inflate(R.layout.modify_text, parent, false);
+                mHolder = new Holder(view);
+                return mHolder;
+            }
+
+            @Override
+            public void onBindViewHolder(Holder holder, int position) {
+                holder.inputReply.setText(mReply);
+            }
+
+            @Override
+            public int getItemCount() {
+                return 1;
+            }
+        });
     }
 
     @Override
@@ -78,7 +85,7 @@ public class ReplyModifyActivity extends Activity {
                 finish();
                 return true;
             case R.id.action_send:
-                final String text = mInputReply.getText().toString().trim();
+                final String text = mHolder.inputReply.getText().toString().trim();
                 if (!TextUtils.isEmpty(text)) {
                     String tag_string_req = "req_send";
                     mProgressDialog.setMessage("전송중...");
@@ -115,7 +122,7 @@ public class ReplyModifyActivity extends Activity {
                         @Override
                         public Map<String, String> getHeaders() {
                             Map<String, String> headers = new HashMap<>();
-                            headers.put("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie());
+                            headers.put("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN));
                             return headers;
                         }
 
@@ -129,7 +136,7 @@ public class ReplyModifyActivity extends Activity {
                             return params;
                         }
                     };
-                    app.AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
+                    AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
                 } else
                     Toast.makeText(getApplicationContext(), "내용을 입력하세요.", Toast.LENGTH_LONG).show();
                 return true;
@@ -148,7 +155,7 @@ public class ReplyModifyActivity extends Activity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getValue() != null) {
                     ReplyItem replyItem = dataSnapshot.getValue(ReplyItem.class);
-                    replyItem.setReply(mInputReply.getText().toString() + "\n");
+                    replyItem.setReply(mHolder.inputReply.getText().toString() + "\n");
                     query.getRef().setValue(replyItem);
                 }
             }
@@ -168,5 +175,14 @@ public class ReplyModifyActivity extends Activity {
     private void hideProgressDialog() {
         if (mProgressDialog.isShowing())
             mProgressDialog.dismiss();
+    }
+
+    public class Holder extends RecyclerView.ViewHolder {
+        private EditText inputReply;
+
+        Holder(View itemView) {
+            super(itemView);
+            inputReply = itemView.findViewById(R.id.et_reply);
+        }
     }
 }

@@ -1,7 +1,5 @@
 package com.hhp227.knu_minigroup;
 
-import android.app.ActionBar;
-import android.app.ProgressDialog;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
@@ -11,7 +9,10 @@ import android.text.*;
 import android.util.Log;
 import android.view.*;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.CookieManager;
 import android.widget.*;
+import androidx.appcompat.widget.Toolbar;
+import androidx.cardview.widget.CardView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
@@ -23,13 +24,14 @@ import com.bumptech.glide.request.RequestOptions;
 import com.google.android.youtube.player.*;
 import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.adapter.ReplyListAdapter;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.dto.ReplyItem;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.fragment.Tab1Fragment;
+import com.hhp227.knu_minigroup.helper.MyYouTubeBaseActivity;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
-import com.hhp227.knu_minigroup.ui.navigationdrawer.DrawerArrowDrawable;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
@@ -45,12 +47,14 @@ import java.util.Map;
 import static com.hhp227.knu_minigroup.YouTubeSearchActivity.API_KEY;
 import static com.hhp227.knu_minigroup.fragment.Tab1Fragment.UPDATE_ARTICLE;
 
-public class ArticleActivity extends YouTubeBaseActivity {
+public class ArticleActivity extends MyYouTubeBaseActivity {
     private static final int UPDATE_REPLY = 10;
     private static final String TAG = ArticleActivity.class.getSimpleName();
     private boolean mIsBottom, mIsUpdate, mIsAuthorized;
     private int mPosition;
     private String mGroupId, mArticleId, mGroupName, mGroupImage, mGroupKey, mArticleKey;
+    private CardView mButtonSend;
+    private CookieManager mCookieManager;
     private EditText mInputReply;
     private ImageView mArticleProfile;
     private LinearLayout mArticleImages;
@@ -58,11 +62,11 @@ public class ArticleActivity extends YouTubeBaseActivity {
     private List<ReplyItem> mReplyItemValues;
     private ListView mListView;
     private PreferenceManager mPreferenceManager;
-    private ProgressDialog mProgressDialog;
+    private ProgressBar mProgressBar;
     private ReplyListAdapter mAdapter;
     private Source mSource;
     private SwipeRefreshLayout mSwipeRefreshLayout;
-    private TextView mArticleTitle, mArticleTimeStamp, mArticleContent, mButtonSend;
+    private TextView mArticleTitle, mArticleTimeStamp, mArticleContent, mSendText;
     private View mArticleDetail;
     private YouTubeItem mYouTubeItem;
     private YouTubePlayerView mYouTubePlayerView;
@@ -71,9 +75,9 @@ public class ArticleActivity extends YouTubeBaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_article);
-        ActionBar actionBar = getActionBar();
+        Toolbar toolbar = findViewById(R.id.toolbar);
         mArticleDetail = getLayoutInflater().inflate(R.layout.article_detail, null, false);
-        mButtonSend = findViewById(R.id.tv_btn_send);
+        mButtonSend = findViewById(R.id.cv_btn_send);
         mArticleProfile = mArticleDetail.findViewById(R.id.iv_profile_image);
         mArticleTitle = mArticleDetail.findViewById(R.id.tv_title);
         mArticleTimeStamp = mArticleDetail.findViewById(R.id.tv_timestamp);
@@ -81,8 +85,11 @@ public class ArticleActivity extends YouTubeBaseActivity {
         mArticleImages = mArticleDetail.findViewById(R.id.ll_image);
         mInputReply = findViewById(R.id.et_reply);
         mListView = findViewById(R.id.lv_article);
+        mSendText = findViewById(R.id.tv_btn_send);
         mSwipeRefreshLayout = findViewById(R.id.srl_article);
-        mPreferenceManager = app.AppController.getInstance().getPreferenceManager();
+        mProgressBar = findViewById(R.id.pb_article);
+        mPreferenceManager = AppController.getInstance().getPreferenceManager();
+        mCookieManager = AppController.getInstance().getCookieManager();
         Intent intent = getIntent();
         mGroupId = intent.getStringExtra("grp_id");
         mGroupName = intent.getStringExtra("grp_nm");
@@ -97,19 +104,9 @@ public class ArticleActivity extends YouTubeBaseActivity {
         mReplyItemKeys = new ArrayList<>();
         mReplyItemValues = new ArrayList<>();
         mAdapter = new ReplyListAdapter(this, mReplyItemKeys, mReplyItemValues);
-        mProgressDialog = new ProgressDialog(this);
 
-        if (actionBar != null) {
-            actionBar.setTitle(mGroupName);
-            actionBar.setDisplayShowHomeEnabled(false);
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeAsUpIndicator(new DrawerArrowDrawable(this) {
-                @Override
-                public boolean isLayoutRtl() {
-                    return false;
-                }
-            });
-        }
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mArticleDetail.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -140,8 +137,8 @@ public class ArticleActivity extends YouTubeBaseActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                mButtonSend.setBackgroundResource(s.length() > 0 ? R.drawable.background_sendbtn_p : R.drawable.background_sendbtn_n);
-                mButtonSend.setTextColor(getResources().getColor(s.length() > 0 ? android.R.color.white : android.R.color.darker_gray));
+                mButtonSend.setCardBackgroundColor(getResources().getColor(s.length() > 0 ? R.color.colorAccent : androidx.cardview.R.color.cardview_light_background));
+                mSendText.setTextColor(getResources().getColor(s.length() > 0 ? android.R.color.white : android.R.color.darker_gray));
             }
 
             @Override
@@ -157,8 +154,6 @@ public class ArticleActivity extends YouTubeBaseActivity {
         });
         mListView.addHeaderView(mArticleDetail);
         mListView.setAdapter(mAdapter);
-        mProgressDialog.setCancelable(false);
-        mProgressDialog.setMessage("요청중 ...");
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -173,7 +168,7 @@ public class ArticleActivity extends YouTubeBaseActivity {
             }
         });
         registerForContextMenu(mListView); // 콘텍스트메뉴
-        showProgressDialog();
+        showProgressBar();
         fetchArticleData();
     }
 
@@ -233,23 +228,23 @@ public class ArticleActivity extends YouTubeBaseActivity {
                         } catch (JSONException e) {
                             Log.e(TAG, "json 파싱 에러 : " + e.getMessage());
                         } finally {
-                            hideProgressDialog();
                             deleteArticleFromFirebase();
                         }
+                        hideProgressBar();
                     }
                 }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Log.e(TAG, "전송 에러: " + error.getMessage());
                         Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-                        hideProgressDialog();
+                        hideProgressBar();
                     }
                 }) {
                     @Override
                     public Map<String, String> getHeaders() {
                         Map<String, String> headers = new HashMap<>();
 
-                        headers.put("Cookie", mPreferenceManager.getCookie());
+                        headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
                         return headers;
                     }
 
@@ -263,9 +258,8 @@ public class ArticleActivity extends YouTubeBaseActivity {
                     }
                 };
 
-                mProgressDialog.setMessage("요청중 ...");
-                showProgressDialog();
-                app.AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
+                showProgressBar();
+                AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -277,7 +271,6 @@ public class ArticleActivity extends YouTubeBaseActivity {
         if (requestCode == UPDATE_ARTICLE && resultCode == RESULT_OK) {
             mIsUpdate = true;
 
-            // 이전코드 : onCreate(new Bundle());
             refresh();
         } else if (requestCode == UPDATE_REPLY && resultCode == RESULT_OK && data != null) {
             mSource = new Source(data.getStringExtra("update_reply"));
@@ -336,7 +329,7 @@ public class ArticleActivity extends YouTubeBaseActivity {
                     @Override
                     public void onResponse(String response) {
                         mSource = new Source(response);
-                        hideProgressDialog();
+                        hideProgressBar();
                         try {
                             if (!response.contains("처리를 실패했습니다")) {
                                 List<Element> commentList = mSource.getAllElementsByClass("comment-list");
@@ -355,14 +348,14 @@ public class ArticleActivity extends YouTubeBaseActivity {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         VolleyLog.e(TAG, error.getMessage());
-                        hideProgressDialog();
+                        hideProgressBar();
                     }
                 }) {
                     @Override
                     public Map<String, String> getHeaders() {
                         Map<String, String> headers = new HashMap<>();
 
-                        headers.put("Cookie", mPreferenceManager.getCookie());
+                        headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
                         return headers;
                     }
 
@@ -377,9 +370,8 @@ public class ArticleActivity extends YouTubeBaseActivity {
                     }
                 };
 
-                mProgressDialog.setMessage("요청중...");
-                showProgressDialog();
-                app.AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
+                showProgressBar();
+                AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
                 return true;
         }
         return false;
@@ -391,7 +383,7 @@ public class ArticleActivity extends YouTubeBaseActivity {
             @Override
             public void onResponse(String response) {
                 mSource = new Source(response.trim());
-                hideProgressDialog();
+                hideProgressBar();
                 try {
                     Element element = mSource.getFirstElementByClass("listbox2");
                     Element viewArt = element.getFirstElementByClass("view_art");
@@ -409,7 +401,7 @@ public class ArticleActivity extends YouTubeBaseActivity {
                     Glide.with(getApplicationContext())
                             .load(profileImg)
                             .apply(RequestOptions
-                                    .errorOf(R.drawable.profile_img_circle)
+                                    .errorOf(R.drawable.user_image_view_circle)
                                     .circleCrop()
                                     .skipMemoryCache(true)
                                     .diskCacheStrategy(DiskCacheStrategy.NONE))
@@ -494,19 +486,19 @@ public class ArticleActivity extends YouTubeBaseActivity {
             @Override
             public void onErrorResponse(VolleyError error) {
                 VolleyLog.d(TAG, "에러 : " + error.getMessage());
-                hideProgressDialog();
+                hideProgressBar();
             }
         }) {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
 
-                headers.put("Cookie", mPreferenceManager.getCookie());
+                headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
                 return headers;
             }
         };
 
-        app.AppController.getInstance().addToRequestQueue(stringRequest);
+        AppController.getInstance().addToRequestQueue(stringRequest);
     }
 
     private void fetchReplyData(List<Element> commentList) {
@@ -553,7 +545,7 @@ public class ArticleActivity extends YouTubeBaseActivity {
                 mReplyItemValues.clear();
                 try {
                     fetchReplyData(commentList);
-                    hideProgressDialog();
+                    hideProgressBar();
 
                     // 전송할때마다 리스트뷰 아래로
                     setListViewBottom();
@@ -568,14 +560,14 @@ public class ArticleActivity extends YouTubeBaseActivity {
             public void onErrorResponse(VolleyError error) {
                 VolleyLog.e(TAG, error.getMessage());
                 Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-                hideProgressDialog();
+                hideProgressBar();
             }
         }) {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
 
-                headers.put("Cookie", mPreferenceManager.getCookie());
+                headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
                 return headers;
             }
 
@@ -590,9 +582,8 @@ public class ArticleActivity extends YouTubeBaseActivity {
             }
         };
 
-        mProgressDialog.setMessage("전송중...");
-        showProgressDialog();
-        app.AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
+        showProgressBar();
+        AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
     }
 
     /**
@@ -671,10 +662,10 @@ public class ArticleActivity extends YouTubeBaseActivity {
 
                     Glide.with(getApplicationContext())
                             .load(articleItem.getUid() != null ? new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", articleItem.getUid()), new LazyHeaders.Builder()
-                                    .addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie())
+                                    .addHeader("Cookie", mCookieManager.getCookie(EndPoint.LOGIN))
                                     .build()) : null)
                             .apply(RequestOptions
-                                    .errorOf(R.drawable.profile_img_circle)
+                                    .errorOf(R.drawable.user_image_view_circle)
                                     .circleCrop()
                                     .skipMemoryCache(true)
                                     .diskCacheStrategy(DiskCacheStrategy.NONE))
@@ -746,13 +737,13 @@ public class ArticleActivity extends YouTubeBaseActivity {
         databaseReference.child(mArticleKey).child(replyKey).removeValue();
     }
 
-    private void showProgressDialog() {
-        if (!mProgressDialog.isShowing())
-            mProgressDialog.show();
+    private void showProgressBar() {
+        if (mProgressBar != null && mProgressBar.getVisibility() == View.GONE)
+            mProgressBar.setVisibility(View.VISIBLE);
     }
 
-    private void hideProgressDialog() {
-        if (mProgressDialog.isShowing())
-            mProgressDialog.dismiss();
+    private void hideProgressBar() {
+        if (mProgressBar != null && mProgressBar.getVisibility() == View.VISIBLE)
+            mProgressBar.setVisibility(View.GONE);
     }
 }

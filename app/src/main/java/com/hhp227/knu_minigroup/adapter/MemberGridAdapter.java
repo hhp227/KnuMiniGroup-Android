@@ -1,42 +1,65 @@
 package com.hhp227.knu_minigroup.adapter;
 
 import android.app.Activity;
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.MemberItem;
 
 import java.util.List;
 
-public class MemberGridAdapter extends BaseAdapter {
+public class MemberGridAdapter extends RecyclerView.Adapter<MemberGridAdapter.MemberGridHolder> {
     private Activity mActivity;
-    private LayoutInflater mInflater;
-    private List<MemberItem> mMemberItems;
+    private List<MemberItem> mMemberItemList;
+    private OnItemClickListener mOnItemClickListener;
 
-    public MemberGridAdapter(Activity activity, List<MemberItem> memberItems) {
+    public MemberGridAdapter(Activity activity, List<MemberItem> memberItemList) {
         this.mActivity = activity;
-        this.mMemberItems = memberItems;
+        this.mMemberItemList = memberItemList;
     }
 
     @Override
-    public int getCount() {
-        return mMemberItems.size();
+    public MemberGridHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(mActivity).inflate(R.layout.member_item, parent, false);
+        return new MemberGridHolder(view);
     }
 
     @Override
-    public Object getItem(int position) {
-        return mMemberItems.get(position);
+    public void onBindViewHolder(MemberGridHolder holder, final int position) {
+        MemberItem memberItem = mMemberItemList.get(position);
+        holder.name.setText(memberItem.name);
+        Glide.with(mActivity)
+                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", memberItem.uid), new LazyHeaders.Builder()
+                        .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
+                        .build()))
+                .apply(new RequestOptions().centerCrop()
+                        .error(R.drawable.user_image_view)
+                        .skipMemoryCache(true)
+                        .diskCacheStrategy(DiskCacheStrategy.NONE))
+                .into(holder.profileImage);
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mOnItemClickListener != null)
+                    mOnItemClickListener.onItemClick(v, position);
+            }
+        });
+    }
+
+    @Override
+    public int getItemCount() {
+        return mMemberItemList.size();
     }
 
     @Override
@@ -44,37 +67,22 @@ public class MemberGridAdapter extends BaseAdapter {
         return position;
     }
 
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        ViewHolder viewHolder;
-        if (mInflater == null)
-            mInflater = (LayoutInflater) mActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        if (convertView == null) {
-            convertView = mInflater.inflate(R.layout.member_item, null);
-            viewHolder = new ViewHolder(convertView);
-            convertView.setTag(viewHolder);
-        } else
-            viewHolder = (ViewHolder) convertView.getTag();
-
-        MemberItem memberItem = mMemberItems.get(position);
-
-        viewHolder.name.setText(memberItem.name);
-        Glide.with(mActivity)
-                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", memberItem.uid), new LazyHeaders.Builder()
-                        .addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie())
-                        .build()))
-                .apply(new RequestOptions().centerCrop().error(R.drawable.profile_img_square).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE))
-                .into(viewHolder.profileImg);
-        return convertView;
+    public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
+        this.mOnItemClickListener = onItemClickListener;
     }
 
-    private static class ViewHolder {
-        private ImageView profileImg;
+    public static class MemberGridHolder extends RecyclerView.ViewHolder {
+        private ImageView profileImage;
         private TextView name;
 
-        ViewHolder(View itemView) {
+        public MemberGridHolder(View itemView) {
+            super(itemView);
+            profileImage = itemView.findViewById(R.id.iv_profile_image);
             name = itemView.findViewById(R.id.tv_name);
-            profileImg = itemView.findViewById(R.id.iv_profile_image);
         }
+    }
+
+    public interface OnItemClickListener {
+        void onItemClick(View view, int position);
     }
 }

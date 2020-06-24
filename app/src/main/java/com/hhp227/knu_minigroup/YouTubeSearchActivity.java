@@ -1,21 +1,27 @@
 package com.hhp227.knu_minigroup;
 
-import android.app.Activity;
 import android.content.Intent;
-import android.os.Bundle;
 import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.*;
+import android.widget.ProgressBar;
+import androidx.appcompat.app.AppCompatActivity;
+import android.os.Bundle;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.facebook.shimmer.ShimmerFrameLayout;
 import com.hhp227.knu_minigroup.adapter.YouTubeListAdapter;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import org.json.JSONArray;
@@ -25,7 +31,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class YouTubeSearchActivity extends Activity {
+public class YouTubeSearchActivity extends AppCompatActivity {
     public static final String API_KEY = "AIzaSyBxQb9CaA01lU5AkXnPGf3s8QjoiV-3Vys";
 
     private static final int LIMIT = 50;
@@ -33,24 +39,27 @@ public class YouTubeSearchActivity extends Activity {
     private YouTubeListAdapter mAdapter;
     private List<YouTubeItem> mYouTubeItemList;
     private ProgressBar mProgressBar;
-    private SwipeRefreshLayout mSwipeRefreshLayout;
+    private ShimmerFrameLayout mShimmerFrameLayout;
     private String mSearchText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
-        ListView listView = findViewById(R.id.list_view);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        RecyclerView recyclerView = findViewById(R.id.recycler_view);
+        final SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.srl_list);
         mProgressBar = findViewById(R.id.pb_group);
-        mSwipeRefreshLayout = findViewById(R.id.srl_list);
+        mShimmerFrameLayout = findViewById(R.id.sfl_group);
         mYouTubeItemList = new ArrayList<>();
         mAdapter = new YouTubeListAdapter(this, mYouTubeItemList);
         mSearchText = "";
         mType = getIntent().getIntExtra("type", 0);
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        setSupportActionBar(toolbar);
+        mAdapter.setOnItemClickListener(new YouTubeListAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onItemClick(View v, int position) {
                 YouTubeItem youTubeItem = mYouTubeItemList.get(position);
                 Intent intent = new Intent(getApplicationContext(), mType == 0 ? WriteActivity.class : ModifyActivity.class);
 
@@ -58,23 +67,33 @@ public class YouTubeSearchActivity extends Activity {
                 setResult(RESULT_OK, intent);
                 finish();
             }
-        });
-        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        });//
+        mAdapter.setHasStableIds(true);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         mYouTubeItemList.clear();
+                        mAdapter.notifyDataSetChanged();
                         fetchDataTask();
-                        mSwipeRefreshLayout.setRefreshing(false);
+                        swipeRefreshLayout.setRefreshing(false);
                     }
                 }, 1000);
             }
         });
-        listView.setAdapter(mAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(mAdapter);
         showProgressBar();
         fetchDataTask();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mShimmerFrameLayout.clearAnimation();
+        mShimmerFrameLayout.removeAllViews();
     }
 
     @Override
@@ -100,11 +119,13 @@ public class YouTubeSearchActivity extends Activity {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 showProgressBar();
+                mShimmerFrameLayout.setVisibility(View.VISIBLE);
                 mYouTubeItemList.clear();
+                mAdapter.notifyDataSetChanged();
                 mSearchText = query;
                 fetchDataTask();
                 searchView.clearFocus();
-                return false;
+                return true;
             }
 
             @Override
@@ -116,7 +137,7 @@ public class YouTubeSearchActivity extends Activity {
     }
 
     private void fetchDataTask() {
-        app.AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.GET, EndPoint.URL_YOUTUBE_API + "?part=snippet&key=" + API_KEY + "&q=" + mSearchText + "&maxResults=" + LIMIT, null, new Response.Listener<JSONObject>() {
+        AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.GET, EndPoint.URL_YOUTUBE_API + "?part=snippet&key=" + API_KEY + "&q=" + mSearchText + "&maxResults=" + LIMIT, null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 hideProgressBar();
@@ -133,8 +154,8 @@ public class YouTubeSearchActivity extends Activity {
 
                         YouTubeItem youTubeItem = new YouTubeItem(id, publishedAt, title, thumbnail, channelTitle);
                         mYouTubeItemList.add(youTubeItem);
+                        mAdapter.notifyItemInserted(mYouTubeItemList.size() - 1);
                     }
-                    mAdapter.notifyDataSetChanged();
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -151,10 +172,18 @@ public class YouTubeSearchActivity extends Activity {
     private void showProgressBar() {
         if (mProgressBar != null && mProgressBar.getVisibility() == View.GONE)
             mProgressBar.setVisibility(View.VISIBLE);
+        if (!mShimmerFrameLayout.isShimmerStarted())
+            mShimmerFrameLayout.startShimmer();
+        if (!mShimmerFrameLayout.isShimmerVisible())
+            mShimmerFrameLayout.setVisibility(View.VISIBLE);
     }
 
     private void hideProgressBar() {
         if (mProgressBar != null && mProgressBar.getVisibility() == View.VISIBLE)
             mProgressBar.setVisibility(View.GONE);
+        if (mShimmerFrameLayout.isShimmerStarted())
+            mShimmerFrameLayout.stopShimmer();
+        if (mShimmerFrameLayout.isShimmerVisible())
+            mShimmerFrameLayout.setVisibility(View.GONE);
     }
 }

@@ -17,6 +17,7 @@ import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.ChatActivity;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 
 public class UserFragment extends DialogFragment {
@@ -46,14 +47,14 @@ public class UserFragment extends DialogFragment {
         }
 
         Glide.with(this)
-                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUid), new LazyHeaders.Builder().addHeader("Cookie", app.AppController.getInstance().getPreferenceManager().getCookie()).build()))
-                .apply(RequestOptions.errorOf(R.drawable.profile_img_circle)
+                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUid), new LazyHeaders.Builder().addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN)).build()))
+                .apply(RequestOptions.errorOf(R.drawable.user_image_view_circle)
                         .circleCrop()
                         .skipMemoryCache(true)
                         .diskCacheStrategy(DiskCacheStrategy.NONE))
                 .into(profileImage);
         userName.setText(mName);
-        if (mUid.equals(app.AppController.getInstance().getPreferenceManager().getUser().getUid()))
+        if (mUid.equals(AppController.getInstance().getPreferenceManager().getUser().getUid()))
             send.setVisibility(View.GONE);
         else {
             send.setText("메시지 보내기");

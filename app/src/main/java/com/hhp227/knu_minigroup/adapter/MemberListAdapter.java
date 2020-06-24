@@ -8,8 +8,11 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.MemberItem;
 
@@ -53,7 +56,13 @@ public class MemberListAdapter extends BaseAdapter {
             viewHolder = (ViewHolder) convertView.getTag();
 
         MemberItem memberItem = mMemberItems.get(position);
-        Glide.with(mContext).load(EndPoint.USER_IMAGE.replace("{UID}", memberItem.uid)).apply(RequestOptions.circleCropTransform().error(R.drawable.profile_img_circle)).into(viewHolder.profileImage);
+        Glide.with(mContext)
+                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", memberItem.uid), new LazyHeaders.Builder()
+                        .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
+                        .build()))
+                .apply(RequestOptions.circleCropTransform()
+                        .error(R.drawable.user_image_view_circle))
+                .into(viewHolder.profileImage);
         viewHolder.name.setText(memberItem.name);
         viewHolder.department.setText(memberItem.dept);
         viewHolder.division.setText(memberItem.div);

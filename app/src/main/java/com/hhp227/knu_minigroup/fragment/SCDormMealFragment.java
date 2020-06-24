@@ -12,6 +12,7 @@ import com.android.volley.*;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.StringRequest;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
@@ -64,7 +65,7 @@ public class SCDormMealFragment extends Fragment {
                 hideProgressDialog();
             }
         });
-        app.AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
+        AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
 
         return rootView;
     }

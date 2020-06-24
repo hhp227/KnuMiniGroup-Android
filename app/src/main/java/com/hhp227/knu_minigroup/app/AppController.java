@@ -1,7 +1,8 @@
-package app;
+package com.hhp227.knu_minigroup.app;
 
 import android.app.Application;
 import android.text.TextUtils;
+import android.webkit.CookieManager;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
@@ -10,6 +11,7 @@ import com.hhp227.knu_minigroup.helper.PreferenceManager;
 public class AppController extends Application {
     private static final String TAG = AppController.class.getSimpleName();
     private static AppController mInstance;
+    private CookieManager mCookieManager;
     private PreferenceManager mPreferenceManager;
     private RequestQueue mRequestQueue;
 
@@ -24,9 +26,9 @@ public class AppController extends Application {
     }
 
     public RequestQueue getRequestQueue() {
-        if (mRequestQueue == null) {
+        if (mRequestQueue == null)
             mRequestQueue = Volley.newRequestQueue(getApplicationContext());
-        }
+
         return mRequestQueue;
     }
 
@@ -35,6 +37,17 @@ public class AppController extends Application {
             mPreferenceManager = new PreferenceManager(this);
 
         return mPreferenceManager;
+    }
+
+    public CookieManager getCookieManager() {
+        if (mCookieManager == null)
+            mCookieManager = CookieManager.getInstance();
+
+        return mCookieManager;
+    }
+
+    public void setCookieManager(CookieManager cookieManager) {
+        this.mCookieManager = cookieManager;
     }
 
     public <T> void addToRequestQueue(Request<T> req, String tag) {

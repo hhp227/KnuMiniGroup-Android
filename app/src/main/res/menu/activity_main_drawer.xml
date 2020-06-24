@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:showln="navigation_view">
+    <group android:checkableBehavior="single">
+        <item
+                android:id="@+id/nav_menu1"
+                android:icon="@drawable/ic_home_gray_24dp"
+                android:title="@string/main"/>
+        <item
+                android:id="@+id/nav_menu2"
+                android:icon="@drawable/ic_assignment_gray_24dp"
+                android:title="@string/knu_board"/>
+        <item
+                android:id="@+id/nav_menu3"
+                android:icon="@drawable/ic_schedule_gray_24dp"
+                android:title="@string/timetable"/>
+        <item
+                android:id="@+id/nav_menu4"
+                android:icon="@drawable/ic_event_seat_gray_24dp"
+                android:title="@string/library_seat"/>
+        <item
+                android:id="@+id/nav_menu5"
+                android:icon="@drawable/ic_directions_bus_gray_24dp"
+                android:title="@string/shuttle_bus"/>
+        <item
+                android:id="@+id/nav_menu6"
+                android:icon="@drawable/ic_restaurant_gray_24dp"
+                android:title="@string/meal"/>
+        <item
+                android:id="@+id/nav_menu7"
+                android:icon="@drawable/ic_exit_to_app_gray_24dp"
+                android:title="@string/logout"/>
+    </group>
+</menu>
