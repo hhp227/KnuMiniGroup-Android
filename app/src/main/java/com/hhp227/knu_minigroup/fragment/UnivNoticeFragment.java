@@ -82,7 +82,7 @@ public class UnivNoticeFragment extends Fragment {
         mToolbar = view.findViewById(R.id.toolbar);
         mSwipeRefreshLayout = view.findViewById(R.id.srl);
         mBbsItemList = new ArrayList<>();
-        mAdapter = new BbsListAdapter(mActivity, mBbsItemList);
+        mAdapter = new BbsListAdapter(mBbsItemList);
         mOnScrollListener = new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {

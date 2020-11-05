@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.*;
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -85,7 +86,7 @@ public class Tab1Fragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         final SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.srl_article_list);
         RecyclerView recyclerView = view.findViewById(R.id.rv_article);
@@ -93,7 +94,7 @@ public class Tab1Fragment extends Fragment {
         mRelativeLayout = view.findViewById(R.id.rl_write);
         mArticleItemKeys = new ArrayList<>();
         mArticleItemValues = new ArrayList<>();
-        mAdapter = new ArticleListAdapter(getActivity(), mArticleItemKeys, mArticleItemValues, mKey);
+        mAdapter = new ArticleListAdapter(mArticleItemKeys, mArticleItemValues, mKey);
         mOffSet = 1;
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));

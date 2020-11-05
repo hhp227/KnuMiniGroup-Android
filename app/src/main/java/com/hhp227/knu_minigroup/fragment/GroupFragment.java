@@ -135,7 +135,7 @@ public class GroupFragment extends Fragment {
         };
         mGroupItemKeys = new ArrayList<>();
         mGroupItemValues = new ArrayList<>();
-        mAdapter = new GroupGridAdapter(mActivity, mGroupItemKeys, mGroupItemValues);
+        mAdapter = new GroupGridAdapter(mGroupItemKeys, mGroupItemValues);
         mCookieManager = AppController.getInstance().getCookieManager();
         mPreferenceManager = AppController.getInstance().getPreferenceManager();
         mCountDownTimer = new CountDownTimer(80000, 8000) {

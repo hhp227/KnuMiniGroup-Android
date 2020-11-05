@@ -3,6 +3,7 @@ package com.hhp227.knu_minigroup.fragment;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.SpannableString;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,7 +29,7 @@ import java.util.ArrayList;
 
 public class StudentMealFragment extends Fragment {
     private static final String TAG = "학생식당 식단표";
-    private TextView[] mMenuView;
+    private TextView[][] mMenuView;
     private int mId;
 
     public static StudentMealFragment newInstance(int id) {
@@ -52,10 +53,10 @@ public class StudentMealFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_dormmeal, container, false);
-        mMenuView = new TextView[] {
-                rootView.findViewById(R.id.breakfast),
-                rootView.findViewById(R.id.lunch),
-                rootView.findViewById(R.id.dinner)
+        mMenuView = new TextView[][] {
+                { rootView.findViewById(R.id.breakfast_title), rootView.findViewById(R.id.breakfast) },
+                { rootView.findViewById(R.id.lunch_title), rootView.findViewById(R.id.lunch) },
+                { rootView.findViewById(R.id.dinner_title), rootView.findViewById(R.id.dinner) }
         };
         String endPoint = EndPoint.URL_KNU_MEAL.replace("{ID}", String.valueOf(mId));
         AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, endPoint, new Response.Listener<String>() {
@@ -68,17 +69,28 @@ public class StudentMealFragment extends Fragment {
                     parser.setInput(new StringReader(response));
                     int eventType = parser.getEventType();
                     while (eventType != XmlPullParser.END_DOCUMENT) {
-                        switch (eventType) {
-                            case XmlPullParser.START_TAG:
-                                String startTag = parser.getName();
-                                if (startTag.equals("data"))
-                                    arrayList.add(new SpannableString(Html.fromHtml(parser.nextText())).toString());
-                                break;
+                        if (eventType == XmlPullParser.START_TAG) {
+                            String startTag = parser.getName();
+                            if (startTag.equals("entry")) {
+                                switch (parser.getAttributeValue(0)) {
+                                    case "breakfast":
+                                        break;
+                                    case "lunch":
+                                        break;
+                                    case "dinner":
+                                        break;
+                                }
+                                Log.e(TAG, parser.getPrefix());
+                            }
+                            if (startTag.equals("entry"))
+                                Log.e("TEST", parser.getAttributeValue(0));
+                            if (startTag.equals("data"))
+                                arrayList.add(new SpannableString(Html.fromHtml(parser.nextText())).toString());
                         }
                         eventType = parser.next();
                     }
-                    for (int i = 0; i < mMenuView.length; i++)
-                        mMenuView[i].setText(arrayList.size() > 0 ? arrayList.get(i) : "등록된 식단이 없습니다.");
+                    /*for (int i = 0; i < mMenuView.length; i++)
+                        mMenuView[i].setText(arrayList.size() > 0 ? arrayList.get(i) : "등록된 식단이 없습니다.");*/
                 } catch (XmlPullParserException | IOException | IndexOutOfBoundsException e) {
                     e.printStackTrace();
                 }
