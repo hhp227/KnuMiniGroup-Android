@@ -4,9 +4,13 @@ import java.util.Map;
 
 public class GroupItem {
     private boolean isAd, isAdmin;
+
     private int memberCount;
+
     private long timestamp;
+
     private String id, author, authorUid, image, name, info, description, joinType;
+
     private Map<String, Boolean> members;
 
     public GroupItem() {

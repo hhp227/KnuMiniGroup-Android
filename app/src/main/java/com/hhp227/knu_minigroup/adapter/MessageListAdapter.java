@@ -24,14 +24,16 @@ import java.util.Locale;
 
 public class MessageListAdapter extends BaseAdapter {
     private static final int MSG_TYPE_LEFT = 0;
-    private static final int MSG_TYPE_RIGHT = 1;
-    private Context mContext;
-    private LayoutInflater mInflater;
-    private List<MessageItem> mMessageItems;
-    private String mUid;
 
-    public MessageListAdapter(Context context, List<MessageItem> messageItems, String uid) {
-        this.mContext = context;
+    private static final int MSG_TYPE_RIGHT = 1;
+
+    private final List<MessageItem> mMessageItems;
+
+    private final String mUid;
+
+    private LayoutInflater mInflater;
+
+    public MessageListAdapter(List<MessageItem> messageItems, String uid) {
         this.mMessageItems = messageItems;
         this.mUid = uid;
     }
@@ -55,7 +57,7 @@ public class MessageListAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder viewHolder;
         if (mInflater == null)
-            mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            mInflater = (LayoutInflater) parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (convertView == null) {
             convertView = mInflater.inflate(getItemViewType(position) == MSG_TYPE_RIGHT ? R.layout.message_item_right : R.layout.message_item_left, null);
             viewHolder = new ViewHolder(convertView);
@@ -74,7 +76,7 @@ public class MessageListAdapter extends BaseAdapter {
             viewHolder.name.setVisibility(getItemViewType(position) == MSG_TYPE_RIGHT ? View.GONE : View.VISIBLE);
             viewHolder.profileImage.setVisibility(View.VISIBLE);
             viewHolder.messageBox.setPadding(10, 10, 10, 10);
-            Glide.with(mContext)
+            Glide.with(parent.getContext())
                     .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", messageItem.getFrom()), new LazyHeaders.Builder()
                             .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
                             .build()))
@@ -105,9 +107,11 @@ public class MessageListAdapter extends BaseAdapter {
     }
 
     private static class ViewHolder {
-        private ImageView profileImage;
-        private LinearLayout messageBox;
-        private TextView name, message, timeStamp;
+        private final ImageView profileImage;
+
+        private final LinearLayout messageBox;
+
+        private final TextView name, message, timeStamp;
 
         private ViewHolder(View itemView) {
             profileImage = itemView.findViewById(R.id.iv_profile_image);

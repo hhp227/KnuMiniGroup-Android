@@ -10,9 +10,13 @@ import com.hhp227.knu_minigroup.helper.PreferenceManager;
 
 public class AppController extends Application {
     private static final String TAG = AppController.class.getSimpleName();
+
     private static AppController mInstance;
+
     private CookieManager mCookieManager;
+
     private PreferenceManager mPreferenceManager;
+
     private RequestQueue mRequestQueue;
 
     @Override

@@ -27,11 +27,17 @@ import java.util.HashMap;
 
 public class InterCityFragment extends Fragment {
     private static final String TAG = "시외버스시간표";
+
     private ArrayList<HashMap<String, String>> mShuttleList;
+
     private Handler mHandler;
+
     private ProgressDialog mProgressDialog;
+
     private SimpleAdapter mAdapter;
+
     private Source mSource;
+
     private SwipeRefreshLayout mSWPRefresh;
 
     @Override
@@ -71,24 +77,25 @@ public class InterCityFragment extends Fragment {
                         InputStream html = URL.openStream();
                         // html소스 코드 인코딩 방식
                         mSource = new Source(new InputStreamReader(html, StandardCharsets.UTF_8));
+
                         mSource.fullSequentialParse(); // 순차적으로 구문분석
                     } catch (Exception e) {
                         Log.e(TAG, "에러" + e);
                     }
                     Element table = mSource.getAllElements(HTMLElementName.TABLE).get(13);
+
                     Log.d(TAG, "TABLE 갯수" + mSource.getAllElements(HTMLElementName.TABLE).size());
                     for (int i = 1; i < table.getAllElements(HTMLElementName.TD).size(); i++) {
                         Element TR = table.getAllElements(HTMLElementName.TD).get(i);
                         HashMap<String, String> map = new HashMap<>();
-
                         Element Time = TR.getAllElements(HTMLElementName.B).get(0);
 
                         map.put("구분", "대구 북부정류장");
                         map.put("시간", (Time).getContent().toString());
-
                         mShuttleList.add(map);
                     }
                     mHandler = new Handler(Looper.getMainLooper());
+
                     mHandler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
@@ -102,7 +109,6 @@ public class InterCityFragment extends Fragment {
         } catch (Exception e) {
             Log.e(TAG, "에러" + e);
         }
-
         return rootView;
     }
 

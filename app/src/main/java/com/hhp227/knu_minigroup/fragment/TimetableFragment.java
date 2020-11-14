@@ -24,18 +24,22 @@ public class TimetableFragment extends Fragment {
     public static final String TAG = "시간표";
 
     private static final String[] TAB_NAMES = {"학기시간표", "모의시간표 작성"};
+
     private AppCompatActivity mActivity;
+
     private DrawerLayout mDrawerLayout;
+
     private TabLayout mTabLayout;
+
     private Toolbar mToolbar;
+
     private ViewPager mViewPager;
 
     public TimetableFragment() {
     }
 
     public static TimetableFragment newInstance() {
-        TimetableFragment fragment = new TimetableFragment();
-        return fragment;
+        return new TimetableFragment();
     }
 
     @Override
@@ -92,6 +96,7 @@ public class TimetableFragment extends Fragment {
 
     private void setDrawerToggle() {
         ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(mActivity, mDrawerLayout, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+
         mDrawerLayout.addDrawerListener(drawerToggle);
         drawerToggle.syncState();
     }

@@ -35,11 +35,17 @@ public class YouTubeSearchActivity extends AppCompatActivity {
     public static final String API_KEY = "AIzaSyBxQb9CaA01lU5AkXnPGf3s8QjoiV-3Vys";
 
     private static final int LIMIT = 50;
+
     private int mType;
+
     private YouTubeListAdapter mAdapter;
+
     private List<YouTubeItem> mYouTubeItemList;
+
     private ProgressBar mProgressBar;
+
     private ShimmerFrameLayout mShimmerFrameLayout;
+
     private String mSearchText;
 
     @Override
@@ -52,7 +58,7 @@ public class YouTubeSearchActivity extends AppCompatActivity {
         mProgressBar = findViewById(R.id.pb_group);
         mShimmerFrameLayout = findViewById(R.id.sfl_group);
         mYouTubeItemList = new ArrayList<>();
-        mAdapter = new YouTubeListAdapter(this, mYouTubeItemList);
+        mAdapter = new YouTubeListAdapter(mYouTubeItemList);
         mSearchText = "";
         mType = getIntent().getIntExtra("type", 0);
 
@@ -143,6 +149,7 @@ public class YouTubeSearchActivity extends AppCompatActivity {
                 hideProgressBar();
                 try {
                     JSONArray items = response.getJSONArray("items");
+
                     for (int i = 0; i < items.length(); i++) {
                         JSONObject jsonObject = items.getJSONObject(i);
                         String id = jsonObject.getJSONObject("id").getString("videoId");

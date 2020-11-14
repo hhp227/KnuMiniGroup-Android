@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 
 import android.os.Build;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.exifinterface.media.ExifInterface;
@@ -47,15 +48,25 @@ import static com.hhp227.knu_minigroup.WriteActivity.*;
 
 public class ModifyActivity extends AppCompatActivity {
     private static final String TAG = ModifyActivity.class.getSimpleName();
+
     private int mContextMenuRequest;
+
     private String mGrpId, mArtlNum, mCurrentPhotoPath, mCookie, mTitle, mContent, mGrpKey, mArtlKey;
+
     private EditText mInputTitle, mInputContent;
+
     private List<String> mImageList;
+
     private List<Object> mContents;
+
     private ProgressDialog mProgressDialog;
+
     private StringBuilder mMakeHtmlContents;
+
     private Uri mPhotoUri;
+
     private WriteListAdapter mAdapter;
+
     private YouTubeItem mYouTubeItem;
 
     @Override
@@ -142,6 +153,7 @@ public class ModifyActivity extends AppCompatActivity {
             case R.id.action_send:
                 String title = mInputTitle.getEditableText().toString();
                 String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(mInputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(mInputContent.getText());
+
                 if (!mInputTitle.getText().toString().isEmpty() && !(TextUtils.isEmpty(mInputContent.getText()) && mContents.size() == 0)) {
                     mMakeHtmlContents = new StringBuilder();
 
@@ -194,9 +206,11 @@ public class ModifyActivity extends AppCompatActivity {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         Intent intent;
+
         switch (item.getItemId()) {
             case 1:
                 int position = ((AdapterView.AdapterContextMenuInfo) item.getMenuInfo()).position - 1;
+
                 if (mContents.get(position) instanceof YouTubeItem)
                     mYouTubeItem = null;
 
@@ -212,8 +226,10 @@ public class ModifyActivity extends AppCompatActivity {
                 return true;
             case 3:
                 intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
                 if (intent.resolveActivity(getPackageManager()) != null) {
                     File photoFile = null;
+
                     try {
                         photoFile = createImageFile();
                     } catch (IOException ex) {
@@ -245,6 +261,7 @@ public class ModifyActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Bitmap bitmap;
+
         if (requestCode == CAMERA_PICK_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
             Uri fileUri = data.getData();
             bitmap = new BitmapUtil(this).bitmapResize(fileUri, 200);
@@ -254,6 +271,7 @@ public class ModifyActivity extends AppCompatActivity {
         } else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             try {
                 bitmap = new BitmapUtil(this).bitmapResize(mPhotoUri, 200);
+
                 if (bitmap != null) {
                     ExifInterface ei = new ExifInterface(mCurrentPhotoPath);
                     int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
@@ -418,7 +436,6 @@ public class ModifyActivity extends AppCompatActivity {
                 storageDir      /* directory */
         );
         mCurrentPhotoPath = image.getAbsolutePath();
-
         return image;
     }
 
@@ -431,7 +448,7 @@ public class ModifyActivity extends AppCompatActivity {
     private void updateArticleDataToFirebase(final Query query) {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 ArticleItem articleItem = dataSnapshot.getValue(ArticleItem.class);
                 if (articleItem != null) {
                     articleItem.setTitle(mInputTitle.getText().toString());
@@ -443,7 +460,7 @@ public class ModifyActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
+            public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e("파이어베이스", databaseError.getMessage());
             }
         });

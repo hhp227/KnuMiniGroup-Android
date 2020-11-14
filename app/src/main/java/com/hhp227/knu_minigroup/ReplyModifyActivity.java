@@ -10,6 +10,7 @@ import android.view.*;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -26,8 +27,11 @@ import java.util.Map;
 
 public class ReplyModifyActivity extends AppCompatActivity {
     private static final String TAG = "댓글수정";
+
     private Holder mHolder;
+
     private ProgressDialog mProgressDialog;
+
     private String mGroupId, mArticleId, mReplyId, mReply, mArticleKey, mReplyKey;
 
     @Override
@@ -36,7 +40,6 @@ public class ReplyModifyActivity extends AppCompatActivity {
         setContentView(R.layout.activity_reply_modify);
         Toolbar toolbar = findViewById(R.id.toolbar);
         RecyclerView recyclerView = findViewById(R.id.rv_write);
-
         mProgressDialog = new ProgressDialog(this);
         Intent intent = getIntent();
         mGroupId = intent.getStringExtra("grp_id");
@@ -52,17 +55,17 @@ public class ReplyModifyActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(new RecyclerView.Adapter<Holder>() {
-
+            @NonNull
             @Override
-            public Holder onCreateViewHolder(ViewGroup parent, int viewType) {
+            public Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
                 View view = LayoutInflater.from(getApplicationContext()).inflate(R.layout.modify_text, parent, false);
                 mHolder = new Holder(view);
                 return mHolder;
             }
 
             @Override
-            public void onBindViewHolder(Holder holder, int position) {
-                holder.inputReply.setText(mReply);
+            public void onBindViewHolder(@NonNull Holder holder, int position) {
+                holder.bind();
             }
 
             @Override
@@ -86,8 +89,10 @@ public class ReplyModifyActivity extends AppCompatActivity {
                 return true;
             case R.id.action_send:
                 final String text = mHolder.inputReply.getText().toString().trim();
+
                 if (!TextUtils.isEmpty(text)) {
                     String tag_string_req = "req_send";
+
                     mProgressDialog.setMessage("전송중...");
                     showProgressDialog();
 
@@ -103,6 +108,7 @@ public class ReplyModifyActivity extends AppCompatActivity {
                                     inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
                                 }
                                 Intent intent = new Intent(ReplyModifyActivity.this, ArticleActivity.class);
+
                                 intent.putExtra("update_reply", response);
                                 setResult(RESULT_OK, intent);
                                 finish();
@@ -122,6 +128,7 @@ public class ReplyModifyActivity extends AppCompatActivity {
                         @Override
                         public Map<String, String> getHeaders() {
                             Map<String, String> headers = new HashMap<>();
+
                             headers.put("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN));
                             return headers;
                         }
@@ -129,6 +136,7 @@ public class ReplyModifyActivity extends AppCompatActivity {
                         @Override
                         protected Map<String, String> getParams() {
                             Map<String, String> params = new HashMap<>();
+
                             params.put("CLUB_GRP_ID", mGroupId);
                             params.put("ARTL_NUM", mArticleId);
                             params.put("CMMT_NUM", mReplyId);
@@ -146,22 +154,24 @@ public class ReplyModifyActivity extends AppCompatActivity {
 
     private void initFirebaseData() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Replys");
+
         updateReplyDataToFirebase(databaseReference.child(mArticleKey).child(mReplyKey));
     }
 
     private void updateReplyDataToFirebase(final Query query) {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getValue() != null) {
                     ReplyItem replyItem = dataSnapshot.getValue(ReplyItem.class);
+
                     replyItem.setReply(mHolder.inputReply.getText().toString() + "\n");
                     query.getRef().setValue(replyItem);
                 }
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
+            public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
             }
         });
@@ -178,11 +188,15 @@ public class ReplyModifyActivity extends AppCompatActivity {
     }
 
     public class Holder extends RecyclerView.ViewHolder {
-        private EditText inputReply;
+        private final EditText inputReply;
 
         Holder(View itemView) {
             super(itemView);
             inputReply = itemView.findViewById(R.id.et_reply);
+        }
+
+        public void bind() {
+            inputReply.setText(mReply);
         }
     }
 }

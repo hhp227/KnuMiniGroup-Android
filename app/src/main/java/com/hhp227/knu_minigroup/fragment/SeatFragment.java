@@ -24,18 +24,22 @@ public class SeatFragment extends Fragment {
     public static final String TAG = "도서관 좌석";
 
     private static final String[] TAB_NAMES = {"대구 열람실", "상주 열람실"};
+
     private AppCompatActivity mActivity;
+
     private DrawerLayout mDrawerLayout;
+
     private TabLayout mTabLayout;
+
     private Toolbar mToolbar;
+
     private ViewPager mViewPager;
 
     public SeatFragment() {
     }
 
     public static SeatFragment newInstance() {
-        SeatFragment fragment = new SeatFragment();
-        return fragment;
+        return new SeatFragment();
     }
 
     @Override
@@ -92,6 +96,7 @@ public class SeatFragment extends Fragment {
 
     private void setDrawerToggle() {
         ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(mActivity, mDrawerLayout, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+
         mDrawerLayout.addDrawerListener(drawerToggle);
         drawerToggle.syncState();
     }

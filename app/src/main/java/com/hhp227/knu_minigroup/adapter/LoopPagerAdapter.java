@@ -8,19 +8,22 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import androidx.annotation.NonNull;
 import androidx.viewpager.widget.PagerAdapter;
 import com.hhp227.knu_minigroup.R;
 
 import java.util.List;
 
 public class LoopPagerAdapter extends PagerAdapter {
-    private List<String> mPagerItemList;
+    private final List<String> mPagerItemList;
+
     private View.OnClickListener mOnClickListener;
 
     public LoopPagerAdapter(List<String> pagerItemList) {
         this.mPagerItemList = pagerItemList;
     }
 
+    @NonNull
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
         View rootView = LayoutInflater.from(container.getContext()).inflate(R.layout.fragment_main_pager, null);
@@ -69,12 +72,12 @@ public class LoopPagerAdapter extends PagerAdapter {
     }
 
     @Override
-    public boolean isViewFromObject(View view, Object obj) {
+    public boolean isViewFromObject(@NonNull View view, @NonNull Object obj) {
         return view == obj;
     }
 
     @Override
-    public void destroyItem(ViewGroup pager, int position, Object view) {
+    public void destroyItem(ViewGroup pager, int position, @NonNull Object view) {
         pager.removeView((View) view);
     }
 
@@ -82,13 +85,13 @@ public class LoopPagerAdapter extends PagerAdapter {
     public void restoreState(Parcelable state, ClassLoader loader) { }
 
     @Override
-    public void finishUpdate(ViewGroup container) { }
+    public void finishUpdate(@NonNull ViewGroup container) { }
 
     @Override
-    public void startUpdate(ViewGroup container) {}
+    public void startUpdate(@NonNull ViewGroup container) {}
 
     @Override
-    public int getItemPosition(Object object) {
+    public int getItemPosition(@NonNull Object object) {
         return POSITION_NONE;
     }
 

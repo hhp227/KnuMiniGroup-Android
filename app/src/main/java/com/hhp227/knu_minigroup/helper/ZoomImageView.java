@@ -12,21 +12,29 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 public class ZoomImageView extends ImageView implements View.OnTouchListener {
-    private Matrix matrix = new Matrix();
-    private Matrix savedMatrix = new Matrix();
-    private Matrix savedMatrix2 = new Matrix();
-
     private static final int NONE = 0;
-    private static final int DRAG = 1;
-    private static final int ZOOM = 2;
-    private int mode = NONE;
 
-    private PointF start = new PointF();
-    private PointF mid = new PointF();
-    private float oldDist = 1f;
+    private static final int DRAG = 1;
+
+    private static final int ZOOM = 2;
 
     private static final int WIDTH = 0;
+
     private static final int HEIGHT = 1;
+
+    private final Matrix matrix = new Matrix();
+
+    private final Matrix savedMatrix = new Matrix();
+
+    private final Matrix savedMatrix2 = new Matrix();
+
+    private final PointF start = new PointF();
+
+    private final PointF mid = new PointF();
+
+    private int mode = NONE;
+
+    private float oldDist = 1f;
 
     private boolean isInit = false;
 
@@ -47,7 +55,7 @@ public class ZoomImageView extends ImageView implements View.OnTouchListener {
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
-        if (isInit == false) {
+        if (!isInit) {
             init();
             isInit = true;
         }

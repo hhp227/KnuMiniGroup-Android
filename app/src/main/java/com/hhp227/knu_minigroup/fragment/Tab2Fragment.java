@@ -30,10 +30,15 @@ import java.util.*;
 
 public class Tab2Fragment extends Fragment {
     private static final int TYPE_CALENDAR = 0;
+
     private static final int TYPE_ITEM = 1;
+
     private static final String TAG = "일정";
+
     private Calendar mCalendar;
+
     private RecyclerView.Adapter mAdapter;
+
     private List<Map<String, String>> mList;
 
     public Tab2Fragment() {
@@ -65,33 +70,8 @@ public class Tab2Fragment extends Fragment {
 
             @Override
             public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
-                if (holder instanceof HeaderHolder) {
-                    ((HeaderHolder) holder).extendedCalendarView.prev.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            ((HeaderHolder) holder).extendedCalendarView.previousMonth();
-                            if (mCalendar.get(Calendar.MONTH) == mCalendar.getActualMinimum(Calendar.MONTH))
-                                mCalendar.set((mCalendar.get(Calendar.YEAR) - 1), mCalendar.getActualMaximum(Calendar.MONTH),1);
-                            else
-                                mCalendar.set(Calendar.MONTH, mCalendar.get(Calendar.MONTH) - 1);
-                            fetchDataTask();
-                        }
-                    });
-                    ((HeaderHolder) holder).extendedCalendarView.next.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            ((HeaderHolder) holder).extendedCalendarView.nextMonth();
-                            if (mCalendar.get(Calendar.MONTH) == mCalendar.getActualMaximum(Calendar.MONTH))
-                                mCalendar.set((mCalendar.get(Calendar.YEAR) + 1), mCalendar.getActualMinimum(Calendar.MONTH),1);
-                            else
-                                mCalendar.set(Calendar.MONTH, mCalendar.get(Calendar.MONTH) + 1);
-                            fetchDataTask();
-                        }
-                    });
-                } else if (holder instanceof ItemHolder) {
-                    Map<String, String> calItem = mList.get(position);
-                    ((ItemHolder) holder).date.setText(calItem.get("날짜"));
-                    ((ItemHolder) holder).content.setText(calItem.get("내용"));
+                if (holder instanceof ItemHolder) {
+                    ((ItemHolder) holder).bind(mList.get(position));
                 }
             }
 
@@ -115,8 +95,8 @@ public class Tab2Fragment extends Fragment {
     private void fetchDataTask() {
         String year = String.valueOf(mCalendar.get(Calendar.YEAR));
         String month = String.format("%02d", mCalendar.get(Calendar.MONTH) + 1);
-
         String endPoint = EndPoint.URL_SCHEDULE.replace("{YEAR-MONTH}", year.concat(month));
+
         AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, endPoint, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -171,22 +151,50 @@ public class Tab2Fragment extends Fragment {
         mList.add(new HashMap<String, String>());
     }
 
-    public static class HeaderHolder extends RecyclerView.ViewHolder {
+    public class HeaderHolder extends RecyclerView.ViewHolder {
         public ExtendedCalendarView extendedCalendarView;
 
         public HeaderHolder(View itemView) {
             super(itemView);
             extendedCalendarView = itemView.findViewById(R.id.calendar);
+
+            extendedCalendarView.prev.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    extendedCalendarView.previousMonth();
+                    if (mCalendar.get(Calendar.MONTH) == mCalendar.getActualMinimum(Calendar.MONTH))
+                        mCalendar.set((mCalendar.get(Calendar.YEAR) - 1), mCalendar.getActualMaximum(Calendar.MONTH),1);
+                    else
+                        mCalendar.set(Calendar.MONTH, mCalendar.get(Calendar.MONTH) - 1);
+                    fetchDataTask();
+                }
+            });
+            extendedCalendarView.next.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    extendedCalendarView.nextMonth();
+                    if (mCalendar.get(Calendar.MONTH) == mCalendar.getActualMaximum(Calendar.MONTH))
+                        mCalendar.set((mCalendar.get(Calendar.YEAR) + 1), mCalendar.getActualMinimum(Calendar.MONTH),1);
+                    else
+                        mCalendar.set(Calendar.MONTH, mCalendar.get(Calendar.MONTH) + 1);
+                    fetchDataTask();
+                }
+            });
         }
     }
 
-    public class ItemHolder extends RecyclerView.ViewHolder {
-        private TextView date, content;
+    public static class ItemHolder extends RecyclerView.ViewHolder {
+        private final TextView date, content;
 
         public ItemHolder(View itemView) {
             super(itemView);
             date = itemView.findViewById(R.id.date);
             content = itemView.findViewById(R.id.content);
+        }
+
+        private void bind(Map<String, String> calItem) {
+            date.setText(calItem.get("날짜"));
+            content.setText(calItem.get("내용"));
         }
     }
 

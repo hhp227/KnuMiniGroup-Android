@@ -4,9 +4,13 @@ import java.util.List;
 
 public class ArticleItem {
     private boolean auth;
+
     private long timestamp;
+
     private String id, uid, name, title, content, date, replyCount;
+
     private List<String> images;
+
     private YouTubeItem youtube;
 
     public ArticleItem() {

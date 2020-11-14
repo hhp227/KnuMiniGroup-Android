@@ -29,7 +29,9 @@ import java.util.ArrayList;
 
 public class StudentMealFragment extends Fragment {
     private static final String TAG = "학생식당 식단표";
+
     private TextView[][] mMenuView;
+
     private int mId;
 
     public static StudentMealFragment newInstance(int id) {
@@ -59,18 +61,23 @@ public class StudentMealFragment extends Fragment {
                 { rootView.findViewById(R.id.dinner_title), rootView.findViewById(R.id.dinner) }
         };
         String endPoint = EndPoint.URL_KNU_MEAL.replace("{ID}", String.valueOf(mId));
+
         AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, endPoint, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 ArrayList<String> arrayList = new ArrayList<>();
+
                 try {
                     XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
                     XmlPullParser parser = factory.newPullParser();
+
                     parser.setInput(new StringReader(response));
                     int eventType = parser.getEventType();
+
                     while (eventType != XmlPullParser.END_DOCUMENT) {
                         if (eventType == XmlPullParser.START_TAG) {
                             String startTag = parser.getName();
+
                             if (startTag.equals("entry")) {
                                 switch (parser.getAttributeValue(0)) {
                                     case "breakfast":

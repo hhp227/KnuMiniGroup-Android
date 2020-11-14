@@ -30,19 +30,22 @@ import java.util.List;
 
 public class SangjuSeatFragment extends Fragment {
     private static final String TAG = "상주 열람실좌석";
+
     private boolean mIsRefresh;
+
     private List<SeatItem> mSeatItemList;
+
     private ProgressDialog mProgressDialog;
-    private RecyclerView mRecyclerView;
+
     private SeatListAdapter mAdapter;
+
     private SwipeRefreshLayout mSwipeRefreshLayout;
 
     public SangjuSeatFragment() {
     }
 
     public static SangjuSeatFragment newInstance() {
-        SangjuSeatFragment fragment = new SangjuSeatFragment();
-        return fragment;
+        return new SangjuSeatFragment();
     }
 
     @Override
@@ -53,14 +56,14 @@ public class SangjuSeatFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_seat, container, false);
-        mRecyclerView = rootView.findViewById(R.id.recycler_view);
+        RecyclerView recyclerView = rootView.findViewById(R.id.recycler_view);
         mSwipeRefreshLayout = rootView.findViewById(R.id.srl);
         mSeatItemList = new ArrayList<>();
-        mAdapter = new SeatListAdapter(getActivity(), mSeatItemList);
+        mAdapter = new SeatListAdapter(mSeatItemList);
         mProgressDialog = new ProgressDialog(getActivity());
 
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        mRecyclerView.setAdapter(mAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setAdapter(mAdapter);
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -78,7 +81,6 @@ public class SangjuSeatFragment extends Fragment {
         mProgressDialog.setMessage("불러오는중...");
         showProgressDialog();
         fetchData();
-
         return rootView;
     }
 
@@ -89,10 +91,11 @@ public class SangjuSeatFragment extends Fragment {
                 try {
                     JSONObject jsonObject = response.getJSONObject("data");
                     JSONArray jsonArray = jsonObject.getJSONArray("list");
+
                     for (int i = 0; i < jsonArray.length(); i++) {
                         JSONObject data = jsonArray.getJSONObject(i);
-
                         String[] disable = null;
+
                         try {
                             JSONObject disablePeriod = data.getJSONObject("disablePeriod");
                             disable = new String[3];

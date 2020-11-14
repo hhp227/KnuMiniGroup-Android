@@ -23,16 +23,18 @@ import java.util.Map;
 
 public class SemesterTimeTableFragment extends Fragment {
     private static final String TAG = "시간표";
+
     private LinearLayout[] lay;
+
     private ProgressBar mProgressBar;
+
     private TextView[] mDatas;
 
     public SemesterTimeTableFragment() {
     }
 
     public static SemesterTimeTableFragment newInstance() {
-        SemesterTimeTableFragment fragment = new SemesterTimeTableFragment();
-        return fragment;
+        return new SemesterTimeTableFragment();
     }
 
     @Override
@@ -75,11 +77,11 @@ public class SemesterTimeTableFragment extends Fragment {
             public void onResponse(String response) {
                 Element timeTable = new Source(response).getFirstElementByClass("bbslist");
                 List<Element> list = timeTable.getAllElements(HTMLElementName.TR);
-
                 LinearLayout.LayoutParams params1 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                 params1.weight = 1; // 레이아웃의 weight를 동적으로 설정 (칸의 비율)
                 params1.width = getLcdSizeWidth() / 6;
                 params1.height = getLcdSizeHeight() / 14;
+
                 params1.setMargins(1, 1, 1, 1);
                 params1.gravity = 1; // 표가 뒤틀리는 것을 방지
 
@@ -87,20 +89,22 @@ public class SemesterTimeTableFragment extends Fragment {
                 params2.weight = 1; // 레이아웃의 weight를 동적으로 설정 (칸의 비율)
                 params2.width = getLcdSizeWidth() / 6;
                 params2.height = getLcdSizeHeight() / 20;
+
                 params2.setMargins(1, 1, 1, 1);
 
                 for (int i = 0, id = 0; i < lay.length; i++) { // 21개
                     if (i == 1)
                         continue;
                     List<Element> schedule = list.get(i).getChildElements();
+
                     for (int j = 0; j < 6; j++) { // 6개
                         mDatas[id] = new TextView(getActivity());
+
                         mDatas[id].setId(id);
                         mDatas[id].setTextSize(10);
                         mDatas[id].setGravity(Gravity.CENTER);
                         mDatas[id].setBackgroundColor(Color.parseColor(i == 0 ? "#FAF4C0" : "#EAEAEA"));
                         mDatas[id].setText(schedule.get(j).getTextExtractor().toString());
-
                         lay[i].addView(mDatas[id], i == 0 ? params2 : params1); //시간표 데이터 출력
                         id++;
                     }
@@ -117,11 +121,11 @@ public class SemesterTimeTableFragment extends Fragment {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
+
                 headers.put("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN));
                 return headers;
             }
         });
-
         return rootView;
     }
 

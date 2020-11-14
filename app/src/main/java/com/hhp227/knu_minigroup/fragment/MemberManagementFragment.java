@@ -28,8 +28,11 @@ import java.util.Map;
 
 public class MemberManagementFragment extends Fragment {
     private static String mGroupId;
+
     private List<MemberItem> mMemberItemList;
+
     private MemberListAdapter mAdapter;
+
     private SwipeRefreshLayout mSwipeRefreshLayout;
 
     public MemberManagementFragment() {
@@ -39,6 +42,7 @@ public class MemberManagementFragment extends Fragment {
     public static MemberManagementFragment newInstance(String grpId) {
         MemberManagementFragment fragment = new MemberManagementFragment();
         Bundle args = new Bundle();
+
         args.putString("grp_id", grpId);
         fragment.setArguments(args);
         return fragment;
@@ -58,7 +62,7 @@ public class MemberManagementFragment extends Fragment {
         ListView listView = rootView.findViewById(R.id.lv_member);
         mSwipeRefreshLayout = rootView.findViewById(R.id.srl_member);
         mMemberItemList = new ArrayList<>();
-        mAdapter = new MemberListAdapter(getContext(), mMemberItemList);
+        mAdapter = new MemberListAdapter(mMemberItemList);
 
         listView.setAdapter(mAdapter);
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -78,6 +82,7 @@ public class MemberManagementFragment extends Fragment {
             public void onResponse(String response) {
                 Source source = new Source(response);
                 List<Element> listZone = source.getElementById("listZone").getChildElements();
+
                 for (Element element : listZone) {
                     List<Element> tdList = element.getAllElements(HTMLElementName.TD);
                     String studentNumber = tdList.get(0).getContent().getFirstElement().getAttributeValue("value");
@@ -87,8 +92,8 @@ public class MemberManagementFragment extends Fragment {
                     String deptName = tdList.get(3).getTextExtractor().toString();
                     String division = tdList.get(5).getContent().toString();
                     String date = tdList.get(6).getContent().toString();
-
                     MemberItem memberItem = new MemberItem(uid, name, null, studentNumber, deptName, division, date);
+
                     mMemberItemList.add(memberItem);
                 }
                 mAdapter.notifyDataSetChanged();
@@ -103,6 +108,7 @@ public class MemberManagementFragment extends Fragment {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
+
                 headers.put("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN));
                 return headers;
             }
@@ -110,6 +116,7 @@ public class MemberManagementFragment extends Fragment {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
+
                 params.put("CLUB_GRP_ID", mGroupId);
                 return params;
             }

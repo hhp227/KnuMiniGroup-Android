@@ -30,8 +30,11 @@ import static com.hhp227.knu_minigroup.fragment.GroupFragment.UPDATE_GROUP;
 
 public class MainActivity extends AppCompatActivity {
     private CookieManager mCookieManager;
+
     private DrawerLayout mDrawerLayout;
+
     private PreferenceManager mPreferenceManager;
+
     private ImageView mProfileImage;
 
     @Override
@@ -81,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 if (fragment != null) {
                     FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+
                     fragmentTransaction.replace(R.id.content_frame, fragment);
                     fragmentTransaction.commit();
                 }

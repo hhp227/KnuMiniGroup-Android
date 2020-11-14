@@ -24,18 +24,22 @@ public class BusFragment extends Fragment {
     public static final String TAG = "버스시간표";
 
     private static final String[] TAB_NAMES = {"학교(대구)", "학교(상주)"/*, "시외(대구→상주)"*/};
+
     private AppCompatActivity mActivity;
+
     private DrawerLayout mDrawerLayout;
+
     private TabLayout mTabLayout;
+
     private Toolbar mToolbar;
+
     private ViewPager mViewPager;
 
     public BusFragment() {
     }
 
     public static BusFragment newInstance() {
-        BusFragment fragment = new BusFragment();
-        return fragment;
+        return new BusFragment();
     }
 
     @Override
@@ -92,6 +96,7 @@ public class BusFragment extends Fragment {
 
     private void setDrawerToggle() {
         ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(mActivity, mDrawerLayout, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+
         mDrawerLayout.addDrawerListener(drawerToggle);
         drawerToggle.syncState();
     }

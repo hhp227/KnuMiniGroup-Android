@@ -26,11 +26,11 @@ import java.util.ArrayList;
 
 public class DCDormMealFragment extends Fragment {
     private static final String TAG = "문화관 식단표";
+
     private TextView[] mMenuView;
 
     public static DCDormMealFragment newInstance() {
-        DCDormMealFragment fragment = new DCDormMealFragment();
-        return fragment;
+        return new DCDormMealFragment();
     }
 
     @Override
@@ -47,13 +47,16 @@ public class DCDormMealFragment extends Fragment {
                 rootView.findViewById(R.id.dinner)
         };
         String endPoint = EndPoint.URL_KNU_DORM_MEAL.replace("{ID}", "2");
+
         AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, endPoint, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 ArrayList<String> arrayList = new ArrayList<>();
+
                 try {
                     XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
                     XmlPullParser parser = factory.newPullParser();
+
                     parser.setInput(new StringReader(response));
                     int eventType = parser.getEventType();
                     while (eventType != XmlPullParser.END_DOCUMENT) {

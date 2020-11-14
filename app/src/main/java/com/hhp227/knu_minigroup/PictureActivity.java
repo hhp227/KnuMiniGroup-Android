@@ -1,11 +1,8 @@
 package com.hhp227.knu_minigroup;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -16,7 +13,9 @@ import java.util.List;
 
 public class PictureActivity extends AppCompatActivity {
     private TextView mCount;
+
     private List<String> mImages;
+
     private ViewPager mViewPager;
 
     @Override
@@ -28,12 +27,12 @@ public class PictureActivity extends AppCompatActivity {
         mCount = findViewById(R.id.tv_count);
         int position = 0;
         Bundle b = getIntent().getExtras();
+        PicturePagerAdapter pagerAdapter = new PicturePagerAdapter(mImages);
+
         if (b != null) {
             mImages = b.getStringArrayList("images");
             position = b.getInt("position");
         }
-        PicturePagerAdapter pagerAdapter = new PicturePagerAdapter(this, mImages);
-
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mViewPager.setAdapter(pagerAdapter);
@@ -65,10 +64,10 @@ public class PictureActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        switch (id) {
-            case android.R.id.home:
-                finish();
-                return true;
+
+        if (id == android.R.id.home) {
+            finish();
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }

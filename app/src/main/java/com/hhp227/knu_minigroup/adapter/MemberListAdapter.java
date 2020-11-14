@@ -19,12 +19,11 @@ import com.hhp227.knu_minigroup.dto.MemberItem;
 import java.util.List;
 
 public class MemberListAdapter extends BaseAdapter {
-    private Context mContext;
-    private LayoutInflater mInflater;
-    private List<MemberItem> mMemberItems;
+    private final List<MemberItem> mMemberItems;
 
-    public MemberListAdapter(Context context, List<MemberItem> memberItems) {
-        this.mContext = context;
+    private LayoutInflater mInflater;
+
+    public MemberListAdapter(List<MemberItem> memberItems) {
         this.mMemberItems = memberItems;
     }
 
@@ -47,7 +46,7 @@ public class MemberListAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder viewHolder;
         if (mInflater == null)
-            mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            mInflater = (LayoutInflater) parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (convertView == null) {
             convertView = mInflater.inflate(R.layout.member_list_item, null);
             viewHolder = new ViewHolder(convertView);
@@ -56,7 +55,7 @@ public class MemberListAdapter extends BaseAdapter {
             viewHolder = (ViewHolder) convertView.getTag();
 
         MemberItem memberItem = mMemberItems.get(position);
-        Glide.with(mContext)
+        Glide.with(parent.getContext())
                 .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", memberItem.uid), new LazyHeaders.Builder()
                         .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
                         .build()))
@@ -72,8 +71,9 @@ public class MemberListAdapter extends BaseAdapter {
     }
 
     public static class ViewHolder {
-        private ImageView profileImage;
-        private TextView name, department, division, registerDate;
+        private final ImageView profileImage;
+
+        private final TextView name, department, division, registerDate;
 
         public ViewHolder(View itemView) {
             profileImage = itemView.findViewById(R.id.iv_profile_image);

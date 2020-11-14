@@ -26,22 +26,37 @@ public class LoopingCirclePageIndicator extends View implements PageIndicator {
     private static final int INVALID_POINTER = -1;
 
     private float mRadius;
+
     private final Paint mPaintPageFill = new Paint(ANTI_ALIAS_FLAG);
+
     private final Paint mPaintStroke = new Paint(ANTI_ALIAS_FLAG);
+
     private final Paint mPaintFill = new Paint(ANTI_ALIAS_FLAG);
+
     private ViewPager mViewPager;
+
     private ViewPager.OnPageChangeListener mListener;
+
     private int mCurrentPage;
+
     private int mSnapPage;
+
     private float mPageOffset;
+
     private int mScrollState;
+
     private int mOrientation;
+
     private boolean mCentered;
+
     private boolean mSnap;
 
     private int mTouchSlop;
+
     private float mLastMotionX = -1;
+
     private int mActivePointerId = INVALID_POINTER;
+
     private boolean mIsDragging;
 
     private float mExtraSpacing;

@@ -16,25 +16,39 @@ import java.util.List;
 
 public class CalendarProvider extends ContentProvider {
     private static final String DATABASE_NAME = "Calendar";
+
     private static final String EVENTS_TABLE = "events";
+
     private static final int DATABASE_VERSION = 4;
+
     private static final String AUTHORITY = "com.hhp227.knu_minigroup.calendarprovider";
+
     public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/events");
+
     public static final Uri CONTENT_ID_URI_BASE = Uri.parse("content://" + AUTHORITY + "/events/");
+
     private static final UriMatcher uriMatcher;
 
     public static final String EVENT = "event";
+
     public static final String LOCATION = "location";
+
     public static final String DESCRIPTION = "description";
+
     public static final String START = "start";
+
     public static final String END = "end";
+
     public static final String ID = "_id";
+
     public static final String START_DAY = "start_day";
+
     public static final String END_DAY = "end_day";
+
     public static final String COLOR = "color";
 
     private static final HashMap<String, String> mMap;
-    private DatabaseHelper DBHelper;
+
     private SQLiteDatabase db;
 
     private static class DatabaseHelper extends SQLiteOpenHelper {
@@ -99,7 +113,7 @@ public class CalendarProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         Context context = getContext();
-        DBHelper = new DatabaseHelper(context);
+        DatabaseHelper DBHelper = new DatabaseHelper(context);
         db = DBHelper.getWritableDatabase();
         return (db == null) ? false : true;
     }

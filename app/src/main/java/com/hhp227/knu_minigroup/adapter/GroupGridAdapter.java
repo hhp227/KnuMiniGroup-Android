@@ -36,17 +36,27 @@ import java.util.*;
 
 public class GroupGridAdapter extends RecyclerView.Adapter {
     public static final int TYPE_TEXT = 0;
+
     public static final int TYPE_GROUP = 1;
+
     public static final int TYPE_AD = 2;
+
     public static final int TYPE_BANNER = 3;
+
     public static final int TYPE_VIEW_PAGER = 4;
 
     private static final String TAG = "어뎁터";
+
     private final List<String> mGroupItemKeys;
+
     private final List<Object> mGroupItemValues;
+
     private OnItemClickListener mOnItemClickListener;
+
     private LoopViewPager mLoopViewPager;
+
     private LoopPagerAdapter mLoopPagerAdapter;
+
     private View.OnClickListener mOnClickListener;
 
     public GroupGridAdapter(List<String> groupItemKeys, List<Object> groupItemValues) {
@@ -83,37 +93,6 @@ public class GroupGridAdapter extends RecyclerView.Adapter {
             ((HeaderHolder) holder).bind((Map<String, String>) mGroupItemValues.get(position));
         } else if (holder instanceof ItemHolder) {
             ((ItemHolder) holder).bind((GroupItem) mGroupItemValues.get(position));
-            ((ItemHolder) holder).groupLayout.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (mOnItemClickListener != null)
-                        mOnItemClickListener.onItemClick(v, position);
-                }
-            });
-            ((ItemHolder) holder).more.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    PopupMenu popupMenu = new PopupMenu(v.getContext(), v);
-                    MenuInflater inflater = popupMenu.getMenuInflater();
-
-                    inflater.inflate(R.menu.menu_group, popupMenu.getMenu());
-                    popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                        @Override
-                        public boolean onMenuItemClick(MenuItem item) {
-                            switch (item.getItemId()) {
-                                case R.id.action_group_menu1:
-                                    Toast.makeText(v.getContext(), "테스트1", Toast.LENGTH_LONG).show();
-                                    return true;
-                                case R.id.action_group_menu2:
-                                    Toast.makeText(v.getContext(), "테스트2", Toast.LENGTH_LONG).show();
-                                    return true;
-                            }
-                            return false;
-                        }
-                    });
-                    popupMenu.show();
-                }
-            });
         } else if (holder instanceof AdHolder) {
             ((AdHolder) holder).bind(holder.itemView.getContext());
         } else if (holder instanceof BannerHolder) {
@@ -216,9 +195,11 @@ public class GroupGridAdapter extends RecyclerView.Adapter {
         }
     }
 
-    public static class ItemHolder extends RecyclerView.ViewHolder {
-        private final ImageView groupImage, more;
+    public class ItemHolder extends RecyclerView.ViewHolder {
+        private final ImageView groupImage;
+
         private final RelativeLayout groupLayout;
+
         private final TextView groupName;
 
         ItemHolder(View itemView) {
@@ -226,7 +207,39 @@ public class GroupGridAdapter extends RecyclerView.Adapter {
             groupLayout = itemView.findViewById(R.id.rl_group);
             groupImage = itemView.findViewById(R.id.iv_group_image);
             groupName = itemView.findViewById(R.id.tv_title);
-            more = itemView.findViewById(R.id.iv_more);
+            ImageView more = itemView.findViewById(R.id.iv_more);
+
+            groupLayout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (mOnItemClickListener != null)
+                        mOnItemClickListener.onItemClick(v, getAdapterPosition());
+                }
+            });
+            more.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(final View v) {
+                    PopupMenu popupMenu = new PopupMenu(v.getContext(), v);
+                    MenuInflater inflater = popupMenu.getMenuInflater();
+
+                    inflater.inflate(R.menu.menu_group, popupMenu.getMenu());
+                    popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                        @Override
+                        public boolean onMenuItemClick(MenuItem item) {
+                            switch (item.getItemId()) {
+                                case R.id.action_group_menu1:
+                                    Toast.makeText(v.getContext(), "테스트1", Toast.LENGTH_LONG).show();
+                                    return true;
+                                case R.id.action_group_menu2:
+                                    Toast.makeText(v.getContext(), "테스트2", Toast.LENGTH_LONG).show();
+                                    return true;
+                            }
+                            return false;
+                        }
+                    });
+                    popupMenu.show();
+                }
+            });
         }
 
         private void bind(GroupItem groupItem) {
@@ -238,7 +251,9 @@ public class GroupGridAdapter extends RecyclerView.Adapter {
 
     public class AdHolder extends RecyclerView.ViewHolder {
         private final MediaView mediaView;
+
         private final TextView headlineView, bodyView, advertiser;
+
         private final UnifiedNativeAdView adView;
 
         AdHolder(View itemView) {
@@ -296,6 +311,7 @@ public class GroupGridAdapter extends RecyclerView.Adapter {
 
     public static class BannerHolder extends RecyclerView.ViewHolder {
         private final LoopingCirclePageIndicator circlePageIndicator;
+
         private final LoopViewPager loopViewPager;
 
         BannerHolder(View itemView) {
@@ -307,6 +323,7 @@ public class GroupGridAdapter extends RecyclerView.Adapter {
 
     public static class ViewPagerHolder extends RecyclerView.ViewHolder {
         private final ProgressBar progressBar;
+
         private final ViewPager viewPager;
 
         ViewPagerHolder(View itemView) {

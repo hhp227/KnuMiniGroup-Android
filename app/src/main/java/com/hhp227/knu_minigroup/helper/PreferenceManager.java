@@ -7,24 +7,37 @@ import com.hhp227.knu_minigroup.dto.User;
 
 public class PreferenceManager {
     private static final int PRIVATE_MOD = 0;
+
     private static final String TAG = "세션메니져";
 
     // SharedPreference 파일 이름
     private static final String PREF_NAME = "ApplicationLogin";
 
     private static final String KEY_USER_ID = "usr_id";
+
     private static final String KEY_USER_PASSWORD = "usr_pwd";
+
     private static final String KEY_USER_NAME = "usr_nm";
+
     private static final String KEY_USER_DEPT_NAME = "usr_dept_nm";
+
     private static final String KEY_USER_NUMBER = "usr_stu_id";
+
     private static final String KEY_USER_GRADE = "usr_grade";
+
     private static final String KEY_USER_EMAIL = "usr_mail";
+
     private static final String KEY_USER_UNIQUE_ID = "usr_uid";
+
     private static final String KEY_USER_IP = "usr_ip";
+
     private static final String KEY_USER_CAMPUS = "usr_campus";
+
     private static final String KEY_HP = "usr_hp";
-    private SharedPreferences mSharedPreferences;
-    private SharedPreferences.Editor mEditor;
+
+    private final SharedPreferences mSharedPreferences;
+
+    private final SharedPreferences.Editor mEditor;
 
     public PreferenceManager(Context context) {
         mSharedPreferences = context.getSharedPreferences(PREF_NAME, PRIVATE_MOD);
@@ -44,7 +57,6 @@ public class PreferenceManager {
         mEditor.putString(KEY_USER_CAMPUS, user.getCampus());
         mEditor.putString(KEY_HP, user.getPhoneNumber());
         mEditor.commit();
-
         Log.i(TAG, "사용자 Session 저장 : " + user.getUserId());
     }
 
@@ -61,9 +73,7 @@ public class PreferenceManager {
             String userIp = mSharedPreferences.getString(KEY_USER_IP, null);
             String campus = mSharedPreferences.getString(KEY_USER_CAMPUS, null);
             String hp = mSharedPreferences.getString(KEY_HP, null);
-            User user = new User(knuId, password, name, deptName, number, grade, email, uid, userIp, campus, hp);
-
-            return user;
+            return new User(knuId, password, name, deptName, number, grade, email, uid, userIp, campus, hp);
         }
         return null;
     }

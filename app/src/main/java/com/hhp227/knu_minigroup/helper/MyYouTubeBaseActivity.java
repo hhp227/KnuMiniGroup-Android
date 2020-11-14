@@ -31,12 +31,10 @@ public class MyYouTubeBaseActivity extends YouTubeBaseActivity implements AppCom
 
     @Override
     public void onSupportActionModeStarted(ActionMode mode) {
-
     }
 
     @Override
     public void onSupportActionModeFinished(ActionMode mode) {
-
     }
 
     @Nullable

@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.webkit.CookieManager;
 import android.widget.*;
+import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -38,20 +39,27 @@ import static android.app.Activity.RESULT_OK;
 
 public class GroupInfoFragment extends DialogFragment {
     public static final int TYPE_REQUEST = 0;
+
     public static final int TYPE_CANCEL = 1;
 
     private static final int DESC_MAX_LINE = 6;
+
     private static final String TAG = "정보창";
+
     private static int mButtonType;
+
     private static String mGroupId, mGroupName, mGroupImage, mGroupInfo, mGroupDesc, mJoinType, mKey;
+
     private CookieManager mCookieManager;
+
     private PreferenceManager mPreferenceManager;
+
     private ProgressDialog mProgressDialog;
 
     public static GroupInfoFragment newInstance() {
         Bundle args = new Bundle();
-
         GroupInfoFragment fragment = new GroupInfoFragment();
+
         fragment.setArguments(args);
         return fragment;
     }
@@ -126,6 +134,7 @@ public class GroupInfoFragment extends DialogFragment {
                     @Override
                     public Map<String, String> getHeaders() {
                         Map<String, String> headers = new HashMap<>();
+
                         headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
                         return headers;
                     }
@@ -138,9 +147,11 @@ public class GroupInfoFragment extends DialogFragment {
                     @Override
                     public byte[] getBody() {
                         Map<String, String> params = new HashMap<>();
+
                         params.put("CLUB_GRP_ID", mGroupId);
                         if (params.size() > 0) {
                             StringBuilder encodedParams = new StringBuilder();
+
                             try {
                                 for (Map.Entry<String, String> entry : params.entrySet()) {
                                     encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));
@@ -175,20 +186,22 @@ public class GroupInfoFragment extends DialogFragment {
                 .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background).error(R.drawable.ic_launcher_background))
                 .transition(DrawableTransitionOptions.withCrossFade(150))
                 .into(image);
-
         return rootView;
     }
 
     private void insertGroupToFirebase() {
         DatabaseReference userGroupListReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
         final DatabaseReference groupsReference = FirebaseDatabase.getInstance().getReference("Groups");
+        Map<String, Object> childUpdates = new HashMap<>();
+
         groupsReference.child(mKey).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getValue() == null)
                     return;
                 GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
                 Map<String, Boolean> members = groupItem.getMembers() != null && !groupItem.getMembers().containsKey(mPreferenceManager.getUser().getUid()) ? groupItem.getMembers() : new HashMap<String, Boolean>();
+
                 members.put(mPreferenceManager.getUser().getUid(), mJoinType.equals("0"));
                 groupItem.setMembers(members);
                 groupItem.setMemberCount(members.size());
@@ -196,12 +209,10 @@ public class GroupInfoFragment extends DialogFragment {
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
+            public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
             }
         });
-
-        Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/" + mPreferenceManager.getUser().getUid() + "/" + mKey, mJoinType.equals("0"));
         userGroupListReference.updateChildren(childUpdates);
     }
@@ -209,14 +220,17 @@ public class GroupInfoFragment extends DialogFragment {
     private void deleteUserInGroupFromFirebase() {
         DatabaseReference userGroupListReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
         final DatabaseReference groupsReference = FirebaseDatabase.getInstance().getReference("Groups");
+
         groupsReference.child(mKey).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
+
                 if (dataSnapshot.getValue() == null)
                     return;
-                GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
                 if (groupItem.getMembers() != null && groupItem.getMembers().containsKey(mPreferenceManager.getUser().getUid())) {
                     Map<String, Boolean> members = groupItem.getMembers();
+
                     members.remove(mPreferenceManager.getUser().getUid());
                     groupItem.setMembers(members);
                     groupItem.setMemberCount(members.size());
@@ -225,7 +239,7 @@ public class GroupInfoFragment extends DialogFragment {
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
+            public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
             }
         });

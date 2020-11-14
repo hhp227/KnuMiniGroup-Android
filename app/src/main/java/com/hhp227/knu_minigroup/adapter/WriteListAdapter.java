@@ -14,8 +14,10 @@ import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import java.util.List;
 
 public class WriteListAdapter extends ArrayAdapter<Object> {
-    private int resource;
-    private Context mContext;
+    private final int resource;
+
+    private final Context mContext;
+
     private LayoutInflater mInflater;
 
     public WriteListAdapter(Context context, int resource, List<Object> objects) {
@@ -56,7 +58,7 @@ public class WriteListAdapter extends ArrayAdapter<Object> {
     }
 
     private static class ViewHolder {
-        private ImageView imageView, videoMark;
+        private final ImageView imageView, videoMark;
 
         ViewHolder(View itemView) {
             imageView = itemView.findViewById(R.id.iv_image_preview);

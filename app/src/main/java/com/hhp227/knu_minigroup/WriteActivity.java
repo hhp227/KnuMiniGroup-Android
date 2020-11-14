@@ -44,21 +44,35 @@ import java.util.*;
 
 public class WriteActivity extends AppCompatActivity {
     public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 100;
+
     public static final int REQUEST_IMAGE_CAPTURE = 200;
+
     public static final int REQUEST_YOUTUBE_PICK = 300;
 
     private static final String TAG = WriteActivity.class.getSimpleName();
+
     private int mContextMenuRequest;
+
     private boolean mIsAdmin;
+
     private String mGrpId, mGrpNm, mGrpImg, mCurrentPhotoPath, mCookie, mKey;
+
     private EditText mInputTitle, mInputContent;
+
     private List<String> mImageList;
+
     private List<Object> mContents;
+
     private PreferenceManager mPreferenceManager;
+
     private ProgressDialog mProgressDialog;
+
     private StringBuilder mMakeHtmlContents;
+
     private Uri mPhotoUri;
+
     private WriteListAdapter mAdapter;
+
     private YouTubeItem mYouTubeItem;
 
     @Override
@@ -127,14 +141,14 @@ public class WriteActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        switch (id) {
+        switch (item.getItemId()) {
             case android.R.id.home:
                 finish();
                 return true;
             case R.id.action_send:
                 String title = mInputTitle.getEditableText().toString();
                 String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(mInputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(mInputContent.getText());
+
                 if (!title.isEmpty() && !(TextUtils.isEmpty(content) && mContents.size() == 0)) {
                     mMakeHtmlContents = new StringBuilder();
                     mImageList = new ArrayList<>();
@@ -144,6 +158,7 @@ public class WriteActivity extends AppCompatActivity {
                     showProgressDialog();
                     if (mContents.size() > 0) {
                         int position = 0;
+
                         if (mContents.get(position) instanceof Bitmap) {////////////// 리팩토링 요망
                             Bitmap bitmap = (Bitmap) mContents.get(position);// 수정
 
@@ -188,9 +203,9 @@ public class WriteActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case 1:
                 int position = ((AdapterView.AdapterContextMenuInfo) item.getMenuInfo()).position - 1;
+
                 if (mContents.get(position) instanceof YouTubeItem)
                     mYouTubeItem = null;
-
                 mContents.remove(position);
                 mAdapter.notifyDataSetChanged();
                 return true;
@@ -203,8 +218,10 @@ public class WriteActivity extends AppCompatActivity {
                 return true;
             case 3:
                 intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
                 if (intent.resolveActivity(getPackageManager()) != null) {
                     File photoFile = null;
+
                     try {
                         photoFile = createImageFile();
                     } catch (IOException ex) {
@@ -236,6 +253,7 @@ public class WriteActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Bitmap bitmap;
+
         if (requestCode == CAMERA_PICK_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
             Uri fileUri = data.getData();
             bitmap = new BitmapUtil(this).bitmapResize(fileUri, 200);
@@ -245,6 +263,7 @@ public class WriteActivity extends AppCompatActivity {
         } else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             try {
                 bitmap = new BitmapUtil(this).bitmapResize(mPhotoUri, 200);
+
                 if (bitmap != null) {
                     ExifInterface ei = new ExifInterface(mCurrentPhotoPath);
                     int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
@@ -355,6 +374,7 @@ public class WriteActivity extends AppCompatActivity {
                 try {
                     JSONObject jsonObject = new JSONObject(response);
                     boolean error = jsonObject.getBoolean("isError");
+
                     if (!error) {
                         Intent intent = new Intent(WriteActivity.this, GroupActivity.class);
 
@@ -406,6 +426,7 @@ public class WriteActivity extends AppCompatActivity {
 
     private void getArticleId() {
         String params = "?CLUB_GRP_ID=" + mGrpId + "&displayL=1";
+
         AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.GROUP_ARTICLE_LIST + params, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -440,7 +461,6 @@ public class WriteActivity extends AppCompatActivity {
                 storageDir      /* directory */
         );
         mCurrentPhotoPath = image.getAbsolutePath();
-
         return image;
     }
 

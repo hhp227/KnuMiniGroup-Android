@@ -1,6 +1,5 @@
 package com.hhp227.knu_minigroup.adapter;
 
-import android.app.Activity;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,12 +23,19 @@ import java.util.List;
 
 public class ArticleListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int TYPE_ARTICLE = 0;
+
     private static final int TYPE_LOADER = 1;
+
     private static final int CONTENT_MAX_LINE = 4;
+
     private final List<String> mArticleItemKeys;
+
     private final List<ArticleItem> mArticleItemValues;
+
     private int mProgressBarVisibility;
+
     private OnItemClickListener mOnItemClickListener;
+
     private String mGroupKey;
 
     public ArticleListAdapter(List<String> articleItemKeys, List<ArticleItem> articleItemValues, String groupKey) {

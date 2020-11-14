@@ -3,7 +3,6 @@ package com.hhp227.knu_minigroup.fragment;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,13 +29,15 @@ import java.util.Map;
 
 public class DCShuttleScheduleFragment extends Fragment {
     private static final String TAG = "학교버스시간표";
+
     private List<Map<String, String>> mShuttleList;
+
     private SwipeRefreshLayout mSwipeRefreshLayout;
+
     private SimpleAdapter mAdapter;
 
     public static DCShuttleScheduleFragment newInstance() {
-        DCShuttleScheduleFragment fragment = new DCShuttleScheduleFragment();
-        return fragment;
+        return new DCShuttleScheduleFragment();
     }
 
     @Override
@@ -51,8 +52,8 @@ public class DCShuttleScheduleFragment extends Fragment {
         mSwipeRefreshLayout = rootView.findViewById(R.id.srl_shuttle);
         mShuttleList = new ArrayList<>();
         mAdapter = new SimpleAdapter(getContext(), mShuttleList, R.layout.shuttle_item, new String[] {"col1", "col2"}, new int[] {R.id.division, R.id.time_label});
-        listView.setAdapter(mAdapter);
 
+        listView.setAdapter(mAdapter);
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -80,11 +81,13 @@ public class DCShuttleScheduleFragment extends Fragment {
                 for (int a = 0; a < 3; a++) {
                     Element table = source.getAllElements(HTMLElementName.TABLE).get(a);
                     List<Element> trs = table.getAllElements(HTMLElementName.TR);
+
                     for (int i = 0, j = -1; i < trs.size(); i++, j++) {
                         try {
                             Map<String, String> map1 = new HashMap<>();
                             Map<String, String> map2 = new HashMap<>();
                             Element col1 = trs.get(i).getAllElements(HTMLElementName.TH).get(0);
+
                             map1.put("col1", col1.getTextExtractor().toString());
                             if (i != 0) {
                                 Element col2 = trs.get(i).getAllElements(HTMLElementName.TD).get(0);

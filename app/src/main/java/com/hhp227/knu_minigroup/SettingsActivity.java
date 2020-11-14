@@ -2,6 +2,7 @@ package com.hhp227.knu_minigroup;
 
 import android.os.Bundle;
 import android.view.MenuItem;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
@@ -16,7 +17,9 @@ import java.util.List;
 
 public class SettingsActivity extends AppCompatActivity {
     private static final String[] TAB_NAMES = {"회원관리", "모임정보"};
+
     private TabLayout mTabLayout;
+
     private ViewPager mViewPager;
 
     @Override
@@ -34,6 +37,7 @@ public class SettingsActivity extends AppCompatActivity {
                 return fragmentList.size();
             }
 
+            @NonNull
             @Override
             public Fragment getItem(int position) {
                 return fragmentList.get(position);

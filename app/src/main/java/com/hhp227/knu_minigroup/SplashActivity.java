@@ -22,7 +22,9 @@ import java.util.Map;
 
 public class SplashActivity extends Activity {
     private static final int SPLASH_TIME_OUT = 1250;
+
     private static final String TAG = SplashActivity.class.getSimpleName();
+
     private PreferenceManager mPreferenceManager;
 
     @Override
@@ -42,6 +44,7 @@ public class SplashActivity extends Activity {
                     public void onResponse(String response) {
                         try {
                             JSONObject jsonObject = new JSONObject(response);
+
                             if (!jsonObject.getBoolean("isError")) {
                                 startActivity(new Intent(SplashActivity.this, MainActivity.class));
                                 overridePendingTransition(R.anim.splash_in, R.anim.splash_out);
@@ -67,8 +70,7 @@ public class SplashActivity extends Activity {
                 }) {
                     @Override
                     protected Response<String> parseNetworkResponse(NetworkResponse response) {
-                        List<Header> headers = response.allHeaders;
-                        for (Header header : headers)
+                        for (Header header : response.allHeaders)
                             if (header.getName().equals("Set-Cookie") && header.getValue().contains("SESSION_NEWLMS"))
                                 AppController.getInstance().getCookieManager().setCookie(EndPoint.LOGIN, header.getValue());
                         return super.parseNetworkResponse(response);
@@ -77,14 +79,12 @@ public class SplashActivity extends Activity {
                     @Override
                     protected Map<String, String> getParams() {
                         User user = mPreferenceManager.getUser();
-
                         String knuId = user.getUserId();
                         String password = user.getPassword();
-
                         Map<String, String> params = new HashMap<>();
+
                         params.put("usr_id", knuId);
                         params.put("usr_pwd", password);
-
                         return params;
                     }
                 });

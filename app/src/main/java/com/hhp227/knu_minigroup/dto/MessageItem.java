@@ -2,10 +2,15 @@ package com.hhp227.knu_minigroup.dto;
 
 public class MessageItem {
     private String from;
+
     private String name;
+
     private String message;
+
     private String type;
+
     private boolean seen;
+
     private long timestamp;
 
     public MessageItem() {

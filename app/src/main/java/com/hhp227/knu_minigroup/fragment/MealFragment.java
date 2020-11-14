@@ -24,18 +24,22 @@ public class MealFragment extends Fragment {
     public static final String TAG = "식단표";
 
     private static final String[] TAB_NAMES = {"GP감꽃푸드코트", "GP일청담", "공학관 교직원식당", "공학관 학생식당", "복지관 교직원식당", "복지관 학생식당", "복현회관 교직원식당", "복현회관 학생식당", "정보센터", "상주 학식", "문화관", "BTL", "상주생활관"};
+
     private AppCompatActivity mActivity;
+
     private DrawerLayout mDrawerLayout;
+
     private TabLayout mTabLayout;
+
     private Toolbar mToolbar;
+
     private ViewPager mViewPager;
 
     public MealFragment() {
     }
 
     public static MealFragment newInstance() {
-        MealFragment fragment = new MealFragment();
-        return fragment;
+        return new MealFragment();
     }
 
     @Override
@@ -105,6 +109,7 @@ public class MealFragment extends Fragment {
 
     private void setDrawerToggle() {
         ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(mActivity, mDrawerLayout, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+
         mDrawerLayout.addDrawerListener(drawerToggle);
         drawerToggle.syncState();
     }

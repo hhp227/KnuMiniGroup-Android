@@ -8,7 +8,7 @@ import java.net.URLEncoder;
 import java.util.Map;
 
 public class JsonObjectRequest extends com.android.volley.toolbox.JsonObjectRequest {
-    private Map<String, String> mParams;
+    private final Map<String, String> mParams;
 
     public JsonObjectRequest(int method, String url, Map<String, String> params, Response.Listener<JSONObject> listener, Response.ErrorListener errorListener) {
         super(method, url, null, listener, errorListener);

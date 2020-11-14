@@ -17,6 +17,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -52,12 +53,19 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener {
     public static final int UPDATE_PROFILE = 0;
 
     private static final String TAG = "설정";
+
     private static boolean mIsAdmin;
+
     private static int mPosition;
+
     private static String mGroupId, mGroupImage, mKey;
+
     private long mLastClickTime;
+
     private CookieManager mCookieManager;
+
     private User mUser;
+
     private RecyclerView mRecyclerView;
 
     public Tab4Fragment() {
@@ -94,55 +102,26 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener {
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mRecyclerView = view.findViewById(R.id.recycler_view);
         mCookieManager = AppController.getInstance().getCookieManager();
 
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mRecyclerView.setAdapter(new RecyclerView.Adapter<Tab4Holder>() {
-
+            @NonNull
             @Override
-            public Tab4Holder onCreateViewHolder(ViewGroup parent, int viewType) {
+            public Tab4Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
                 View view = LayoutInflater.from(getContext()).inflate(R.layout.content_tab4, parent, false);
 
                 return new Tab4Holder(view);
             }
 
             @Override
-            public void onBindViewHolder(Tab4Holder holder, int position) {
+            public void onBindViewHolder(@NonNull Tab4Holder holder, int position) {
                 mUser = AppController.getInstance().getPreferenceManager().getUser();
-                String stuYuId = mUser.getUserId();
-                String userName = mUser.getName();
 
-                Glide.with(getActivity())
-                        .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUser.getUid()), new LazyHeaders.Builder()
-                                .addHeader("Cookie", mCookieManager.getCookie(EndPoint.LOGIN))
-                                .build()))
-                        .apply(RequestOptions
-                                .circleCropTransform()
-                                .error(R.drawable.user_image_view_circle)
-                                .skipMemoryCache(true)
-                                .diskCacheStrategy(DiskCacheStrategy.NONE))
-                        .into(holder.profileImage);
-                holder.name.setText(userName);
-                holder.yuId.setText(stuYuId);
-                holder.profile.setOnClickListener(Tab4Fragment.this);
-                holder.withdrawal.setOnClickListener(Tab4Fragment.this);
-                if (mIsAdmin) {
-                    holder.withdrawalText.setText("소모임 폐쇄");
-                    holder.settings.setOnClickListener(Tab4Fragment.this);
-                    holder.settings.setVisibility(View.VISIBLE);
-                } else {
-                    holder.withdrawalText.setText("소모임 탈퇴");
-                    holder.settings.setVisibility(View.GONE);
-                }
-                holder.notice.setOnClickListener(Tab4Fragment.this);
-                holder.feedback.setOnClickListener(Tab4Fragment.this);
-                holder.appStore.setOnClickListener(Tab4Fragment.this);
-                holder.share.setOnClickListener(Tab4Fragment.this);
-                holder.version.setOnClickListener(Tab4Fragment.this);
-                holder.adView.loadAd(new AdRequest.Builder().build());
+                holder.bind(mUser);
             }
 
             @Override
@@ -180,19 +159,19 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener {
         if (mIsAdmin) {
             groupsReference.child(mKey).child("members").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     for (DataSnapshot snapshot : dataSnapshot.getChildren())
                         userGroupListReference.child(snapshot.getKey()).child(mKey).removeValue();
                 }
 
                 @Override
-                public void onCancelled(DatabaseError databaseError) {
+                public void onCancelled(@NonNull DatabaseError databaseError) {
                     Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
                 }
             });
             articlesReference.child(mKey).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     DatabaseReference replysReference = FirebaseDatabase.getInstance().getReference("Replys");
 
                     for (DataSnapshot snapshot : dataSnapshot.getChildren())
@@ -210,7 +189,7 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener {
         } else {
             groupsReference.child(mKey).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     if (dataSnapshot.getValue() == null)
                         return;
                     GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
@@ -225,7 +204,7 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener {
                 }
 
                 @Override
-                public void onCancelled(DatabaseError databaseError) {
+                public void onCancelled(@NonNull DatabaseError databaseError) {
                     Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
                 }
             });
@@ -360,10 +339,13 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener {
     }
 
     public class Tab4Holder extends RecyclerView.ViewHolder {
-        private AdView adView;
-        private LinearLayout profile, withdrawal, settings, notice, feedback, appStore, share, version;
-        private ImageView profileImage;
-        private TextView name, yuId, withdrawalText;
+        private final AdView adView;
+
+        private final LinearLayout profile, withdrawal, settings, notice, feedback, appStore, share, version;
+
+        private final ImageView profileImage;
+
+        private final TextView name, yuId, withdrawalText;
 
         public Tab4Holder(View itemView) {
             super(itemView);
@@ -380,6 +362,38 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener {
             withdrawal = itemView.findViewById(R.id.ll_withdrawal);
             withdrawalText = itemView.findViewById(R.id.tv_withdrawal);
             yuId = itemView.findViewById(R.id.tv_yu_id);
+
+            profile.setOnClickListener(Tab4Fragment.this);
+            withdrawal.setOnClickListener(Tab4Fragment.this);
+            notice.setOnClickListener(Tab4Fragment.this);
+            feedback.setOnClickListener(Tab4Fragment.this);
+            appStore.setOnClickListener(Tab4Fragment.this);
+            share.setOnClickListener(Tab4Fragment.this);
+            version.setOnClickListener(Tab4Fragment.this);
+            settings.setOnClickListener(Tab4Fragment.this);
+        }
+
+        private void bind(User user) {
+            Glide.with(itemView.getContext())
+                    .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", user.getUid()), new LazyHeaders.Builder()
+                            .addHeader("Cookie", mCookieManager.getCookie(EndPoint.LOGIN))
+                            .build()))
+                    .apply(RequestOptions
+                            .circleCropTransform()
+                            .error(R.drawable.user_image_view_circle)
+                            .skipMemoryCache(true)
+                            .diskCacheStrategy(DiskCacheStrategy.NONE))
+                    .into(profileImage);
+            name.setText(user.getName());
+            yuId.setText(user.getUserId());
+            if (mIsAdmin) {
+                withdrawalText.setText("소모임 폐쇄");
+                settings.setVisibility(View.VISIBLE);
+            } else {
+                withdrawalText.setText("소모임 탈퇴");
+                settings.setVisibility(View.GONE);
+            }
+            adView.loadAd(new AdRequest.Builder().build());
         }
     }
 }

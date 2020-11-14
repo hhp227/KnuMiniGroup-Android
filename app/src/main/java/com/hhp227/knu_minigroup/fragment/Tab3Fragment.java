@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.ProgressBar;
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -32,12 +33,19 @@ import java.util.List;
 
 public class Tab3Fragment extends Fragment {
     private static final int LIMIT = 40;
+
     private static final String TAG = "맴버목록";
+
     private boolean mHasRequestedMore;
+
     private int mOffSet;
+
     private String mGroupId;
+
     private List<MemberItem> mMemberItems;
+
     private MemberGridAdapter mAdapter;
+
     private ProgressBar mProgressBar;
 
     public Tab3Fragment() {
@@ -46,6 +54,7 @@ public class Tab3Fragment extends Fragment {
     public static Tab3Fragment newInstance(String grpId) {
         Tab3Fragment fragment = new Tab3Fragment();
         Bundle args = new Bundle();
+
         args.putString("grp_id", grpId);
         fragment.setArguments(args);
         return fragment;
@@ -65,14 +74,14 @@ public class Tab3Fragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         final SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.srl_member);
         GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 4);
         RecyclerView recyclerView = view.findViewById(R.id.rv_member);
         mProgressBar = view.findViewById(R.id.pb_member);
         mMemberItems = new ArrayList<>();
-        mAdapter = new MemberGridAdapter(getActivity(), mMemberItems);
+        mAdapter = new MemberGridAdapter(mMemberItems);
         mOffSet = 1;
 
         mAdapter.setHasStableIds(true);
@@ -97,7 +106,7 @@ public class Tab3Fragment extends Fragment {
         recyclerView.setAdapter(mAdapter);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
                 if (!mHasRequestedMore && !recyclerView.canScrollVertically(1)) {
                     mHasRequestedMore = true;
@@ -108,7 +117,7 @@ public class Tab3Fragment extends Fragment {
             }
 
             @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
             }
         });
@@ -120,6 +129,7 @@ public class Tab3Fragment extends Fragment {
                     public void run() {
                         mMemberItems.clear();
                         mOffSet = 1;
+
                         fetchMemberList();
                         swipeRefreshLayout.setRefreshing(false);
                     }
@@ -139,6 +149,7 @@ public class Tab3Fragment extends Fragment {
 
     private void fetchMemberList() {
         String params = "?CLUB_GRP_ID=" + mGroupId + "&startM=" + mOffSet + "&displayM=" + LIMIT;
+
         AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.MEMBER_LIST + params, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {

@@ -11,15 +11,17 @@ import java.util.Map;
  */
 
 public class MultipartRequest extends Request<NetworkResponse> {
-
     private final String twoHyphens = "--";
+
     private final String lineEnd = "\r\n";
+
     private final String boundary = "apiclient-" + System.currentTimeMillis();
 
-    private Response.Listener<NetworkResponse> mListener;
-    private Response.ErrorListener mErrorListener;
-    private Map<String, String> mHeaders;
+    private final Response.Listener<NetworkResponse> mListener;
 
+    private final Response.ErrorListener mErrorListener;
+
+    private Map<String, String> mHeaders;
 
     public MultipartRequest(int method, String url,
                             Response.Listener<NetworkResponse> listener,
@@ -182,7 +184,9 @@ public class MultipartRequest extends Request<NetworkResponse> {
 
     public class DataPart {
         private String fileName;
+
         private byte[] content;
+
         private String type;
 
         public DataPart() {

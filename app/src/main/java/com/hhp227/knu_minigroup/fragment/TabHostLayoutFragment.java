@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 
 import android.view.WindowManager;
 import android.widget.*;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
@@ -27,16 +28,27 @@ import java.util.Vector;
 
 public class TabHostLayoutFragment extends Fragment {
     private static final String IS_ADMIN = "admin";
+
     private static final String GROUP_ID = "grp_id";
+
     private static final String GROUP_NAME = "grp_nm";
+
     private static final String GROUP_IMAGE = "grp_img";
+
     private static final String POSITION = "pos";
+
     private static final String KEY = "key";
+
     private static final String[] TAB_NAMES = {"소식", "일정", "맴버", "설정"};
+
     private boolean mIsAdmin;
+
     private int mPosition;
+
     private String mGroupId, mGroupName, mGroupImage, mKey;
+
     private TabLayout mTabLayout;
+
     private ViewPager mViewPager;
 
     public TabHostLayoutFragment() {
@@ -80,6 +92,7 @@ public class TabHostLayoutFragment extends Fragment {
         AppCompatActivity activity = (AppCompatActivity) getActivity();
         final List<Fragment> fragmentList = new Vector<>();
         FragmentPagerAdapter adapter = new FragmentPagerAdapter(getChildFragmentManager(), FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+            @NonNull
             @Override
             public Fragment getItem(int position) {
                 return fragmentList.get(position);
@@ -196,6 +209,7 @@ public class TabHostLayoutFragment extends Fragment {
     private int getStatusBarHeight() {
         int result = 0;
         int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+
         if (resourceId > 0) {
             result = getResources().getDimensionPixelSize(resourceId);
         }

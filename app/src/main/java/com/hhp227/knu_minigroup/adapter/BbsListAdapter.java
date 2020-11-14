@@ -41,6 +41,7 @@ public class BbsListAdapter extends RecyclerView.Adapter<BbsListAdapter.BbsListH
 
     public static class BbsListHolder extends RecyclerView.ViewHolder {
         private final CardView cardView;
+
         private final TextView title, writer, date;
 
         public BbsListHolder(View itemView) {

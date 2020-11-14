@@ -26,11 +26,11 @@ import java.util.ArrayList;
 
 public class BTLDormMealFragment extends Fragment {
     private static final String TAG = "BTL 식단표";
+
     private TextView[] mMenuView;
 
     public static BTLDormMealFragment newInstance() {
-        BTLDormMealFragment fragment = new BTLDormMealFragment();
-        return fragment;
+        return new BTLDormMealFragment();
     }
 
     @Override
@@ -47,13 +47,16 @@ public class BTLDormMealFragment extends Fragment {
                 rootView.findViewById(R.id.dinner)
         };
         String endPoint = EndPoint.URL_KNU_DORM_MEAL.replace("{ID}", "3");
+
         AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, endPoint, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 ArrayList<String> arrayList = new ArrayList<>();
+
                 try {
                     XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
                     XmlPullParser parser = factory.newPullParser();
+
                     parser.setInput(new StringReader(response));
                     int eventType = parser.getEventType();
 

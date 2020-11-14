@@ -49,35 +49,54 @@ import static com.hhp227.knu_minigroup.adapter.GroupGridAdapter.TYPE_GROUP;
 
 public class GroupFragment extends Fragment {
     public static final int CREATE_CODE = 10;
+
     public static final int REGISTER_CODE = 20;
+
     public static final int UPDATE_GROUP = 30;
 
     private static final int PORTAIT_SPAN_COUNT = 2;
+
     private static final int LANDSCAPE_SPAN_COUNT = 4;
+
     private static final String TAG = GroupFragment.class.getSimpleName();
+
     private int mSpanCount;
+
     private AppCompatActivity mActivity;
+
     private CookieManager mCookieManager;
+
     private CountDownTimer mCountDownTimer;
+
     private DrawerLayout mDrawerLayout;
+
     private GridLayoutManager mGridLayoutManager;
+
     private GridLayoutManager.SpanSizeLookup mSpanSizeLookup;
+
     private GroupGridAdapter mAdapter;
+
     private List<String> mGroupItemKeys;
+
     private List<Object> mGroupItemValues;
+
     private PreferenceManager mPreferenceManager;
+
     private ProgressBar mProgressBar;
+
     private RecyclerView mRecyclerView;
+
     private RecyclerView.ItemDecoration mItemDecoration;
+
     private SwipeRefreshLayout mSwipeRefreshLayout;
+
     private Toolbar mToolbar;
 
     public GroupFragment() {
     }
 
     public static GroupFragment newInstance() {
-        GroupFragment fragment = new GroupFragment();
-        return fragment;
+        return new GroupFragment();
     }
 
     @Override
@@ -92,7 +111,7 @@ public class GroupFragment extends Fragment {
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         BottomNavigationView bottomNavigationView = view.findViewById(R.id.bnv_group_button);
         mActivity = (AppCompatActivity) getActivity();
@@ -256,6 +275,7 @@ public class GroupFragment extends Fragment {
             fetchDataTask();
         } else if (requestCode == UPDATE_GROUP && resultCode == Activity.RESULT_OK && data != null) {//
             int position = data.getIntExtra("position", 0);
+
             if (mGroupItemValues.get(position) instanceof GroupItem) {
                 GroupItem groupItem = (GroupItem) mGroupItemValues.get(position);
 
@@ -269,7 +289,7 @@ public class GroupFragment extends Fragment {
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         switch (newConfig.orientation) {
             case Configuration.ORIENTATION_PORTRAIT:
@@ -297,8 +317,10 @@ public class GroupFragment extends Fragment {
             @Override
             public void onResponse(String response) {
                 Source source = new Source(response);
+
                 try {
                     List<Element> listElementA = source.getAllElements(HTMLElementName.A);
+
                     for (Element elementA : listElementA) {
                         try {
                             String id = groupIdExtract(elementA.getAttributeValue("onclick"));
@@ -388,13 +410,14 @@ public class GroupFragment extends Fragment {
     private void fetchDataTaskFromFirebase(Query query, final boolean isRecursion) {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (isRecursion) {
                     try {
                         String key = dataSnapshot.getKey();
                         GroupItem value = dataSnapshot.getValue(GroupItem.class);
                         assert value != null;
                         int index = mGroupItemKeys.indexOf(value.getId());
+
                         if (index > -1) {
                             //mGroupItemValues.set(index, value); //isAdmin값때문에 주석처리
                             mGroupItemKeys.set(index, key);

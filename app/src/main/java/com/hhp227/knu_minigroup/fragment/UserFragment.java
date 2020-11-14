@@ -24,8 +24,7 @@ public class UserFragment extends DialogFragment {
     private String mUid, mName, mValue;
 
     public static UserFragment newInstance() {
-        UserFragment fragment = new UserFragment();
-        return fragment;
+        return new UserFragment();
     }
 
     @Override
@@ -40,12 +39,12 @@ public class UserFragment extends DialogFragment {
         Button send = rootView.findViewById(R.id.b_send);
         Button close = rootView.findViewById(R.id.b_close);
         Bundle bundle = getArguments();
+
         if (bundle != null) {
             mUid = bundle.getString("uid");
             mName = bundle.getString("name");
             mValue = bundle.getString("value");
         }
-
         Glide.with(this)
                 .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUid), new LazyHeaders.Builder().addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN)).build()))
                 .apply(RequestOptions.errorOf(R.drawable.user_image_view_circle)

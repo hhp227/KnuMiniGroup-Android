@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import com.android.volley.*;
@@ -30,15 +31,25 @@ import java.util.Map;
 
 public class ChatActivity extends AppCompatActivity {
     private static final int LIMIT = 20;
+
     private boolean mHasRequestedMore, mHasSelection, mIsGroupChat;
+
     private int mCurrentScrollState;
+
     private DatabaseReference mDatabaseReference;
+
     private EditText mInputMessage;
+
     private List<MessageItem> mMessageItemList;
+
     private ListView mListView;
+
     private MessageListAdapter mAdapter;
+
     private String mCursor, mSender, mReceiver, mValue, mFirstMessageKey;
+
     private TextView mButtonSend;
+
     private User mUser;
 
     @Override
@@ -57,7 +68,7 @@ public class ChatActivity extends AppCompatActivity {
         mReceiver = intent.getStringExtra("uid");
         mValue = intent.getStringExtra("value");
         mIsGroupChat = intent.getBooleanExtra("grp_chat", false);
-        mAdapter = new MessageListAdapter(this, mMessageItemList, mSender);
+        mAdapter = new MessageListAdapter(mMessageItemList, mSender);
 
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -115,7 +126,6 @@ public class ChatActivity extends AppCompatActivity {
             }
         });*/
         mListView.setOnScrollListener(new AbsListView.OnScrollListener() {
-
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
                 mCurrentScrollState = scrollState;
@@ -126,6 +136,7 @@ public class ChatActivity extends AppCompatActivity {
                 mHasSelection = firstVisibleItem + visibleItemCount > totalItemCount - 20;
                 if (!mHasRequestedMore && firstVisibleItem == 0 && mCurrentScrollState != SCROLL_STATE_IDLE) {
                     mHasRequestedMore = true;
+
                     fetchMessageList(mIsGroupChat ? mDatabaseReference.child(mReceiver).orderByKey().endAt(mCursor).limitToLast(LIMIT) : mDatabaseReference.child(mSender).child(mReceiver).orderByKey().endAt(mCursor).limitToLast(LIMIT), mMessageItemList.size(), mCursor);
                     mCursor = null;
                 }
@@ -137,10 +148,9 @@ public class ChatActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                finish();
-                return true;
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -148,7 +158,7 @@ public class ChatActivity extends AppCompatActivity {
     private void fetchMessageList(Query query, final int prevCnt, final String prevCursor) {
         query.addChildEventListener(new ChildEventListener() {
             @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s) {
                 if (mFirstMessageKey != null && mFirstMessageKey.equals(dataSnapshot.getKey()))
                     return;
                 else if (s == null)
@@ -160,6 +170,7 @@ public class ChatActivity extends AppCompatActivity {
                     return;
                 }
                 MessageItem messageItem = dataSnapshot.getValue(MessageItem.class);
+
                 mMessageItemList.add(mMessageItemList.size() - prevCnt, messageItem);
                 mAdapter.notifyDataSetChanged();
                 if (mHasSelection || mHasRequestedMore)
@@ -167,19 +178,19 @@ public class ChatActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, String s) {
             }
 
             @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
             }
 
             @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, String s) {
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
+            public void onCancelled(@NonNull DatabaseError databaseError) {
             }
         });
         /*query.addValueEventListener(new ValueEventListener() {
@@ -211,6 +222,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private void sendMessage() {
         Map<String, Object> map = new HashMap<>();
+
         map.put("from", mSender);
         map.put("name", mUser.getName());
         map.put("message", mInputMessage.getText().toString());
@@ -223,11 +235,10 @@ public class ChatActivity extends AppCompatActivity {
             String receiverPath = mReceiver + "/" + mSender + "/";
             String senderPath = mSender + "/" + mReceiver + "/";
             String pushId = mDatabaseReference.child(mSender).child(mReceiver).push().getKey();
-
             Map<String, Object> messageMap = new HashMap<>();
+
             messageMap.put(receiverPath.concat(pushId), map);
             messageMap.put(senderPath.concat(pushId), map);
-
             mDatabaseReference.updateChildren(messageMap);
         }
     }
@@ -253,6 +264,7 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
+
                 headers.put("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN));
                 return headers;
             }
@@ -265,11 +277,13 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public byte[] getBody() {
                 Map<String, String> params = new HashMap<>();
+
                 params.put("TXT", mInputMessage.getText().toString());
                 params.put("send_msg", "Y");
                 params.put("USERS", mValue);
                 if (params.size() > 0) {
                     StringBuilder encodedParams = new StringBuilder();
+
                     try {
                         for (Map.Entry<String, String> entry : params.entrySet()) {
                             encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));

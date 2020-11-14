@@ -26,16 +26,21 @@ import java.util.HashMap;
 
 public class SCShuttleScheduleFragment extends Fragment {
     private static final String TAG = "학교버스시간표";
+
     private ArrayList<HashMap<String, String>> mShuttleList;
+
     private Handler mHandler;
+
     private ProgressDialog mProgressDialog;
+
     private SimpleAdapter mAdapter;
+
     private Source mSource;
+
     private SwipeRefreshLayout mSWPRefresh;
 
     public static SCShuttleScheduleFragment newInstance() {
-        SCShuttleScheduleFragment fragment = new SCShuttleScheduleFragment();
-        return fragment;
+        return new SCShuttleScheduleFragment();
     }
 
     @Override
@@ -74,6 +79,7 @@ public class SCShuttleScheduleFragment extends Fragment {
                         URL URL = new URL(EndPoint.URL_SHUTTLE.replace("{SHUTTLE}", "map03_02"));
                         InputStream html = URL.openStream();
                         mSource = new Source(new InputStreamReader(html, "utf-8")); // 소스를 UTF-8 인코딩으로 불러온다.
+
                         mSource.fullSequentialParse(); // 순차적으로 구문분석
                     } catch (Exception e) {
                         Log.e(TAG, "에러" + e);
@@ -83,7 +89,6 @@ public class SCShuttleScheduleFragment extends Fragment {
                     for (int i = 1; i < table.getAllElements(HTMLElementName.TR).size(); i++) {
                         Element TR = table.getAllElements(HTMLElementName.TR).get(i);
                         HashMap<String, String> map = new HashMap<>();
-
                         Element Col1 = TR.getAllElements(HTMLElementName.TD).get(0);
                         Element Col2 = TR.getAllElements(HTMLElementName.TD).get(1);
                         Element Col3 = TR.getAllElements(HTMLElementName.TD).get(3);
@@ -97,10 +102,10 @@ public class SCShuttleScheduleFragment extends Fragment {
                         map.put("col4", (Col4).getContent().toString());
                         map.put("col5", (Col5).getContent().toString());
                         map.put("col6", (Col6).getContent().toString());
-
                         mShuttleList.add(map);
                     }
                     mHandler = new Handler(Looper.getMainLooper());
+
                     mHandler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
@@ -113,7 +118,6 @@ public class SCShuttleScheduleFragment extends Fragment {
         } catch (Exception e) {
             Log.e(TAG, "에러" + e);
         }
-
         return rootView;
     }
 

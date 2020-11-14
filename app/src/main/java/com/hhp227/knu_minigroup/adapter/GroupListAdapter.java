@@ -21,11 +21,17 @@ import java.util.List;
 
 public class GroupListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int TYPE_GROUP = 0;
+
     private static final int TYPE_LOADER = 1;
+
     private static final int NAME_MAX_LINE = 2;
+
     private final Activity mActivity;
+
     private final List<String> mGroupItemKeys;
+
     private final List<GroupItem> mGroupItemValues;
+
     private int mProgressBarVisibility, mButtonType;
 
     public GroupListAdapter(Activity activity, List<String> groupItemKeys, List<GroupItem> groupItemValues) {
@@ -86,6 +92,7 @@ public class GroupListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     public static class ItemHolder extends RecyclerView.ViewHolder {
         private final ImageView groupImage;
+
         private final TextView groupName, groupInfo;
 
         public ItemHolder(View itemView) {
@@ -99,7 +106,10 @@ public class GroupListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             groupName.setText(groupItem.getName());
             groupName.setMaxLines(NAME_MAX_LINE);
             groupInfo.setText(groupItem.getJoinType().equals("0") ? "가입방식: 자동 승인" : "가입방식: 운영자 승인 확인");
-            Glide.with(itemView.getContext()).load(groupItem.getImage()).apply(RequestOptions.errorOf(R.drawable.ic_launcher_background)).into(groupImage);
+            Glide.with(itemView.getContext())
+                    .load(groupItem.getImage())
+                    .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
+                    .into(groupImage);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

@@ -30,9 +30,13 @@ import java.util.Map;
 
 public class LoginActivity extends Activity {
     private static final String TAG = "로그인화면";
+
     private CookieManager mCookieManager;
+
     private EditText mInputId, mInputPassword;
+
     private ProgressDialog mProgressDialog;
+
     private PreferenceManager mPreferenceManager;
 
     @Override
@@ -73,6 +77,7 @@ public class LoginActivity extends Activity {
                             try {
                                 JSONObject jsonObject = new JSONObject(response);
                                 boolean error = jsonObject.getBoolean("isError");
+
                                 if (!error)
                                     getUserInfo(id, password);
                                 else
@@ -114,6 +119,7 @@ public class LoginActivity extends Activity {
                             params.put("usr_pwd", password);
                             if (params.size() > 0) {
                                 StringBuilder encodedParams = new StringBuilder();
+
                                 try {
                                     for (Map.Entry<String, String> entry : params.entrySet()) {
                                         encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));
@@ -147,6 +153,7 @@ public class LoginActivity extends Activity {
             public void onResponse(String response) {
                 try {
                     JSONObject jsonObject = new JSONObject(response);
+
                     if (jsonObject.getBoolean("error")) {
 
                         // 로그기록 실패
@@ -233,11 +240,11 @@ public class LoginActivity extends Activity {
                 String imageUrl = source.getElementById("photo").getAttributeValue("src");
                 String uid = imageUrl.substring(imageUrl.indexOf("id=") + "id=".length(), imageUrl.lastIndexOf("&size"));
 
-                user.setUid(uid);
-                mPreferenceManager.storeUser(user);
-
                 // 화면이동
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+
+                user.setUid(uid);
+                mPreferenceManager.storeUser(user);
                 startActivity(intent);
                 finish();
                 hideProgressDialog();

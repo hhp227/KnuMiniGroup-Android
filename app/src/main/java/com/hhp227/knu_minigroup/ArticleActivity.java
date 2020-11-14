@@ -11,6 +11,7 @@ import android.view.*;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.CookieManager;
 import android.widget.*;
+import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -49,26 +50,47 @@ import static com.hhp227.knu_minigroup.fragment.Tab1Fragment.UPDATE_ARTICLE;
 
 public class ArticleActivity extends MyYouTubeBaseActivity {
     private static final int UPDATE_REPLY = 10;
+
     private static final String TAG = ArticleActivity.class.getSimpleName();
+
     private boolean mIsBottom, mIsUpdate, mIsAuthorized;
+
     private int mPosition;
+
     private String mGroupId, mArticleId, mGroupName, mGroupImage, mGroupKey, mArticleKey;
+
     private CardView mButtonSend;
+
     private CookieManager mCookieManager;
+
     private EditText mInputReply;
+
     private ImageView mArticleProfile;
+
     private LinearLayout mArticleImages;
+
     private List<String> mImageList, mReplyItemKeys;
+
     private List<ReplyItem> mReplyItemValues;
+
     private ListView mListView;
+
     private PreferenceManager mPreferenceManager;
+
     private ProgressBar mProgressBar;
+
     private ReplyListAdapter mAdapter;
+
     private Source mSource;
+
     private SwipeRefreshLayout mSwipeRefreshLayout;
+
     private TextView mArticleTitle, mArticleTimeStamp, mArticleContent, mSendText;
+
     private View mArticleDetail;
+
     private YouTubeItem mYouTubeItem;
+
     private YouTubePlayerView mYouTubePlayerView;
 
     @Override
@@ -103,7 +125,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
         mImageList = new ArrayList<>();
         mReplyItemKeys = new ArrayList<>();
         mReplyItemValues = new ArrayList<>();
-        mAdapter = new ReplyListAdapter(this, mReplyItemKeys, mReplyItemValues);
+        mAdapter = new ReplyListAdapter(mReplyItemKeys, mReplyItemValues);
 
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -183,8 +205,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        switch (id) {
+        switch (item.getItemId()) {
             case android.R.id.home:
                 finish();
                 return true;
@@ -305,9 +326,11 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
         final String replyKey = mReplyItemKeys.isEmpty() || info.position == 0 ? null : mReplyItemKeys.get(info.position - 1);
         ReplyItem replyItem = mReplyItemValues.isEmpty() || info.position == 0 ? null : mReplyItemValues.get(info.position - 1); // 헤더가 있기때문에 포지션에서 -1을 해준다.
         final String replyId = replyItem == null ? "0" : replyItem.getId();
+
         switch (item.getItemId()) {
             case 1:
                 android.content.ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+
                 clipboard.setText(info.position == 0 ? mArticleContent.getText().toString() : replyItem.getReply());
                 Toast.makeText(getApplicationContext(), "클립보드에 복사되었습니다!", Toast.LENGTH_SHORT).show();
                 return true;
@@ -383,13 +406,13 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
             @Override
             public void onResponse(String response) {
                 mSource = new Source(response.trim());
+
                 hideProgressBar();
                 try {
                     Element element = mSource.getFirstElementByClass("listbox2");
                     Element viewArt = element.getFirstElementByClass("view_art");
                     Element commentWrap = element.getFirstElementByClass("comment_wrap");
                     List<Element> commentList = element.getAllElementsByClass("comment-list");
-
                     String profileImg = null;
                     String listTitle = viewArt.getFirstElementByClass("list_title").getTextExtractor().toString();
                     String title = listTitle.substring(0, listTitle.lastIndexOf("-")).trim();
@@ -448,7 +471,6 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
                                 public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
                                     youTubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT);
                                     youTubePlayer.setShowFullscreenButton(true);
-
                                     if (b) {
                                         youTubePlayer.play();
                                     } else {
@@ -627,10 +649,12 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
 
     private String contentExtractor(Element listCont) {
         StringBuilder sb = new StringBuilder();
+
         for (Element childElement : listCont.getChildElements()) {// listCont.getAllElements(HTMLElementName.P)
             sb.append(childElement.getTextExtractor().toString().concat("\n"));
             try {
                 Element p = childElement.getFirstElement(HTMLElementName.P);
+
                 if (p.getFirstElement(HTMLElementName.IMG) != null) {
                     Element image = p.getFirstElement(HTMLElementName.IMG);
                     String imageUrl = !image.getAttributeValue("src").contains("http") ? EndPoint.BASE_URL + image.getAttributeValue("src") : image.getAttributeValue("src");
@@ -656,7 +680,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
 
         databaseReference.child(mGroupKey).child(mArticleKey).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getValue() != null) {
                     ArticleItem articleItem = dataSnapshot.getValue(ArticleItem.class);
 
@@ -675,7 +699,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
+            public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
             }
         });
@@ -694,7 +718,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
 
         databaseReference.child(mArticleKey).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getValue() != null) {
                     for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                         String key = snapshot.getKey();
@@ -713,7 +737,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
+            public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
             }
         });

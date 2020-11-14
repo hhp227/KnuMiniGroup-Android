@@ -5,10 +5,15 @@ import android.os.Parcelable;
 
 public class YouTubeItem implements Parcelable {
     public int position;
+
     public String videoId;
+
     public String publishedAt;
+
     public String title;
+
     public String thumbnail;
+
     public String channelTitle;
 
     public YouTubeItem() {

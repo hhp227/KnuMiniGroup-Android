@@ -30,19 +30,22 @@ import java.util.List;
 
 public class DaeguSeatFragment extends Fragment {
     private static final String TAG = "대구 열람실좌석";
+
     private boolean mIsRefresh;
+
     private List<SeatItem> mSeatItemList;
+
     private ProgressDialog mProgressDialog;
-    private RecyclerView mRecyclerView;
+
     private SeatListAdapter mAdapter;
+
     private SwipeRefreshLayout mSwipeRefreshLayout;
 
     public DaeguSeatFragment() {
     }
 
     public static DaeguSeatFragment newInstance() {
-        DaeguSeatFragment fragment = new DaeguSeatFragment();
-        return fragment;
+        return new DaeguSeatFragment();
     }
 
     @Override
@@ -53,14 +56,14 @@ public class DaeguSeatFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_seat, container, false);
-        mRecyclerView = rootView.findViewById(R.id.recycler_view);
+        RecyclerView recyclerView = rootView.findViewById(R.id.recycler_view);
         mSwipeRefreshLayout = rootView.findViewById(R.id.srl);
         mSeatItemList = new ArrayList<>();
-        mAdapter = new SeatListAdapter(getActivity(), mSeatItemList);
+        mAdapter = new SeatListAdapter(mSeatItemList);
         mProgressDialog = new ProgressDialog(getActivity());
 
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        mRecyclerView.setAdapter(mAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setAdapter(mAdapter);
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -76,10 +79,8 @@ public class DaeguSeatFragment extends Fragment {
         });
         mProgressDialog.setCancelable(false);
         mProgressDialog.setMessage("불러오는중...");
-
         showProgressDialog();
         fetchDataTask();
-
         return rootView;
     }
 
@@ -90,16 +91,16 @@ public class DaeguSeatFragment extends Fragment {
                 try {
                     JSONObject jsonObject = response.getJSONObject("data");
                     JSONArray jsonArray = jsonObject.getJSONArray("list");
+
                     for (int i = 0; i < jsonArray.length(); i++) {
                         JSONObject data = jsonArray.getJSONObject(i);
-
                         int id = data.getInt("id");
                         String name = data.getString("name");
                         int total = data.getInt("activeTotal");
                         int occupied = data.getInt("occupied");
                         int available = data.getInt("available");
-
                         String[] disable = null;
+
                         try {
                             JSONObject disablePeriod = data.getJSONObject("disablePeriod");
                             disable = new String[3];

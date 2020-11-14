@@ -12,6 +12,7 @@ import android.view.*;
 
 import android.webkit.CookieManager;
 import android.widget.*;
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import com.android.volley.*;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -40,12 +41,19 @@ import static com.hhp227.knu_minigroup.CreateActivity.CAMERA_PICK_IMAGE_REQUEST_
 
 public class DefaultSettingFragment extends Fragment {
     private static String mGroupId, mGroupImage, mGroupKey;
+
     private boolean mJoinTypeCheck;
+
     private Bitmap mBitmap;
+
     private CookieManager mCookieManager;
+
     private EditText mInputTitle, mInputDescription;
+
     private ImageView mImageView, mResetTitle;
+
     private RadioGroup mJoinType;
+
     private TextWatcher mTextWatcher;
 
     public DefaultSettingFragment() {
@@ -54,6 +62,7 @@ public class DefaultSettingFragment extends Fragment {
     public static DefaultSettingFragment newInstance(String grpId, String grpImg, String key) {
         DefaultSettingFragment fragment = new DefaultSettingFragment();
         Bundle args = new Bundle();
+
         args.putString("grp_id", grpId);
         args.putString("grp_img", grpImg);
         args.putString("key", key);
@@ -129,10 +138,10 @@ public class DefaultSettingFragment extends Fragment {
                 Source source = new Source(response);
                 String title = source.getElementById("wrtGroup").getAttributeValue("value");
                 String desc = source.getElementById("wrtExplain").getContent().toString();
+
                 for (Element rbElement : source.getFirstElementByClass("radiobox").getAllElementsByClass("chktype"))
                     if (rbElement.toString().contains("checked"))
                         mJoinTypeCheck = !rbElement.getAttributeValue("value").equals("0");
-
                 mInputTitle.setText(title);
                 mInputDescription.setText(desc);
                 mJoinType.check(!mJoinTypeCheck ? R.id.rb_auto : R.id.rb_check);
@@ -161,7 +170,7 @@ public class DefaultSettingFragment extends Fragment {
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.modify, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -175,17 +184,21 @@ public class DefaultSettingFragment extends Fragment {
 
                 if (!TextUtils.isEmpty(groupName) && !TextUtils.isEmpty(groupDescription)) {
                     String tagJsonReq = "req_send";
+
                     AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, EndPoint.UPDATE_GROUP, null, new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
                             try {
                                 if (!response.getBoolean("isError")) {
                                     Intent intent = new Intent(getContext(), Tab4Fragment.class);
+
                                     intent.putExtra("grp_nm", response.getString("GRP_NM"));
                                     intent.putExtra("grp_desc", groupDescription);
                                     intent.putExtra("join_div", !mJoinTypeCheck ? "0" : "1");
-                                    getActivity().setResult(RESULT_OK, intent);
-                                    getActivity().finish();
+                                    if (getActivity() != null) {
+                                        getActivity().setResult(RESULT_OK, intent);
+                                        getActivity().finish();
+                                    }
                                     Toast.makeText(getContext(), "소모임 변경 완료", Toast.LENGTH_LONG).show();
                                 }
                             } catch (JSONException e) {
@@ -209,6 +222,7 @@ public class DefaultSettingFragment extends Fragment {
                         @Override
                         public byte[] getBody() {
                             Map<String, String> params = new HashMap<>();
+
                             params.put("CLUB_GRP_ID", mGroupId);
                             params.put("GRP_NM", groupName);
                             params.put("TXT", groupDescription);
@@ -233,6 +247,7 @@ public class DefaultSettingFragment extends Fragment {
                         @Override
                         public Map<String, String> getHeaders() {
                             Map<String, String> headers = new HashMap<>();
+
                             headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
                             return headers;
                         }
@@ -247,7 +262,7 @@ public class DefaultSettingFragment extends Fragment {
     }
 
     @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+    public void onCreateContextMenu(@NonNull ContextMenu menu, @NonNull View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         menu.setHeaderTitle("이미지 선택");
         menu.add("카메라");
@@ -260,10 +275,12 @@ public class DefaultSettingFragment extends Fragment {
         switch (item.getTitle().toString()) {
             case "카메라":
                 Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
                 startActivityForResult(cameraIntent, CAMERA_CAPTURE_IMAGE_REQUEST_CODE);
                 break;
             case "갤러리":
                 Intent galleryIntent = new Intent(Intent.ACTION_PICK);
+
                 galleryIntent.setType(MediaStore.Images.Media.CONTENT_TYPE);
                 galleryIntent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 startActivityForResult(galleryIntent, CAMERA_PICK_IMAGE_REQUEST_CODE);
@@ -279,24 +296,28 @@ public class DefaultSettingFragment extends Fragment {
 
     private void initFirebaseData() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
+
         updateGroupDataToFirebase(databaseReference.child(mGroupKey));
     }
 
     private void updateGroupDataToFirebase(final Query query) {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getValue() != null) {
                     GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
-                    groupItem.setName(mInputTitle.getText().toString());
-                    groupItem.setDescription(mInputDescription.getText().toString());
-                    groupItem.setJoinType(!mJoinTypeCheck ? "0" : "1");
-                    query.getRef().setValue(groupItem);
+
+                    if (groupItem != null) {
+                        groupItem.setName(mInputTitle.getText().toString());
+                        groupItem.setDescription(mInputDescription.getText().toString());
+                        groupItem.setJoinType(!mJoinTypeCheck ? "0" : "1");
+                        query.getRef().setValue(groupItem);
+                    }
                 }
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
+            public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e("파이어베이스", "파이어베이스 데이터 불러오기 실패", databaseError.toException());
             }
         });

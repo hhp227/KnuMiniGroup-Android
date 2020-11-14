@@ -22,13 +22,15 @@ import java.util.ArrayList;
 
 public class SCDormMealFragment extends Fragment {
     private static final String TAG = "상주기숙사 식단표";
+
     private ArrayList<String> mMealList;
+
     private ProgressDialog mProgressDialog;
+
     private TextView[] mMenuView;
 
     public static SCDormMealFragment newInstance() {
-        SCDormMealFragment fragment = new SCDormMealFragment();
-        return fragment;
+        return new SCDormMealFragment();
     }
 
     @Override
@@ -50,7 +52,6 @@ public class SCDormMealFragment extends Fragment {
         mProgressDialog.setCancelable(false);
         mProgressDialog.setMessage("불러오는중...");
         showProgressDialog();
-
         String tag_string_req = "req_getmeal";
         StringRequest stringRequest = new StringEucKrRequest(Request.Method.GET, EndPoint.URL_KNU_SC_DORM_MEAL, new Response.Listener<String>() {
             @Override
@@ -65,14 +66,15 @@ public class SCDormMealFragment extends Fragment {
                 hideProgressDialog();
             }
         });
-        AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
 
+        AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
         return rootView;
     }
 
     private void parseHTML(String response) {
         Source source = new Source(response);
         Element table = source.getAllElements(HTMLElementName.TABLE).get(1);
+
         for (Element p : table.getAllElements(HTMLElementName.P))
             mMealList.add(p.getTextExtractor().toString().trim());
         for (int i = 0; i < mMenuView.length; i++)

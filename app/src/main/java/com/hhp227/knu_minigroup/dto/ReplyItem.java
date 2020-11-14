@@ -2,7 +2,9 @@ package com.hhp227.knu_minigroup.dto;
 
 public class ReplyItem {
     private long timestamp;
+
     private boolean auth;
+
     private String id, uid, name, date, reply;
 
     public ReplyItem() {

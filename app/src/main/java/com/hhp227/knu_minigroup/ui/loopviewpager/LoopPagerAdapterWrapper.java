@@ -4,13 +4,16 @@ import android.os.Parcelable;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
+import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.PagerAdapter;
 
 public class LoopPagerAdapterWrapper extends PagerAdapter {
-    private PagerAdapter mAdapter;
+    private final PagerAdapter mAdapter;
+
     private SparseArray<ToDestroy> mToDestroy = new SparseArray<>();
+
     private boolean mBoundaryCaching;
 
     void setBoundaryCaching(boolean flag) {
@@ -29,9 +32,11 @@ public class LoopPagerAdapterWrapper extends PagerAdapter {
 
     int toRealPosition(int position) {
         int realCount = getRealCount();
+
         if (realCount == 0)
             return 0;
         int realPosition = (position-1) % realCount;
+
         if (realPosition < 0)
             realPosition += realCount;
 
@@ -64,8 +69,9 @@ public class LoopPagerAdapterWrapper extends PagerAdapter {
         return mAdapter;
     }
 
+    @NonNull
     @Override
-    public Object instantiateItem(ViewGroup container, int position) {
+    public Object instantiateItem(@NonNull ViewGroup container, int position) {
         int realPosition = (mAdapter instanceof FragmentPagerAdapter || mAdapter instanceof FragmentStatePagerAdapter)
                 ? position
                 : toRealPosition(position);
@@ -81,7 +87,7 @@ public class LoopPagerAdapterWrapper extends PagerAdapter {
     }
 
     @Override
-    public void destroyItem(ViewGroup container, int position, Object object) {
+    public void destroyItem(@NonNull ViewGroup container, int position, Object object) {
         int realFirst = getRealFirstPosition();
         int realLast = getRealLastPosition();
         int realPosition = (mAdapter instanceof FragmentPagerAdapter || mAdapter instanceof FragmentStatePagerAdapter)
@@ -96,12 +102,12 @@ public class LoopPagerAdapterWrapper extends PagerAdapter {
     }
 
     @Override
-    public void finishUpdate(ViewGroup container) {
+    public void finishUpdate(@NonNull ViewGroup container) {
         mAdapter.finishUpdate(container);
     }
 
     @Override
-    public boolean isViewFromObject(View view, Object object) {
+    public boolean isViewFromObject(@NonNull View view, @NonNull Object object) {
         return mAdapter.isViewFromObject(view, object);
     }
 
@@ -116,12 +122,12 @@ public class LoopPagerAdapterWrapper extends PagerAdapter {
     }
 
     @Override
-    public void startUpdate(ViewGroup container) {
+    public void startUpdate(@NonNull ViewGroup container) {
         mAdapter.startUpdate(container);
     }
 
     @Override
-    public void setPrimaryItem(ViewGroup container, int position, Object object) {
+    public void setPrimaryItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
         mAdapter.setPrimaryItem(container, position, object);
     }
 
@@ -130,7 +136,9 @@ public class LoopPagerAdapterWrapper extends PagerAdapter {
      */
     static class ToDestroy {
         ViewGroup container;
+
         int position;
+
         Object object;
 
         ToDestroy(ViewGroup container, int position, Object object) {

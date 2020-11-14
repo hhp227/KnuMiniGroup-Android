@@ -38,11 +38,17 @@ import static com.hhp227.knu_minigroup.CreateActivity.CAMERA_PICK_IMAGE_REQUEST_
 
 public class ProfileActivity extends AppCompatActivity {
     private static final String TAG = "프로필";
+
     private boolean mIsVisible;
+
     private Bitmap mBitmap;
+
     private CookieManager mCookieManager;
+
     private ImageView mProfileImage;
+
     private ProgressDialog mProgressDialog;
+
     private User mUser;
 
     @Override
@@ -174,6 +180,7 @@ public class ProfileActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && data != null) {
             mIsVisible = true;
+
             switch (requestCode) {
                 case CAMERA_CAPTURE_IMAGE_REQUEST_CODE:
                     mBitmap = (Bitmap) data.getExtras().get("data");
@@ -219,7 +226,6 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void uploadImage(final boolean isUpdate) {
         MultipartRequest multipartRequest = new MultipartRequest(Request.Method.POST, isUpdate ? EndPoint.PROFILE_IMAGE_UPDATE : EndPoint.PROFILE_IMAGE_PREVIEW, new Response.Listener<NetworkResponse>() {
-
             @Override
             public void onResponse(NetworkResponse response) {
                 if (isUpdate) {

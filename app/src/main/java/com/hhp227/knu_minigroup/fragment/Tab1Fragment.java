@@ -38,18 +38,29 @@ import java.util.Map;
 
 public class Tab1Fragment extends Fragment {
     public static final int LIMIT = 10;
+
     public static final int UPDATE_ARTICLE = 20;
+
     public static boolean mIsAdmin;
+
     public static String mGroupId, mGroupName, mGroupImage, mKey;
 
     private static final String TAG = "소식";
+
     private boolean mHasRequestedMore;
+
     private int mOffSet;
+
     private long  mMinId, mLastClickTime;
+
     private ArticleListAdapter mAdapter;
+
     private List<String> mArticleItemKeys;
+
     private List<ArticleItem> mArticleItemValues;
+
     private ProgressBar mProgressBar;
+
     private RelativeLayout mRelativeLayout;
 
     public Tab1Fragment() {
@@ -207,6 +218,7 @@ public class Tab1Fragment extends Fragment {
                 hideProgressBar();
                 try {
                     List<Element> list = source.getAllElementsByClass("listbox2");
+
                     for (Element element : list) {
                         Element viewArt = element.getFirstElementByClass("view_art");
                         Element commentWrap = element.getFirstElementByClass("comment_wrap");
@@ -220,6 +232,7 @@ public class Tab1Fragment extends Fragment {
                         List<String> imageList = new ArrayList<>();
                         StringBuilder content = new StringBuilder();
                         String replyCnt = commentWrap.getContent().getFirstElement(HTMLElementName.P).getTextExtractor().toString();
+
                         if (images.size() > 0) {
                             for (Element image : images) {
                                 String imageUrl = !image.getAttributeValue("src").contains("http") ? EndPoint.BASE_URL + image.getAttributeValue("src") : image.getAttributeValue("src");
@@ -231,6 +244,7 @@ public class Tab1Fragment extends Fragment {
                             content.append(childElement.getTextExtractor().toString().concat("\n"));
 
                         mMinId = mMinId == 0 ? Long.parseLong(id) : Math.min(mMinId, Long.parseLong(id));
+
                         if (Long.parseLong(id) > mMinId) {
                             mHasRequestedMore = true;
                             break;
@@ -254,7 +268,6 @@ public class Tab1Fragment extends Fragment {
 
                             articleItem.setYoutube(youTubeItem);
                         }
-
                         mArticleItemKeys.add(mArticleItemKeys.size() - 1, id);
                         mArticleItemValues.add(mArticleItemValues.size() - 1, articleItem);
                     }
@@ -299,6 +312,7 @@ public class Tab1Fragment extends Fragment {
                     String key = snapshot.getKey();
                     ArticleItem value = snapshot.getValue(ArticleItem.class);
                     int index = mArticleItemKeys.indexOf(value.getId());
+
                     if (index > -1) {
                         ArticleItem articleItem = mArticleItemValues.get(index);
 
