@@ -9,7 +9,6 @@ import android.util.Log;
 
 public class TimetableHelper extends SQLiteOpenHelper {
     private final static String TAG = "DB헬퍼";
-
     private final static String dbName = "timetable.db";
 
     private final String dbTableName = "schedule";

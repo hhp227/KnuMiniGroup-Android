@@ -37,7 +37,6 @@ import java.util.List;
 
 public class UnivNoticeFragment extends Fragment {
     private static final int MAX_PAGE = 10; // 최대볼수 있는 페이지 수
-
     private static final String TAG = "경북대공지사항";
 
     private boolean mHasRequestedMore; // 데이터 불러올때 중복안되게 하기위한 변수

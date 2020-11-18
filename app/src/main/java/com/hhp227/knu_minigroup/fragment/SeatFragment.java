@@ -22,7 +22,6 @@ import java.util.Vector;
 
 public class SeatFragment extends Fragment {
     public static final String TAG = "도서관 좌석";
-
     private static final String[] TAB_NAMES = {"대구 열람실", "상주 열람실"};
 
     private AppCompatActivity mActivity;

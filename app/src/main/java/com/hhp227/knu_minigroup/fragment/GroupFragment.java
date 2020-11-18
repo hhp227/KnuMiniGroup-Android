@@ -49,15 +49,10 @@ import static com.hhp227.knu_minigroup.adapter.GroupGridAdapter.TYPE_GROUP;
 
 public class GroupFragment extends Fragment {
     public static final int CREATE_CODE = 10;
-
     public static final int REGISTER_CODE = 20;
-
     public static final int UPDATE_GROUP = 30;
-
     private static final int PORTAIT_SPAN_COUNT = 2;
-
     private static final int LANDSCAPE_SPAN_COUNT = 4;
-
     private static final String TAG = GroupFragment.class.getSimpleName();
 
     private int mSpanCount;

@@ -44,11 +44,8 @@ import java.util.*;
 
 public class WriteActivity extends AppCompatActivity {
     public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 100;
-
     public static final int REQUEST_IMAGE_CAPTURE = 200;
-
     public static final int REQUEST_YOUTUBE_PICK = 300;
-
     private static final String TAG = WriteActivity.class.getSimpleName();
 
     private int mContextMenuRequest;
@@ -210,10 +207,10 @@ public class WriteActivity extends AppCompatActivity {
                 mAdapter.notifyDataSetChanged();
                 return true;
             case 2:
-                intent = new Intent(Intent.ACTION_PICK);
+                intent = new Intent(Intent.ACTION_OPEN_DOCUMENT).setType("image/*")
+                        .setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                        .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
 
-                intent.setType(MediaStore.Images.Media.CONTENT_TYPE);
-                intent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 startActivityForResult(intent, CAMERA_PICK_IMAGE_REQUEST_CODE);
                 return true;
             case 3:
@@ -255,11 +252,15 @@ public class WriteActivity extends AppCompatActivity {
         Bitmap bitmap;
 
         if (requestCode == CAMERA_PICK_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-            Uri fileUri = data.getData();
-            bitmap = new BitmapUtil(this).bitmapResize(fileUri, 200);
+            if (data.getClipData() != null) {
+                for (int i = 0; i < data.getClipData().getItemCount(); i++) {
+                    Uri fileUri = data.getClipData().getItemAt(i).getUri();
+                    bitmap = new BitmapUtil(this).bitmapResize(fileUri, 200);
 
-            mContents.add(bitmap);
-            mAdapter.notifyDataSetChanged();
+                    mContents.add(bitmap);
+                }
+                mAdapter.notifyDataSetChanged();
+            }
         } else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             try {
                 bitmap = new BitmapUtil(this).bitmapResize(mPhotoUri, 200);

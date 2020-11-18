@@ -7,32 +7,20 @@ import com.hhp227.knu_minigroup.dto.User;
 
 public class PreferenceManager {
     private static final int PRIVATE_MOD = 0;
-
     private static final String TAG = "세션메니져";
 
     // SharedPreference 파일 이름
     private static final String PREF_NAME = "ApplicationLogin";
-
     private static final String KEY_USER_ID = "usr_id";
-
     private static final String KEY_USER_PASSWORD = "usr_pwd";
-
     private static final String KEY_USER_NAME = "usr_nm";
-
     private static final String KEY_USER_DEPT_NAME = "usr_dept_nm";
-
     private static final String KEY_USER_NUMBER = "usr_stu_id";
-
     private static final String KEY_USER_GRADE = "usr_grade";
-
     private static final String KEY_USER_EMAIL = "usr_mail";
-
     private static final String KEY_USER_UNIQUE_ID = "usr_uid";
-
     private static final String KEY_USER_IP = "usr_ip";
-
     private static final String KEY_USER_CAMPUS = "usr_campus";
-
     private static final String KEY_HP = "usr_hp";
 
     private final SharedPreferences mSharedPreferences;

@@ -24,15 +24,10 @@ public class Event {
     private long eventId;
 
     public static final int DEFAULT_EVENT_ICON = 0;
-
     public static final int COLOR_RED = 1;
-
     public static final int COLOR_BLUE = 2;
-
     public static final int COLOR_YELLOW = 3;
-
     public static final int COLOR_PURPLE = 4;
-
     public static final int COLOR_GREEN = 5;
 
     public Event(long eventID, long startMills, long endMills) {

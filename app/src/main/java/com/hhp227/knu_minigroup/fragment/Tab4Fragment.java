@@ -51,13 +51,9 @@ import java.util.Map;
 
 public class Tab4Fragment extends Fragment implements View.OnClickListener {
     public static final int UPDATE_PROFILE = 0;
-
     private static final String TAG = "설정";
-
     private static boolean mIsAdmin;
-
     private static int mPosition;
-
     private static String mGroupId, mGroupImage, mKey;
 
     private long mLastClickTime;

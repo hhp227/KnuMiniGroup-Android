@@ -19,13 +19,9 @@ import java.util.Locale;
 
 public class ExtendedCalendarView extends RelativeLayout implements OnItemClickListener {
     public static final int NO_GESTURE = 0;
-
     public static final int LEFT_RIGHT_GESTURE = 1;
-
     public static final int UP_DOWN_GESTURE = 2;
-
     private static final int SWIPE_MIN_DISTANCE = 120;
-
     private static final int SWIPE_THRESHOLD_VELOCITY = 200;
 
     public ImageView next,prev;

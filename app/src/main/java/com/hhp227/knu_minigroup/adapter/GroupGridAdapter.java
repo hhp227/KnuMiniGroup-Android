@@ -36,15 +36,10 @@ import java.util.*;
 
 public class GroupGridAdapter extends RecyclerView.Adapter {
     public static final int TYPE_TEXT = 0;
-
     public static final int TYPE_GROUP = 1;
-
     public static final int TYPE_AD = 2;
-
     public static final int TYPE_BANNER = 3;
-
     public static final int TYPE_VIEW_PAGER = 4;
-
     private static final String TAG = "어뎁터";
 
     private final List<String> mGroupItemKeys;

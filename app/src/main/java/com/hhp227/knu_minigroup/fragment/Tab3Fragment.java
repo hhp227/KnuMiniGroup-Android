@@ -33,7 +33,6 @@ import java.util.List;
 
 public class Tab3Fragment extends Fragment {
     private static final int LIMIT = 40;
-
     private static final String TAG = "맴버목록";
 
     private boolean mHasRequestedMore;

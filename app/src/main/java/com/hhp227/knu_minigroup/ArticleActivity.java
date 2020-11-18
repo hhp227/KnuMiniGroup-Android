@@ -50,7 +50,6 @@ import static com.hhp227.knu_minigroup.fragment.Tab1Fragment.UPDATE_ARTICLE;
 
 public class ArticleActivity extends MyYouTubeBaseActivity {
     private static final int UPDATE_REPLY = 10;
-
     private static final String TAG = ArticleActivity.class.getSimpleName();
 
     private boolean mIsBottom, mIsUpdate, mIsAuthorized;

@@ -23,9 +23,7 @@ import java.util.List;
 
 public class ArticleListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int TYPE_ARTICLE = 0;
-
     private static final int TYPE_LOADER = 1;
-
     private static final int CONTENT_MAX_LINE = 4;
 
     private final List<String> mArticleItemKeys;

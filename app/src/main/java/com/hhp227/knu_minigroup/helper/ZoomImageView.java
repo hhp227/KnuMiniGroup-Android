@@ -13,13 +13,9 @@ import android.widget.Toast;
 
 public class ZoomImageView extends ImageView implements View.OnTouchListener {
     private static final int NONE = 0;
-
     private static final int DRAG = 1;
-
     private static final int ZOOM = 2;
-
     private static final int WIDTH = 0;
-
     private static final int HEIGHT = 1;
 
     private final Matrix matrix = new Matrix();

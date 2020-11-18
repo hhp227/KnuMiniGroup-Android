@@ -30,9 +30,7 @@ import java.util.*;
 
 public class Tab2Fragment extends Fragment {
     private static final int TYPE_CALENDAR = 0;
-
     private static final int TYPE_ITEM = 1;
-
     private static final String TAG = "일정";
 
     private Calendar mCalendar;

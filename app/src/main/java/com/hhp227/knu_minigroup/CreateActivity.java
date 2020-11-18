@@ -40,9 +40,7 @@ import static com.hhp227.knu_minigroup.app.EndPoint.GROUP_IMAGE;
 
 public class CreateActivity extends AppCompatActivity {
     public static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
-
     public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 200;
-
     private static final String TAG = CreateActivity.class.getSimpleName();
 
     private boolean mJoinTypeCheck;

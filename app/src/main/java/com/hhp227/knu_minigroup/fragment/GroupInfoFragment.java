@@ -39,15 +39,10 @@ import static android.app.Activity.RESULT_OK;
 
 public class GroupInfoFragment extends DialogFragment {
     public static final int TYPE_REQUEST = 0;
-
     public static final int TYPE_CANCEL = 1;
-
     private static final int DESC_MAX_LINE = 6;
-
     private static final String TAG = "정보창";
-
     private static int mButtonType;
-
     private static String mGroupId, mGroupName, mGroupImage, mGroupInfo, mGroupDesc, mJoinType, mKey;
 
     private CookieManager mCookieManager;

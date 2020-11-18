@@ -37,7 +37,6 @@ import java.util.Map;
 
 public class RequestActivity extends AppCompatActivity {
     private static final int LIMIT = 100;
-
     private static final String TAG = RequestActivity.class.getSimpleName();
 
     private boolean mHasRequestedMore;

@@ -21,9 +21,7 @@ import java.util.List;
 
 public class GroupListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int TYPE_GROUP = 0;
-
     private static final int TYPE_LOADER = 1;
-
     private static final int NAME_MAX_LINE = 2;
 
     private final Activity mActivity;

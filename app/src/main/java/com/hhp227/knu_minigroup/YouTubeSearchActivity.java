@@ -33,7 +33,6 @@ import java.util.List;
 
 public class YouTubeSearchActivity extends AppCompatActivity {
     public static final String API_KEY = "AIzaSyBxQb9CaA01lU5AkXnPGf3s8QjoiV-3Vys";
-
     private static final int LIMIT = 50;
 
     private int mType;

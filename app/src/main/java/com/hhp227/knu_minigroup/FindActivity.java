@@ -34,7 +34,6 @@ import java.util.Map;
 
 public class FindActivity extends AppCompatActivity {
     private static final int LIMIT = 15;
-
     private static final String TAG = FindActivity.class.getSimpleName();
 
     private boolean mHasRequestedMore;

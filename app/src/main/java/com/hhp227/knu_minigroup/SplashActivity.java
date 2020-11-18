@@ -22,7 +22,6 @@ import java.util.Map;
 
 public class SplashActivity extends Activity {
     private static final int SPLASH_TIME_OUT = 1250;
-
     private static final String TAG = SplashActivity.class.getSimpleName();
 
     private PreferenceManager mPreferenceManager;

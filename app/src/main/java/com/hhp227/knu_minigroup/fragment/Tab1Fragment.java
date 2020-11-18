@@ -38,13 +38,9 @@ import java.util.Map;
 
 public class Tab1Fragment extends Fragment {
     public static final int LIMIT = 10;
-
     public static final int UPDATE_ARTICLE = 20;
-
     public static boolean mIsAdmin;
-
     public static String mGroupId, mGroupName, mGroupImage, mKey;
-
     private static final String TAG = "소식";
 
     private boolean mHasRequestedMore;
