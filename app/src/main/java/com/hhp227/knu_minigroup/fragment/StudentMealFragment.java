@@ -160,25 +160,24 @@ public class StudentMealFragment extends Fragment {
     }
 
     private String limitedMeal(String text) {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        if (!text.isEmpty())
-            stringBuilder.append("\n");
-        stringBuilder.append("* 특식").append("\n").append(text);
-        return stringBuilder.toString();
+        return "* 특식" + "<br />" + text;
     }
 
     private void setTextView(ArrayList<Pair<String, String>> arrayList, Map<String, List<Pair<String, String>>> stringListMap) {
         for (Pair<String, TextView> pair: mMenuView) {
-            pair.second.setText(!arrayList.isEmpty() ? test(pair.first, stringListMap) : "등록된 식단이 없습니다.");
+            pair.second.setText(!arrayList.isEmpty() ? Html.fromHtml(extractText(pair.first, stringListMap)) : "등록된 식단이 없습니다.");
         }
-
-        Log.e("TEST", stringListMap.toString());
     }
 
-    private String test(String key, Map<String, List<Pair<String, String>>> stringListMap) {
-        Log.e("TEST", stringListMap.toString() + ", " + key);
-        return "1";
+    private String extractText(String key, Map<String, List<Pair<String, String>>> stringListMap) {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        if (stringListMap.get(key) != null) {
+            for (Pair<String, String> pair : stringListMap.get(key)) {
+                stringBuilder.append(pair.second);
+            }
+        }
+        return stringBuilder.toString();
     }
 
     public static Map<String, List<Pair<String, String>>> groupBy(ArrayList<Pair<String, String>> arrayList) {
