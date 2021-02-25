@@ -173,7 +173,10 @@ public class LoginActivity extends Activity {
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
 
+                params.put("name", user.getName());
                 params.put("user_id", user.getUserId());
+                params.put("password", user.getPassword());
+                params.put("student_number", user.getNumber());
                 params.put("type", "경북대 소모임");
                 return params;
             }
