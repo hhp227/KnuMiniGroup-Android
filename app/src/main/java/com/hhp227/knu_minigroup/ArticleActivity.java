@@ -127,7 +127,8 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
         mAdapter = new ReplyListAdapter(mReplyItemKeys, mReplyItemValues);
 
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (getSupportActionBar() != null)
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mArticleDetail.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -145,6 +146,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
                     mInputReply.setText("");
                     if (v != null) {
                         InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+
                         inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
                     }
                 } else
@@ -179,13 +181,13 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
             @Override
             public void onRefresh() {
                 Handler handler = new Handler();
-                Runnable runnable = new Runnable() {
+
+                handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         refresh();
                     }
-                };
-                handler.postDelayed(runnable, 1000);
+                }, 1000);
             }
         });
         registerForContextMenu(mListView); // 콘텍스트메뉴
@@ -351,6 +353,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
                     @Override
                     public void onResponse(String response) {
                         mSource = new Source(response);
+
                         hideProgressBar();
                         try {
                             if (!response.contains("처리를 실패했습니다")) {

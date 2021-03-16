@@ -18,12 +18,15 @@ import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
+import net.htmlparser.jericho.Element;
+import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -184,38 +187,30 @@ public class LoginActivity extends Activity {
     }
 
     private void getUserInfo(final String id, final String password) {
-        AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.GET, EndPoint.NEW_MESSAGE, null, new Response.Listener<JSONObject>() {
+        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.MY_INFO, new Response.Listener<String>() {
             @Override
-            public void onResponse(JSONObject response) {
+            public void onResponse(String response) {
                 try {
-                    if (!response.getBoolean("isError")) {
-                        JSONObject param = response.getJSONObject("param");
-                        String name = param.getString("session.origin_nm");
-                        String department = param.getString("session.dept_nm");
-                        String number = param.getString("session.stu_id");
-                        String grade = param.getString("session.grade");
-                        String email = param.getString("session.email");
-                        String ip = param.getString("session.user_ip");
-                        String campus = param.getString("session.campus");
-                        String hp = param.getString("session.hp_no");
-                        User user = new User();
+                    Source source = new Source(response);
+                    List<String> extractedList = new ArrayList<>();
+                    User user = new User();
 
-                        user.setUserId(id);
-                        user.setPassword(password);
-                        user.setName(name);
-                        user.setDepartment(department);
-                        user.setNumber(number);
-                        user.setGrade(grade);
-                        user.setEmail(email);
-                        user.setUserIp(ip);
-                        user.setCampus(campus);
-                        user.setPhoneNumber(hp);
-                        createLog(user);
-                        getUserUniqueId(user);
-                    } else
-                        Toast.makeText(getApplicationContext(), "에러 발생", Toast.LENGTH_LONG).show();
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    for (Element element : source.getElementById("content_text").getAllElements(HTMLElementName.TR)) {
+                        if (element.getAllElements(HTMLElementName.TD).size() > 1)
+                            extractedList.add(String.valueOf(element.getAllElements(HTMLElementName.TD).get(1).getTextExtractor()).split(" ")[0]);
+                    }
+                    String nameAndNumber = extractedList.get(0);
+
+                    user.setUserId(id);
+                    user.setPassword(password);
+                    user.setName(nameAndNumber.substring(0, nameAndNumber.lastIndexOf("(")));
+                    user.setNumber(nameAndNumber.substring(nameAndNumber.indexOf("(") + 1, nameAndNumber.lastIndexOf(")")));
+                    user.setPhoneNumber(extractedList.get(1));
+                    user.setEmail(extractedList.get(2));
+                    createLog(user);
+                    getUserUniqueId(user);
+                } catch (Exception e) {
+                    Toast.makeText(getApplicationContext(), "LMS에 문제가 생겼습니다.", Toast.LENGTH_LONG).show();
                 }
             }
         }, new Response.ErrorListener() {

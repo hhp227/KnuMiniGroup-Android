@@ -25,8 +25,7 @@
         <activity
                 android:name=".MainActivity"
                 android:configChanges="orientation|screenSize"
-                android:theme="@style/AppTheme.NoActionBar"
-                android:launchMode="singleTask">
+                android:theme="@style/AppTheme.NoActionBar">
         </activity>
         <activity
                 android:name=".NoticeActivity"

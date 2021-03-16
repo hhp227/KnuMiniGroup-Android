@@ -72,7 +72,8 @@ public class ProfileActivity extends AppCompatActivity {
         mProgressDialog = new ProgressDialog(this);
 
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (getSupportActionBar() != null)
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mProgressDialog.setCancelable(false);
         mProgressDialog.setMessage("요청중 ...");
         Glide.with(getApplicationContext())
@@ -144,7 +145,7 @@ public class ProfileActivity extends AppCompatActivity {
         grade.setText(mUser.getGrade());
         email.setText(mUser.getEmail());
         ip.setText(mUser.getUserIp());
-        campus.setText(mUser.getCampus().equals("1") ? "대구캠퍼스" : "상주캠퍼스");
+        //campus.setText(mUser.getCampus().equals("1") ? "대구캠퍼스" : "상주캠퍼스");
         hp.setText(mUser.getPhoneNumber());
     }
 

@@ -26,7 +26,7 @@ public interface EndPoint {
     String USER_IMAGE = BASE_URL + "/ilos/mp/user_image_view.acl?id={UID}&ext=.jpg";
     String GET_USER_IMAGE = BASE_URL + "/ilos/mp/myinfo_update_photo.acl";
     String TIMETABLE = BASE_URL + "/ilos/st/main/pop_academic_timetable_form.acl";
-    String NEW_MESSAGE = BASE_URL + "/ilos/message/received_new_message_check.acl";
+    String MY_INFO = BASE_URL + "/ilos/mp/myinfo_form.acl";
     String SEND_MESSAGE = BASE_URL + "/ilos/co/club_send_msg_insert.acl";
     String GROUP_IMAGE = BASE_URL + "/ilosfiles2/club/photo/{FILE}";
     String DEFAULT_GROUP_IMAGE = BASE_URL + "/ilos/images/community/share_nophoto.gif";
