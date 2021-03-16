@@ -8,7 +8,7 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="app_version">Ver 1.42</string>
+    <string name="app_version">Ver 1.45</string>
     <string name="main">메인화면</string>
     <string name="knu_board">본관게시판</string>
     <string name="timetable">시간표</string>
