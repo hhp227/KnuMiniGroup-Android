@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// TODO viewBinding 으로 이전할것
+
 public class SemesterTimeTableFragment extends Fragment {
     private static final String TAG = "시간표";
 

@@ -4,11 +4,11 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import android.widget.ProgressBar;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -19,10 +19,10 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
-import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.MemberGridAdapter;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.FragmentTab3Binding;
 import com.hhp227.knu_minigroup.dto.MemberItem;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
@@ -45,7 +45,7 @@ public class Tab3Fragment extends Fragment {
 
     private MemberGridAdapter mAdapter;
 
-    private ProgressBar mProgressBar;
+    private FragmentTab3Binding mBinding;
 
     public Tab3Fragment() {
     }
@@ -68,17 +68,15 @@ public class Tab3Fragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_tab3, container, false);
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        mBinding = FragmentTab3Binding.inflate(inflater, container, false);
+        return mBinding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        final SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.srl_member);
         GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 4);
-        RecyclerView recyclerView = view.findViewById(R.id.rv_member);
-        mProgressBar = view.findViewById(R.id.pb_member);
         mMemberItems = new ArrayList<>();
         mAdapter = new MemberGridAdapter(mMemberItems);
         mOffSet = 1;
@@ -92,7 +90,7 @@ public class Tab3Fragment extends Fragment {
                 String name = memberItem.name;
                 String value = memberItem.value;
                 Bundle args = new Bundle();
-                UserFragment newFragment = UserFragment.newInstance();
+                UserDialogFragment newFragment = UserDialogFragment.newInstance();
 
                 args.putString("uid", uid);
                 args.putString("name", name);
@@ -101,9 +99,9 @@ public class Tab3Fragment extends Fragment {
                 newFragment.show(getChildFragmentManager(), "dialog");
             }
         });
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setAdapter(mAdapter);
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+        mBinding.rvMember.setLayoutManager(layoutManager);
+        mBinding.rvMember.setAdapter(mAdapter);
+        mBinding.rvMember.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
@@ -120,23 +118,29 @@ public class Tab3Fragment extends Fragment {
                 super.onScrolled(recyclerView, dx, dy);
             }
         });
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mBinding.srlMember.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                new Handler().postDelayed(new Runnable() {
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         mMemberItems.clear();
                         mOffSet = 1;
 
                         fetchMemberList();
-                        swipeRefreshLayout.setRefreshing(false);
+                        mBinding.srlMember.setRefreshing(false);
                     }
                 }, 1000);
             }
         });
         showProgressBar();
         fetchMemberList();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mBinding = null;
     }
 
     @Override
@@ -186,12 +190,12 @@ public class Tab3Fragment extends Fragment {
     }
 
     private void showProgressBar() {
-        if (mProgressBar != null && mProgressBar.getVisibility() == View.INVISIBLE)
-            mProgressBar.setVisibility(View.VISIBLE);
+        if (mBinding.pbMember.getVisibility() == View.INVISIBLE)
+            mBinding.pbMember.setVisibility(View.VISIBLE);
     }
 
     private void hideProgressBar() {
-        if (mProgressBar != null && mProgressBar.getVisibility() == View.VISIBLE)
-            mProgressBar.setVisibility(View.INVISIBLE);
+        if (mBinding.pbMember.getVisibility() == View.VISIBLE)
+            mBinding.pbMember.setVisibility(View.INVISIBLE);
     }
 }

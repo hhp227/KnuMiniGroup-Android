@@ -7,15 +7,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
-import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.FragmentDormmealBinding;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -29,6 +31,8 @@ public class BTLDormMealFragment extends Fragment {
 
     private TextView[] mMenuView;
 
+    private FragmentDormmealBinding mBinding;
+
     public static BTLDormMealFragment newInstance() {
         return new BTLDormMealFragment();
     }
@@ -39,12 +43,18 @@ public class BTLDormMealFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_dormmeal, container, false);
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        mBinding = FragmentDormmealBinding.inflate(inflater, container, false);
+        return mBinding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         mMenuView = new TextView[] {
-                rootView.findViewById(R.id.breakfast),
-                rootView.findViewById(R.id.lunch),
-                rootView.findViewById(R.id.dinner)
+                mBinding.breakfast,
+                mBinding.lunch,
+                mBinding.dinner
         };
         String endPoint = EndPoint.URL_KNU_DORM_MEAL.replace("{ID}", "3");
 
@@ -82,6 +92,11 @@ public class BTLDormMealFragment extends Fragment {
                 VolleyLog.e(TAG, error.getMessage());
             }
         }));
-        return rootView;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mBinding = null;
     }
 }

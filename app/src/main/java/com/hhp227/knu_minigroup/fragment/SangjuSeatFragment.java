@@ -7,6 +7,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,6 +22,7 @@ import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.SeatListAdapter;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.FragmentSeatBinding;
 import com.hhp227.knu_minigroup.dto.SeatItem;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -39,7 +42,7 @@ public class SangjuSeatFragment extends Fragment {
 
     private SeatListAdapter mAdapter;
 
-    private SwipeRefreshLayout mSwipeRefreshLayout;
+    private FragmentSeatBinding mBinding;
 
     public SangjuSeatFragment() {
     }
@@ -54,17 +57,21 @@ public class SangjuSeatFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_seat, container, false);
-        RecyclerView recyclerView = rootView.findViewById(R.id.recycler_view);
-        mSwipeRefreshLayout = rootView.findViewById(R.id.srl);
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        mBinding = FragmentSeatBinding.inflate(inflater, container, false);
+        return mBinding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         mSeatItemList = new ArrayList<>();
         mAdapter = new SeatListAdapter(mSeatItemList);
         mProgressDialog = new ProgressDialog(getActivity());
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        recyclerView.setAdapter(mAdapter);
-        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        mBinding.recyclerView.setAdapter(mAdapter);
+        mBinding.srl.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 new Handler().postDelayed(new Runnable() {
@@ -72,7 +79,7 @@ public class SangjuSeatFragment extends Fragment {
                     public void run() {
                         mIsRefresh = true;
                         fetchData();
-                        mSwipeRefreshLayout.setRefreshing(false);
+                        mBinding.srl.setRefreshing(false);
                     }
                 }, 1000);
             }
@@ -81,7 +88,12 @@ public class SangjuSeatFragment extends Fragment {
         mProgressDialog.setMessage("불러오는중...");
         showProgressDialog();
         fetchData();
-        return rootView;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mBinding = null;
     }
 
     private void fetchData() {

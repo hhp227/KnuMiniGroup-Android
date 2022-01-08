@@ -8,12 +8,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.FragmentShuttleScheduleScBinding;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
@@ -29,15 +31,13 @@ public class SCShuttleScheduleFragment extends Fragment {
 
     private ArrayList<HashMap<String, String>> mShuttleList;
 
-    private Handler mHandler;
-
     private ProgressDialog mProgressDialog;
 
     private SimpleAdapter mAdapter;
 
     private Source mSource;
 
-    private SwipeRefreshLayout mSWPRefresh;
+    private FragmentShuttleScheduleScBinding mBinding;
 
     public static SCShuttleScheduleFragment newInstance() {
         return new SCShuttleScheduleFragment();
@@ -49,23 +49,27 @@ public class SCShuttleScheduleFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_shuttle_schedule_sc, container, false);
-        ListView listView = rootView.findViewById(R.id.lv_shuttle);
-        mSWPRefresh = rootView.findViewById(R.id.srl_shuttle);
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        mBinding = FragmentShuttleScheduleScBinding.inflate(inflater, container, false);
+        return mBinding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         mShuttleList = new ArrayList<>();
         mProgressDialog = new ProgressDialog(getActivity());
         mAdapter = new SimpleAdapter(getActivity(), mShuttleList, R.layout.shuttle_sc_item,
                 new String[] {"col1", "col2", "col3", "col4", "col5", "col6"},
                 new int[] {R.id.column1, R.id.column2, R.id.column3, R.id.column4, R.id.column5, R.id.column6});
 
-        listView.setAdapter(mAdapter);
-        mSWPRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mBinding.lvShuttle.setAdapter(mAdapter);
+        mBinding.srlShuttle.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                new Handler().postDelayed(new Runnable() {
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     public void run() {
-                        mSWPRefresh.setRefreshing(false); // 당겨서 새로고침 숨김
+                        mBinding.srlShuttle.setRefreshing(false); // 당겨서 새로고침 숨김
                     }
                 }, 1000);
             }
@@ -104,9 +108,7 @@ public class SCShuttleScheduleFragment extends Fragment {
                         map.put("col6", (Col6).getContent().toString());
                         mShuttleList.add(map);
                     }
-                    mHandler = new Handler(Looper.getMainLooper());
-
-                    mHandler.postDelayed(new Runnable() {
+                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                         @Override
                         public void run() {
                             mAdapter.notifyDataSetChanged(); // 모든 작업이 끝나면 리스트 갱신
@@ -118,7 +120,12 @@ public class SCShuttleScheduleFragment extends Fragment {
         } catch (Exception e) {
             Log.e(TAG, "에러" + e);
         }
-        return rootView;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mBinding = null;
     }
 
     private void showProgressDialog() {

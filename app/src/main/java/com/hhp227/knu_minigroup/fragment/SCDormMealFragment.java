@@ -7,13 +7,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import com.android.volley.*;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.StringRequest;
-import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.FragmentDormmealBinding;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
@@ -29,6 +31,8 @@ public class SCDormMealFragment extends Fragment {
 
     private TextView[] mMenuView;
 
+    private FragmentDormmealBinding mBinding;
+
     public static SCDormMealFragment newInstance() {
         return new SCDormMealFragment();
     }
@@ -39,12 +43,18 @@ public class SCDormMealFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_dormmeal, container, false);
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        mBinding = FragmentDormmealBinding.inflate(inflater, container, false);
+        return mBinding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         mMenuView = new TextView[] {
-                rootView.findViewById(R.id.breakfast),
-                rootView.findViewById(R.id.lunch),
-                rootView.findViewById(R.id.dinner)
+                mBinding.breakfast,
+                mBinding.lunch,
+                mBinding.dinner
         };
         mMealList = new ArrayList<>();
         mProgressDialog = new ProgressDialog(getActivity());
@@ -68,7 +78,12 @@ public class SCDormMealFragment extends Fragment {
         });
 
         AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
-        return rootView;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mBinding = null;
     }
 
     private void parseHTML(String response) {

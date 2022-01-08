@@ -3,7 +3,6 @@ package com.hhp227.knu_minigroup.fragment;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.SpannableString;
-import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,8 +20,7 @@ import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
+import com.hhp227.knu_minigroup.databinding.FragmentDormmealBinding;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -30,14 +28,9 @@ import org.xmlpull.v1.XmlPullParserFactory;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 public class StudentMealFragment extends Fragment {
     private static final String KEY_BREAKFAST = "breakfast";
@@ -49,6 +42,8 @@ public class StudentMealFragment extends Fragment {
     private Pair<String, TextView>[] mMenuView;
 
     private int mId;
+
+    private FragmentDormmealBinding mBinding;
 
     public static StudentMealFragment newInstance(int id) {
         StudentMealFragment fragment = new StudentMealFragment();
@@ -70,11 +65,17 @@ public class StudentMealFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_dormmeal, container, false);
+        mBinding = FragmentDormmealBinding.inflate(inflater, container, false);
+        return mBinding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         mMenuView = new Pair[] {
-                new Pair<>(KEY_BREAKFAST, rootView.findViewById(R.id.breakfast)),
-                new Pair<>(KEY_LAUNCH, rootView.findViewById(R.id.lunch)),
-                new Pair<>(KEY_DINNER, rootView.findViewById(R.id.dinner))
+                new Pair<>(KEY_BREAKFAST, mBinding.breakfast),
+                new Pair<>(KEY_LAUNCH, mBinding.lunch),
+                new Pair<>(KEY_DINNER, mBinding.dinner)
         };
         String endPoint = EndPoint.URL_KNU_MEAL.replace("{ID}", String.valueOf(mId));
 
@@ -130,7 +131,12 @@ public class StudentMealFragment extends Fragment {
                 VolleyLog.e(TAG, error.getMessage());
             }
         }));
-        return rootView;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mBinding = null;
     }
 
     private String readText(XmlPullParser parser) throws IOException, XmlPullParserException {

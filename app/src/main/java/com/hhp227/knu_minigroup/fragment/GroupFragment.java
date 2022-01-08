@@ -36,6 +36,7 @@ import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.GroupGridAdapter;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.FragmentGroupBinding;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import net.htmlparser.jericho.Element;
@@ -63,8 +64,6 @@ public class GroupFragment extends Fragment {
 
     private CountDownTimer mCountDownTimer;
 
-    private DrawerLayout mDrawerLayout;
-
     private GridLayoutManager mGridLayoutManager;
 
     private GridLayoutManager.SpanSizeLookup mSpanSizeLookup;
@@ -77,15 +76,9 @@ public class GroupFragment extends Fragment {
 
     private PreferenceManager mPreferenceManager;
 
-    private ProgressBar mProgressBar;
-
-    private RecyclerView mRecyclerView;
-
     private RecyclerView.ItemDecoration mItemDecoration;
 
-    private SwipeRefreshLayout mSwipeRefreshLayout;
-
-    private Toolbar mToolbar;
+    private FragmentGroupBinding mBinding;
 
     public GroupFragment() {
     }
@@ -100,21 +93,16 @@ public class GroupFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_group, container, false);
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        mBinding = FragmentGroupBinding.inflate(inflater, container, false);
+        return mBinding.getRoot();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        BottomNavigationView bottomNavigationView = view.findViewById(R.id.bnv_group_button);
         mActivity = (AppCompatActivity) getActivity();
-        mDrawerLayout = mActivity.findViewById(R.id.drawer_layout);
-        mToolbar = view.findViewById(R.id.toolbar);
-        mSwipeRefreshLayout = view.findViewById(R.id.srl_group);
-        mProgressBar = view.findViewById(R.id.pb_group);
-        mRecyclerView = view.findViewById(R.id.rv_group);
         mSpanCount = getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ? PORTAIT_SPAN_COUNT :
                 getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? LANDSCAPE_SPAN_COUNT :
                         0;
@@ -165,7 +153,7 @@ public class GroupFragment extends Fragment {
         };
 
         mActivity.setTitle(getString(R.string.main));
-        mActivity.setSupportActionBar(mToolbar);
+        mActivity.setSupportActionBar(mBinding.toolbar);
         setDrawerToggle();
         mAdapter.setHasStableIds(true);
         mAdapter.setOnItemClickListener(new GroupGridAdapter.OnItemClickListener() {
@@ -198,10 +186,10 @@ public class GroupFragment extends Fragment {
             }
         });
         mGridLayoutManager.setSpanSizeLookup(mSpanSizeLookup);
-        mRecyclerView.setLayoutManager(mGridLayoutManager);
-        mRecyclerView.setAdapter(mAdapter);
-        mRecyclerView.addItemDecoration(mItemDecoration);
-        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mBinding.rvGroup.setLayoutManager(mGridLayoutManager);
+        mBinding.rvGroup.setAdapter(mAdapter);
+        mBinding.rvGroup.addItemDecoration(mItemDecoration);
+        mBinding.srlGroup.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 new Handler().postDelayed(new Runnable() {
@@ -209,15 +197,15 @@ public class GroupFragment extends Fragment {
                     public void run() {
                         mGroupItemKeys.clear();
                         mGroupItemValues.clear();
-                        mSwipeRefreshLayout.setRefreshing(false);
+                        mBinding.srlGroup.setRefreshing(false);
                         fetchDataTask();
                     }
                 }, 1700);
             }
         });
-        mSwipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light, android.R.color.holo_red_light);
-        bottomNavigationView.getMenu().getItem(0).setCheckable(false);
-        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+        mBinding.srlGroup.setColorSchemeResources(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light, android.R.color.holo_red_light);
+        mBinding.bnvGroupButton.getMenu().getItem(0).setCheckable(false);
+        mBinding.bnvGroupButton.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 item.setCheckable(false);
@@ -242,9 +230,10 @@ public class GroupFragment extends Fragment {
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mRecyclerView.removeItemDecoration(mItemDecoration);
+    public void onDestroyView() {
+        super.onDestroyView();
+        mBinding.rvGroup.removeItemDecoration(mItemDecoration);
+        mBinding = null;
     }
 
     @Override
@@ -296,13 +285,14 @@ public class GroupFragment extends Fragment {
         }
         mGridLayoutManager.setSpanSizeLookup(mSpanSizeLookup);
         mGridLayoutManager.setSpanCount(mSpanCount);
-        mRecyclerView.invalidateItemDecorations();
+        mBinding.rvGroup.invalidateItemDecorations();
     }
 
     private void setDrawerToggle() {
-        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(mActivity, mDrawerLayout, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        DrawerLayout drawerLayout = ((MainActivity) mActivity).mBinding.drawerLayout;
+        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(mActivity, drawerLayout, mBinding.toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 
-        mDrawerLayout.addDrawerListener(drawerToggle);
+        drawerLayout.addDrawerListener(drawerToggle);
         drawerToggle.syncState();
     }
 
@@ -452,12 +442,12 @@ public class GroupFragment extends Fragment {
     }
 
     private void showProgressBar() {
-        if (mProgressBar != null)
-            mProgressBar.setVisibility(View.VISIBLE);
+        if (mBinding.pbGroup.getVisibility() == View.GONE)
+            mBinding.pbGroup.setVisibility(View.VISIBLE);
     }
 
     private void hideProgressBar() {
-        if (mProgressBar != null)
-            mProgressBar.setVisibility(View.GONE);
+        if (mBinding.pbGroup.getVisibility() == View.VISIBLE)
+            mBinding.pbGroup.setVisibility(View.GONE);
     }
 }

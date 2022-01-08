@@ -1,5 +1,6 @@
 package com.hhp227.knu_minigroup.fragment;
 
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.view.Window;
 import android.webkit.CookieManager;
 import android.widget.*;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -25,6 +27,7 @@ import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.RequestActivity;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.FragmentGroupInfoBinding;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import org.json.JSONException;
@@ -51,6 +54,8 @@ public class GroupInfoFragment extends DialogFragment {
 
     private ProgressDialog mProgressDialog;
 
+    private FragmentGroupInfoBinding mBinding;
+
     public static GroupInfoFragment newInstance() {
         Bundle args = new Bundle();
         GroupInfoFragment fragment = new GroupInfoFragment();
@@ -74,25 +79,31 @@ public class GroupInfoFragment extends DialogFragment {
         }
     }
 
+    @NonNull
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        if (getDialog() != null) {
-            getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
-            getDialog().getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        }
-        View rootView = inflater.inflate(R.layout.fragment_group_info, container, false);
-        Button button = rootView.findViewById(R.id.b_request);
-        Button close = rootView.findViewById(R.id.b_close);
-        ImageView image = rootView.findViewById(R.id.iv_group_image);
-        TextView name = rootView.findViewById(R.id.tv_name);
-        TextView info = rootView.findViewById(R.id.tv_info);
-        TextView desc = rootView.findViewById(R.id.tv_desciption);
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        Dialog dialog = super.onCreateDialog(savedInstanceState);
+
+        dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        return dialog;
+    }
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        mBinding = FragmentGroupInfoBinding.inflate(inflater, container, false);
+        return mBinding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         mPreferenceManager = AppController.getInstance().getPreferenceManager();
         mCookieManager = AppController.getInstance().getCookieManager();
         mProgressDialog = new ProgressDialog(getContext());
 
         mProgressDialog.setCancelable(false);
-        button.setOnClickListener(new View.OnClickListener() {
+        mBinding.bRequest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mProgressDialog.setMessage("요청중...");
@@ -106,8 +117,11 @@ public class GroupInfoFragment extends DialogFragment {
                             if (mButtonType == TYPE_REQUEST && !response.getBoolean("isError")) {
                                 Toast.makeText(getContext(), "신청완료", Toast.LENGTH_LONG).show();
                                 Intent intent = new Intent(getContext(), MainActivity.class);
-                                getActivity().setResult(RESULT_OK, intent);
-                                getActivity().finish();
+
+                                if (getActivity() != null) {
+                                    getActivity().setResult(RESULT_OK, intent);
+                                    getActivity().finish();
+                                }
                                 insertGroupToFirebase();
                             } else if (mButtonType == TYPE_CANCEL && !response.getBoolean("isError")) {
                                 Toast.makeText(getContext(), "신청취소", Toast.LENGTH_LONG).show();
@@ -165,23 +179,28 @@ public class GroupInfoFragment extends DialogFragment {
                 AppController.getInstance().addToRequestQueue(jsonObjectRequest, tag_json_req);
             }
         });
-        close.setOnClickListener(new View.OnClickListener() {
+        mBinding.bClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 GroupInfoFragment.this.dismiss();
             }
         });
-        name.setText(mGroupName);
-        info.setText(mGroupInfo);
-        desc.setText(mGroupDesc);
-        desc.setMaxLines(DESC_MAX_LINE);
-        button.setText(mButtonType == TYPE_REQUEST ? "가입신청" : "신청취소");
+        mBinding.tvName.setText(mGroupName);
+        mBinding.tvInfo.setText(mGroupInfo);
+        mBinding.tvDesciption.setText(mGroupDesc);
+        mBinding.tvDesciption.setMaxLines(DESC_MAX_LINE);
+        mBinding.bRequest.setText(mButtonType == TYPE_REQUEST ? "가입신청" : "신청취소");
         Glide.with(this)
                 .load(mGroupImage)
                 .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background).error(R.drawable.ic_launcher_background))
                 .transition(DrawableTransitionOptions.withCrossFade(150))
-                .into(image);
-        return rootView;
+                .into(mBinding.ivGroupImage);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mBinding = null;
     }
 
     private void insertGroupToFirebase() {

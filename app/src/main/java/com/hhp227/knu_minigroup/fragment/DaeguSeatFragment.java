@@ -3,23 +3,25 @@ package com.hhp227.knu_minigroup.fragment;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.SeatListAdapter;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.FragmentSeatBinding;
 import com.hhp227.knu_minigroup.dto.SeatItem;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -39,7 +41,7 @@ public class DaeguSeatFragment extends Fragment {
 
     private SeatListAdapter mAdapter;
 
-    private SwipeRefreshLayout mSwipeRefreshLayout;
+    private FragmentSeatBinding mBinding;
 
     public DaeguSeatFragment() {
     }
@@ -54,25 +56,29 @@ public class DaeguSeatFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_seat, container, false);
-        RecyclerView recyclerView = rootView.findViewById(R.id.recycler_view);
-        mSwipeRefreshLayout = rootView.findViewById(R.id.srl);
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        mBinding = FragmentSeatBinding.inflate(inflater, container, false);
+        return mBinding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         mSeatItemList = new ArrayList<>();
         mAdapter = new SeatListAdapter(mSeatItemList);
         mProgressDialog = new ProgressDialog(getActivity());
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        recyclerView.setAdapter(mAdapter);
-        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        mBinding.recyclerView.setAdapter(mAdapter);
+        mBinding.srl.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                new Handler().postDelayed(new Runnable() {
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         mIsRefresh = true;
                         fetchDataTask();
-                        mSwipeRefreshLayout.setRefreshing(false);
+                        mBinding.srl.setRefreshing(false);
                     }
                 }, 1000);
             }
@@ -81,7 +87,12 @@ public class DaeguSeatFragment extends Fragment {
         mProgressDialog.setMessage("불러오는중...");
         showProgressDialog();
         fetchDataTask();
-        return rootView;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mBinding = null;
     }
 
     private void fetchDataTask() {

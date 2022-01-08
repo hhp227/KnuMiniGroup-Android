@@ -28,11 +28,11 @@ import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import static com.hhp227.knu_minigroup.fragment.GroupFragment.UPDATE_GROUP;
 
 public class MainActivity extends AppCompatActivity {
+    public ActivityMainBinding mBinding;
+
     private CookieManager mCookieManager;
 
     private PreferenceManager mPreferenceManager;
-
-    private ActivityMainBinding mBinding;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
