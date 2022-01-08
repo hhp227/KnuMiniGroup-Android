@@ -8,14 +8,12 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.webkit.CookieManager;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
 import com.android.volley.*;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.ActivityLoginBinding;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import net.htmlparser.jericho.Element;
@@ -36,11 +34,11 @@ public class LoginActivity extends Activity {
 
     private CookieManager mCookieManager;
 
-    private EditText mInputId, mInputPassword;
-
     private ProgressDialog mProgressDialog;
 
     private PreferenceManager mPreferenceManager;
+
+    private ActivityLoginBinding mBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,10 +46,9 @@ public class LoginActivity extends Activity {
 
         // 액션바 없음
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.activity_login);
-        Button login = findViewById(R.id.b_login);
-        mInputId = findViewById(R.id.et_id);
-        mInputPassword = findViewById(R.id.et_password);
+        mBinding = ActivityLoginBinding.inflate(getLayoutInflater());
+
+        setContentView(mBinding.getRoot());
         mPreferenceManager = AppController.getInstance().getPreferenceManager();
         mProgressDialog = new ProgressDialog(this);
         mCookieManager = AppController.getInstance().getCookieManager();
@@ -65,11 +62,11 @@ public class LoginActivity extends Activity {
         }
 
         // 로그인 버튼 클릭 이벤트
-        login.setOnClickListener(new View.OnClickListener() {
+        mBinding.bLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final String id = mInputId.getText().toString();
-                final String password = mInputPassword.getText().toString();
+                final String id = mBinding.etId.getText().toString();
+                final String password = mBinding.etPassword.getText().toString();
 
                 if (!id.isEmpty() && !password.isEmpty()) {
                     StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.LOGIN, new Response.Listener<String>() {
@@ -120,22 +117,20 @@ public class LoginActivity extends Activity {
 
                             params.put("usr_id", id);
                             params.put("usr_pwd", password);
-                            if (params.size() > 0) {
-                                StringBuilder encodedParams = new StringBuilder();
+                            params.size();
+                            StringBuilder encodedParams = new StringBuilder();
 
-                                try {
-                                    for (Map.Entry<String, String> entry : params.entrySet()) {
-                                        encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));
-                                        encodedParams.append('=');
-                                        encodedParams.append(URLEncoder.encode(entry.getValue(), getParamsEncoding()));
-                                        encodedParams.append('&');
-                                    }
-                                    return encodedParams.toString().getBytes(getParamsEncoding());
-                                } catch (UnsupportedEncodingException uee) {
-                                    throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), uee);
+                            try {
+                                for (Map.Entry<String, String> entry : params.entrySet()) {
+                                    encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));
+                                    encodedParams.append('=');
+                                    encodedParams.append(URLEncoder.encode(entry.getValue(), getParamsEncoding()));
+                                    encodedParams.append('&');
                                 }
+                                return encodedParams.toString().getBytes(getParamsEncoding());
+                            } catch (UnsupportedEncodingException uee) {
+                                throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), uee);
                             }
-                            return null;
                         }
                     };
 
@@ -143,11 +138,17 @@ public class LoginActivity extends Activity {
                     showProgressDialog();
                     AppController.getInstance().addToRequestQueue(stringRequest);
                 } else {
-                    mInputId.setError(id.isEmpty() ? "아이디를 입력하세요." : null);
-                    mInputPassword.setError(password.isEmpty() ? "패스워드를 입력하세요." : null);
+                    mBinding.etId.setError(id.isEmpty() ? "아이디를 입력하세요." : null);
+                    mBinding.etPassword.setError(password.isEmpty() ? "패스워드를 입력하세요." : null);
                 }
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mBinding = null;
     }
 
     private void createLog(final User user) {

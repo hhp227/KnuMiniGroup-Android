@@ -7,12 +7,8 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.*;
 import android.webkit.CookieManager;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import com.android.volley.*;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.bumptech.glide.Glide;
@@ -22,6 +18,7 @@ import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.ActivityProfileBinding;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
 import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
@@ -45,35 +42,26 @@ public class ProfileActivity extends AppCompatActivity {
 
     private CookieManager mCookieManager;
 
-    private ImageView mProfileImage;
-
     private ProgressDialog mProgressDialog;
 
     private User mUser;
 
+    private ActivityProfileBinding mBinding;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_profile);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        TextView name = findViewById(R.id.tv_name);
-        TextView knuId = findViewById(R.id.tv_knu_id);
-        TextView department = findViewById(R.id.tv_dept);
-        TextView number = findViewById(R.id.tv_stu_num);
-        TextView grade = findViewById(R.id.tv_grade);
-        TextView email = findViewById(R.id.tv_email);
-        TextView ip = findViewById(R.id.tv_ip);
-        TextView campus = findViewById(R.id.tv_campus);
-        TextView hp = findViewById(R.id.tv_phone_num);
-        Button sync = findViewById(R.id.b_sync);
+        mBinding = ActivityProfileBinding.inflate(getLayoutInflater());
+
+        setContentView(mBinding.getRoot());
         mCookieManager = AppController.getInstance().getCookieManager();
         mUser = AppController.getInstance().getPreferenceManager().getUser();
-        mProfileImage = findViewById(R.id.iv_profile_image);
         mProgressDialog = new ProgressDialog(this);
 
-        setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null)
+        setSupportActionBar(mBinding.toolbar);
+        if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
         mProgressDialog.setCancelable(false);
         mProgressDialog.setMessage("요청중 ...");
         Glide.with(getApplicationContext())
@@ -83,8 +71,8 @@ public class ProfileActivity extends AppCompatActivity {
                         .circleCrop()
                         .skipMemoryCache(true)
                         .diskCacheStrategy(DiskCacheStrategy.NONE))
-                .into(mProfileImage);
-        mProfileImage.setOnClickListener(new View.OnClickListener() {
+                .into(mBinding.ivProfileImage);
+        mBinding.ivProfileImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 registerForContextMenu(v);
@@ -92,7 +80,7 @@ public class ProfileActivity extends AppCompatActivity {
                 unregisterForContextMenu(v);
             }
         });
-        sync.setOnClickListener(new View.OnClickListener() {
+        mBinding.bSync.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, EndPoint.SYNC_PROFILE, null, new Response.Listener<JSONObject>() {
@@ -108,7 +96,7 @@ public class ProfileActivity extends AppCompatActivity {
                                                 .circleCrop()
                                                 .skipMemoryCache(true)
                                                 .diskCacheStrategy(DiskCacheStrategy.NONE))
-                                        .into(mProfileImage);
+                                        .into(mBinding.ivProfileImage);
                                 setResult(RESULT_OK);
                                 Toast.makeText(getApplicationContext(), response.getString("message"), Toast.LENGTH_LONG).show();
                             } else
@@ -138,15 +126,20 @@ public class ProfileActivity extends AppCompatActivity {
                 AppController.getInstance().addToRequestQueue(jsonObjectRequest);
             }
         });
-        name.setText(mUser.getName());
-        knuId.setText(mUser.getUserId());
-        department.setText(mUser.getDepartment());
-        number.setText(mUser.getNumber());
-        grade.setText(mUser.getGrade());
-        email.setText(mUser.getEmail());
-        ip.setText(mUser.getUserIp());
-        //campus.setText(mUser.getCampus().equals("1") ? "대구캠퍼스" : "상주캠퍼스");
-        hp.setText(mUser.getPhoneNumber());
+        mBinding.tvName.setText(mUser.getName());
+        mBinding.tvKnuId.setText(mUser.getUserId());
+        mBinding.tvDept.setText(mUser.getDepartment());
+        mBinding.tvStuNum.setText(mUser.getNumber());
+        mBinding.tvGrade.setText(mUser.getGrade());
+        mBinding.tvEmail.setText(mUser.getEmail());
+        mBinding.tvIp.setText(mUser.getUserIp());
+        mBinding.tvPhoneNum.setText(mUser.getPhoneNumber());
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mBinding = null;
     }
 
     @Override
@@ -193,7 +186,7 @@ public class ProfileActivity extends AppCompatActivity {
             Glide.with(getApplicationContext())
                     .load(mBitmap)
                     .apply(RequestOptions.errorOf(R.drawable.user_image_view_circle).circleCrop())
-                    .into(mProfileImage);
+                    .into(mBinding.ivProfileImage);
             invalidateOptionsMenu();
         }
     }

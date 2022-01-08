@@ -3,18 +3,20 @@ package com.hhp227.knu_minigroup;
 import android.os.Bundle;
 import android.view.MenuItem;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
+import com.hhp227.knu_minigroup.databinding.ActivityVerinfoBinding;
 
 public class VerInfoActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_verinfo);
-        Toolbar toolbar = findViewById(R.id.toolbar);
+        ActivityVerinfoBinding binding = ActivityVerinfoBinding.inflate(getLayoutInflater());
 
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        setContentView(binding.getRoot());
+        setSupportActionBar(binding.toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
     }
 
     @Override

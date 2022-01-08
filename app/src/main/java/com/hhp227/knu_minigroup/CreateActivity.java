@@ -15,13 +15,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import com.android.volley.*;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.ActivityCreateBinding;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
@@ -49,53 +49,52 @@ public class CreateActivity extends AppCompatActivity {
 
     private Bitmap mBitmap;
 
-    private EditText mGroupTitle, mGroupDescription;
-
-    private ImageView mGroupImage, mResetTitle;
-
     private PreferenceManager mPreferenceManager;
 
     private ProgressDialog mProgressDialog;
 
+    private TextWatcher mTextWatcher;
+
+    private ActivityCreateBinding mBinding;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_create);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        RadioGroup joinType = findViewById(R.id.rg_jointype);
-        mGroupTitle = findViewById(R.id.et_title);
-        mGroupDescription = findViewById(R.id.et_description);
-        mResetTitle = findViewById(R.id.iv_reset);
-        mGroupImage = findViewById(R.id.iv_group_image);
+        mBinding = ActivityCreateBinding.inflate(getLayoutInflater());
+
+        setContentView(mBinding.getRoot());
         mPreferenceManager = AppController.getInstance().getPreferenceManager();
         mCookie = AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN);
         mProgressDialog = new ProgressDialog(this);
-
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        mProgressDialog.setCancelable(false);
-        mProgressDialog.setMessage("전송중...");
-        mGroupTitle.addTextChangedListener(new TextWatcher() {
+        mTextWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                mResetTitle.setImageResource(s.length() > 0 ? R.drawable.ic_clear_black_24dp : R.drawable.ic_clear_gray_24dp);
+                mBinding.ivReset.setImageResource(s.length() > 0 ? R.drawable.ic_clear_black_24dp : R.drawable.ic_clear_gray_24dp);
             }
 
             @Override
             public void afterTextChanged(Editable s) {
             }
-        });
-        mResetTitle.setOnClickListener(new View.OnClickListener() {
+        };
+
+        setSupportActionBar(mBinding.toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.setMessage("전송중...");
+        mBinding.etTitle.addTextChangedListener(mTextWatcher);
+        mBinding.ivReset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mGroupTitle.setText("");
+                mBinding.etTitle.setText("");
             }
         });
-        mGroupImage.setOnClickListener(new View.OnClickListener() {
+        mBinding.ivGroupImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 registerForContextMenu(v);
@@ -103,13 +102,20 @@ public class CreateActivity extends AppCompatActivity {
                 unregisterForContextMenu(v);
             }
         });
-        joinType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+        mBinding.rgJointype.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 mJoinTypeCheck = checkedId != R.id.rb_auto;
             }
         });
-        joinType.check(R.id.rb_auto);
+        mBinding.rgJointype.check(R.id.rb_auto);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mBinding.etTitle.removeTextChangedListener(mTextWatcher);
+        mBinding = null;
     }
 
     @Override
@@ -125,8 +131,8 @@ public class CreateActivity extends AppCompatActivity {
                 finish();
                 return true;
             case R.id.action_send:
-                final String title = mGroupTitle.getText().toString().trim();
-                final String description = mGroupDescription.getText().toString().trim();
+                final String title = mBinding.etTitle.getText().toString().trim();
+                final String description = mBinding.etDescription.getText().toString().trim();
                 final String join = !mJoinTypeCheck ? "0" : "1";
 
                 if (!title.isEmpty() && !description.isEmpty()) {
@@ -228,7 +234,7 @@ public class CreateActivity extends AppCompatActivity {
                 startActivityForResult(galleryIntent, CAMERA_PICK_IMAGE_REQUEST_CODE);
                 break;
             case "이미지 없음":
-                mGroupImage.setImageResource(R.drawable.add_photo);
+                mBinding.ivGroupImage.setImageResource(R.drawable.add_photo);
                 mBitmap = null;
 
                 Toast.makeText(getBaseContext(), "이미지 없음 선택", Toast.LENGTH_LONG).show();
@@ -243,12 +249,12 @@ public class CreateActivity extends AppCompatActivity {
         if (requestCode == CAMERA_CAPTURE_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
             mBitmap = (Bitmap) data.getExtras().get("data");
 
-            mGroupImage.setImageBitmap(mBitmap);
+            mBinding.ivGroupImage.setImageBitmap(mBitmap);
         } else if (requestCode == CAMERA_PICK_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
             Uri fileUri = data.getData();
             mBitmap = new BitmapUtil(this).bitmapResize(fileUri, 200);
 
-            mGroupImage.setImageBitmap(mBitmap);
+            mBinding.ivGroupImage.setImageBitmap(mBitmap);
         }
     }
 

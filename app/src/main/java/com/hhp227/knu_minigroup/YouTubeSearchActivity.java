@@ -6,23 +6,20 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ProgressBar;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import androidx.appcompat.widget.SearchView;
-import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.facebook.shimmer.ShimmerFrameLayout;
 import com.hhp227.knu_minigroup.adapter.YouTubeListAdapter;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.ActivityListBinding;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -41,27 +38,22 @@ public class YouTubeSearchActivity extends AppCompatActivity {
 
     private List<YouTubeItem> mYouTubeItemList;
 
-    private ProgressBar mProgressBar;
-
-    private ShimmerFrameLayout mShimmerFrameLayout;
-
     private String mSearchText;
+
+    private ActivityListBinding mBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_list);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        RecyclerView recyclerView = findViewById(R.id.recycler_view);
-        final SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.srl_list);
-        mProgressBar = findViewById(R.id.pb_group);
-        mShimmerFrameLayout = findViewById(R.id.sfl_group);
+        mBinding = ActivityListBinding.inflate(getLayoutInflater());
+
+        setContentView(mBinding.getRoot());
         mYouTubeItemList = new ArrayList<>();
         mAdapter = new YouTubeListAdapter(mYouTubeItemList);
         mSearchText = "";
         mType = getIntent().getIntExtra("type", 0);
 
-        setSupportActionBar(toolbar);
+        setSupportActionBar(mBinding.toolbar);
         mAdapter.setOnItemClickListener(new YouTubeListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position) {
@@ -74,22 +66,22 @@ public class YouTubeSearchActivity extends AppCompatActivity {
             }
         });//
         mAdapter.setHasStableIds(true);
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mBinding.srlList.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                new Handler().postDelayed(new Runnable() {
+                new Handler(getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         mYouTubeItemList.clear();
                         mAdapter.notifyDataSetChanged();
                         fetchDataTask();
-                        swipeRefreshLayout.setRefreshing(false);
+                        mBinding.srlList.setRefreshing(false);
                     }
                 }, 1000);
             }
         });
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(mAdapter);
+        mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mBinding.recyclerView.setAdapter(mAdapter);
         showProgressBar();
         fetchDataTask();
     }
@@ -97,8 +89,9 @@ public class YouTubeSearchActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mShimmerFrameLayout.clearAnimation();
-        mShimmerFrameLayout.removeAllViews();
+        mBinding.sflGroup.clearAnimation();
+        mBinding.sflGroup.removeAllViews();
+        mBinding = null;
     }
 
     @Override
@@ -124,7 +117,7 @@ public class YouTubeSearchActivity extends AppCompatActivity {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 showProgressBar();
-                mShimmerFrameLayout.setVisibility(View.VISIBLE);
+                mBinding.sflGroup.setVisibility(View.VISIBLE);
                 mYouTubeItemList.clear();
                 mAdapter.notifyDataSetChanged();
                 mSearchText = query;
@@ -176,20 +169,20 @@ public class YouTubeSearchActivity extends AppCompatActivity {
     }
 
     private void showProgressBar() {
-        if (mProgressBar != null && mProgressBar.getVisibility() == View.GONE)
-            mProgressBar.setVisibility(View.VISIBLE);
-        if (!mShimmerFrameLayout.isShimmerStarted())
-            mShimmerFrameLayout.startShimmer();
-        if (!mShimmerFrameLayout.isShimmerVisible())
-            mShimmerFrameLayout.setVisibility(View.VISIBLE);
+        if (mBinding.pbGroup.getVisibility() == View.GONE)
+            mBinding.pbGroup.setVisibility(View.VISIBLE);
+        if (!mBinding.sflGroup.isShimmerStarted())
+            mBinding.sflGroup.startShimmer();
+        if (!mBinding.sflGroup.isShimmerVisible())
+            mBinding.sflGroup.setVisibility(View.VISIBLE);
     }
 
     private void hideProgressBar() {
-        if (mProgressBar != null && mProgressBar.getVisibility() == View.VISIBLE)
-            mProgressBar.setVisibility(View.GONE);
-        if (mShimmerFrameLayout.isShimmerStarted())
-            mShimmerFrameLayout.stopShimmer();
-        if (mShimmerFrameLayout.isShimmerVisible())
-            mShimmerFrameLayout.setVisibility(View.GONE);
+        if (mBinding.pbGroup.getVisibility() == View.VISIBLE)
+            mBinding.pbGroup.setVisibility(View.GONE);
+        if (mBinding.sflGroup.isShimmerStarted())
+            mBinding.sflGroup.stopShimmer();
+        if (mBinding.sflGroup.isShimmerVisible())
+            mBinding.sflGroup.setVisibility(View.GONE);
     }
 }

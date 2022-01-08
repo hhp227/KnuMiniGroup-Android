@@ -11,6 +11,7 @@ import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.ActivitySplashBinding;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import org.json.JSONException;
@@ -26,16 +27,20 @@ public class SplashActivity extends Activity {
 
     private PreferenceManager mPreferenceManager;
 
+    private ActivitySplashBinding mBinding;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         // 액션바 안보이기
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_splash);
+        mBinding = ActivitySplashBinding.inflate(getLayoutInflater());
+
+        setContentView(mBinding.getRoot());
         mPreferenceManager = AppController.getInstance().getPreferenceManager();
 
-        new Handler().postDelayed(new Runnable() {
+        new Handler(getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
                 AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.LOGIN, new Response.Listener<String>() {
@@ -89,5 +94,11 @@ public class SplashActivity extends Activity {
                 });
             }
         }, SPLASH_TIME_OUT);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mBinding = null;
     }
 }

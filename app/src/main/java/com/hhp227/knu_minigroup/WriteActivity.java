@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.Html;
-import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -17,7 +16,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.FileProvider;
 import androidx.exifinterface.media.ExifInterface;
 import com.android.volley.*;
@@ -28,6 +26,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.hhp227.knu_minigroup.adapter.WriteListAdapter;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.ActivityWriteBinding;
+import com.hhp227.knu_minigroup.databinding.WriteTextBinding;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
@@ -54,8 +54,6 @@ public class WriteActivity extends AppCompatActivity {
 
     private String mGrpId, mGrpNm, mGrpImg, mCurrentPhotoPath, mCookie, mKey;
 
-    private EditText mInputTitle, mInputContent;
-
     private List<String> mImageList;
 
     private List<Object> mContents;
@@ -72,17 +70,17 @@ public class WriteActivity extends AppCompatActivity {
 
     private YouTubeItem mYouTubeItem;
 
+    private ActivityWriteBinding mActivityWriteBinding;
+
+    private WriteTextBinding mWriteTextBinding;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_write);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        View headerView = getLayoutInflater().inflate(R.layout.write_text, null, false);
-        LinearLayout buttonImage = findViewById(R.id.ll_image);
-        LinearLayout buttonVideo = findViewById(R.id.ll_video);
-        ListView listView = findViewById(R.id.lv_write);
-        mInputTitle = headerView.findViewById(R.id.et_title);
-        mInputContent = headerView.findViewById(R.id.et_content);
+        mActivityWriteBinding = ActivityWriteBinding.inflate(getLayoutInflater());
+        mWriteTextBinding = WriteTextBinding.inflate(getLayoutInflater());
+
+        setContentView(mActivityWriteBinding.getRoot());
         mContents = new ArrayList<>();
         mAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, mContents);
         mPreferenceManager = AppController.getInstance().getPreferenceManager();
@@ -94,9 +92,11 @@ public class WriteActivity extends AppCompatActivity {
         mGrpImg = getIntent().getStringExtra("grp_img");
         mKey = getIntent().getStringExtra("key");
 
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        buttonImage.setOnClickListener(new View.OnClickListener() {
+        setSupportActionBar(mActivityWriteBinding.toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+        mActivityWriteBinding.llImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mContextMenuRequest = 2;
@@ -106,7 +106,7 @@ public class WriteActivity extends AppCompatActivity {
                 unregisterForContextMenu(v);
             }
         });
-        buttonVideo.setOnClickListener(new View.OnClickListener() {
+        mActivityWriteBinding.llVideo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mContextMenuRequest = 3;
@@ -116,9 +116,9 @@ public class WriteActivity extends AppCompatActivity {
                 unregisterForContextMenu(v);
             }
         });
-        listView.addHeaderView(headerView);
-        listView.setAdapter(mAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mActivityWriteBinding.lvWrite.addHeaderView(mWriteTextBinding.getRoot());
+        mActivityWriteBinding.lvWrite.setAdapter(mAdapter);
+        mActivityWriteBinding.lvWrite.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 mContextMenuRequest = 1;
@@ -127,7 +127,14 @@ public class WriteActivity extends AppCompatActivity {
             }
         });
         mProgressDialog.setCancelable(false);
-        registerForContextMenu(listView);
+        registerForContextMenu(mActivityWriteBinding.lvWrite);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mWriteTextBinding = null;
+        mActivityWriteBinding = null;
     }
 
     @Override
@@ -143,8 +150,8 @@ public class WriteActivity extends AppCompatActivity {
                 finish();
                 return true;
             case R.id.action_send:
-                String title = mInputTitle.getEditableText().toString();
-                String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(mInputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(mInputContent.getText());
+                String title = mWriteTextBinding.etTitle.getEditableText().toString();
+                String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(mWriteTextBinding.etContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(mWriteTextBinding.etContent.getText());
 
                 if (!title.isEmpty() && !(TextUtils.isEmpty(content) && mContents.size() == 0)) {
                     mMakeHtmlContents = new StringBuilder();
@@ -354,8 +361,8 @@ public class WriteActivity extends AppCompatActivity {
                     uploadProcess(position, youTubeItem.videoId, true);
                 }
             } else {
-                String title = mInputTitle.getEditableText().toString();
-                String content = (!TextUtils.isEmpty(mInputContent.getText().toString()) ? Html.toHtml(mInputContent.getText()) + "<p><br data-mce-bogus=\"1\"></p>" : "") + mMakeHtmlContents.toString();
+                String title = mWriteTextBinding.etTitle.getEditableText().toString();
+                String content = (!TextUtils.isEmpty(mWriteTextBinding.etContent.getText().toString()) ? Html.toHtml(mWriteTextBinding.etContent.getText()) + "<p><br data-mce-bogus=\"1\"></p>" : "") + mMakeHtmlContents.toString();
 
                 actionSend(mGrpId, title, content);
             }
@@ -472,9 +479,9 @@ public class WriteActivity extends AppCompatActivity {
         map.put("id", artlNum);
         map.put("uid", mPreferenceManager.getUser().getUid());
         map.put("name", mPreferenceManager.getUser().getName());
-        map.put("title", mInputTitle.getText().toString());
+        map.put("title", mWriteTextBinding.etTitle.getText().toString());
         map.put("timestamp", System.currentTimeMillis());
-        map.put("content", TextUtils.isEmpty(mInputContent.getText().toString()) ? null : mInputContent.getText().toString());
+        map.put("content", TextUtils.isEmpty(mWriteTextBinding.etContent.getText().toString()) ? null : mWriteTextBinding.etContent.getText().toString());
         map.put("images", mImageList);
         map.put("youtube", mYouTubeItem);
         databaseReference.child(mKey).push().setValue(map);
