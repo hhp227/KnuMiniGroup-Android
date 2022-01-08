@@ -164,7 +164,8 @@ public class UnivNoticeFragment extends Fragment {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, error.getMessage());
+                if (error.getMessage() != null)
+                    Log.e(TAG, error.getMessage());
                 hideProgressBar();
             }
         });

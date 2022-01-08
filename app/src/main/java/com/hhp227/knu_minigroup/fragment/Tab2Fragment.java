@@ -140,7 +140,8 @@ public class Tab2Fragment extends Fragment {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(TAG, error.getMessage());
+                if (error.getMessage() != null)
+                    VolleyLog.e(TAG, error.getMessage());
             }
         }));
     }
