@@ -6,63 +6,61 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import com.bumptech.glide.Glide;
-import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.databinding.WriteContentBinding;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 
 import java.util.List;
 
 public class WriteListAdapter extends ArrayAdapter<Object> {
-    private final int resource;
-
-    private final Context mContext;
-
-    private LayoutInflater mInflater;
-
     public WriteListAdapter(Context context, int resource, List<Object> objects) {
         super(context, resource, objects);
-        this.mContext = context;
-        this.resource = resource;
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder viewHolder;
-        if (mInflater == null)
-            mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
         if (convertView == null) {
-            convertView = mInflater.inflate(resource, null);
-            viewHolder = new ViewHolder(convertView);
+            WriteContentBinding binding = WriteContentBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+            convertView = binding.getRoot();
+            viewHolder = new ViewHolder(binding);
+
             convertView.setTag(viewHolder);
         } else
             viewHolder = (ViewHolder) convertView.getTag();
-
         if (getItem(position) instanceof Bitmap) {
-            Bitmap bitmap = (Bitmap) getItem(position);
-            viewHolder.imageView.setVisibility(bitmap != null ? View.VISIBLE : View.GONE);
-            Glide.with(mContext).load(bitmap).into(viewHolder.imageView);
-            viewHolder.videoMark.setVisibility(View.GONE);
+            viewHolder.bind((Bitmap) getItem(position));
         } else if (getItem(position) instanceof String) {
-            String imageUrl = (String) getItem(position);
-            viewHolder.imageView.setVisibility(imageUrl != null ? View.VISIBLE : View.GONE);
-            Glide.with(mContext).load(imageUrl).into(viewHolder.imageView);
-            viewHolder.videoMark.setVisibility(View.GONE);
+            viewHolder.bind((String) getItem(position));
         } else if (getItem(position) instanceof YouTubeItem) { // 수정
-            YouTubeItem youTubeItem = (YouTubeItem) getItem(position);
-            viewHolder.videoMark.setVisibility(View.VISIBLE);
-            Glide.with(mContext).load(youTubeItem.thumbnail).into(viewHolder.imageView);
+            viewHolder.bind((YouTubeItem) getItem(position));
         }
-
         return convertView;
     }
 
     private static class ViewHolder {
-        private final ImageView imageView, videoMark;
+        private final WriteContentBinding mBinding;
 
-        ViewHolder(View itemView) {
-            imageView = itemView.findViewById(R.id.iv_image_preview);
-            videoMark = itemView.findViewById(R.id.iv_video_preview);
+        ViewHolder(WriteContentBinding binding) {
+            this.mBinding = binding;
+        }
+
+        public void bind(Bitmap bitmap) {
+            mBinding.ivImagePreview.setVisibility(bitmap != null ? View.VISIBLE : View.GONE);
+            Glide.with(mBinding.getRoot().getContext()).load(bitmap).into(mBinding.ivImagePreview);
+            mBinding.ivVideoPreview.setVisibility(View.GONE);
+        }
+
+        public void bind(String imageUrl) {
+            mBinding.ivImagePreview.setVisibility(imageUrl != null ? View.VISIBLE : View.GONE);
+            Glide.with(mBinding.getRoot().getContext()).load(imageUrl).into(mBinding.ivImagePreview);
+            mBinding.ivVideoPreview.setVisibility(View.GONE);
+        }
+
+        public void bind(YouTubeItem youTubeItem) {
+            mBinding.ivVideoPreview.setVisibility(View.VISIBLE);
+            Glide.with(mBinding.getRoot().getContext()).load(youTubeItem.thumbnail).into(mBinding.ivImagePreview);
         }
     }
 }

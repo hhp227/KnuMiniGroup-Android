@@ -1,12 +1,9 @@
 package com.hhp227.knu_minigroup.adapter;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ImageView;
-import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.model.GlideUrl;
@@ -15,6 +12,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.ReplyItemBinding;
 import com.hhp227.knu_minigroup.dto.ReplyItem;
 
 import java.util.List;
@@ -23,8 +21,6 @@ public class ReplyListAdapter extends BaseAdapter {
     private final List<String> mReplyItemKeys;
 
     private final List<ReplyItem> mReplyItemValues;
-
-    private LayoutInflater mInflater;
 
     public ReplyListAdapter(List<String> replyItemKeys, List<ReplyItem> replyItemValues) {
         this.mReplyItemKeys = replyItemKeys;
@@ -49,32 +45,16 @@ public class ReplyListAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder viewHolder;
-        if (mInflater == null)
-            mInflater = (LayoutInflater) parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
         if (convertView == null) {
-            convertView = mInflater.inflate(R.layout.reply_item, null);
-            viewHolder = new ViewHolder(convertView);
+            ReplyItemBinding binding = ReplyItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+            convertView = binding.getRoot();
+            viewHolder = new ViewHolder(binding);
+
             convertView.setTag(viewHolder);
         } else
             viewHolder = (ViewHolder) convertView.getTag();
-
-        // 댓글 데이터 얻기
-        ReplyItem replyItem = mReplyItemValues.get(position);
-
-        Glide.with(parent.getContext())
-                .load(replyItem.getUid() != null ? new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", replyItem.getUid()), new LazyHeaders.Builder()
-                        .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
-                        .build()) : null)
-                .apply(RequestOptions
-                        .errorOf(R.drawable.user_image_view_circle)
-                        .circleCrop()
-                        .skipMemoryCache(true)
-                        .diskCacheStrategy(DiskCacheStrategy.NONE))
-                .into(viewHolder.profileImage);
-        viewHolder.name.setText(replyItem.getName());
-        viewHolder.reply.setText(replyItem.getReply());
-        viewHolder.timeStamp.setText(replyItem.getDate());
-
+        viewHolder.bind(mReplyItemValues.get(position));
         return convertView;
     }
 
@@ -83,15 +63,26 @@ public class ReplyListAdapter extends BaseAdapter {
     }
 
     private static class ViewHolder {
-        private final ImageView profileImage;
+        private final ReplyItemBinding mBinding;
 
-        private final TextView name, reply, timeStamp;
+        ViewHolder(ReplyItemBinding binding) {
+            this.mBinding = binding;
+        }
 
-        ViewHolder(View itemView) {
-            profileImage = itemView.findViewById(R.id.iv_profile_image);
-            name = itemView.findViewById(R.id.tv_name);
-            reply = itemView.findViewById(R.id.tv_reply);
-            timeStamp = itemView.findViewById(R.id.tv_timestamp);
+        public void bind(ReplyItem replyItem) {
+            Glide.with(mBinding.getRoot().getContext())
+                    .load(replyItem.getUid() != null ? new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", replyItem.getUid()), new LazyHeaders.Builder()
+                            .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
+                            .build()) : null)
+                    .apply(RequestOptions
+                            .errorOf(R.drawable.user_image_view_circle)
+                            .circleCrop()
+                            .skipMemoryCache(true)
+                            .diskCacheStrategy(DiskCacheStrategy.NONE))
+                    .into(mBinding.ivProfileImage);
+            mBinding.tvName.setText(replyItem.getName());
+            mBinding.tvReply.setText(replyItem.getReply());
+            mBinding.tvTimestamp.setText(replyItem.getDate());
         }
     }
 }

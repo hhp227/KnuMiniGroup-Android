@@ -1,5 +1,6 @@
 package com.hhp227.knu_minigroup.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -23,6 +24,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.google.android.material.snackbar.Snackbar;
 import com.hhp227.knu_minigroup.MainActivity;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.WebViewActivity;
 import com.hhp227.knu_minigroup.adapter.BbsListAdapter;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
@@ -122,6 +124,16 @@ public class UnivNoticeFragment extends Fragment {
         mBinding.recyclerView.addOnScrollListener(mOnScrollListener);
         mBinding.recyclerView.setLayoutManager(linearLayoutManager);
         mBinding.recyclerView.setAdapter(mAdapter);
+        mAdapter.setOnItemClickListener(new BbsListAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position) {
+                BbsItem bbsItem = mBbsItemList.get(position);
+                Intent intent = new Intent(v.getContext(), WebViewActivity.class);
+
+                intent.putExtra(WebViewActivity.URL, EndPoint.URL_KNU + bbsItem.getUrl());
+                startActivity(intent);
+            }
+        });
         showProgressBar();
         fetchDataList();
     }

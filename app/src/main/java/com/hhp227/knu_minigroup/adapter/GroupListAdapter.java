@@ -5,15 +5,14 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.databinding.GroupListItemBinding;
+import com.hhp227.knu_minigroup.databinding.LoadMoreBinding;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.fragment.GroupInfoFragment;
 
@@ -43,11 +42,9 @@ public class GroupListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         switch (viewType) {
             case TYPE_GROUP:
-                View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.group_list_item, parent, false);
-                return new ItemHolder(itemView);
+                return new ItemHolder(GroupListItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
             case TYPE_LOADER:
-                View footerView = LayoutInflater.from(parent.getContext()).inflate(R.layout.load_more, parent, false);
-                return new FooterHolder(footerView);
+                return new FooterHolder(LoadMoreBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
         }
         throw new RuntimeException();
     }
@@ -89,25 +86,21 @@ public class GroupListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     }
 
     public static class ItemHolder extends RecyclerView.ViewHolder {
-        private final ImageView groupImage;
+        private final GroupListItemBinding mBinding;
 
-        private final TextView groupName, groupInfo;
-
-        public ItemHolder(View itemView) {
-            super(itemView);
-            groupImage = itemView.findViewById(R.id.iv_group_image);
-            groupName = itemView.findViewById(R.id.tv_group_name);
-            groupInfo = itemView.findViewById(R.id.tv_info);
+        public ItemHolder(GroupListItemBinding binding) {
+            super(binding.getRoot());
+            this.mBinding = binding;
         }
 
         private void bind(final String key, final GroupItem groupItem, final int buttonType, final Activity activity) {
-            groupName.setText(groupItem.getName());
-            groupName.setMaxLines(NAME_MAX_LINE);
-            groupInfo.setText(groupItem.getJoinType().equals("0") ? "가입방식: 자동 승인" : "가입방식: 운영자 승인 확인");
+            mBinding.tvGroupName.setText(groupItem.getName());
+            mBinding.tvGroupName.setMaxLines(NAME_MAX_LINE);
+            mBinding.tvInfo.setText(groupItem.getJoinType().equals("0") ? "가입방식: 자동 승인" : "가입방식: 운영자 승인 확인");
             Glide.with(itemView.getContext())
                     .load(groupItem.getImage())
                     .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
-                    .into(groupImage);
+                    .into(mBinding.ivGroupImage);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -130,15 +123,15 @@ public class GroupListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     }
 
     public static class FooterHolder extends RecyclerView.ViewHolder {
-        private final ProgressBar progressBar;
+        private final LoadMoreBinding mBinding;
 
-        public FooterHolder(View itemView) {
-            super(itemView);
-            progressBar = itemView.findViewById(R.id.pb_more);
+        public FooterHolder(LoadMoreBinding binding) {
+            super(binding.getRoot());
+            this.mBinding = binding;
         }
 
         private void bind(int v) {
-            progressBar.setVisibility(v);
+            mBinding.pbMore.setVisibility(v);
         }
     }
 }

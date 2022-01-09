@@ -1,12 +1,9 @@
 package com.hhp227.knu_minigroup.adapter;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ImageView;
-import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
@@ -14,14 +11,13 @@ import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.MemberListItemBinding;
 import com.hhp227.knu_minigroup.dto.MemberItem;
 
 import java.util.List;
 
 public class MemberListAdapter extends BaseAdapter {
     private final List<MemberItem> mMemberItems;
-
-    private LayoutInflater mInflater;
 
     public MemberListAdapter(List<MemberItem> memberItems) {
         this.mMemberItems = memberItems;
@@ -45,42 +41,37 @@ public class MemberListAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder viewHolder;
-        if (mInflater == null)
-            mInflater = (LayoutInflater) parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (convertView == null) {
-            convertView = mInflater.inflate(R.layout.member_list_item, null);
-            viewHolder = new ViewHolder(convertView);
+            MemberListItemBinding binding = MemberListItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+            convertView = binding.getRoot();
+            viewHolder = new ViewHolder(binding);
+
             convertView.setTag(viewHolder);
         } else
             viewHolder = (ViewHolder) convertView.getTag();
-
-        MemberItem memberItem = mMemberItems.get(position);
-        Glide.with(parent.getContext())
-                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", memberItem.uid), new LazyHeaders.Builder()
-                        .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
-                        .build()))
-                .apply(RequestOptions.circleCropTransform()
-                        .error(R.drawable.user_image_view_circle))
-                .into(viewHolder.profileImage);
-        viewHolder.name.setText(memberItem.name);
-        viewHolder.department.setText(memberItem.dept);
-        viewHolder.division.setText(memberItem.div);
-        viewHolder.registerDate.setText(memberItem.regDate);
-
+        viewHolder.bind(mMemberItems.get(position));
         return convertView;
     }
 
     public static class ViewHolder {
-        private final ImageView profileImage;
+        private final MemberListItemBinding mBinding;
 
-        private final TextView name, department, division, registerDate;
+        public ViewHolder(MemberListItemBinding binding) {
+            this.mBinding = binding;
+        }
 
-        public ViewHolder(View itemView) {
-            profileImage = itemView.findViewById(R.id.iv_profile_image);
-            name = itemView.findViewById(R.id.column1);
-            department = itemView.findViewById(R.id.column2);
-            division = itemView.findViewById(R.id.column3);
-            registerDate = itemView.findViewById(R.id.column4);
+        public void bind(MemberItem memberItem) {
+            Glide.with(mBinding.getRoot().getContext())
+                    .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", memberItem.uid), new LazyHeaders.Builder()
+                            .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
+                            .build()))
+                    .apply(RequestOptions.circleCropTransform()
+                            .error(R.drawable.user_image_view_circle))
+                    .into(mBinding.ivProfileImage);
+            mBinding.column1.setText(memberItem.name);
+            mBinding.column2.setText(memberItem.dept);
+            mBinding.column3.setText(memberItem.div);
+            mBinding.column4.setText(memberItem.regDate);
         }
     }
 }

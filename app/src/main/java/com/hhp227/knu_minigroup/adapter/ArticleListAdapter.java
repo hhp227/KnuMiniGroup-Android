@@ -4,9 +4,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.*;
 import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -17,6 +15,8 @@ import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.ArticleItemBinding;
+import com.hhp227.knu_minigroup.databinding.LoadMoreBinding;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -32,9 +32,9 @@ public class ArticleListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     private int mProgressBarVisibility;
 
-    private OnItemClickListener mOnItemClickListener;
-
     private String mGroupKey;
+
+    private OnItemClickListener mOnItemClickListener;
 
     public ArticleListAdapter(List<String> articleItemKeys, List<ArticleItem> articleItemValues, String groupKey) {
         this.mArticleItemKeys = articleItemKeys;
@@ -47,11 +47,9 @@ public class ArticleListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         switch (viewType) {
             case TYPE_ARTICLE:
-                View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.article_item, parent, false);
-                return new ItemHolder(itemView);
+                return new ItemHolder(ArticleItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
             case TYPE_LOADER:
-                View footerView = LayoutInflater.from(parent.getContext()).inflate(R.layout.load_more, parent, false);
-                return new FooterHolder(footerView);
+                return new FooterHolder(LoadMoreBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
         }
         throw new RuntimeException();
     }
@@ -60,20 +58,6 @@ public class ArticleListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, final int position) {
         if (holder instanceof ItemHolder) {
             ((ItemHolder) holder).bind(mArticleItemValues.get(position));
-            ((ItemHolder) holder).article.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (mOnItemClickListener != null)
-                        mOnItemClickListener.onItemClick(v, position);
-                }
-            });
-            ((ItemHolder) holder).replyButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (mOnItemClickListener != null)
-                        mOnItemClickListener.onItemClick(v, position);
-                }
-            });
         } else if (holder instanceof FooterHolder)
             ((FooterHolder) holder).bind(mProgressBarVisibility);
     }
@@ -105,32 +89,31 @@ public class ArticleListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         return mArticleItemKeys.get(position);
     }
 
-    public static class ItemHolder extends RecyclerView.ViewHolder {
-        private final CardView article;
-        private final ImageView profileImage, articleImage, videoMark;
-        private final LinearLayout replyButton, likeButton;
-        private final RelativeLayout imageContainer;
-        private final TextView title, timestamp, content, contentMore, replyCount, likeCount;
+    public class ItemHolder extends RecyclerView.ViewHolder {
+        private final ArticleItemBinding mBinding;
 
-        ItemHolder(View itemView) {
-            super(itemView);
-            article = itemView.findViewById(R.id.cv_article);
-            profileImage = itemView.findViewById(R.id.iv_profile_image);
-            title = itemView.findViewById(R.id.tv_title);
-            timestamp = itemView.findViewById(R.id.tv_timestamp);
-            content = itemView.findViewById(R.id.tv_content);
-            contentMore = itemView.findViewById(R.id.tv_content_more);
-            imageContainer = itemView.findViewById(R.id.rl_article_image);
-            articleImage = itemView.findViewById(R.id.iv_article_image);
-            videoMark = itemView.findViewById(R.id.iv_video_preview);
-            replyCount = itemView.findViewById(R.id.tv_replycount);
-            replyButton = itemView.findViewById(R.id.ll_reply);
-            likeButton = null;
-            likeCount = null;
+        ItemHolder(ArticleItemBinding binding) {
+            super(binding.getRoot());
+            this.mBinding = binding;
+
+            mBinding.cvArticle.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (mOnItemClickListener != null)
+                        mOnItemClickListener.onItemClick(v, getAdapterPosition());
+                }
+            });
+            mBinding.llReply.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (mOnItemClickListener != null)
+                        mOnItemClickListener.onItemClick(v, getAdapterPosition());
+                }
+            });
         }
 
         private void bind(final ArticleItem articleItem) {
-            Glide.with(profileImage.getContext())
+            Glide.with(itemView.getContext())
                     .load(articleItem.getUid() != null ? new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", articleItem.getUid()), new LazyHeaders.Builder()
                             .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
                             .build()) : null)
@@ -138,49 +121,49 @@ public class ArticleListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                             .circleCrop()
                             .skipMemoryCache(true)
                             .diskCacheStrategy(DiskCacheStrategy.NONE))
-                    .into(profileImage);
-            title.setText(articleItem.getName() != null ? articleItem.getTitle() + " - " + articleItem.getName() : articleItem.getTitle());
-            timestamp.setText(articleItem.getDate() != null ? articleItem.getDate() : new SimpleDateFormat("yyyy.MM.dd a h:mm:ss").format(articleItem.getTimestamp()));
+                    .into(mBinding.ivProfileImage);
+            mBinding.tvTitle.setText(articleItem.getName() != null ? articleItem.getTitle() + " - " + articleItem.getName() : articleItem.getTitle());
+            mBinding.tvTimestamp.setText(articleItem.getDate() != null ? articleItem.getDate() : new SimpleDateFormat("yyyy.MM.dd a h:mm:ss").format(articleItem.getTimestamp()));
             if (!TextUtils.isEmpty(articleItem.getContent())) {
-                content.setText(articleItem.getContent());
-                content.setMaxLines(CONTENT_MAX_LINE);
-                content.setVisibility(View.VISIBLE);
+                mBinding.tvContent.setText(articleItem.getContent());
+                mBinding.tvContent.setMaxLines(CONTENT_MAX_LINE);
+                mBinding.tvContent.setVisibility(View.VISIBLE);
             } else
-                content.setVisibility(View.GONE);
-            contentMore.setVisibility(!TextUtils.isEmpty(articleItem.getContent()) && content.getLineCount() > CONTENT_MAX_LINE ? View.VISIBLE : View.GONE);
+                mBinding.tvContent.setVisibility(View.GONE);
+            mBinding.tvContentMore.setVisibility(!TextUtils.isEmpty(articleItem.getContent()) && mBinding.tvContent.getLineCount() > CONTENT_MAX_LINE ? View.VISIBLE : View.GONE);
             if (articleItem.getYoutube() != null) {
-                imageContainer.setVisibility(View.VISIBLE);
-                videoMark.setVisibility(View.VISIBLE);
-                Glide.with(articleImage.getContext())
+                mBinding.rlArticleImage.setVisibility(View.VISIBLE);
+                mBinding.ivVideoPreview.setVisibility(View.VISIBLE);
+                Glide.with(itemView.getContext())
                         .load(articleItem.getYoutube().thumbnail)
                         .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
                         .transition(DrawableTransitionOptions.withCrossFade(150))
-                        .into(articleImage);
+                        .into(mBinding.ivArticleImage);
             } else if (articleItem.getImages() != null && articleItem.getImages().size() > 0) {
-                imageContainer.setVisibility(View.VISIBLE);
-                videoMark.setVisibility(View.INVISIBLE);
-                Glide.with(articleImage.getContext())
+                mBinding.rlArticleImage.setVisibility(View.VISIBLE);
+                mBinding.ivVideoPreview.setVisibility(View.INVISIBLE);
+                Glide.with(itemView.getContext())
                         .load(articleItem.getImages().get(0))
                         .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
                         .transition(DrawableTransitionOptions.withCrossFade(150))
-                        .into(articleImage);
+                        .into(mBinding.ivArticleImage);
             } else
-                imageContainer.setVisibility(View.GONE);
-            replyCount.setText(articleItem.getReplyCount());
-            replyButton.setTag(getAdapterPosition());
+                mBinding.rlArticleImage.setVisibility(View.GONE);
+            mBinding.tvReplycount.setText(articleItem.getReplyCount());
+            mBinding.llReply.setTag(getAdapterPosition());
         }
     }
 
     public static class FooterHolder extends RecyclerView.ViewHolder {
-        private final ProgressBar progressBar;
+        private final LoadMoreBinding mBinding;
 
-        FooterHolder(View itemView) {
-            super(itemView);
-            progressBar = itemView.findViewById(R.id.pb_more);
+        FooterHolder(LoadMoreBinding binding) {
+            super(binding.getRoot());
+            this.mBinding = binding;
         }
 
-        private void bind(int v) {
-            progressBar.setVisibility(v);
+        private void bind(int progressBarVisibility) {
+            mBinding.pbMore.setVisibility(progressBarVisibility);
         }
     }
 

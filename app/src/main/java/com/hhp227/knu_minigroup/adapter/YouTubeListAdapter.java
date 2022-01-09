@@ -3,14 +3,13 @@ package com.hhp227.knu_minigroup.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.databinding.YoutubeItemBinding;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 
 import java.util.List;
@@ -27,8 +26,7 @@ public class YouTubeListAdapter extends RecyclerView.Adapter<YouTubeListAdapter.
     @NonNull
     @Override
     public YouTubeListHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.youtube_item, parent, false);
-        return new YouTubeListHolder(view);
+        return new YouTubeListHolder(YoutubeItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
     }
 
     @Override
@@ -51,15 +49,11 @@ public class YouTubeListAdapter extends RecyclerView.Adapter<YouTubeListAdapter.
     }
 
     public class YouTubeListHolder extends RecyclerView.ViewHolder {
-        private final ImageView imageView;
+        private final YoutubeItemBinding mBinding;
 
-        private final TextView title, channelTitle;
-
-        public YouTubeListHolder(View itemView) {
-            super(itemView);
-            imageView = itemView.findViewById(R.id.iv_youtube);
-            title = itemView.findViewById(R.id.tv_title);
-            channelTitle = itemView.findViewById(R.id.tv_channel_title);
+        public YouTubeListHolder(YoutubeItemBinding binding) {
+            super(binding.getRoot());
+            this.mBinding = binding;
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -75,9 +69,9 @@ public class YouTubeListAdapter extends RecyclerView.Adapter<YouTubeListAdapter.
                     .load(youTubeItem.thumbnail)
                     .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
                     .transition(DrawableTransitionOptions.withCrossFade(150))
-                    .into(imageView);
-            title.setText(youTubeItem.title);
-            channelTitle.setText(youTubeItem.channelTitle);
+                    .into(mBinding.ivYoutube);
+            mBinding.tvTitle.setText(youTubeItem.title);
+            mBinding.tvChannelTitle.setText(youTubeItem.channelTitle);
         }
     }
 
