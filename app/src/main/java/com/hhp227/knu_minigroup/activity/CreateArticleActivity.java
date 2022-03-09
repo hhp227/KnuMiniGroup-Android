@@ -27,7 +27,7 @@ import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.WriteListAdapter;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
-import com.hhp227.knu_minigroup.databinding.ActivityWriteBinding;
+import com.hhp227.knu_minigroup.databinding.ActivityCreateArticleBinding;
 import com.hhp227.knu_minigroup.databinding.WriteTextBinding;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
@@ -43,11 +43,11 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class WriteActivity extends AppCompatActivity {
+public class CreateArticleActivity extends AppCompatActivity {
     public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 100;
     public static final int REQUEST_IMAGE_CAPTURE = 200;
     public static final int REQUEST_YOUTUBE_PICK = 300;
-    private static final String TAG = WriteActivity.class.getSimpleName();
+    private static final String TAG = CreateArticleActivity.class.getSimpleName();
 
     private int mContextMenuRequest;
 
@@ -71,17 +71,17 @@ public class WriteActivity extends AppCompatActivity {
 
     private YouTubeItem mYouTubeItem;
 
-    private ActivityWriteBinding mActivityWriteBinding;
+    private ActivityCreateArticleBinding mActivityCreateArticleBinding;
 
     private WriteTextBinding mWriteTextBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mActivityWriteBinding = ActivityWriteBinding.inflate(getLayoutInflater());
+        mActivityCreateArticleBinding = ActivityCreateArticleBinding.inflate(getLayoutInflater());
         mWriteTextBinding = WriteTextBinding.inflate(getLayoutInflater());
 
-        setContentView(mActivityWriteBinding.getRoot());
+        setContentView(mActivityCreateArticleBinding.getRoot());
         mContents = new ArrayList<>();
         mAdapter = new WriteListAdapter(getApplicationContext(), com.hhp227.knu_minigroup.R.layout.write_content, mContents);
         mPreferenceManager = AppController.getInstance().getPreferenceManager();
@@ -93,11 +93,11 @@ public class WriteActivity extends AppCompatActivity {
         mGrpImg = getIntent().getStringExtra("grp_img");
         mKey = getIntent().getStringExtra("key");
 
-        setSupportActionBar(mActivityWriteBinding.toolbar);
+        setSupportActionBar(mActivityCreateArticleBinding.toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-        mActivityWriteBinding.llImage.setOnClickListener(new View.OnClickListener() {
+        mActivityCreateArticleBinding.llImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mContextMenuRequest = 2;
@@ -107,7 +107,7 @@ public class WriteActivity extends AppCompatActivity {
                 unregisterForContextMenu(v);
             }
         });
-        mActivityWriteBinding.llVideo.setOnClickListener(new View.OnClickListener() {
+        mActivityCreateArticleBinding.llVideo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mContextMenuRequest = 3;
@@ -117,9 +117,9 @@ public class WriteActivity extends AppCompatActivity {
                 unregisterForContextMenu(v);
             }
         });
-        mActivityWriteBinding.lvWrite.addHeaderView(mWriteTextBinding.getRoot());
-        mActivityWriteBinding.lvWrite.setAdapter(mAdapter);
-        mActivityWriteBinding.lvWrite.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mActivityCreateArticleBinding.lvWrite.addHeaderView(mWriteTextBinding.getRoot());
+        mActivityCreateArticleBinding.lvWrite.setAdapter(mAdapter);
+        mActivityCreateArticleBinding.lvWrite.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 mContextMenuRequest = 1;
@@ -128,14 +128,14 @@ public class WriteActivity extends AppCompatActivity {
             }
         });
         mProgressDialog.setCancelable(false);
-        registerForContextMenu(mActivityWriteBinding.lvWrite);
+        registerForContextMenu(mActivityCreateArticleBinding.lvWrite);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         mWriteTextBinding = null;
-        mActivityWriteBinding = null;
+        mActivityCreateArticleBinding = null;
     }
 
     @Override
@@ -385,7 +385,7 @@ public class WriteActivity extends AppCompatActivity {
                     boolean error = jsonObject.getBoolean("isError");
 
                     if (!error) {
-                        Intent intent = new Intent(WriteActivity.this, GroupActivity.class);
+                        Intent intent = new Intent(CreateArticleActivity.this, GroupActivity.class);
 
                         intent.putExtra("admin", mIsAdmin);
                         intent.putExtra("grp_id", grpId);

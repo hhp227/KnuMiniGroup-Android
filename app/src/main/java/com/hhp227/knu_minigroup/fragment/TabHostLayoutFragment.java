@@ -17,7 +17,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import com.bumptech.glide.Glide;
 import com.google.android.material.tabs.TabLayout;
-import com.hhp227.knu_minigroup.activity.WriteActivity;
+import com.hhp227.knu_minigroup.activity.CreateArticleActivity;
 import com.hhp227.knu_minigroup.databinding.FragmentTabHostLayoutBinding;
 
 import java.util.List;
@@ -132,7 +132,7 @@ public class TabHostLayoutFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if (mBinding.tabLayout.getSelectedTabPosition() == 0) {
-                    Intent intent = new Intent(getActivity(), WriteActivity.class);
+                    Intent intent = new Intent(getActivity(), CreateArticleActivity.class);
 
                     intent.putExtra("admin", mIsAdmin);
                     intent.putExtra("grp_id", mGroupId);

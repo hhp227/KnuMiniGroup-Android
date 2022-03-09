@@ -32,7 +32,7 @@ import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.WriteListAdapter;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
-import com.hhp227.knu_minigroup.databinding.ActivityWriteBinding;
+import com.hhp227.knu_minigroup.databinding.ActivityCreateArticleBinding;
 import com.hhp227.knu_minigroup.databinding.WriteTextBinding;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
@@ -45,7 +45,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.hhp227.knu_minigroup.activity.WriteActivity.*;
+import static com.hhp227.knu_minigroup.activity.CreateArticleActivity.*;
 
 public class ModifyActivity extends AppCompatActivity {
     private static final String TAG = ModifyActivity.class.getSimpleName();
@@ -68,17 +68,17 @@ public class ModifyActivity extends AppCompatActivity {
 
     private YouTubeItem mYouTubeItem;
 
-    private ActivityWriteBinding mActivityWriteBinding;
+    private ActivityCreateArticleBinding mActivityCreateArticleBinding;
 
     private WriteTextBinding mWriteTextBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mActivityWriteBinding = ActivityWriteBinding.inflate(getLayoutInflater());
+        mActivityCreateArticleBinding = ActivityCreateArticleBinding.inflate(getLayoutInflater());
         mWriteTextBinding = WriteTextBinding.inflate(getLayoutInflater());
 
-        setContentView(mActivityWriteBinding.getRoot());
+        setContentView(mActivityCreateArticleBinding.getRoot());
         Intent intent = getIntent();
         mContents = new ArrayList<>();
         mCookie = AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN);
@@ -93,11 +93,11 @@ public class ModifyActivity extends AppCompatActivity {
         mGrpKey = intent.getStringExtra("grp_key");
         mArtlKey = intent.getStringExtra("artl_key");
 
-        setSupportActionBar(mActivityWriteBinding.toolbar);
+        setSupportActionBar(mActivityCreateArticleBinding.toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-        mActivityWriteBinding.llImage.setOnClickListener(new View.OnClickListener() {
+        mActivityCreateArticleBinding.llImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mContextMenuRequest = 2;
@@ -107,7 +107,7 @@ public class ModifyActivity extends AppCompatActivity {
                 unregisterForContextMenu(v);
             }
         });
-        mActivityWriteBinding.llVideo.setOnClickListener(new View.OnClickListener() {
+        mActivityCreateArticleBinding.llVideo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mContextMenuRequest = 3;
@@ -119,9 +119,9 @@ public class ModifyActivity extends AppCompatActivity {
         });
         mWriteTextBinding.etTitle.setText(mTitle);
         mWriteTextBinding.etContent.setText(mContent);
-        mActivityWriteBinding.lvWrite.addHeaderView(mWriteTextBinding.getRoot());
-        mActivityWriteBinding.lvWrite.setAdapter(mAdapter);
-        mActivityWriteBinding.lvWrite.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mActivityCreateArticleBinding.lvWrite.addHeaderView(mWriteTextBinding.getRoot());
+        mActivityCreateArticleBinding.lvWrite.setAdapter(mAdapter);
+        mActivityCreateArticleBinding.lvWrite.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 mContextMenuRequest = 1;
@@ -136,13 +136,13 @@ public class ModifyActivity extends AppCompatActivity {
         }
         if (mYouTubeItem != null)
             mContents.add(mYouTubeItem.position, mYouTubeItem);
-        registerForContextMenu(mActivityWriteBinding.lvWrite);
+        registerForContextMenu(mActivityCreateArticleBinding.lvWrite);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mActivityWriteBinding = null;
+        mActivityCreateArticleBinding = null;
         mWriteTextBinding = null;
     }
 
