@@ -24,8 +24,6 @@ public class SeatFragment extends Fragment {
     public static final String TAG = "도서관 좌석";
     private static final String[] TAB_NAMES = {"대구 열람실", "상주 열람실"};
 
-    private AppCompatActivity mActivity;
-
     private FragmentTabsBinding mBinding;
 
     public SeatFragment() {
@@ -62,13 +60,8 @@ public class SeatFragment extends Fragment {
                 return fragments.size();
             }
         };
-        mActivity = (AppCompatActivity) getActivity();
 
-        if (mActivity != null) {
-            mActivity.setTitle(getString(R.string.library_seat));
-            mActivity.setSupportActionBar(mBinding.toolbar);
-        }
-        setDrawerToggle();
+        ((MainActivity) requireActivity()).setAppBar(mBinding.toolbar, getString(R.string.library_seat));
         fragments.add(new DaeguSeatFragment());
         fragments.add(new SangjuSeatFragment());
         for (String s : TAB_NAMES)
@@ -85,13 +78,5 @@ public class SeatFragment extends Fragment {
         mBinding.tabLayout.clearOnTabSelectedListeners();
         mBinding.tabLayout.removeAllTabs();
         mBinding = null;
-    }
-
-    private void setDrawerToggle() {
-        DrawerLayout drawerLayout = ((MainActivity) mActivity).mBinding.drawerLayout;
-        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(mActivity, drawerLayout, mBinding.toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-
-        drawerLayout.addDrawerListener(drawerToggle);
-        drawerToggle.syncState();
     }
 }

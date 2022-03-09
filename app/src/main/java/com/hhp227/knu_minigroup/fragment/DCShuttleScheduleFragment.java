@@ -122,7 +122,9 @@ public class DCShuttleScheduleFragment extends Fragment {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(error.getMessage());
+                if (error.getMessage() != null) {
+                    VolleyLog.e(error.getMessage());
+                }
             }
         }));
     }

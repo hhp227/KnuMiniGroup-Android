@@ -7,7 +7,9 @@ import android.view.View;
 import android.webkit.CookieManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
@@ -34,6 +36,8 @@ public class MainActivity extends AppCompatActivity {
     private CookieManager mCookieManager;
 
     private PreferenceManager mPreferenceManager;
+
+    private ActionBarDrawerToggle mDrawerToggle;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -111,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mBinding.drawerLayout.removeDrawerListener(mDrawerToggle);
         mBinding = null;
     }
 
@@ -136,5 +141,15 @@ public class MainActivity extends AppCompatActivity {
             mBinding.drawerLayout.closeDrawer(GravityCompat.START);
         else
             super.onBackPressed();
+    }
+
+    public void setAppBar(Toolbar toolbar, String title) {
+        setTitle(title);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            mDrawerToggle = new ActionBarDrawerToggle(this, mBinding.drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        }
+        mBinding.drawerLayout.addDrawerListener(mDrawerToggle);
+        mDrawerToggle.syncState();
     }
 }

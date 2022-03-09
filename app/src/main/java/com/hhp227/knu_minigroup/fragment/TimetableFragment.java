@@ -7,14 +7,12 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
+
 import com.google.android.material.tabs.TabLayout;
-import com.hhp227.knu_minigroup.activity.MainActivity;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.activity.MainActivity;
 import com.hhp227.knu_minigroup.databinding.FragmentTabsBinding;
 
 import java.util.List;
@@ -23,8 +21,6 @@ import java.util.Vector;
 public class TimetableFragment extends Fragment {
     public static final String TAG = "시간표";
     private static final String[] TAB_NAMES = {"학기시간표", "모의시간표 작성"};
-
-    private AppCompatActivity mActivity;
 
     private FragmentTabsBinding mBinding;
 
@@ -62,11 +58,8 @@ public class TimetableFragment extends Fragment {
                 return fragments.size();
             }
         };
-        mActivity = (AppCompatActivity) getActivity();
 
-        mActivity.setTitle(getString(R.string.timetable));
-        mActivity.setSupportActionBar(mBinding.toolbar);
-        setDrawerToggle();
+        ((MainActivity) requireActivity()).setAppBar(mBinding.toolbar, getString(R.string.timetable));
         fragments.add(SemesterTimeTableFragment.newInstance());
         fragments.add(MockTimeTableFragment.newInstance());
         for (String s : TAB_NAMES)
@@ -83,13 +76,5 @@ public class TimetableFragment extends Fragment {
         mBinding.tabLayout.clearOnTabSelectedListeners();
         mBinding.tabLayout.removeAllTabs();
         mBinding = null;
-    }
-
-    private void setDrawerToggle() {
-        DrawerLayout drawerLayout = ((MainActivity) mActivity).mBinding.drawerLayout;
-        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(mActivity, drawerLayout, mBinding.toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-
-        drawerLayout.addDrawerListener(drawerToggle);
-        drawerToggle.syncState();
     }
 }

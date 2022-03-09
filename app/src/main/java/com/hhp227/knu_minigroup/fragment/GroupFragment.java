@@ -62,8 +62,6 @@ public class GroupFragment extends Fragment {
 
     private int mSpanCount;
 
-    private AppCompatActivity mActivity;
-
     private CookieManager mCookieManager;
 
     private CountDownTimer mCountDownTimer;
@@ -106,7 +104,6 @@ public class GroupFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mActivity = (AppCompatActivity) getActivity();
         mSpanCount = getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ? PORTAIT_SPAN_COUNT :
                 getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? LANDSCAPE_SPAN_COUNT :
                         0;
@@ -156,9 +153,7 @@ public class GroupFragment extends Fragment {
             }
         };
 
-        mActivity.setTitle(getString(R.string.main));
-        mActivity.setSupportActionBar(mBinding.toolbar);
-        setDrawerToggle();
+        ((MainActivity) requireActivity()).setAppBar(mBinding.toolbar, getString(R.string.main));
         mAdapter.setHasStableIds(true);
         mAdapter.setOnItemClickListener(new GroupGridAdapter.OnItemClickListener() {
             @Override
@@ -290,14 +285,6 @@ public class GroupFragment extends Fragment {
         mGridLayoutManager.setSpanSizeLookup(mSpanSizeLookup);
         mGridLayoutManager.setSpanCount(mSpanCount);
         mBinding.rvGroup.invalidateItemDecorations();
-    }
-
-    private void setDrawerToggle() {
-        DrawerLayout drawerLayout = ((MainActivity) mActivity).mBinding.drawerLayout;
-        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(mActivity, drawerLayout, mBinding.toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-
-        drawerLayout.addDrawerListener(drawerToggle);
-        drawerToggle.syncState();
     }
 
     private void fetchDataTask() {
