@@ -1,4 +1,4 @@
-package com.hhp227.knu_minigroup;
+package com.hhp227.knu_minigroup.activity;
 
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -22,6 +22,7 @@ import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.youtube.player.*;
 import com.google.firebase.database.*;
+import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.ReplyListAdapter;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
@@ -45,7 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.hhp227.knu_minigroup.YouTubeSearchActivity.API_KEY;
+import static com.hhp227.knu_minigroup.activity.YouTubeSearchActivity.API_KEY;
 import static com.hhp227.knu_minigroup.fragment.Tab1Fragment.UPDATE_ARTICLE;
 
 public class ArticleActivity extends MyYouTubeBaseActivity {

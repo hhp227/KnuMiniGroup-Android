@@ -1,4 +1,4 @@
-package com.hhp227.knu_minigroup;
+package com.hhp227.knu_minigroup.activity;
 
 import android.os.Bundle;
 import android.view.MenuItem;

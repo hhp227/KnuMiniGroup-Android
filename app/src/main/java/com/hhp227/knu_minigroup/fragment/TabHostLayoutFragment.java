@@ -17,7 +17,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import com.bumptech.glide.Glide;
 import com.google.android.material.tabs.TabLayout;
-import com.hhp227.knu_minigroup.WriteActivity;
+import com.hhp227.knu_minigroup.activity.WriteActivity;
 import com.hhp227.knu_minigroup.databinding.FragmentTabHostLayoutBinding;
 
 import java.util.List;

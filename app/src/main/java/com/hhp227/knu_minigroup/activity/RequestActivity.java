@@ -1,4 +1,4 @@
-package com.hhp227.knu_minigroup;
+package com.hhp227.knu_minigroup.activity;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -10,7 +10,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import com.android.volley.*;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
 import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.adapter.GroupListAdapter;
@@ -30,21 +33,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FindActivity extends AppCompatActivity {
-    private static final int LIMIT = 15;
-    private static final String TAG = FindActivity.class.getSimpleName();
+public class RequestActivity extends AppCompatActivity {
+    private static final int LIMIT = 100;
+    private static final String TAG = RequestActivity.class.getSimpleName();
 
     private boolean mHasRequestedMore;
 
-    private int mOffSet, mMinId;
+    private int mOffSet;
 
     private GroupListAdapter mAdapter;
 
     private List<String> mGroupItemKeys;
 
     private List<GroupItem> mGroupItemValues;
-
-    private RecyclerView.OnScrollListener mOnScrollListener;
 
     private ActivityListBinding mBinding;
 
@@ -58,22 +59,6 @@ public class FindActivity extends AppCompatActivity {
         mGroupItemValues = new ArrayList<>();
         mAdapter = new GroupListAdapter(this, mGroupItemKeys, mGroupItemValues);
         mOffSet = 1;
-        mOnScrollListener = new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                LinearLayoutManager manager = (LinearLayoutManager) recyclerView.getLayoutManager();
-
-                if (!mHasRequestedMore && dy > 0 && manager != null && manager.findLastCompletelyVisibleItemPosition() >= manager.getItemCount() - 1) {
-                    mHasRequestedMore = true;
-                    mOffSet += LIMIT;
-
-                    mAdapter.setFooterProgressBarVisibility(View.VISIBLE);
-                    mAdapter.notifyDataSetChanged();
-                    fetchGroupList();
-                }
-            }
-        };
 
         setSupportActionBar(mBinding.toolbar);
         if (getSupportActionBar() != null) {
@@ -87,24 +72,37 @@ public class FindActivity extends AppCompatActivity {
             public void run() {
                 mAdapter.setFooterProgressBarVisibility(View.INVISIBLE);
                 mAdapter.addFooterView();
-                mAdapter.setButtonType(GroupInfoFragment.TYPE_REQUEST);
+                mAdapter.setButtonType(GroupInfoFragment.TYPE_CANCEL);
             }
         });
-        mBinding.recyclerView.addOnScrollListener(mOnScrollListener);
+        mBinding.recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+            }
+
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                LinearLayoutManager manager = (LinearLayoutManager) recyclerView.getLayoutManager();
+
+                if (!mHasRequestedMore && dy > 0 && manager != null && manager.findLastCompletelyVisibleItemPosition() >= manager.getItemCount() - 1) {
+                    mHasRequestedMore = true;
+                    mOffSet += LIMIT;
+
+                    mAdapter.setFooterProgressBarVisibility(View.VISIBLE);
+                    mAdapter.notifyDataSetChanged();
+                    fetchGroupList();
+                }
+            }
+        });
         mBinding.srlList.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 new Handler(getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        mMinId = 0;
-                        mOffSet = 1;
-
-                        mGroupItemKeys.clear();
-                        mGroupItemValues.clear();
-                        mAdapter.addFooterView();
-                        mBinding.srlList.setRefreshing(false);
-                        fetchGroupList();
+                        refresh();
                     }
                 }, 1000);
             }
@@ -121,12 +119,7 @@ public class FindActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mOnScrollListener != null)
-            mBinding.recyclerView.removeOnScrollListener(mOnScrollListener);
-        mOnScrollListener = null;
-
-        mBinding.sflGroup.clearAnimation();
-        mBinding.sflGroup.removeAllViews();
+        mBinding.recyclerView.clearOnScrollListeners();
         mBinding = null;
     }
 
@@ -149,36 +142,27 @@ public class FindActivity extends AppCompatActivity {
                         Element menuList = element.getFirstElementByClass("menu_list");
 
                         if (element.getAttributeValue("class").equals("accordion")) {
-                            int id = groupIdExtract(menuList.getFirstElementByClass("button").getAttributeValue("onclick"));
+                            String id = groupIdExtract(menuList.getFirstElementByClass("button").getAttributeValue("onclick"));
                             String imageUrl = EndPoint.BASE_URL + element.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
                             String name = element.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
                             StringBuilder info = new StringBuilder();
                             String description = menuList.getAllElementsByClass("info").get(0).getContent().toString();
-                            String joinType = menuList.getAllElementsByClass("info").get(1).getTextExtractor().toString().trim();
+                            String joinType = menuList.getAllElementsByClass("info").get(1).getContent().toString();
+                            GroupItem groupItem = new GroupItem();
 
                             for (Element span : element.getFirstElement(HTMLElementName.A).getAllElementsByClass("info")) {
                                 String extractedText = span.getTextExtractor().toString();
-
                                 info.append(extractedText.contains("회원수") ?
                                         extractedText.substring(0, extractedText.lastIndexOf("생성일")).trim() + "\n" :
                                         extractedText + "\n");
                             }
-                            mMinId = mMinId == 0 ? id : Math.min(mMinId, id);
-
-                            if (id > mMinId) {
-                                mHasRequestedMore = true;
-                                break;
-                            } else
-                                mHasRequestedMore = false;
-                            GroupItem groupItem = new GroupItem();
-
-                            groupItem.setId(String.valueOf(id));
+                            groupItem.setId(id);
                             groupItem.setImage(imageUrl);
                             groupItem.setName(name);
-                            groupItem.setInfo(info.toString().trim());
+                            groupItem.setInfo(info.toString());
                             groupItem.setDescription(description);
                             groupItem.setJoinType(joinType.equals("가입방식: 자동 승인") ? "0" : "1");
-                            mGroupItemKeys.add(mGroupItemKeys.size() - 1, String.valueOf(id));
+                            mGroupItemKeys.add(mGroupItemKeys.size() - 1, id);
                             mGroupItemValues.add(mGroupItemValues.size() - 1, groupItem);
                         }
                     } catch (Exception e) {
@@ -187,10 +171,12 @@ public class FindActivity extends AppCompatActivity {
                         initFirebaseData();
                     }
                 }
+                mHasRequestedMore = false;
+
                 mAdapter.setFooterProgressBarVisibility(View.INVISIBLE);
                 mAdapter.notifyDataSetChanged();
                 hideProgressBar();
-                mBinding.rlGroup.setVisibility(mGroupItemValues.isEmpty() ? View.VISIBLE : View.GONE);
+                mBinding.rlGroup.setVisibility(mGroupItemValues.size() > 1 ? View.GONE : View.VISIBLE);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -241,39 +227,59 @@ public class FindActivity extends AppCompatActivity {
         });
     }
 
-    private void initFirebaseData() {
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
+    public void refresh() {
+        mOffSet = 1;
 
-        fetchGroupListFromFirebase(databaseReference.orderByKey());
+        mGroupItemKeys.clear();
+        mGroupItemValues.clear();
+        mAdapter.addFooterView();
+        mBinding.srlList.setRefreshing(false);
+        fetchGroupList();
     }
 
-    private void fetchGroupListFromFirebase(Query query) {
+    private void initFirebaseData() {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
+
+        fetchDataTaskFromFirebase(databaseReference.child(AppController.getInstance().getPreferenceManager().getUser().getUid()).orderByValue().equalTo(false), false);
+    }
+
+    private void fetchDataTaskFromFirebase(Query query, final boolean isRecursion) {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    String key = snapshot.getKey();
-                    GroupItem value = snapshot.getValue(GroupItem.class);
-                    assert value != null;
-                    int index = mGroupItemKeys.indexOf(value.getId());
+                if (isRecursion) {
+                    try {
+                        String key = dataSnapshot.getKey();
+                        GroupItem value = dataSnapshot.getValue(GroupItem.class);
+                        assert value != null;
+                        int index = mGroupItemKeys.indexOf(value.getId());
 
-                    if (index > -1) {
-                        //mGroupItemValues.set(index, value); //getInfo 구현이 덜되어 주석처리
-                        mGroupItemKeys.set(index, key);
+                        if (index > -1) {
+                            //mGroupItemValues.set(index, value); //isAdmin값때문에 주석처리
+                            mGroupItemKeys.set(index, key);
+                        }
+                        mAdapter.notifyDataSetChanged();
+                    } catch (Exception e) {
+                        Log.e(TAG, e.getMessage());
+                    }
+                } else {
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
+
+                        fetchDataTaskFromFirebase(databaseReference.child(snapshot.getKey()), true);
                     }
                 }
-                mAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.e(TAG, "가져오기 실패", databaseError.toException());
+                Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
             }
         });
     }
 
-    private int groupIdExtract(String onclick) {
-        return Integer.parseInt(onclick.split("[(]|[)]|[,]")[1].trim());
+    private String groupIdExtract(String onclick) {
+        return onclick.split("'")[1].trim();
     }
 
     private void showProgressBar() {

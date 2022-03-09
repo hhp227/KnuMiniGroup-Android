@@ -1,4 +1,4 @@
-package com.hhp227.knu_minigroup;
+package com.hhp227.knu_minigroup.activity;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -19,6 +19,7 @@ import com.android.volley.*;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.ActivityCreateBinding;
@@ -73,7 +74,7 @@ public class CreateActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                mBinding.ivReset.setImageResource(s.length() > 0 ? R.drawable.ic_clear_black_24dp : R.drawable.ic_clear_gray_24dp);
+                mBinding.ivReset.setImageResource(s.length() > 0 ? com.hhp227.knu_minigroup.R.drawable.ic_clear_black_24dp : com.hhp227.knu_minigroup.R.drawable.ic_clear_gray_24dp);
             }
 
             @Override
@@ -105,10 +106,10 @@ public class CreateActivity extends AppCompatActivity {
         mBinding.rgJointype.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                mJoinTypeCheck = checkedId != R.id.rb_auto;
+                mJoinTypeCheck = checkedId != com.hhp227.knu_minigroup.R.id.rb_auto;
             }
         });
-        mBinding.rgJointype.check(R.id.rb_auto);
+        mBinding.rgJointype.check(com.hhp227.knu_minigroup.R.id.rb_auto);
     }
 
     @Override
@@ -120,7 +121,7 @@ public class CreateActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.create, menu);
+        getMenuInflater().inflate(com.hhp227.knu_minigroup.R.menu.create, menu);
         return true;
     }
 
@@ -130,7 +131,7 @@ public class CreateActivity extends AppCompatActivity {
             case android.R.id.home:
                 finish();
                 return true;
-            case R.id.action_send:
+            case com.hhp227.knu_minigroup.R.id.action_send:
                 final String title = mBinding.etTitle.getText().toString().trim();
                 final String description = mBinding.etDescription.getText().toString().trim();
                 final String join = !mJoinTypeCheck ? "0" : "1";

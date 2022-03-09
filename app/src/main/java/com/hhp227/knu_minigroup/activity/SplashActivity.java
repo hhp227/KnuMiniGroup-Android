@@ -1,4 +1,4 @@
-package com.hhp227.knu_minigroup;
+package com.hhp227.knu_minigroup.activity;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -9,6 +9,7 @@ import android.view.Window;
 import android.widget.Toast;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
+import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.ActivitySplashBinding;
@@ -18,7 +19,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class SplashActivity extends Activity {
@@ -51,7 +51,7 @@ public class SplashActivity extends Activity {
 
                             if (!jsonObject.getBoolean("isError")) {
                                 startActivity(new Intent(SplashActivity.this, MainActivity.class));
-                                overridePendingTransition(R.anim.splash_in, R.anim.splash_out);
+                                overridePendingTransition(com.hhp227.knu_minigroup.R.anim.splash_in, R.anim.splash_out);
                             } else {
                                 mPreferenceManager.clear();
                                 startActivity(new Intent(SplashActivity.this, LoginActivity.class));

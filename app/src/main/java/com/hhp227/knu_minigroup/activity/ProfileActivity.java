@@ -1,4 +1,4 @@
-package com.hhp227.knu_minigroup;
+package com.hhp227.knu_minigroup.activity;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -16,6 +16,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
+import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.ActivityProfileBinding;
@@ -30,8 +31,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.hhp227.knu_minigroup.CreateActivity.CAMERA_CAPTURE_IMAGE_REQUEST_CODE;
-import static com.hhp227.knu_minigroup.CreateActivity.CAMERA_PICK_IMAGE_REQUEST_CODE;
+import static com.hhp227.knu_minigroup.activity.CreateActivity.CAMERA_CAPTURE_IMAGE_REQUEST_CODE;
+import static com.hhp227.knu_minigroup.activity.CreateActivity.CAMERA_PICK_IMAGE_REQUEST_CODE;
 
 public class ProfileActivity extends AppCompatActivity {
     private static final String TAG = "프로필";
@@ -67,7 +68,7 @@ public class ProfileActivity extends AppCompatActivity {
         Glide.with(getApplicationContext())
                 .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUser.getUid()), new LazyHeaders.Builder().addHeader("Cookie", mCookieManager.getCookie(EndPoint.LOGIN)).build()))
                 .apply(RequestOptions
-                        .errorOf(R.drawable.user_image_view_circle)
+                        .errorOf(com.hhp227.knu_minigroup.R.drawable.user_image_view_circle)
                         .circleCrop()
                         .skipMemoryCache(true)
                         .diskCacheStrategy(DiskCacheStrategy.NONE))
@@ -92,7 +93,7 @@ public class ProfileActivity extends AppCompatActivity {
                                 Glide.with(getApplicationContext())
                                         .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUser.getUid()), new LazyHeaders.Builder().addHeader("Cookie", mCookieManager.getCookie(EndPoint.LOGIN)).build()))
                                         .apply(RequestOptions
-                                                .errorOf(R.drawable.user_image_view_circle)
+                                                .errorOf(com.hhp227.knu_minigroup.R.drawable.user_image_view_circle)
                                                 .circleCrop()
                                                 .skipMemoryCache(true)
                                                 .diskCacheStrategy(DiskCacheStrategy.NONE))
@@ -146,21 +147,21 @@ public class ProfileActivity extends AppCompatActivity {
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         menu.setHeaderTitle("프로필 이미지 변경");
-        getMenuInflater().inflate(R.menu.myinfo, menu);
+        getMenuInflater().inflate(com.hhp227.knu_minigroup.R.menu.myinfo, menu);
     }
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         Intent intent;
         switch (item.getItemId()) {
-            case R.id.album:
+            case com.hhp227.knu_minigroup.R.id.album:
                 intent = new Intent(Intent.ACTION_PICK);
 
                 intent.setType(MediaStore.Images.Media.CONTENT_TYPE);
                 intent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 startActivityForResult(intent, CAMERA_PICK_IMAGE_REQUEST_CODE);
                 return true;
-            case R.id.camera:
+            case com.hhp227.knu_minigroup.R.id.camera:
                 intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
                 startActivityForResult(intent, CAMERA_CAPTURE_IMAGE_REQUEST_CODE);
@@ -185,7 +186,7 @@ public class ProfileActivity extends AppCompatActivity {
             }
             Glide.with(getApplicationContext())
                     .load(mBitmap)
-                    .apply(RequestOptions.errorOf(R.drawable.user_image_view_circle).circleCrop())
+                    .apply(RequestOptions.errorOf(com.hhp227.knu_minigroup.R.drawable.user_image_view_circle).circleCrop())
                     .into(mBinding.ivProfileImage);
             invalidateOptionsMenu();
         }
@@ -193,13 +194,13 @@ public class ProfileActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.modify, menu);
+        getMenuInflater().inflate(com.hhp227.knu_minigroup.R.menu.modify, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        MenuItem menuItem = menu.findItem(R.id.action_send);
+        MenuItem menuItem = menu.findItem(com.hhp227.knu_minigroup.R.id.action_send);
 
         menuItem.setVisible(mIsVisible);
         return super.onPrepareOptionsMenu(menu);
