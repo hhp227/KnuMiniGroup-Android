@@ -13,6 +13,7 @@ import android.view.*;
 import android.webkit.CookieManager;
 import android.widget.*;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import com.android.volley.*;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -24,6 +25,7 @@ import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.FragmentDefaultSettingBinding;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.Source;
@@ -36,8 +38,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static android.app.Activity.RESULT_OK;
-import static com.hhp227.knu_minigroup.CreateActivity.CAMERA_CAPTURE_IMAGE_REQUEST_CODE;
-import static com.hhp227.knu_minigroup.CreateActivity.CAMERA_PICK_IMAGE_REQUEST_CODE;
+import static com.hhp227.knu_minigroup.activity.CreateActivity.CAMERA_CAPTURE_IMAGE_REQUEST_CODE;
+import static com.hhp227.knu_minigroup.activity.CreateActivity.CAMERA_PICK_IMAGE_REQUEST_CODE;
 
 public class DefaultSettingFragment extends Fragment {
     private static String mGroupId, mGroupImage, mGroupKey;
@@ -48,13 +50,9 @@ public class DefaultSettingFragment extends Fragment {
 
     private CookieManager mCookieManager;
 
-    private EditText mInputTitle, mInputDescription;
-
-    private ImageView mImageView, mResetTitle;
-
-    private RadioGroup mJoinType;
-
     private TextWatcher mTextWatcher;
+
+    private FragmentDefaultSettingBinding mBinding;
 
     public DefaultSettingFragment() {
     }
@@ -82,13 +80,14 @@ public class DefaultSettingFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_default_setting, container, false);
-        mImageView = rootView.findViewById(R.id.iv_group_image);
-        mInputTitle = rootView.findViewById(R.id.et_title);
-        mInputDescription = rootView.findViewById(R.id.et_description);
-        mJoinType = rootView.findViewById(R.id.rg_jointype);
-        mResetTitle = rootView.findViewById(R.id.iv_reset);
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        mBinding = FragmentDefaultSettingBinding.inflate(inflater, container, false);
+        return mBinding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         mCookieManager = AppController.getInstance().getCookieManager();
         mTextWatcher = new TextWatcher() {
             @Override
@@ -97,7 +96,7 @@ public class DefaultSettingFragment extends Fragment {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                mResetTitle.setImageResource(s.length() > 0 ? R.drawable.ic_clear_black_24dp : R.drawable.ic_clear_gray_24dp);
+                mBinding.ivReset.setImageResource(s.length() > 0 ? R.drawable.ic_clear_black_24dp : R.drawable.ic_clear_gray_24dp);
             }
 
             @Override
@@ -105,7 +104,7 @@ public class DefaultSettingFragment extends Fragment {
             }
         };
 
-        mImageView.setOnClickListener(new View.OnClickListener() {
+        mBinding.ivGroupImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 registerForContextMenu(v);
@@ -113,24 +112,24 @@ public class DefaultSettingFragment extends Fragment {
                 unregisterForContextMenu(v);
             }
         });
-        mInputTitle.addTextChangedListener(mTextWatcher);
-        mJoinType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+        mBinding.etTitle.addTextChangedListener(mTextWatcher);
+        mBinding.rgJointype.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 mJoinTypeCheck = checkedId != R.id.rb_auto;
             }
         });
-        mResetTitle.setOnClickListener(new View.OnClickListener() {
+        mBinding.ivReset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mInputTitle.setText("");
+                mBinding.etTitle.setText("");
             }
         });
-        Glide.with(getActivity())
+        Glide.with(this)
                 .load(mGroupImage)
                 .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
                 .transition(DrawableTransitionOptions.withCrossFade(150))
-                .into(mImageView);
+                .into(mBinding.ivGroupImage);
         String params = "?CLUB_GRP_ID=" + mGroupId;
         AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.MODIFY_GROUP + params, new Response.Listener<String>() {
             @Override
@@ -142,9 +141,9 @@ public class DefaultSettingFragment extends Fragment {
                 for (Element rbElement : source.getFirstElementByClass("radiobox").getAllElementsByClass("chktype"))
                     if (rbElement.toString().contains("checked"))
                         mJoinTypeCheck = !rbElement.getAttributeValue("value").equals("0");
-                mInputTitle.setText(title);
-                mInputDescription.setText(desc);
-                mJoinType.check(!mJoinTypeCheck ? R.id.rb_auto : R.id.rb_check);
+                mBinding.etTitle.setText(title);
+                mBinding.etDescription.setText(desc);
+                mBinding.rgJointype.check(!mJoinTypeCheck ? R.id.rb_auto : R.id.rb_check);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -160,13 +159,13 @@ public class DefaultSettingFragment extends Fragment {
                 return headers;
             }
         });
-        return rootView;
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mInputTitle.removeTextChangedListener(mTextWatcher);
+    public void onDestroyView() {
+        super.onDestroyView();
+        mBinding.etTitle.removeTextChangedListener(mTextWatcher);
+        mBinding = null;
     }
 
     @Override
@@ -179,8 +178,8 @@ public class DefaultSettingFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_send:
-                final String groupName = mInputTitle.getText().toString();
-                final String groupDescription = mInputDescription.getText().toString();
+                final String groupName = mBinding.etTitle.getText().toString();
+                final String groupDescription = mBinding.etDescription.getText().toString();
 
                 if (!TextUtils.isEmpty(groupName) && !TextUtils.isEmpty(groupDescription)) {
                     String tagJsonReq = "req_send";
@@ -253,8 +252,8 @@ public class DefaultSettingFragment extends Fragment {
                         }
                     }, tagJsonReq);
                 } else {
-                    mInputTitle.setError(groupName.isEmpty() ? "그룹이름을 입력하세요." : null);
-                    mInputDescription.setError(groupDescription.isEmpty() ? "그룹설명을 입력하세요." : null);
+                    mBinding.etTitle.setError(groupName.isEmpty() ? "그룹이름을 입력하세요." : null);
+                    mBinding.etDescription.setError(groupDescription.isEmpty() ? "그룹설명을 입력하세요." : null);
                 }
                 return true;
         }
@@ -286,7 +285,7 @@ public class DefaultSettingFragment extends Fragment {
                 startActivityForResult(galleryIntent, CAMERA_PICK_IMAGE_REQUEST_CODE);
                 break;
             case "이미지 없음":
-                mImageView.setImageResource(R.drawable.add_photo);
+                mBinding.ivGroupImage.setImageResource(R.drawable.add_photo);
                 mBitmap = null;
                 Toast.makeText(getContext(), "이미지 없음 선택", Toast.LENGTH_LONG).show();
                 break;
@@ -308,8 +307,8 @@ public class DefaultSettingFragment extends Fragment {
                     GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
 
                     if (groupItem != null) {
-                        groupItem.setName(mInputTitle.getText().toString());
-                        groupItem.setDescription(mInputDescription.getText().toString());
+                        groupItem.setName(mBinding.etTitle.getText().toString());
+                        groupItem.setDescription(mBinding.etDescription.getText().toString());
                         groupItem.setJoinType(!mJoinTypeCheck ? "0" : "1");
                         query.getRef().setValue(groupItem);
                     }

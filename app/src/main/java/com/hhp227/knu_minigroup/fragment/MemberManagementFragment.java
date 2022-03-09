@@ -2,20 +2,22 @@ package com.hhp227.knu_minigroup.fragment;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import android.widget.ListView;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
-import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.MemberListAdapter;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.FragmentMemberBinding;
 import com.hhp227.knu_minigroup.dto.MemberItem;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
@@ -33,7 +35,7 @@ public class MemberManagementFragment extends Fragment {
 
     private MemberListAdapter mAdapter;
 
-    private SwipeRefreshLayout mSwipeRefreshLayout;
+    private FragmentMemberBinding mBinding;
 
     public MemberManagementFragment() {
         // Required empty public constructor
@@ -57,22 +59,26 @@ public class MemberManagementFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_member, container, false);
-        ListView listView = rootView.findViewById(R.id.lv_member);
-        mSwipeRefreshLayout = rootView.findViewById(R.id.srl_member);
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        mBinding = FragmentMemberBinding.inflate(inflater, container, false);
+        return mBinding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         mMemberItemList = new ArrayList<>();
         mAdapter = new MemberListAdapter(mMemberItemList);
 
-        listView.setAdapter(mAdapter);
-        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        mBinding.lvMember.setAdapter(mAdapter);
+        mBinding.srlMember.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                new Handler().postDelayed(new Runnable() {
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         Toast.makeText(getContext(), "새로고침", Toast.LENGTH_LONG).show();
-                        mSwipeRefreshLayout.setRefreshing(false);
+                        mBinding.srlMember.setRefreshing(false);
                     }
                 }, 1500);
             }
@@ -121,6 +127,11 @@ public class MemberManagementFragment extends Fragment {
                 return params;
             }
         });
-        return rootView;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mBinding = null;
     }
 }

@@ -1,11 +1,11 @@
-package com.hhp227.knu_minigroup;
+package com.hhp227.knu_minigroup.activity;
 
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.webkit.WebSettings;
-import android.webkit.WebView;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import com.hhp227.knu_minigroup.databinding.ActivityWebViewBinding;
 
 public class WebViewActivity extends AppCompatActivity {
     public static String URL = "url";
@@ -13,17 +13,18 @@ public class WebViewActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_web_view);
+        ActivityWebViewBinding binding = ActivityWebViewBinding.inflate(getLayoutInflater());
+
+        setContentView(binding.getRoot());
         ActionBar actionBar = getSupportActionBar();
-        WebView webView = findViewById(R.id.wv_notice);
-        WebSettings webSettings = webView.getSettings();
+        WebSettings webSettings = binding.wvNotice.getSettings();
         URL = getIntent().getStringExtra(URL);
 
         if (actionBar != null) {
             actionBar.setTitle(getIntent().getStringExtra("title"));
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-        webView.loadUrl(URL);
+        binding.wvNotice.loadUrl(URL);
         webSettings.setLoadWithOverviewMode(true);
         webSettings.setUseWideViewPort(true);
         webSettings.setBuiltInZoomControls(true);

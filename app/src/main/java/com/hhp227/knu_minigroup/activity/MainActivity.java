@@ -1,17 +1,16 @@
-package com.hhp227.knu_minigroup;
+package com.hhp227.knu_minigroup.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.CookieManager;
-import android.widget.ImageView;
-import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import com.bumptech.glide.Glide;
@@ -21,37 +20,38 @@ import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.material.navigation.NavigationView;
+import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.ActivityMainBinding;
+import com.hhp227.knu_minigroup.databinding.NavHeaderMainBinding;
 import com.hhp227.knu_minigroup.fragment.*;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 
 import static com.hhp227.knu_minigroup.fragment.GroupFragment.UPDATE_GROUP;
 
 public class MainActivity extends AppCompatActivity {
-    private CookieManager mCookieManager;
+    public ActivityMainBinding mBinding;
 
-    private DrawerLayout mDrawerLayout;
+    private CookieManager mCookieManager;
 
     private PreferenceManager mPreferenceManager;
 
-    private ImageView mProfileImage;
+    private ActionBarDrawerToggle mDrawerToggle;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        NavigationView navigationView = findViewById(R.id.nav_view);
-        TextView name = navigationView.getHeaderView(0).findViewById(R.id.tv_name);
-        mProfileImage = navigationView.getHeaderView(0).findViewById(R.id.iv_profile_image);
-        mDrawerLayout = findViewById(R.id.drawer_layout);
+        mBinding = ActivityMainBinding.inflate(getLayoutInflater());
+
+        setContentView(mBinding.getRoot());
         mPreferenceManager = AppController.getInstance().getPreferenceManager();
         mCookieManager = AppController.getInstance().getCookieManager();
 
         // Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713
         MobileAds.initialize(this, getString(R.string.admob_app_id));
         getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, new GroupFragment()).commit();
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+        mBinding.navView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 Fragment fragment = null;
@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
                     fragmentTransaction.replace(R.id.content_frame, fragment);
                     fragmentTransaction.commit();
                 }
-                mDrawerLayout.closeDrawer(GravityCompat.START);
+                mBinding.drawerLayout.closeDrawer(GravityCompat.START);
                 return true;
             }
         });
@@ -100,8 +100,8 @@ public class MainActivity extends AppCompatActivity {
                         .error(R.drawable.user_image_view_circle)
                         .skipMemoryCache(true)
                         .diskCacheStrategy(DiskCacheStrategy.NONE))
-                .into(mProfileImage);
-        mProfileImage.setOnClickListener(new View.OnClickListener() {
+                .into(NavHeaderMainBinding.bind(mBinding.navView.getHeaderView(0)).ivProfileImage);
+        NavHeaderMainBinding.bind(mBinding.navView.getHeaderView(0)).ivProfileImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
@@ -109,7 +109,14 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(intent, UPDATE_GROUP);
             }
         });
-        name.setText(mPreferenceManager.getUser().getName());
+        NavHeaderMainBinding.bind(mBinding.navView.getHeaderView(0)).tvName.setText(mPreferenceManager.getUser().getName());
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mBinding.drawerLayout.removeDrawerListener(mDrawerToggle);
+        mBinding = null;
     }
 
     @Override
@@ -124,15 +131,25 @@ public class MainActivity extends AppCompatActivity {
                             .error(R.drawable.user_image_view_circle)
                             .skipMemoryCache(true)
                             .diskCacheStrategy(DiskCacheStrategy.NONE))
-                    .into(mProfileImage);
+                    .into(NavHeaderMainBinding.bind(mBinding.navView.getHeaderView(0)).ivProfileImage);
         }
     }
 
     @Override
     public void onBackPressed() {
-        if (mDrawerLayout.isDrawerOpen(GravityCompat.START))
-            mDrawerLayout.closeDrawer(GravityCompat.START);
+        if (mBinding.drawerLayout.isDrawerOpen(GravityCompat.START))
+            mBinding.drawerLayout.closeDrawer(GravityCompat.START);
         else
             super.onBackPressed();
+    }
+
+    public void setAppBar(Toolbar toolbar, String title) {
+        setTitle(title);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            mDrawerToggle = new ActionBarDrawerToggle(this, mBinding.drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        }
+        mBinding.drawerLayout.addDrawerListener(mDrawerToggle);
+        mDrawerToggle.syncState();
     }
 }

@@ -1,4 +1,4 @@
-package com.hhp227.knu_minigroup;
+package com.hhp227.knu_minigroup.activity;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -9,15 +9,16 @@ import android.view.Window;
 import android.widget.Toast;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
+import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.ActivitySplashBinding;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class SplashActivity extends Activity {
@@ -26,16 +27,20 @@ public class SplashActivity extends Activity {
 
     private PreferenceManager mPreferenceManager;
 
+    private ActivitySplashBinding mBinding;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         // 액션바 안보이기
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_splash);
+        mBinding = ActivitySplashBinding.inflate(getLayoutInflater());
+
+        setContentView(mBinding.getRoot());
         mPreferenceManager = AppController.getInstance().getPreferenceManager();
 
-        new Handler().postDelayed(new Runnable() {
+        new Handler(getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
                 AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.LOGIN, new Response.Listener<String>() {
@@ -46,7 +51,7 @@ public class SplashActivity extends Activity {
 
                             if (!jsonObject.getBoolean("isError")) {
                                 startActivity(new Intent(SplashActivity.this, MainActivity.class));
-                                overridePendingTransition(R.anim.splash_in, R.anim.splash_out);
+                                overridePendingTransition(com.hhp227.knu_minigroup.R.anim.splash_in, R.anim.splash_out);
                             } else {
                                 mPreferenceManager.clear();
                                 startActivity(new Intent(SplashActivity.this, LoginActivity.class));
@@ -89,5 +94,11 @@ public class SplashActivity extends Activity {
                 });
             }
         }, SPLASH_TIME_OUT);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mBinding = null;
     }
 }

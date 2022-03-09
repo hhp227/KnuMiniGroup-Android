@@ -3,8 +3,6 @@ package com.hhp227.knu_minigroup.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
@@ -15,6 +13,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.MemberItemBinding;
 import com.hhp227.knu_minigroup.dto.MemberItem;
 
 import java.util.List;
@@ -30,9 +29,8 @@ public class MemberGridAdapter extends RecyclerView.Adapter<MemberGridAdapter.Me
 
     @NonNull
     @Override
-    public MemberGridHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.member_item, parent, false);
-        return new MemberGridHolder(view);
+    public MemberGridHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        return new MemberGridHolder(MemberItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
     }
 
     @Override
@@ -55,13 +53,11 @@ public class MemberGridAdapter extends RecyclerView.Adapter<MemberGridAdapter.Me
     }
 
     public class MemberGridHolder extends RecyclerView.ViewHolder {
-        private final ImageView profileImage;
-        private final TextView name;
+        private final MemberItemBinding mBinding;
 
-        public MemberGridHolder(View itemView) {
-            super(itemView);
-            profileImage = itemView.findViewById(R.id.iv_profile_image);
-            name = itemView.findViewById(R.id.tv_name);
+        public MemberGridHolder(MemberItemBinding binding) {
+            super(binding.getRoot());
+            this.mBinding = binding;
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -73,7 +69,7 @@ public class MemberGridAdapter extends RecyclerView.Adapter<MemberGridAdapter.Me
         }
 
         private void bind(MemberItem memberItem) {
-            name.setText(memberItem.name);
+            mBinding.tvName.setText(memberItem.name);
             Glide.with(itemView.getContext())
                     .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", memberItem.uid), new LazyHeaders.Builder()
                             .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
@@ -82,7 +78,7 @@ public class MemberGridAdapter extends RecyclerView.Adapter<MemberGridAdapter.Me
                             .error(R.drawable.user_image_view)
                             .skipMemoryCache(true)
                             .diskCacheStrategy(DiskCacheStrategy.NONE))
-                    .into(profileImage);
+                    .into(mBinding.ivProfileImage);
         }
     }
 

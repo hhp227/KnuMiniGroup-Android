@@ -3,12 +3,11 @@ package com.hhp227.knu_minigroup.adapter;
 import android.content.Context;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.databinding.SeatItemBinding;
 import com.hhp227.knu_minigroup.dto.SeatItem;
 
 import java.text.DateFormat;
@@ -28,8 +27,7 @@ public class SeatListAdapter extends RecyclerView.Adapter<SeatListAdapter.SeatLi
     @NonNull
     @Override
     public SeatListHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.seat_item, parent, false);
-        return new SeatListHolder(view);
+        return new SeatListHolder(SeatItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
     }
 
     @Override
@@ -43,19 +41,17 @@ public class SeatListAdapter extends RecyclerView.Adapter<SeatListAdapter.SeatLi
     }
 
     public static class SeatListHolder extends RecyclerView.ViewHolder {
-        private final TextView name, text, status;
+        private final SeatItemBinding mBinding;
 
-        SeatListHolder(View itemView) {
-            super(itemView);
-            name = itemView.findViewById(R.id.name);
-            text = itemView.findViewById(R.id.text);
-            status = itemView.findViewById(R.id.seat);
+        SeatListHolder(SeatItemBinding binding) {
+            super(binding.getRoot());
+            this.mBinding = binding;
         }
 
         private void bind(SeatItem seatItem) {
-            name.setText(seatItem.name);
-            text.setText(seatItem.disable == null ? "사용중 좌석" : seatItem.disable[0]);
-            status.setText(seatItem.disable == null ?
+            mBinding.name.setText(seatItem.name);
+            mBinding.text.setText(seatItem.disable == null ? "사용중 좌석" : seatItem.disable[0]);
+            mBinding.seat.setText(seatItem.disable == null ?
                     "[" + seatItem.occupied + "/" + seatItem.activeTotal + "]" :
                     getPeriodTimeGenerator(itemView.getContext(), seatItem.disable[1]) + " ~ " + getPeriodTimeGenerator(itemView.getContext(), seatItem.disable[2]));
 

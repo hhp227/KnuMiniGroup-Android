@@ -16,6 +16,8 @@ import androidx.fragment.app.Fragment;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.helper.TimetableHelper;
 
+// TODO viewBinding으로 이전할것
+
 public class MockTimeTableFragment extends Fragment {
     public static final String TAG = "시간표";
 

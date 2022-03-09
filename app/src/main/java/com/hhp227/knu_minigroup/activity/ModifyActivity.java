@@ -1,13 +1,11 @@
-package com.hhp227.knu_minigroup;
+package com.hhp227.knu_minigroup.activity;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 
-import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.exifinterface.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -30,9 +28,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.WriteListAdapter;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.ActivityWriteBinding;
+import com.hhp227.knu_minigroup.databinding.WriteTextBinding;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
@@ -44,7 +45,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.hhp227.knu_minigroup.WriteActivity.*;
+import static com.hhp227.knu_minigroup.activity.WriteActivity.*;
 
 public class ModifyActivity extends AppCompatActivity {
     private static final String TAG = ModifyActivity.class.getSimpleName();
@@ -52,8 +53,6 @@ public class ModifyActivity extends AppCompatActivity {
     private int mContextMenuRequest;
 
     private String mGrpId, mArtlNum, mCurrentPhotoPath, mCookie, mTitle, mContent, mGrpKey, mArtlKey;
-
-    private EditText mInputTitle, mInputContent;
 
     private List<String> mImageList;
 
@@ -69,21 +68,21 @@ public class ModifyActivity extends AppCompatActivity {
 
     private YouTubeItem mYouTubeItem;
 
+    private ActivityWriteBinding mActivityWriteBinding;
+
+    private WriteTextBinding mWriteTextBinding;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_write);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        LinearLayout buttonImage = findViewById(R.id.ll_image);
-        LinearLayout buttonVideo = findViewById(R.id.ll_video);
-        ListView listView = findViewById(R.id.lv_write);
-        View headerView = getLayoutInflater().inflate(R.layout.write_text, null, false);
+        mActivityWriteBinding = ActivityWriteBinding.inflate(getLayoutInflater());
+        mWriteTextBinding = WriteTextBinding.inflate(getLayoutInflater());
+
+        setContentView(mActivityWriteBinding.getRoot());
         Intent intent = getIntent();
-        mInputTitle = headerView.findViewById(R.id.et_title);
-        mInputContent = headerView.findViewById(R.id.et_content);
         mContents = new ArrayList<>();
         mCookie = AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN);
-        mAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, mContents);
+        mAdapter = new WriteListAdapter(getApplicationContext(), com.hhp227.knu_minigroup.R.layout.write_content, mContents);
         mProgressDialog = new ProgressDialog(this);
         mGrpId = intent.getStringExtra("grp_id");
         mArtlNum = intent.getStringExtra("artl_num");
@@ -94,9 +93,11 @@ public class ModifyActivity extends AppCompatActivity {
         mGrpKey = intent.getStringExtra("grp_key");
         mArtlKey = intent.getStringExtra("artl_key");
 
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        buttonImage.setOnClickListener(new View.OnClickListener() {
+        setSupportActionBar(mActivityWriteBinding.toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+        mActivityWriteBinding.llImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mContextMenuRequest = 2;
@@ -106,7 +107,7 @@ public class ModifyActivity extends AppCompatActivity {
                 unregisterForContextMenu(v);
             }
         });
-        buttonVideo.setOnClickListener(new View.OnClickListener() {
+        mActivityWriteBinding.llVideo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mContextMenuRequest = 3;
@@ -116,11 +117,11 @@ public class ModifyActivity extends AppCompatActivity {
                 unregisterForContextMenu(v);
             }
         });
-        mInputTitle.setText(mTitle);
-        mInputContent.setText(mContent);
-        listView.addHeaderView(headerView);
-        listView.setAdapter(mAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mWriteTextBinding.etTitle.setText(mTitle);
+        mWriteTextBinding.etContent.setText(mContent);
+        mActivityWriteBinding.lvWrite.addHeaderView(mWriteTextBinding.getRoot());
+        mActivityWriteBinding.lvWrite.setAdapter(mAdapter);
+        mActivityWriteBinding.lvWrite.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 mContextMenuRequest = 1;
@@ -135,12 +136,19 @@ public class ModifyActivity extends AppCompatActivity {
         }
         if (mYouTubeItem != null)
             mContents.add(mYouTubeItem.position, mYouTubeItem);
-        registerForContextMenu(listView);
+        registerForContextMenu(mActivityWriteBinding.lvWrite);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mActivityWriteBinding = null;
+        mWriteTextBinding = null;
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.write, menu);
+        getMenuInflater().inflate(com.hhp227.knu_minigroup.R.menu.write, menu);
         return true;
     }
 
@@ -151,10 +159,10 @@ public class ModifyActivity extends AppCompatActivity {
                 finish();
                 return true;
             case R.id.action_send:
-                String title = mInputTitle.getEditableText().toString();
-                String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(mInputContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(mInputContent.getText());
+                String title = mWriteTextBinding.etTitle.getEditableText().toString();
+                String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(mWriteTextBinding.etContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(mWriteTextBinding.etContent.getText());
 
-                if (!mInputTitle.getText().toString().isEmpty() && !(TextUtils.isEmpty(mInputContent.getText()) && mContents.size() == 0)) {
+                if (!mWriteTextBinding.etTitle.getText().toString().isEmpty() && !(TextUtils.isEmpty(mWriteTextBinding.etContent.getText()) && mContents.size() == 0)) {
                     mMakeHtmlContents = new StringBuilder();
 
                     mImageList.clear();
@@ -179,7 +187,7 @@ public class ModifyActivity extends AppCompatActivity {
                     } else
                         actionSend(title, content);
                 } else
-                    Toast.makeText(getApplicationContext(), (TextUtils.isEmpty(mInputTitle.getText()) ? "제목" : "내용") + "을 입력하세요.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), (TextUtils.isEmpty(mWriteTextBinding.etTitle.getText()) ? "제목" : "내용") + "을 입력하세요.", Toast.LENGTH_LONG).show();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -369,8 +377,8 @@ public class ModifyActivity extends AppCompatActivity {
                     uploadProcess(position, youTubeItem.videoId, true);
                 }
             } else {
-                String title = mInputTitle.getEditableText().toString();
-                String content = (!TextUtils.isEmpty(mInputContent.getText()) ? Html.toHtml(mInputContent.getText()) + "<p><br data-mce-bogus=\"1\"></p>" : "") + mMakeHtmlContents.toString();
+                String title = mWriteTextBinding.etTitle.getEditableText().toString();
+                String content = (!TextUtils.isEmpty(mWriteTextBinding.etContent.getText()) ? Html.toHtml(mWriteTextBinding.etContent.getText()) + "<p><br data-mce-bogus=\"1\"></p>" : "") + mMakeHtmlContents.toString();
 
                 actionSend(title, content);
             }
@@ -455,8 +463,8 @@ public class ModifyActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 ArticleItem articleItem = dataSnapshot.getValue(ArticleItem.class);
                 if (articleItem != null) {
-                    articleItem.setTitle(mInputTitle.getText().toString());
-                    articleItem.setContent(TextUtils.isEmpty(mInputContent.getText()) ? null : mInputContent.getText().toString());
+                    articleItem.setTitle(mWriteTextBinding.etTitle.getText().toString());
+                    articleItem.setContent(TextUtils.isEmpty(mWriteTextBinding.etContent.getText()) ? null : mWriteTextBinding.etContent.getText().toString());
                     articleItem.setImages(mImageList.isEmpty() ? null : mImageList);
                     articleItem.setYoutube(mYouTubeItem);
                     query.getRef().setValue(articleItem);

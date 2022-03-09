@@ -71,7 +71,7 @@
                             android:textStyle="bold"/>
 
                     <TextView
-                            android:id="@+id/tv_yu_id"
+                            android:id="@+id/tv_knu_id"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:textColor="#a0a3a7"

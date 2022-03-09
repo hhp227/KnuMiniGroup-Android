@@ -1,4 +1,4 @@
-package com.hhp227.knu_minigroup;
+package com.hhp227.knu_minigroup.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,12 +10,13 @@ import android.view.View;
 import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import com.android.volley.*;
 import com.google.firebase.database.*;
+import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.MessageListAdapter;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.ActivityChatBinding;
 import com.hhp227.knu_minigroup.dto.MessageItem;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.volley.util.JsonObjectRequest;
@@ -38,29 +39,23 @@ public class ChatActivity extends AppCompatActivity {
 
     private DatabaseReference mDatabaseReference;
 
-    private EditText mInputMessage;
-
     private List<MessageItem> mMessageItemList;
-
-    private ListView mListView;
 
     private MessageListAdapter mAdapter;
 
     private String mCursor, mSender, mReceiver, mValue, mFirstMessageKey;
 
-    private TextView mButtonSend;
-
     private User mUser;
+
+    private ActivityChatBinding mBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chat);
+        mBinding = ActivityChatBinding.inflate(getLayoutInflater());
+
+        setContentView(mBinding.getRoot());
         Intent intent = getIntent();
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        mButtonSend = findViewById(R.id.tv_btn_send);
-        mInputMessage = findViewById(R.id.et_input_msg);
-        mListView = findViewById(R.id.lv_message);
         mDatabaseReference = FirebaseDatabase.getInstance().getReference("Messages");
         mMessageItemList = new ArrayList<>();
         mUser = AppController.getInstance().getPreferenceManager().getUser();
@@ -70,41 +65,43 @@ public class ChatActivity extends AppCompatActivity {
         mIsGroupChat = intent.getBooleanExtra("grp_chat", false);
         mAdapter = new MessageListAdapter(mMessageItemList, mSender);
 
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle(intent.getStringExtra("chat_nm") + (mIsGroupChat ? " 그룹채팅방" : ""));
-        mButtonSend.setOnClickListener(new View.OnClickListener() {
+        setSupportActionBar(mBinding.toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle(intent.getStringExtra("chat_nm") + (mIsGroupChat ? " 그룹채팅방" : ""));
+        }
+        mBinding.tvBtnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mInputMessage.getText().toString().trim().length() > 0) {
+                if (mBinding.etInputMsg.getText().toString().trim().length() > 0) {
                     sendMessage();
                     if (!mIsGroupChat)
                         sendLMSMessage();
-                    mInputMessage.setText("");
+                    mBinding.etInputMsg.setText("");
                 } else
                     Toast.makeText(getApplicationContext(), "메시지를 입력하세요.", Toast.LENGTH_LONG).show();
             }
         });
-        mInputMessage.addTextChangedListener(new TextWatcher() {
+        mBinding.etInputMsg.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                mButtonSend.setBackgroundResource(s.length() > 0 ? R.drawable.background_sendbtn_p : R.drawable.background_sendbtn_n);
-                mButtonSend.setTextColor(getResources().getColor(s.length() > 0 ? android.R.color.white : android.R.color.darker_gray));
+                mBinding.tvBtnSend.setBackgroundResource(s.length() > 0 ? R.drawable.background_sendbtn_p : R.drawable.background_sendbtn_n);
+                mBinding.tvBtnSend.setTextColor(getResources().getColor(s.length() > 0 ? android.R.color.white : android.R.color.darker_gray));
             }
 
             @Override
             public void afterTextChanged(Editable s) {
             }
         });
-        mInputMessage.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        mBinding.etInputMsg.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus)
-                    mListView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_NORMAL);
+                    mBinding.lvMessage.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_NORMAL);
             }
         });
         /*mQuery.addValueEventListener(new ValueEventListener() {
@@ -125,7 +122,7 @@ public class ChatActivity extends AppCompatActivity {
             public void onCancelled(DatabaseError databaseError) {
             }
         });*/
-        mListView.setOnScrollListener(new AbsListView.OnScrollListener() {
+        mBinding.lvMessage.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
                 mCurrentScrollState = scrollState;
@@ -142,8 +139,14 @@ public class ChatActivity extends AppCompatActivity {
                 }
             }
         });
-        mListView.setAdapter(mAdapter);
+        mBinding.lvMessage.setAdapter(mAdapter);
         fetchMessageList(mIsGroupChat ? mDatabaseReference.child(mReceiver).orderByKey().limitToLast(LIMIT) : mDatabaseReference.child(mSender).child(mReceiver).orderByKey().limitToLast(LIMIT), 0, "");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mBinding = null;
     }
 
     @Override
@@ -174,7 +177,7 @@ public class ChatActivity extends AppCompatActivity {
                 mMessageItemList.add(mMessageItemList.size() - prevCnt, messageItem);
                 mAdapter.notifyDataSetChanged();
                 if (mHasSelection || mHasRequestedMore)
-                    mListView.setSelection(prevCnt == 0 ? mMessageItemList.size() : mMessageItemList.size() - prevCnt + 1);
+                    mBinding.lvMessage.setSelection(prevCnt == 0 ? mMessageItemList.size() : mMessageItemList.size() - prevCnt + 1);
             }
 
             @Override
@@ -225,7 +228,7 @@ public class ChatActivity extends AppCompatActivity {
 
         map.put("from", mSender);
         map.put("name", mUser.getName());
-        map.put("message", mInputMessage.getText().toString());
+        map.put("message", mBinding.etInputMsg.getText().toString());
         map.put("type", "text");
         map.put("seen", false);
         map.put("timestamp", System.currentTimeMillis());
@@ -278,7 +281,7 @@ public class ChatActivity extends AppCompatActivity {
             public byte[] getBody() {
                 Map<String, String> params = new HashMap<>();
 
-                params.put("TXT", mInputMessage.getText().toString());
+                params.put("TXT", mBinding.etInputMsg.getText().toString());
                 params.put("send_msg", "Y");
                 params.put("USERS", mValue);
                 if (params.size() > 0) {
