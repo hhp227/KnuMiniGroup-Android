@@ -1,5 +1,7 @@
 package com.hhp227.knu_minigroup.fragment;
 
+import static android.app.Activity.RESULT_OK;
+
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -8,27 +10,50 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.*;
-
+import android.view.ContextMenu;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.CookieManager;
-import android.widget.*;
+import android.widget.RadioGroup;
+import android.widget.Toast;
+
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import com.android.volley.*;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestOptions;
-import com.google.firebase.database.*;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.FragmentDefaultSettingBinding;
 import com.hhp227.knu_minigroup.dto.GroupItem;
+import com.hhp227.knu_minigroup.helper.BitmapUtil;
+
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.Source;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -36,10 +61,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
-
-import static android.app.Activity.RESULT_OK;
-import static com.hhp227.knu_minigroup.activity.CreateGroupActivity.CAMERA_CAPTURE_IMAGE_REQUEST_CODE;
-import static com.hhp227.knu_minigroup.activity.CreateGroupActivity.CAMERA_PICK_IMAGE_REQUEST_CODE;
 
 public class DefaultSettingFragment extends Fragment {
     private static String mGroupId, mGroupImage, mGroupKey;
@@ -53,6 +74,8 @@ public class DefaultSettingFragment extends Fragment {
     private TextWatcher mTextWatcher;
 
     private FragmentDefaultSettingBinding mBinding;
+
+    private ActivityResultLauncher<Intent> mCameraPickImageActivityResultLauncher, mCameraCaptureImageActivityResultLauncher;
 
     public DefaultSettingFragment() {
     }
@@ -103,12 +126,27 @@ public class DefaultSettingFragment extends Fragment {
             public void afterTextChanged(Editable s) {
             }
         };
+        ActivityResultCallback<ActivityResult> activityResultCallback = new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult result) {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    if (result.getData().getExtras().get("data") != null) {
+                        mBitmap = (Bitmap) result.getData().getExtras().get("data");
+                    } else if (result.getData().getData() != null) {
+                        mBitmap = new BitmapUtil(requireContext()).bitmapResize(result.getData().getData(), 200);
+                    }
+                    mBinding.ivGroupImage.setImageBitmap(mBitmap);
+                }
+            }
+        };
+        mCameraPickImageActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), activityResultCallback);
+        mCameraCaptureImageActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), activityResultCallback);
 
         mBinding.ivGroupImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 registerForContextMenu(v);
-                getActivity().openContextMenu(v);
+                requireActivity().openContextMenu(v);
                 unregisterForContextMenu(v);
             }
         });
@@ -166,6 +204,8 @@ public class DefaultSettingFragment extends Fragment {
         super.onDestroyView();
         mBinding.etTitle.removeTextChangedListener(mTextWatcher);
         mBinding = null;
+        mCameraPickImageActivityResultLauncher = null;
+        mCameraCaptureImageActivityResultLauncher = null;
     }
 
     @Override
@@ -194,10 +234,8 @@ public class DefaultSettingFragment extends Fragment {
                                     intent.putExtra("grp_nm", response.getString("GRP_NM"));
                                     intent.putExtra("grp_desc", groupDescription);
                                     intent.putExtra("join_div", !mJoinTypeCheck ? "0" : "1");
-                                    if (getActivity() != null) {
-                                        getActivity().setResult(RESULT_OK, intent);
-                                        getActivity().finish();
-                                    }
+                                    requireActivity().setResult(RESULT_OK, intent);
+                                    requireActivity().finish();
                                     Toast.makeText(getContext(), "소모임 변경 완료", Toast.LENGTH_LONG).show();
                                 }
                             } catch (JSONException e) {
@@ -275,18 +313,19 @@ public class DefaultSettingFragment extends Fragment {
             case "카메라":
                 Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-                startActivityForResult(cameraIntent, CAMERA_CAPTURE_IMAGE_REQUEST_CODE);
+                mCameraCaptureImageActivityResultLauncher.launch(cameraIntent);
                 break;
             case "갤러리":
                 Intent galleryIntent = new Intent(Intent.ACTION_PICK);
 
                 galleryIntent.setType(MediaStore.Images.Media.CONTENT_TYPE);
                 galleryIntent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(galleryIntent, CAMERA_PICK_IMAGE_REQUEST_CODE);
+                mCameraPickImageActivityResultLauncher.launch(galleryIntent);
                 break;
             case "이미지 없음":
-                mBinding.ivGroupImage.setImageResource(R.drawable.add_photo);
                 mBitmap = null;
+
+                mBinding.ivGroupImage.setImageResource(R.drawable.add_photo);
                 Toast.makeText(getContext(), "이미지 없음 선택", Toast.LENGTH_LONG).show();
                 break;
         }

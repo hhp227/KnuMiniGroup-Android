@@ -14,9 +14,16 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
+
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import com.android.volley.*;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.hhp227.knu_minigroup.R;
@@ -40,8 +47,6 @@ import java.util.UUID;
 import static com.hhp227.knu_minigroup.app.EndPoint.GROUP_IMAGE;
 
 public class CreateGroupActivity extends AppCompatActivity {
-    public static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
-    public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 200;
     private static final String TAG = CreateGroupActivity.class.getSimpleName();
 
     private boolean mJoinTypeCheck;
@@ -58,12 +63,12 @@ public class CreateGroupActivity extends AppCompatActivity {
 
     private ActivityCreateGroupBinding mBinding;
 
+    private ActivityResultLauncher<Intent> mCameraPickImageActivityResultLauncher, mCameraCaptureImageActivityResultLauncher;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBinding = ActivityCreateGroupBinding.inflate(getLayoutInflater());
-
-        setContentView(mBinding.getRoot());
         mPreferenceManager = AppController.getInstance().getPreferenceManager();
         mCookie = AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN);
         mProgressDialog = new ProgressDialog(this);
@@ -81,7 +86,23 @@ public class CreateGroupActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
             }
         };
+        ActivityResultCallback<ActivityResult> activityResultCallback = new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult result) {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    if (result.getData().getExtras().get("data") != null) {
+                        mBitmap = (Bitmap) result.getData().getExtras().get("data");
+                    } else if (result.getData().getData() != null) {
+                        mBitmap = new BitmapUtil(getBaseContext()).bitmapResize(result.getData().getData(), 200);
+                    }
+                    mBinding.ivGroupImage.setImageBitmap(mBitmap);
+                }
+            }
+        };
+        mCameraPickImageActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), activityResultCallback);
+        mCameraCaptureImageActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), activityResultCallback);
 
+        setContentView(mBinding.getRoot());
         setSupportActionBar(mBinding.toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -106,10 +127,10 @@ public class CreateGroupActivity extends AppCompatActivity {
         mBinding.rgJointype.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                mJoinTypeCheck = checkedId != com.hhp227.knu_minigroup.R.id.rb_auto;
+                mJoinTypeCheck = checkedId != R.id.rb_auto;
             }
         });
-        mBinding.rgJointype.check(com.hhp227.knu_minigroup.R.id.rb_auto);
+        mBinding.rgJointype.check(R.id.rb_auto);
     }
 
     @Override
@@ -117,11 +138,13 @@ public class CreateGroupActivity extends AppCompatActivity {
         super.onDestroy();
         mBinding.etTitle.removeTextChangedListener(mTextWatcher);
         mBinding = null;
+        mCameraPickImageActivityResultLauncher = null;
+        mCameraCaptureImageActivityResultLauncher = null;
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(com.hhp227.knu_minigroup.R.menu.create, menu);
+        getMenuInflater().inflate(R.menu.create, menu);
         return true;
     }
 
@@ -131,7 +154,7 @@ public class CreateGroupActivity extends AppCompatActivity {
             case android.R.id.home:
                 finish();
                 return true;
-            case com.hhp227.knu_minigroup.R.id.action_send:
+            case R.id.action_send:
                 final String title = mBinding.etTitle.getText().toString().trim();
                 final String description = mBinding.etDescription.getText().toString().trim();
                 final String join = !mJoinTypeCheck ? "0" : "1";
@@ -225,38 +248,23 @@ public class CreateGroupActivity extends AppCompatActivity {
             case "카메라":
                 Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-                startActivityForResult(cameraIntent, CAMERA_CAPTURE_IMAGE_REQUEST_CODE);
+                mCameraCaptureImageActivityResultLauncher.launch(cameraIntent);
                 break;
             case "갤러리":
                 Intent galleryIntent = new Intent(Intent.ACTION_PICK);
 
                 galleryIntent.setType(MediaStore.Images.Media.CONTENT_TYPE);
                 galleryIntent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(galleryIntent, CAMERA_PICK_IMAGE_REQUEST_CODE);
+                mCameraPickImageActivityResultLauncher.launch(galleryIntent);
                 break;
             case "이미지 없음":
-                mBinding.ivGroupImage.setImageResource(R.drawable.add_photo);
                 mBitmap = null;
 
+                mBinding.ivGroupImage.setImageResource(R.drawable.add_photo);
                 Toast.makeText(getBaseContext(), "이미지 없음 선택", Toast.LENGTH_LONG).show();
                 break;
         }
         return super.onContextItemSelected(item);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == CAMERA_CAPTURE_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-            mBitmap = (Bitmap) data.getExtras().get("data");
-
-            mBinding.ivGroupImage.setImageBitmap(mBitmap);
-        } else if (requestCode == CAMERA_PICK_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-            Uri fileUri = data.getData();
-            mBitmap = new BitmapUtil(this).bitmapResize(fileUri, 200);
-
-            mBinding.ivGroupImage.setImageBitmap(mBitmap);
-        }
     }
 
     private void createGroupSuccess(String groupId, String groupName) {
