@@ -1,12 +1,9 @@
 package com.hhp227.knu_minigroup.activity;
 
 import android.app.ProgressDialog;
+import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Bitmap;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.exifinterface.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -18,9 +15,23 @@ import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.*;
+import android.widget.AdapterView;
+import android.widget.Toast;
+
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
-import com.android.volley.*;
+import androidx.exifinterface.media.ExifInterface;
+
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -43,9 +54,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
-
-import static com.hhp227.knu_minigroup.activity.CreateArticleActivity.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ModifyActivity extends AppCompatActivity {
     private static final String TAG = ModifyActivity.class.getSimpleName();
@@ -72,27 +85,81 @@ public class ModifyActivity extends AppCompatActivity {
 
     private WriteTextBinding mWriteTextBinding;
 
+    private ActivityResultLauncher<Intent> mCameraPickActivityResultLauncher, mCameraCaptureActivityResultLauncher, mYouTubeSearchActivityResultLauncher;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mActivityCreateArticleBinding = ActivityCreateArticleBinding.inflate(getLayoutInflater());
         mWriteTextBinding = WriteTextBinding.inflate(getLayoutInflater());
-
-        setContentView(mActivityCreateArticleBinding.getRoot());
-        Intent intent = getIntent();
         mContents = new ArrayList<>();
         mCookie = AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN);
         mAdapter = new WriteListAdapter(getApplicationContext(), com.hhp227.knu_minigroup.R.layout.write_content, mContents);
         mProgressDialog = new ProgressDialog(this);
-        mGrpId = intent.getStringExtra("grp_id");
-        mArtlNum = intent.getStringExtra("artl_num");
-        mTitle = intent.getStringExtra("sbjt");
-        mContent = intent.getStringExtra("txt");
-        mImageList = intent.getStringArrayListExtra("img");
-        mYouTubeItem = intent.getParcelableExtra("vid");
-        mGrpKey = intent.getStringExtra("grp_key");
-        mArtlKey = intent.getStringExtra("artl_key");
+        mGrpId = getIntent().getStringExtra("grp_id");
+        mArtlNum = getIntent().getStringExtra("artl_num");
+        mTitle = getIntent().getStringExtra("sbjt");
+        mContent = getIntent().getStringExtra("txt");
+        mImageList = getIntent().getStringArrayListExtra("img");
+        mYouTubeItem = getIntent().getParcelableExtra("vid");
+        mGrpKey = getIntent().getStringExtra("grp_key");
+        mArtlKey = getIntent().getStringExtra("artl_key");
+        mCameraPickActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult result) {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    ClipData clipData = result.getData().getClipData();
 
+                    if (clipData != null) {
+                        for (int i = 0; i < clipData.getItemCount(); i++) {
+                            Uri fileUri = clipData.getItemAt(i).getUri();
+                            Bitmap bitmap = new BitmapUtil(getBaseContext()).bitmapResize(fileUri, 200);
+
+                            mContents.add(bitmap);
+                        }
+                        mAdapter.notifyDataSetChanged();
+                    }
+                }
+            }
+        });
+        mCameraCaptureActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult result) {
+                if (result.getResultCode() == RESULT_OK) {
+                    try {
+                        Bitmap bitmap = new BitmapUtil(getBaseContext()).bitmapResize(mPhotoUri, 200);
+
+                        if (bitmap != null) {
+                            ExifInterface ei = new ExifInterface(mCurrentPhotoPath);
+                            int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+                            int angle = orientation == ExifInterface.ORIENTATION_ROTATE_90 ? 90
+                                    : orientation == ExifInterface.ORIENTATION_ROTATE_180 ? 180
+                                    : orientation == ExifInterface.ORIENTATION_ROTATE_270 ? 270
+                                    : 0;
+                            Bitmap rotatedBitmap = new BitmapUtil(getBaseContext()).rotateImage(bitmap, angle);
+
+                            mContents.add(rotatedBitmap);
+                            mAdapter.notifyDataSetChanged();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        mYouTubeSearchActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult result) {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    mYouTubeItem = result.getData().getParcelableExtra("youtube");
+
+                    mContents.add(mYouTubeItem);
+                    mAdapter.notifyDataSetChanged();
+                }
+            }
+        });
+
+        setContentView(mActivityCreateArticleBinding.getRoot());
         setSupportActionBar(mActivityCreateArticleBinding.toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -144,6 +211,9 @@ public class ModifyActivity extends AppCompatActivity {
         super.onDestroy();
         mActivityCreateArticleBinding = null;
         mWriteTextBinding = null;
+        mCameraPickActivityResultLauncher = null;
+        mCameraCaptureActivityResultLauncher = null;
+        mYouTubeSearchActivityResultLauncher = null;
     }
 
     @Override
@@ -230,7 +300,7 @@ public class ModifyActivity extends AppCompatActivity {
                         .setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
                         .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
 
-                startActivityForResult(intent, CAMERA_PICK_IMAGE_REQUEST_CODE);
+                mCameraPickActivityResultLauncher.launch(intent);
                 return true;
             case 3:
                 intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -247,7 +317,7 @@ public class ModifyActivity extends AppCompatActivity {
                         mPhotoUri = FileProvider.getUriForFile(this, getPackageName(), photoFile);
 
                         intent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
-                        startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+                        mCameraCaptureActivityResultLauncher.launch(intent);
                     }
                 }
                 return true;
@@ -258,53 +328,11 @@ public class ModifyActivity extends AppCompatActivity {
                     Intent ysIntent = new Intent(getApplicationContext(), YouTubeSearchActivity.class);
 
                     ysIntent.putExtra("type", 1);
-                    startActivityForResult(ysIntent, REQUEST_YOUTUBE_PICK);
+                    mYouTubeSearchActivityResultLauncher.launch(ysIntent);
                 }
                 return true;
         }
         return false;
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        Bitmap bitmap;
-
-        if (requestCode == CAMERA_PICK_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-            if (data.getClipData() != null) {
-                for (int i = 0; i < data.getClipData().getItemCount(); i++) {
-                    Uri fileUri = data.getClipData().getItemAt(i).getUri();
-                    bitmap = new BitmapUtil(this).bitmapResize(fileUri, 200);
-
-                    mContents.add(bitmap);
-                }
-                mAdapter.notifyDataSetChanged();
-            }
-        } else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            try {
-                bitmap = new BitmapUtil(this).bitmapResize(mPhotoUri, 200);
-
-                if (bitmap != null) {
-                    ExifInterface ei = new ExifInterface(mCurrentPhotoPath);
-                    int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
-                    int angle = orientation == ExifInterface.ORIENTATION_ROTATE_90 ? 90
-                            : orientation == ExifInterface.ORIENTATION_ROTATE_180 ? 180
-                            : orientation == ExifInterface.ORIENTATION_ROTATE_270 ? 270
-                            : 0;
-                    Bitmap rotatedBitmap = new BitmapUtil(this).rotateImage(bitmap, angle);
-
-                    mContents.add(rotatedBitmap);
-                    mAdapter.notifyDataSetChanged();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else if (requestCode == REQUEST_YOUTUBE_PICK && resultCode == RESULT_OK) {//
-            mYouTubeItem = data.getParcelableExtra("youtube");
-
-            mContents.add(mYouTubeItem);
-            mAdapter.notifyDataSetChanged();
-        }
     }
 
     private void uploadImage(final int position, final Bitmap bitmap) {

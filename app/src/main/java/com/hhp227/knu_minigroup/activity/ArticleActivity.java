@@ -84,8 +84,6 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
         super.onCreate(savedInstanceState);
         mActivityArticleBinding = ActivityArticleBinding.inflate(getLayoutInflater());
         mArticleDetailBinding = ArticleDetailBinding.inflate(getLayoutInflater());
-
-        setContentView(mActivityArticleBinding.getRoot());
         mPreferenceManager = AppController.getInstance().getPreferenceManager();
         mCookieManager = AppController.getInstance().getCookieManager();
         Intent intent = getIntent();
@@ -103,6 +101,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
         mReplyItemValues = new ArrayList<>();
         mAdapter = new ReplyListAdapter(mReplyItemKeys, mReplyItemValues);
 
+        setContentView(mActivityArticleBinding.getRoot());
         setSupportActionBar(mActivityArticleBinding.toolbar);
         if (getSupportActionBar() != null)
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
