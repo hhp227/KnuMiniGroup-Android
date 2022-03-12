@@ -1,17 +1,27 @@
 package com.hhp227.knu_minigroup.activity;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.*;
+import android.widget.AbsListView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import com.android.volley.*;
-import com.google.firebase.database.*;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.MessageListAdapter;
 import com.hhp227.knu_minigroup.app.AppController;
@@ -20,6 +30,7 @@ import com.hhp227.knu_minigroup.databinding.ActivityChatBinding;
 import com.hhp227.knu_minigroup.dto.MessageItem;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.volley.util.JsonObjectRequest;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 

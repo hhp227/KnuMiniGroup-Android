@@ -12,6 +12,9 @@ import android.view.WindowManager;
 import android.widget.*;
 
 import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -33,6 +36,8 @@ public class TabHostLayoutFragment extends Fragment {
     private static final String POSITION = "pos";
     private static final String KEY = "key";
     private static final String[] TAB_NAMES = {"소식", "일정", "맴버", "설정"};
+
+    public ActivityResultLauncher<Intent> mCreateArticleResultLauncher;
 
     private boolean mIsAdmin;
 
@@ -81,6 +86,13 @@ public class TabHostLayoutFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Tab1Fragment tab1Fragment = Tab1Fragment.newInstance(mIsAdmin, mGroupId, mGroupName, mGroupImage, mKey);
+        mCreateArticleResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult result) {
+                tab1Fragment.onCreateArticleActivityResult(result);
+            }
+        });
         AppCompatActivity activity = (AppCompatActivity) getActivity();
         final List<Fragment> fragmentList = new Vector<>();
         FragmentPagerAdapter adapter = new FragmentPagerAdapter(getChildFragmentManager(), FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
@@ -104,7 +116,7 @@ public class TabHostLayoutFragment extends Fragment {
             }
         }
         mBinding.collapsingToolbar.setTitleEnabled(false);
-        fragmentList.add(Tab1Fragment.newInstance(mIsAdmin, mGroupId, mGroupName, mGroupImage, mKey));
+        fragmentList.add(tab1Fragment);
         fragmentList.add(new Tab2Fragment());
         fragmentList.add(Tab3Fragment.newInstance(mGroupId));
         fragmentList.add(Tab4Fragment.newInstance(mIsAdmin, mGroupId, mGroupImage, mPosition, mKey));
@@ -141,7 +153,7 @@ public class TabHostLayoutFragment extends Fragment {
                     intent.putExtra("grp_nm", mGroupName);
                     intent.putExtra("grp_img", mGroupImage);
                     intent.putExtra("key", mKey);
-                    startActivity(intent);
+                    mCreateArticleResultLauncher.launch(intent);
                 }
             }
         });
@@ -181,6 +193,7 @@ public class TabHostLayoutFragment extends Fragment {
         mBinding.tabLayout.clearOnTabSelectedListeners();
         mBinding.tabLayout.removeAllTabs();
         mBinding = null;
+        mCreateArticleResultLauncher = null;
     }
 
     @Override
@@ -204,6 +217,10 @@ public class TabHostLayoutFragment extends Fragment {
                 ((Tab4Fragment) fragment).onProfileActivityResult(result);
             }
         }
+    }
+
+    public void appbarLayoutExpand() {
+        mBinding.appbarLayout.setExpanded(true);
     }
 
     private int getStatusBarHeight() {
