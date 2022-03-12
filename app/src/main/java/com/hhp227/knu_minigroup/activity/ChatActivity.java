@@ -53,22 +53,20 @@ public class ChatActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBinding = ActivityChatBinding.inflate(getLayoutInflater());
-
-        setContentView(mBinding.getRoot());
-        Intent intent = getIntent();
         mDatabaseReference = FirebaseDatabase.getInstance().getReference("Messages");
         mMessageItemList = new ArrayList<>();
         mUser = AppController.getInstance().getPreferenceManager().getUser();
         mSender = mUser.getUid();
-        mReceiver = intent.getStringExtra("uid");
-        mValue = intent.getStringExtra("value");
-        mIsGroupChat = intent.getBooleanExtra("grp_chat", false);
+        mReceiver = getIntent().getStringExtra("uid");
+        mValue = getIntent().getStringExtra("value");
+        mIsGroupChat = getIntent().getBooleanExtra("grp_chat", false);
         mAdapter = new MessageListAdapter(mMessageItemList, mSender);
 
+        setContentView(mBinding.getRoot());
         setSupportActionBar(mBinding.toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle(intent.getStringExtra("chat_nm") + (mIsGroupChat ? " 그룹채팅방" : ""));
+            getSupportActionBar().setTitle(getIntent().getStringExtra("chat_nm") + (mIsGroupChat ? " 그룹채팅방" : ""));
         }
         mBinding.tvBtnSend.setOnClickListener(new View.OnClickListener() {
             @Override

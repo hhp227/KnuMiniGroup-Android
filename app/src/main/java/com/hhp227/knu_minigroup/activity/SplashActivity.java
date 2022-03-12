@@ -36,10 +36,9 @@ public class SplashActivity extends Activity {
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
         mBinding = ActivitySplashBinding.inflate(getLayoutInflater());
-
-        setContentView(mBinding.getRoot());
         mPreferenceManager = AppController.getInstance().getPreferenceManager();
 
+        setContentView(mBinding.getRoot());
         new Handler(getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {

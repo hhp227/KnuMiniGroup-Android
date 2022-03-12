@@ -1,6 +1,7 @@
 package com.hhp227.knu_minigroup.activity;
 
 import android.app.ProgressDialog;
+import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -15,6 +16,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
+
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 import androidx.exifinterface.media.ExifInterface;
@@ -27,7 +33,7 @@ import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.WriteListAdapter;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
-import com.hhp227.knu_minigroup.databinding.ActivityWriteBinding;
+import com.hhp227.knu_minigroup.databinding.ActivityCreateArticleBinding;
 import com.hhp227.knu_minigroup.databinding.WriteTextBinding;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
@@ -43,11 +49,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class WriteActivity extends AppCompatActivity {
-    public static final int CAMERA_PICK_IMAGE_REQUEST_CODE = 100;
-    public static final int REQUEST_IMAGE_CAPTURE = 200;
-    public static final int REQUEST_YOUTUBE_PICK = 300;
-    private static final String TAG = WriteActivity.class.getSimpleName();
+public class CreateArticleActivity extends AppCompatActivity {
+    private static final String TAG = CreateArticleActivity.class.getSimpleName();
 
     private int mContextMenuRequest;
 
@@ -71,17 +74,17 @@ public class WriteActivity extends AppCompatActivity {
 
     private YouTubeItem mYouTubeItem;
 
-    private ActivityWriteBinding mActivityWriteBinding;
+    private ActivityCreateArticleBinding mActivityCreateArticleBinding;
 
     private WriteTextBinding mWriteTextBinding;
+
+    private ActivityResultLauncher<Intent> mCameraPickActivityResultLauncher, mCameraCaptureActivityResultLauncher, mYouTubeSearchActivityResultLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mActivityWriteBinding = ActivityWriteBinding.inflate(getLayoutInflater());
+        mActivityCreateArticleBinding = ActivityCreateArticleBinding.inflate(getLayoutInflater());
         mWriteTextBinding = WriteTextBinding.inflate(getLayoutInflater());
-
-        setContentView(mActivityWriteBinding.getRoot());
         mContents = new ArrayList<>();
         mAdapter = new WriteListAdapter(getApplicationContext(), com.hhp227.knu_minigroup.R.layout.write_content, mContents);
         mPreferenceManager = AppController.getInstance().getPreferenceManager();
@@ -92,12 +95,67 @@ public class WriteActivity extends AppCompatActivity {
         mGrpNm = getIntent().getStringExtra("grp_nm");
         mGrpImg = getIntent().getStringExtra("grp_img");
         mKey = getIntent().getStringExtra("key");
+        mCameraPickActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult result) {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    ClipData clipData = result.getData().getClipData();
 
-        setSupportActionBar(mActivityWriteBinding.toolbar);
+                    if (clipData != null) {
+                        for (int i = 0; i < clipData.getItemCount(); i++) {
+                            Uri fileUri = clipData.getItemAt(i).getUri();
+                            Bitmap bitmap = new BitmapUtil(getBaseContext()).bitmapResize(fileUri, 200);
+
+                            mContents.add(bitmap);
+                        }
+                        mAdapter.notifyDataSetChanged();
+                    }
+                }
+            }
+        });
+        mCameraCaptureActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult result) {
+                if (result.getResultCode() == RESULT_OK) {
+                    try {
+                        Bitmap bitmap = new BitmapUtil(getBaseContext()).bitmapResize(mPhotoUri, 200);
+
+                        if (bitmap != null) {
+                            ExifInterface ei = new ExifInterface(mCurrentPhotoPath);
+                            int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+                            int angle = orientation == ExifInterface.ORIENTATION_ROTATE_90 ? 90
+                                    : orientation == ExifInterface.ORIENTATION_ROTATE_180 ? 180
+                                    : orientation == ExifInterface.ORIENTATION_ROTATE_270 ? 270
+                                    : 0;
+                            Bitmap rotatedBitmap = new BitmapUtil(getBaseContext()).rotateImage(bitmap, angle);
+
+                            mContents.add(rotatedBitmap);
+                            mAdapter.notifyDataSetChanged();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        mYouTubeSearchActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult result) {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    mYouTubeItem = result.getData().getParcelableExtra("youtube");
+
+                    mContents.add(mYouTubeItem);
+                    mAdapter.notifyDataSetChanged();
+                }
+            }
+        });
+
+        setContentView(mActivityCreateArticleBinding.getRoot());
+        setSupportActionBar(mActivityCreateArticleBinding.toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-        mActivityWriteBinding.llImage.setOnClickListener(new View.OnClickListener() {
+        mActivityCreateArticleBinding.llImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mContextMenuRequest = 2;
@@ -107,7 +165,7 @@ public class WriteActivity extends AppCompatActivity {
                 unregisterForContextMenu(v);
             }
         });
-        mActivityWriteBinding.llVideo.setOnClickListener(new View.OnClickListener() {
+        mActivityCreateArticleBinding.llVideo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mContextMenuRequest = 3;
@@ -117,9 +175,9 @@ public class WriteActivity extends AppCompatActivity {
                 unregisterForContextMenu(v);
             }
         });
-        mActivityWriteBinding.lvWrite.addHeaderView(mWriteTextBinding.getRoot());
-        mActivityWriteBinding.lvWrite.setAdapter(mAdapter);
-        mActivityWriteBinding.lvWrite.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mActivityCreateArticleBinding.lvWrite.addHeaderView(mWriteTextBinding.getRoot());
+        mActivityCreateArticleBinding.lvWrite.setAdapter(mAdapter);
+        mActivityCreateArticleBinding.lvWrite.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 mContextMenuRequest = 1;
@@ -128,14 +186,17 @@ public class WriteActivity extends AppCompatActivity {
             }
         });
         mProgressDialog.setCancelable(false);
-        registerForContextMenu(mActivityWriteBinding.lvWrite);
+        registerForContextMenu(mActivityCreateArticleBinding.lvWrite);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         mWriteTextBinding = null;
-        mActivityWriteBinding = null;
+        mActivityCreateArticleBinding = null;
+        mCameraPickActivityResultLauncher = null;
+        mCameraCaptureActivityResultLauncher = null;
+        mYouTubeSearchActivityResultLauncher = null;
     }
 
     @Override
@@ -219,7 +280,7 @@ public class WriteActivity extends AppCompatActivity {
                         .setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
                         .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
 
-                startActivityForResult(intent, CAMERA_PICK_IMAGE_REQUEST_CODE);
+                mCameraPickActivityResultLauncher.launch(intent);
                 return true;
             case 3:
                 intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -236,7 +297,7 @@ public class WriteActivity extends AppCompatActivity {
                         mPhotoUri = FileProvider.getUriForFile(this, getPackageName(), photoFile);
 
                         intent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoUri);
-                        startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+                        mCameraCaptureActivityResultLauncher.launch(intent);
                     }
                 }
                 return true;
@@ -247,53 +308,11 @@ public class WriteActivity extends AppCompatActivity {
                     Intent ysIntent = new Intent(getApplicationContext(), YouTubeSearchActivity.class);
 
                     ysIntent.putExtra("type", 0);
-                    startActivityForResult(ysIntent, REQUEST_YOUTUBE_PICK);
+                    mYouTubeSearchActivityResultLauncher.launch(ysIntent);
                 }
                 return true;
         }
         return false;
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        Bitmap bitmap;
-
-        if (requestCode == CAMERA_PICK_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-            if (data.getClipData() != null) {
-                for (int i = 0; i < data.getClipData().getItemCount(); i++) {
-                    Uri fileUri = data.getClipData().getItemAt(i).getUri();
-                    bitmap = new BitmapUtil(this).bitmapResize(fileUri, 200);
-
-                    mContents.add(bitmap);
-                }
-                mAdapter.notifyDataSetChanged();
-            }
-        } else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            try {
-                bitmap = new BitmapUtil(this).bitmapResize(mPhotoUri, 200);
-
-                if (bitmap != null) {
-                    ExifInterface ei = new ExifInterface(mCurrentPhotoPath);
-                    int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
-                    int angle = orientation == ExifInterface.ORIENTATION_ROTATE_90 ? 90
-                              : orientation == ExifInterface.ORIENTATION_ROTATE_180 ? 180
-                              : orientation == ExifInterface.ORIENTATION_ROTATE_270 ? 270
-                              : 0;
-                    Bitmap rotatedBitmap = new BitmapUtil(this).rotateImage(bitmap, angle);
-
-                    mContents.add(rotatedBitmap);
-                    mAdapter.notifyDataSetChanged();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else if (requestCode == REQUEST_YOUTUBE_PICK && resultCode == RESULT_OK) {//
-            mYouTubeItem = data.getParcelableExtra("youtube");
-
-            mContents.add(mYouTubeItem);
-            mAdapter.notifyDataSetChanged();
-        }
     }
 
     private void uploadImage(final int position, final Bitmap bitmap) {
@@ -385,7 +404,7 @@ public class WriteActivity extends AppCompatActivity {
                     boolean error = jsonObject.getBoolean("isError");
 
                     if (!error) {
-                        Intent intent = new Intent(WriteActivity.this, GroupActivity.class);
+                        Intent intent = new Intent(CreateArticleActivity.this, GroupActivity.class);
 
                         intent.putExtra("admin", mIsAdmin);
                         intent.putExtra("grp_id", grpId);

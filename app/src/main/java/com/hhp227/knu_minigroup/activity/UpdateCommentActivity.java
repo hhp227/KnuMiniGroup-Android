@@ -19,14 +19,14 @@ import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
-import com.hhp227.knu_minigroup.databinding.ActivityReplyModifyBinding;
+import com.hhp227.knu_minigroup.databinding.ActivityUpdateCommentBinding;
 import com.hhp227.knu_minigroup.databinding.ModifyTextBinding;
 import com.hhp227.knu_minigroup.dto.ReplyItem;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ReplyModifyActivity extends AppCompatActivity {
+public class UpdateCommentActivity extends AppCompatActivity {
     private static final String TAG = "댓글수정";
 
     private Holder mHolder;
@@ -35,24 +35,22 @@ public class ReplyModifyActivity extends AppCompatActivity {
 
     private String mGroupId, mArticleId, mReplyId, mReply, mArticleKey, mReplyKey;
 
-    private ActivityReplyModifyBinding mBinding;
+    private ActivityUpdateCommentBinding mBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mBinding = ActivityReplyModifyBinding.inflate(getLayoutInflater());
-
-        setContentView(mBinding.getRoot());
+        mBinding = ActivityUpdateCommentBinding.inflate(getLayoutInflater());
         mProgressDialog = new ProgressDialog(this);
-        Intent intent = getIntent();
-        mGroupId = intent.getStringExtra("grp_id");
-        mArticleId = intent.getStringExtra("artl_num");
-        mReplyId = intent.getStringExtra("cmmt_num");
-        mArticleKey = intent.getStringExtra("artl_key");
-        mReplyKey = intent.getStringExtra("cmmt_key");
-        mReply = intent.getStringExtra("cmt");
+        mGroupId = getIntent().getStringExtra("grp_id");
+        mArticleId = getIntent().getStringExtra("artl_num");
+        mReplyId = getIntent().getStringExtra("cmmt_num");
+        mArticleKey = getIntent().getStringExtra("artl_key");
+        mReplyKey = getIntent().getStringExtra("cmmt_key");
+        mReply = getIntent().getStringExtra("cmt");
         mReply = mReply.contains("※") ? mReply.substring(0, mReply.lastIndexOf("※")).trim() : mReply;
 
+        setContentView(mBinding.getRoot());
         mProgressDialog.setCancelable(false);
         setSupportActionBar(mBinding.toolbar);
         if (getSupportActionBar() != null) {
@@ -112,12 +110,12 @@ public class ReplyModifyActivity extends AppCompatActivity {
                             try {
 
                                 // 입력 자판 숨기기
-                                View view = ReplyModifyActivity.this.getCurrentFocus();
+                                View view = UpdateCommentActivity.this.getCurrentFocus();
                                 if (view != null) {
                                     InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                                     inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
                                 }
-                                Intent intent = new Intent(ReplyModifyActivity.this, ArticleActivity.class);
+                                Intent intent = new Intent(UpdateCommentActivity.this, ArticleActivity.class);
 
                                 intent.putExtra("update_reply", response);
                                 setResult(RESULT_OK, intent);

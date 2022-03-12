@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+
+import androidx.activity.result.ActivityResult;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.hhp227.knu_minigroup.R;
@@ -22,8 +24,6 @@ public class GroupActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBinding = ActivityGroupBinding.inflate(getLayoutInflater());
-
-        setContentView(mBinding.getRoot());
         Intent intent = getIntent();
         boolean isAdmin = intent.getBooleanExtra("admin", false);
         String groupId = intent.getStringExtra("grp_id");
@@ -33,6 +33,7 @@ public class GroupActivity extends AppCompatActivity {
         mKey = intent.getStringExtra("key");
         mFragMain = TabHostLayoutFragment.newInstance(isAdmin, groupId, mGroupName, groupImage, position, mKey);
 
+        setContentView(mBinding.getRoot());
         getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, mFragMain).commit();
     }
 
@@ -64,9 +65,8 @@ public class GroupActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        mFragMain.onActivityResult(requestCode, resultCode, data);
+    public void onProfileActivityResult(ActivityResult result) {
+        mFragMain.onProfileActivityResult(result);
+        setResult(RESULT_OK);
     }
 }

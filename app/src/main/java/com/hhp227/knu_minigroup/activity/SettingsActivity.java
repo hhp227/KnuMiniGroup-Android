@@ -23,8 +23,6 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBinding = ActivitySettingsBinding.inflate(getLayoutInflater());
-
-        setContentView(mBinding.getRoot());
         String groupId = getIntent().getStringExtra("grp_id");
         String groupImage = getIntent().getStringExtra("grp_img");
         String key = getIntent().getStringExtra("key");
@@ -42,6 +40,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         };
 
+        setContentView(mBinding.getRoot());
         setSupportActionBar(mBinding.toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("소모임 설정");

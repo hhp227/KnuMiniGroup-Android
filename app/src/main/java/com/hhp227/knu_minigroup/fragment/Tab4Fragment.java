@@ -14,7 +14,12 @@ import android.view.ViewGroup;
 import android.webkit.CookieManager;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -32,6 +37,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.ads.AdRequest;
 import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.activity.GroupActivity;
 import com.hhp227.knu_minigroup.activity.MainActivity;
 import com.hhp227.knu_minigroup.activity.NoticeActivity;
 import com.hhp227.knu_minigroup.activity.ProfileActivity;
@@ -52,19 +58,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Tab4Fragment extends Fragment implements View.OnClickListener {
-    public static final int UPDATE_PROFILE = 0;
     private static final String TAG = "설정";
     private static boolean mIsAdmin;
     private static int mPosition;
     private static String mGroupId, mGroupImage, mKey;
-
-    private long mLastClickTime;
 
     private CookieManager mCookieManager;
 
     private User mUser;
 
     private FragmentTab4Binding mBinding;
+
+    private ActivityResultLauncher<Intent> mProfileActivityResultLauncher;
 
     public Tab4Fragment() {
     }
@@ -104,6 +109,12 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mCookieManager = AppController.getInstance().getCookieManager();
+        mProfileActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult result) {
+                ((GroupActivity) requireActivity()).onProfileActivityResult(result);
+            }
+        });
 
         mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mBinding.recyclerView.setAdapter(new RecyclerView.Adapter<Tab4Holder>() {
@@ -131,12 +142,14 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener {
     public void onDestroyView() {
         super.onDestroyView();
         mBinding = null;
+        mProfileActivityResultLauncher = null;
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == GroupFragment.UPDATE_GROUP && resultCode == Activity.RESULT_OK) {
+            ActionBar actionBar = ((AppCompatActivity) requireActivity()).getSupportActionBar();
             String groupName = data.getStringExtra("grp_nm");
             String groupDescription = data.getStringExtra("grp_desc");
             String joinType = data.getStringExtra("join_div");
@@ -146,11 +159,16 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener {
             intent.putExtra("grp_desc", groupDescription);
             intent.putExtra("join_div", joinType);
             intent.putExtra("pos", mPosition);
-            getActivity().setResult(Activity.RESULT_OK, intent);
-            ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(groupName);
-        } else if (requestCode == UPDATE_PROFILE && resultCode == Activity.RESULT_OK) {
+            requireActivity().setResult(Activity.RESULT_OK, intent);
+            if (actionBar != null) {
+                actionBar.setTitle(groupName);
+            }
+        }
+    }
+
+    public void onProfileActivityResult(ActivityResult result) {
+        if (result.getResultCode() == Activity.RESULT_OK) {
             mBinding.recyclerView.getAdapter().notifyDataSetChanged();
-            getActivity().setResult(Activity.RESULT_OK);
         }
     }
 
@@ -218,7 +236,7 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.ll_profile:
-                startActivityForResult(new Intent(getContext(), ProfileActivity.class), UPDATE_PROFILE);
+                mProfileActivityResultLauncher.launch(new Intent(getContext(), ProfileActivity.class));
                 break;
             case R.id.ll_withdrawal:
                 AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
@@ -232,10 +250,8 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener {
                             public void onResponse(JSONObject response) {
                                 try {
                                     if (!response.getBoolean("isError")) {
-                                        Intent intent = new Intent(getContext(), MainActivity.class);
-
-                                        intent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                        startActivity(intent);
+                                        requireActivity().setResult(Activity.RESULT_OK, new Intent(getContext(), MainActivity.class));
+                                        requireActivity().finish();
                                         Toast.makeText(getContext(), "소모임 " + (mIsAdmin ? "폐쇄" : "탈퇴") + " 완료", Toast.LENGTH_LONG).show();
                                     }
                                 } catch (JSONException e) {

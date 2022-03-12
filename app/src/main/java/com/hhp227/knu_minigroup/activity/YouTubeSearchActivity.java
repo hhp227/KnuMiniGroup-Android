@@ -47,19 +47,18 @@ public class YouTubeSearchActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBinding = ActivityListBinding.inflate(getLayoutInflater());
-
-        setContentView(mBinding.getRoot());
         mYouTubeItemList = new ArrayList<>();
         mAdapter = new YouTubeListAdapter(mYouTubeItemList);
         mSearchText = "";
         mType = getIntent().getIntExtra("type", 0);
 
+        setContentView(mBinding.getRoot());
         setSupportActionBar(mBinding.toolbar);
         mAdapter.setOnItemClickListener(new YouTubeListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position) {
                 YouTubeItem youTubeItem = mYouTubeItemList.get(position);
-                Intent intent = new Intent(getApplicationContext(), mType == 0 ? WriteActivity.class : ModifyActivity.class);
+                Intent intent = new Intent(getApplicationContext(), mType == 0 ? CreateArticleActivity.class : ModifyActivity.class);
 
                 intent.putExtra("youtube", youTubeItem);
                 setResult(RESULT_OK, intent);
