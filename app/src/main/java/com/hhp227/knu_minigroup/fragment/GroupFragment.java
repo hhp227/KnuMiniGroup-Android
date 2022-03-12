@@ -14,6 +14,10 @@ import android.view.*;
 import android.webkit.CookieManager;
 import android.webkit.ValueCallback;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
@@ -51,8 +55,6 @@ import static com.hhp227.knu_minigroup.adapter.GroupGridAdapter.TYPE_AD;
 import static com.hhp227.knu_minigroup.adapter.GroupGridAdapter.TYPE_GROUP;
 
 public class GroupFragment extends Fragment {
-    public static final int CREATE_CODE = 10;
-    public static final int REGISTER_CODE = 20;
     public static final int UPDATE_GROUP = 30;
     private static final int PORTAIT_SPAN_COUNT = 2;
     private static final int LANDSCAPE_SPAN_COUNT = 4;
@@ -79,6 +81,8 @@ public class GroupFragment extends Fragment {
     private RecyclerView.ItemDecoration mItemDecoration;
 
     private FragmentGroupBinding mBinding;
+
+    private ActivityResultLauncher<Intent> mActivityResultLauncher;
 
     public GroupFragment() {
     }
@@ -149,6 +153,16 @@ public class GroupFragment extends Fragment {
                 start();
             }
         };
+        mActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult result) {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    mGroupItemKeys.clear();
+                    mGroupItemValues.clear();
+                    fetchDataTask();
+                }
+            }
+        });
 
         ((MainActivity) requireActivity()).setAppBar(mBinding.toolbar, getString(R.string.main));
         mAdapter.setHasStableIds(true);
@@ -165,7 +179,7 @@ public class GroupFragment extends Fragment {
                     intent.putExtra("grp_img", groupItem.getImage()); // 경북대 소모임에는 없음
                     intent.putExtra("pos", position);
                     intent.putExtra("key", mAdapter.getKey(position));
-                    startActivityForResult(intent, UPDATE_GROUP);
+                    mActivityResultLauncher.launch(intent);
                 }
             }
         });
@@ -174,10 +188,10 @@ public class GroupFragment extends Fragment {
             public void onClick(View v) {
                 switch (v.getId()) {
                     case R.id.b_find:
-                        startActivityForResult(new Intent(getContext(), FindGroupActivity.class), REGISTER_CODE);
+                        mActivityResultLauncher.launch(new Intent(getContext(), FindGroupActivity.class));
                         return;
                     case R.id.b_create:
-                        startActivityForResult(new Intent(getContext(), CreateGroupActivity.class), CREATE_CODE);
+                        mActivityResultLauncher.launch(new Intent(getContext(), CreateGroupActivity.class));
                 }
             }
         });
@@ -207,13 +221,13 @@ public class GroupFragment extends Fragment {
                 item.setCheckable(false);
                 switch (item.getItemId()) {
                     case R.id.navigation_find:
-                        startActivityForResult(new Intent(getContext(), FindGroupActivity.class), REGISTER_CODE);
+                        mActivityResultLauncher.launch(new Intent(getContext(), FindGroupActivity.class));
                         return true;
                     case R.id.navigation_request:
                         startActivity(new Intent(getContext(), RequestActivity.class));
                         return true;
                     case R.id.navigation_create:
-                        startActivityForResult(new Intent(getContext(), CreateGroupActivity.class), CREATE_CODE);
+                        mActivityResultLauncher.launch(new Intent(getContext(), CreateGroupActivity.class));
                         return true;
                 }
                 return false;
@@ -230,6 +244,7 @@ public class GroupFragment extends Fragment {
         super.onDestroyView();
         mBinding.rvGroup.removeItemDecoration(mItemDecoration);
         mBinding = null;
+        mActivityResultLauncher = null;
     }
 
     @Override
@@ -244,28 +259,6 @@ public class GroupFragment extends Fragment {
         CountDownTimer countDownTimer = mCountDownTimer;
         if (countDownTimer != null)
             countDownTimer.cancel();
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if ((requestCode == CREATE_CODE || requestCode == REGISTER_CODE) && resultCode == Activity.RESULT_OK) {
-            mGroupItemKeys.clear();
-            mGroupItemValues.clear();
-            fetchDataTask();
-        } else if (requestCode == UPDATE_GROUP && resultCode == Activity.RESULT_OK && data != null) {//
-            int position = data.getIntExtra("position", 0);
-
-            if (mGroupItemValues.get(position) instanceof GroupItem) {
-                GroupItem groupItem = (GroupItem) mGroupItemValues.get(position);
-
-                groupItem.setName(data.getStringExtra("grp_nm"));
-                groupItem.setDescription(data.getStringExtra("grp_desc"));
-                groupItem.setJoinType(data.getStringExtra("join_div"));
-                mGroupItemValues.set(position, groupItem);
-                mAdapter.notifyDataSetChanged();
-            }
-        }
     }
 
     @Override
