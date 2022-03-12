@@ -10,6 +10,8 @@ import android.view.ViewGroup;
 
 import android.view.WindowManager;
 import android.widget.*;
+
+import androidx.activity.result.ActivityResult;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -182,13 +184,6 @@ public class TabHostLayoutFragment extends Fragment {
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        for (Fragment fragment : getChildFragmentManager().getFragments())
-            fragment.onActivityResult(requestCode, resultCode, data);
-    }
-
-    @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         switch (newConfig.orientation) {
@@ -196,6 +191,18 @@ public class TabHostLayoutFragment extends Fragment {
 
                 // 툴바, 탭레이아웃 간격 벌어짐 귀찮아서 나중에...
                 break;
+        }
+    }
+
+    public void onProfileActivityResult(ActivityResult result) {
+        for (Fragment fragment : getChildFragmentManager().getFragments()) {
+            if (fragment instanceof Tab1Fragment) {
+                ((Tab1Fragment) fragment).onProfileActivityResult(result);
+            } else if (fragment instanceof Tab3Fragment) {
+                ((Tab3Fragment) fragment).onProfileActivityResult(result);
+            } else if (fragment instanceof Tab4Fragment) {
+                ((Tab4Fragment) fragment).onProfileActivityResult(result);
+            }
         }
     }
 

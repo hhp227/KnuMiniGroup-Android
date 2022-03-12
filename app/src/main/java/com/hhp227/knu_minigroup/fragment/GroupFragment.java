@@ -1,5 +1,8 @@
 package com.hhp227.knu_minigroup.fragment;
 
+import static com.hhp227.knu_minigroup.adapter.GroupGridAdapter.TYPE_AD;
+import static com.hhp227.knu_minigroup.adapter.GroupGridAdapter.TYPE_GROUP;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -10,7 +13,11 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.*;
+import android.view.LayoutInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.ValueCallback;
 
@@ -24,14 +31,19 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
-import com.google.firebase.database.*;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.activity.CreateGroupActivity;
 import com.hhp227.knu_minigroup.activity.FindGroupActivity;
@@ -45,14 +57,15 @@ import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.FragmentGroupBinding;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
+
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
 
-import java.util.*;
-
-import static com.hhp227.knu_minigroup.adapter.GroupGridAdapter.TYPE_AD;
-import static com.hhp227.knu_minigroup.adapter.GroupGridAdapter.TYPE_GROUP;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GroupFragment extends Fragment {
     public static final int UPDATE_GROUP = 30;
@@ -160,6 +173,7 @@ public class GroupFragment extends Fragment {
                     mGroupItemKeys.clear();
                     mGroupItemValues.clear();
                     fetchDataTask();
+                    ((MainActivity) requireActivity()).updateProfileImage();
                 }
             }
         });
