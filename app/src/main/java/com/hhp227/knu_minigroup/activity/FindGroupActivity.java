@@ -189,7 +189,8 @@ public class FindGroupActivity extends AppCompatActivity {
                 mAdapter.setFooterProgressBarVisibility(View.INVISIBLE);
                 mAdapter.notifyDataSetChanged();
                 hideProgressBar();
-                mBinding.rlGroup.setVisibility(mGroupItemValues.isEmpty() ? View.VISIBLE : View.GONE);
+                mBinding.text.setText("그룹이 없습니다.");
+                mBinding.rlGroup.setVisibility(mGroupItemValues.size() > 1 ? View.GONE : View.VISIBLE);
             }
         }, new Response.ErrorListener() {
             @Override

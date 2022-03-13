@@ -99,8 +99,6 @@ public class CreateArticleActivity extends AppCompatActivity {
         mGrpId = getIntent().getStringExtra("grp_id");
         mGrpNm = getIntent().getStringExtra("grp_nm");
         mGrpImg = getIntent().getStringExtra("grp_img");
-
-        //
         mArtlNum = getIntent().getStringExtra("artl_num");
         mTitle = getIntent().getStringExtra("sbjt");
         mContent = getIntent().getStringExtra("txt");
@@ -108,8 +106,6 @@ public class CreateArticleActivity extends AppCompatActivity {
         mYouTubeItem = getIntent().getParcelableExtra("vid");
         mGrpKey = getIntent().getStringExtra("grp_key");
         mArtlKey = getIntent().getStringExtra("artl_key");
-
-        //
         mCameraPickActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
             public void onActivityResult(ActivityResult result) {

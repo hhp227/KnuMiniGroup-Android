@@ -38,7 +38,7 @@ public interface EndPoint {
     String CREATE_LOG = "http://knu.dothome.co.kr/knu/v1/register";
 
     // 학교 URL
-    String URL_KNU = "http://www.knu.ac.kr";
+    String URL_KNU = "https://www.knu.ac.kr";
     String URL_SCHEDULE = URL_KNU + "/wbbs/wbbs/user/yearSchedule/xmlResponse.action?schedule.search_date={YEAR-MONTH}";
     String URL_SHUTTLE = URL_KNU + "/wbbs/wbbs/contents/index.action?menu_url=intro/{SHUTTLE}&menu_idx=27";
     String URL_KNU_NOTICE = URL_KNU + "/wbbs/wbbs/bbs/btin/list.action?bbs_cde=1&btin.page={PAGE}&popupDeco=false&btin.search_type=&btin.search_text=&menu_idx=67";

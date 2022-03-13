@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -89,6 +90,7 @@ public class DCShuttleScheduleFragment extends Fragment {
             public void onResponse(String response) {
                 Source source = new Source(response);
 
+                Log.e("TEST", "response" + response);
                 for (int a = 0; a < 3; a++) {
                     Element table = source.getAllElements(HTMLElementName.TABLE).get(a);
                     List<Element> trs = table.getAllElements(HTMLElementName.TR);

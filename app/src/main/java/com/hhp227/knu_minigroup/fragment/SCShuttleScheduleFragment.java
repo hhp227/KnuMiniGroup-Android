@@ -23,6 +23,7 @@ import net.htmlparser.jericho.Source;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -82,7 +83,7 @@ public class SCShuttleScheduleFragment extends Fragment {
                     try {
                         URL URL = new URL(EndPoint.URL_SHUTTLE.replace("{SHUTTLE}", "map03_02"));
                         InputStream html = URL.openStream();
-                        mSource = new Source(new InputStreamReader(html, "utf-8")); // 소스를 UTF-8 인코딩으로 불러온다.
+                        mSource = new Source(new InputStreamReader(html, StandardCharsets.UTF_8)); // 소스를 UTF-8 인코딩으로 불러온다.
 
                         mSource.fullSequentialParse(); // 순차적으로 구문분석
                         Element table = mSource.getAllElements(HTMLElementName.TABLE).get(0);

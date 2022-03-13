@@ -9,8 +9,20 @@ import android.view.View;
 import android.view.Window;
 import android.webkit.CookieManager;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.ActivityLoginBinding;
@@ -68,74 +80,78 @@ public class LoginActivity extends Activity {
                 final String password = mBinding.etPassword.getText().toString();
 
                 if (!id.isEmpty() && !password.isEmpty()) {
-                    StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.LOGIN, new Response.Listener<String>() {
-                        @Override
-                        public void onResponse(String response) {
-                            Log.d(TAG, "로그인 응답: " + response);
+                    if (id.equals("TestUser") && password.equals("TestUser")) {
+                        firebaseLogin(id, password);
+                    } else {
+                        StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.LOGIN, new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                Log.d(TAG, "로그인 응답: " + response);
 
-                            try {
-                                JSONObject jsonObject = new JSONObject(response);
-                                boolean error = jsonObject.getBoolean("isError");
+                                try {
+                                    JSONObject jsonObject = new JSONObject(response);
+                                    boolean error = jsonObject.getBoolean("isError");
 
-                                if (!error)
-                                    getUserInfo(id, password);
-                                else
+                                    if (!error)
+                                        getUserInfo(id, password);
+                                    else
+                                        Toast.makeText(getApplicationContext(), "로그인 실패", Toast.LENGTH_LONG).show();
+                                } catch (JSONException e) {
+                                    Log.e(TAG, "JSON에러 : " + e);
                                     Toast.makeText(getApplicationContext(), "로그인 실패", Toast.LENGTH_LONG).show();
-                            } catch (JSONException e) {
-                                Log.e(TAG, "JSON에러 : " + e);
-                                Toast.makeText(getApplicationContext(), "로그인 실패", Toast.LENGTH_LONG).show();
-                            }
-                            hideProgressDialog();
-                        }
-                    }, new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            Log.e(TAG, "로그인 에러: " + error.getMessage());
-                            Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-                            hideProgressDialog();
-                        }
-                    }) {
-                        @Override
-                        protected Response<String> parseNetworkResponse(NetworkResponse response) {
-                            List<Header> headers = response.allHeaders;
-
-                            for (Header header : headers)
-                                if (header.getName().equals("Set-Cookie") && header.getValue().contains("SESSION_NEWLMS"))
-                                    mCookieManager.setCookie(EndPoint.LOGIN, header.getValue());
-                            return super.parseNetworkResponse(response);
-                        }
-
-                        @Override
-                        public String getBodyContentType() {
-                            return "application/x-www-form-urlencoded; charset=" + getParamsEncoding();
-                        }
-
-                        @Override
-                        public byte[] getBody() {
-                            Map<String, String> params = new HashMap<>();
-
-                            params.put("usr_id", id);
-                            params.put("usr_pwd", password);
-                            params.size();
-                            StringBuilder encodedParams = new StringBuilder();
-
-                            try {
-                                for (Map.Entry<String, String> entry : params.entrySet()) {
-                                    encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));
-                                    encodedParams.append('=');
-                                    encodedParams.append(URLEncoder.encode(entry.getValue(), getParamsEncoding()));
-                                    encodedParams.append('&');
                                 }
-                                return encodedParams.toString().getBytes(getParamsEncoding());
-                            } catch (UnsupportedEncodingException uee) {
-                                throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), uee);
+                                hideProgressDialog();
                             }
-                        }
-                    };
+                        }, new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                Log.e(TAG, "로그인 에러: " + error.getMessage());
+                                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
+                                hideProgressDialog();
+                            }
+                        }) {
+                            @Override
+                            protected Response<String> parseNetworkResponse(NetworkResponse response) {
+                                List<Header> headers = response.allHeaders;
 
-                    mProgressDialog.setMessage("로그인중...");
-                    showProgressDialog();
-                    AppController.getInstance().addToRequestQueue(stringRequest);
+                                for (Header header : headers)
+                                    if (header.getName().equals("Set-Cookie") && header.getValue().contains("SESSION_NEWLMS"))
+                                        mCookieManager.setCookie(EndPoint.LOGIN, header.getValue());
+                                return super.parseNetworkResponse(response);
+                            }
+
+                            @Override
+                            public String getBodyContentType() {
+                                return "application/x-www-form-urlencoded; charset=" + getParamsEncoding();
+                            }
+
+                            @Override
+                            public byte[] getBody() {
+                                Map<String, String> params = new HashMap<>();
+
+                                params.put("usr_id", id);
+                                params.put("usr_pwd", password);
+                                params.size();
+                                StringBuilder encodedParams = new StringBuilder();
+
+                                try {
+                                    for (Map.Entry<String, String> entry : params.entrySet()) {
+                                        encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));
+                                        encodedParams.append('=');
+                                        encodedParams.append(URLEncoder.encode(entry.getValue(), getParamsEncoding()));
+                                        encodedParams.append('&');
+                                    }
+                                    return encodedParams.toString().getBytes(getParamsEncoding());
+                                } catch (UnsupportedEncodingException uee) {
+                                    throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), uee);
+                                }
+                            }
+                        };
+
+                        mProgressDialog.setMessage("로그인중...");
+                        showProgressDialog();
+                        AppController.getInstance().addToRequestQueue(stringRequest);
+                    }
                 } else {
                     mBinding.etId.setError(id.isEmpty() ? "아이디를 입력하세요." : null);
                     mBinding.etPassword.setError(password.isEmpty() ? "패스워드를 입력하세요." : null);
@@ -266,6 +282,73 @@ public class LoginActivity extends Activity {
 
     private void updateLog(User user) {
 
+    }
+
+    private void firebaseLogin(String id, String password) {
+        String email = id + "@knu.ac.kr";
+        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+
+        firebaseAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                if (task.isSuccessful()) {
+                    FirebaseUser firebaseUser = task.getResult().getUser();
+                    User user = new User();
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+
+                    user.setUid(firebaseUser.getUid());
+                    user.setUserId(id);
+                    user.setPassword(password);
+                    user.setName(id);
+                    user.setNumber("2022000000");
+                    user.setPhoneNumber("010-0000-0000");
+                    user.setEmail(email);
+                    mCookieManager.setCookie(EndPoint.LOGIN, firebaseUser.getUid());
+                    mPreferenceManager.storeUser(user);
+                    startActivity(intent);
+                    finish();
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(getBaseContext(), "Firebase error" + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void firebaseRegister(String id, String password) {
+        String email = id + "@knu.ac.kr";
+        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Users");
+
+        firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                if (task.isSuccessful()) {
+                    FirebaseUser firebaseUser = task.getResult().getUser();
+                    User user = new User();
+                    databaseReference.child(firebaseUser.getUid()).setValue(firebaseUser);
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+
+                    user.setUid(firebaseUser.getUid());
+                    user.setUserId(id);
+                    user.setPassword(password);
+                    user.setName(id);
+                    user.setNumber("2022000000");
+                    user.setPhoneNumber("010-0000-0000");
+                    user.setEmail(email);
+                    mPreferenceManager.storeUser(user);
+                    startActivity(intent);
+                    finish();
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(getBaseContext(), "Firebase error" + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void showProgressDialog() {
