@@ -1,7 +1,6 @@
 package com.hhp227.knu_minigroup.activity;
 
 import static com.hhp227.knu_minigroup.activity.YouTubeSearchActivity.API_KEY;
-import static com.hhp227.knu_minigroup.fragment.Tab1Fragment.UPDATE_ARTICLE;
 
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -73,7 +72,10 @@ import java.util.List;
 import java.util.Map;
 
 public class ArticleActivity extends MyYouTubeBaseActivity {
-    private static final int UPDATE_REPLY = 10;
+    private static final int UPDATE_ARTICLE = 10;
+
+    private static final int UPDATE_REPLY = 20;
+
     private static final String TAG = ArticleActivity.class.getSimpleName();
 
     private boolean mIsBottom, mIsUpdate, mIsAuthorized;
@@ -93,6 +95,8 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
     private ReplyListAdapter mAdapter;
 
     private Source mSource;
+
+    private TextWatcher mTextWatcher;
 
     private YouTubeItem mYouTubeItem;
 
@@ -123,6 +127,21 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
         mReplyItemKeys = new ArrayList<>();
         mReplyItemValues = new ArrayList<>();
         mAdapter = new ReplyListAdapter(mReplyItemKeys, mReplyItemValues);
+        mTextWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                mActivityArticleBinding.cvBtnSend.setCardBackgroundColor(getResources().getColor(s.length() > 0 ? R.color.colorAccent : androidx.cardview.R.color.cardview_light_background));
+                mActivityArticleBinding.tvBtnSend.setTextColor(getResources().getColor(s.length() > 0 ? android.R.color.white : android.R.color.darker_gray));
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        };
 
         setContentView(mActivityArticleBinding.getRoot());
         setSupportActionBar(mActivityArticleBinding.toolbar);
@@ -152,21 +171,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
                     Toast.makeText(getApplicationContext(), "댓글을 입력하세요.", Toast.LENGTH_LONG).show();
             }
         });
-        mActivityArticleBinding.etReply.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                mActivityArticleBinding.cvBtnSend.setCardBackgroundColor(getResources().getColor(s.length() > 0 ? R.color.colorAccent : androidx.cardview.R.color.cardview_light_background));
-                mActivityArticleBinding.tvBtnSend.setTextColor(getResources().getColor(s.length() > 0 ? android.R.color.white : android.R.color.darker_gray));
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-            }
-        });
+        mActivityArticleBinding.etReply.addTextChangedListener(mTextWatcher);
         mActivityArticleBinding.etReply.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -195,6 +200,8 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mActivityArticleBinding.etReply.removeTextChangedListener(mTextWatcher);
+        mTextWatcher = null;
         mActivityArticleBinding = null;
         mArticleDetailBinding = null;
     }
@@ -215,7 +222,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
                 finish();
                 return true;
             case 1:
-                Intent intent = new Intent(this, ModifyActivity.class);
+                Intent intent = new Intent(this, CreateArticleActivity.class);
 
                 intent.putExtra("grp_id", mGroupId);
                 intent.putExtra("artl_num", mArticleId);
@@ -225,6 +232,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
                 intent.putExtra("vid", mYouTubeItem);
                 intent.putExtra("grp_key", mGroupKey);
                 intent.putExtra("artl_key", mArticleKey);
+                intent.putExtra("type", 1);
                 startActivityForResult(intent, UPDATE_ARTICLE);
                 return true;
             case 2:
@@ -428,8 +436,8 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
                             .into(mArticleDetailBinding.ivProfileImage);
                     mArticleDetailBinding.tvTitle.setText(title + " - " + name);
                     mArticleDetailBinding.tvTimestamp.setText(timeStamp);
+                    mArticleDetailBinding.tvContent.setText(content);
                     if (!TextUtils.isEmpty(content)) {
-                        mArticleDetailBinding.tvContent.setText(content);
                         mArticleDetailBinding.tvContent.setVisibility(View.VISIBLE);
                     } else
                         mArticleDetailBinding.tvContent.setVisibility(View.GONE);

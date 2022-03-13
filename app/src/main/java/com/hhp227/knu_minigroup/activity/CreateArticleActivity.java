@@ -21,20 +21,26 @@ import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 import androidx.exifinterface.media.ExifInterface;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.WriteListAdapter;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.ActivityCreateArticleBinding;
 import com.hhp227.knu_minigroup.databinding.WriteTextBinding;
+import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
@@ -54,9 +60,9 @@ public class CreateArticleActivity extends AppCompatActivity {
 
     private int mContextMenuRequest;
 
-    private boolean mIsAdmin;
+    private String mGrpId, mGrpNm, mGrpImg, mCurrentPhotoPath, mCookie;
 
-    private String mGrpId, mGrpNm, mGrpImg, mCurrentPhotoPath, mCookie, mKey;
+    private String mArtlNum, mTitle, mContent, mGrpKey, mArtlKey;
 
     private List<String> mImageList;
 
@@ -86,15 +92,24 @@ public class CreateArticleActivity extends AppCompatActivity {
         mActivityCreateArticleBinding = ActivityCreateArticleBinding.inflate(getLayoutInflater());
         mWriteTextBinding = WriteTextBinding.inflate(getLayoutInflater());
         mContents = new ArrayList<>();
-        mAdapter = new WriteListAdapter(getApplicationContext(), com.hhp227.knu_minigroup.R.layout.write_content, mContents);
+        mAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, mContents);
         mPreferenceManager = AppController.getInstance().getPreferenceManager();
         mCookie = AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN);
         mProgressDialog = new ProgressDialog(this);
-        mIsAdmin = getIntent().getBooleanExtra("admin", false);
         mGrpId = getIntent().getStringExtra("grp_id");
         mGrpNm = getIntent().getStringExtra("grp_nm");
         mGrpImg = getIntent().getStringExtra("grp_img");
-        mKey = getIntent().getStringExtra("key");
+
+        //
+        mArtlNum = getIntent().getStringExtra("artl_num");
+        mTitle = getIntent().getStringExtra("sbjt");
+        mContent = getIntent().getStringExtra("txt");
+        mImageList = getIntent().getStringArrayListExtra("img");
+        mYouTubeItem = getIntent().getParcelableExtra("vid");
+        mGrpKey = getIntent().getStringExtra("grp_key");
+        mArtlKey = getIntent().getStringExtra("artl_key");
+
+        //
         mCameraPickActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
             public void onActivityResult(ActivityResult result) {
@@ -175,6 +190,8 @@ public class CreateArticleActivity extends AppCompatActivity {
                 unregisterForContextMenu(v);
             }
         });
+        mWriteTextBinding.etTitle.setText(mTitle);
+        mWriteTextBinding.etContent.setText(mContent);
         mActivityCreateArticleBinding.lvWrite.addHeaderView(mWriteTextBinding.getRoot());
         mActivityCreateArticleBinding.lvWrite.setAdapter(mAdapter);
         mActivityCreateArticleBinding.lvWrite.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -186,6 +203,12 @@ public class CreateArticleActivity extends AppCompatActivity {
             }
         });
         mProgressDialog.setCancelable(false);
+        if (mImageList != null && mImageList.size() > 0) {
+            mContents.addAll(mImageList);
+            mAdapter.notifyDataSetChanged();
+        }
+        if (mYouTubeItem != null)
+            mContents.add(mYouTubeItem.position, mYouTubeItem);
         registerForContextMenu(mActivityCreateArticleBinding.lvWrite);
     }
 
@@ -225,7 +248,11 @@ public class CreateArticleActivity extends AppCompatActivity {
                     if (mContents.size() > 0) {
                         int position = 0;
 
-                        if (mContents.get(position) instanceof Bitmap) {////////////// 리팩토링 요망
+                        if (mContents.get(position) instanceof String) {
+                            String image = (String) mContents.get(position);
+
+                            uploadProcess(position, image, false);
+                        } else if (mContents.get(position) instanceof Bitmap) {////////////// 리팩토링 요망
                             Bitmap bitmap = (Bitmap) mContents.get(position);// 수정
 
                             uploadImage(position, bitmap); // 수정
@@ -235,7 +262,7 @@ public class CreateArticleActivity extends AppCompatActivity {
                             uploadProcess(position, youTubeItem.videoId, true);
                         }
                     } else
-                        actionSend(mGrpId, title, content);
+                        actionSend(title, content);
                 } else
                     Toast.makeText(getApplicationContext(), (title.isEmpty() ? "제목" : "내용") + "을 입력하세요.", Toast.LENGTH_LONG).show();
                 return true;
@@ -270,8 +297,9 @@ public class CreateArticleActivity extends AppCompatActivity {
             case 1:
                 int position = ((AdapterView.AdapterContextMenuInfo) item.getMenuInfo()).position - 1;
 
-                if (mContents.get(position) instanceof YouTubeItem)
+                if (mContents.get(position) instanceof YouTubeItem) {
                     mYouTubeItem = null;
+                }
                 mContents.remove(position);
                 mAdapter.notifyDataSetChanged();
                 return true;
@@ -307,7 +335,6 @@ public class CreateArticleActivity extends AppCompatActivity {
                 else {
                     Intent ysIntent = new Intent(getApplicationContext(), YouTubeSearchActivity.class);
 
-                    ysIntent.putExtra("type", 0);
                     mYouTubeSearchActivityResultLauncher.launch(ysIntent);
                 }
                 return true;
@@ -357,13 +384,13 @@ public class CreateArticleActivity extends AppCompatActivity {
         Volley.newRequestQueue(this).add(multipartRequest);
     }
 
-    private void uploadProcess(int position, String imageSrc, boolean isYoutube) {
+    private void uploadProcess(int position, String imageUrl, boolean isYoutube) {
         if (!isYoutube)
-            mImageList.add(imageSrc);
+            mImageList.add(imageUrl);
         mProgressDialog.setProgress((int) ((double) (position) / (mContents.size() - 1) * 100));
         try {
-            String test = (isYoutube ? "<p><embed title=\"YouTube video player\" class=\"youtube-player\" autostart=\"true\" src=\"//www.youtube.com/embed/" + imageSrc + "?autoplay=1\"  width=\"488\" height=\"274\"></embed><p>" // 유튜브 태그
-                    : ("<p><img src=\"" + imageSrc + "\" width=\"488\"><p>")) + (position < mContents.size() - 1 ? "<br>": "");
+            String test = (isYoutube ? "<p><embed title=\"YouTube video player\" class=\"youtube-player\" autostart=\"true\" src=\"//www.youtube.com/embed/" + imageUrl + "?autoplay=1\"  width=\"488\" height=\"274\"></embed><p>" // 유튜브 태그
+                    : ("<p><img src=\"" + imageUrl + "\" width=\"488\"><p>")) + (position < mContents.size() - 1 ? "<br>": "");
 
             mMakeHtmlContents.append(test);
             if (position < mContents.size() - 1) {
@@ -375,6 +402,10 @@ public class CreateArticleActivity extends AppCompatActivity {
                     Bitmap bitmap = (Bitmap) mContents.get(position);
 
                     uploadImage(position, bitmap);
+                } else if (mContents.get(position) instanceof String) {
+                    String imageSrc = (String) mContents.get(position);
+
+                    uploadProcess(position, imageSrc, false);
                 } else if (mContents.get(position) instanceof YouTubeItem) {
                     YouTubeItem youTubeItem = (YouTubeItem) mContents.get(position);
 
@@ -384,7 +415,7 @@ public class CreateArticleActivity extends AppCompatActivity {
                 String title = mWriteTextBinding.etTitle.getEditableText().toString();
                 String content = (!TextUtils.isEmpty(mWriteTextBinding.etContent.getText().toString()) ? Html.toHtml(mWriteTextBinding.etContent.getText()) + "<p><br data-mce-bogus=\"1\"></p>" : "") + mMakeHtmlContents.toString();
 
-                actionSend(mGrpId, title, content);
+                actionSend(title, content);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -393,7 +424,15 @@ public class CreateArticleActivity extends AppCompatActivity {
         }
     }
 
-    private void actionSend(final String grpId, final String title, final String content) {
+    private void actionSend(final String title, final String content) {
+        if (getIntent().getIntExtra("type", -1) == 0) {
+            actionCreate(title, content);
+        } else {
+            actionUpdate(title, content);
+        }
+    }
+
+    private void actionCreate(final String title, final String content) {
         String tagStringReq = "req_send";
         StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.WRITE_ARTICLE, new Response.Listener<String>() {
             @Override
@@ -404,17 +443,6 @@ public class CreateArticleActivity extends AppCompatActivity {
                     boolean error = jsonObject.getBoolean("isError");
 
                     if (!error) {
-                        /*Intent intent = new Intent(CreateArticleActivity.this, GroupActivity.class);
-
-                        intent.putExtra("admin", mIsAdmin);
-                        intent.putExtra("grp_id", grpId);
-                        intent.putExtra("grp_nm", mGrpNm);
-                        intent.putExtra("grp_img", mGrpImg);
-                        intent.putExtra("key", mKey);
-
-                        // 이전 Activity 초기화
-                        intent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        startActivity(intent);*/
                         setResult(RESULT_OK);
                         finish();
                         Toast.makeText(getApplicationContext(), "전송완료", Toast.LENGTH_LONG).show();
@@ -446,11 +474,60 @@ public class CreateArticleActivity extends AppCompatActivity {
                 Map<String, String> params = new HashMap<>();
 
                 params.put("SBJT", title);
-                params.put("CLUB_GRP_ID", grpId);
+                params.put("CLUB_GRP_ID", mGrpId);
                 params.put("TXT", content);
                 return params;
             }
         };
+        AppController.getInstance().addToRequestQueue(stringRequest, tagStringReq);
+    }
+
+    private void actionUpdate(final String title, final String content) {
+        String tagStringReq = "req_send";
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.MODIFY_ARTICLE, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                hideProgressDialog();
+                try {
+                    Intent intent = new Intent(CreateArticleActivity.this, ArticleActivity.class);
+
+                    Toast.makeText(getApplicationContext(), "수정완료", Toast.LENGTH_LONG).show();
+                    setResult(RESULT_OK, intent);
+                    finish();
+                } catch (Exception e) {
+                    Log.e(TAG, e.getMessage());
+                } finally {
+                    initFirebaseData();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e(error.getMessage());
+                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
+                hideProgressDialog();
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+
+                headers.put("Cookie", mCookie);
+                return headers;
+            }
+
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+
+                params.put("CLUB_GRP_ID", mGrpId);
+                params.put("ARTL_NUM", mArtlNum);
+                params.put("SBJT", title);
+                params.put("TXT", content);
+                return params;
+            }
+        };
+
         AppController.getInstance().addToRequestQueue(stringRequest, tagStringReq);
     }
 
@@ -506,7 +583,34 @@ public class CreateArticleActivity extends AppCompatActivity {
         map.put("content", TextUtils.isEmpty(mWriteTextBinding.etContent.getText().toString()) ? null : mWriteTextBinding.etContent.getText().toString());
         map.put("images", mImageList);
         map.put("youtube", mYouTubeItem);
-        databaseReference.child(mKey).push().setValue(map);
+        databaseReference.child(mGrpKey).push().setValue(map);
+    }
+
+    private void initFirebaseData() {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
+
+        updateArticleDataToFirebase(databaseReference.child(mGrpKey).child(mArtlKey));
+    }
+
+    private void updateArticleDataToFirebase(final Query query) {
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                ArticleItem articleItem = dataSnapshot.getValue(ArticleItem.class);
+                if (articleItem != null) {
+                    articleItem.setTitle(mWriteTextBinding.etTitle.getText().toString());
+                    articleItem.setContent(TextUtils.isEmpty(mWriteTextBinding.etContent.getText()) ? null : mWriteTextBinding.etContent.getText().toString());
+                    articleItem.setImages(mImageList.isEmpty() ? null : mImageList);
+                    articleItem.setYoutube(mYouTubeItem);
+                    query.getRef().setValue(articleItem);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e("파이어베이스", databaseError.getMessage());
+            }
+        });
     }
 
     private void showProgressDialog() {
