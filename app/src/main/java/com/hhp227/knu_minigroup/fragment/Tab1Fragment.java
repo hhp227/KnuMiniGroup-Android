@@ -10,8 +10,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -40,10 +44,8 @@ import java.util.Map;
 
 public class Tab1Fragment extends Fragment {
     public static final int LIMIT = 10;
-    public static final int UPDATE_ARTICLE = 20;
     public static boolean mIsAdmin;
     public static String mGroupId, mGroupName, mGroupImage, mKey;
-    private static final String TAG = "소식";
 
     private boolean mHasRequestedMore;
 
@@ -58,6 +60,8 @@ public class Tab1Fragment extends Fragment {
     private List<ArticleItem> mArticleItemValues;
 
     private FragmentTab1Binding mBinding;
+
+    private ActivityResultLauncher<Intent> mArticleActivityResultLauncher;
 
     public Tab1Fragment() {
     }
@@ -100,6 +104,29 @@ public class Tab1Fragment extends Fragment {
         mArticleItemValues = new ArrayList<>();
         mAdapter = new ArticleListAdapter(mArticleItemKeys, mArticleItemValues, mKey);
         mOffSet = 1;
+        mArticleActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult result) {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    if (result.getData() != null) {
+                        int position = result.getData().getIntExtra("position", 0) - 1;
+                        ArticleItem articleItem = mArticleItemValues.get(position);
+
+                        articleItem.setTitle(result.getData().getStringExtra("sbjt"));
+                        articleItem.setContent(result.getData().getStringExtra("txt"));
+                        articleItem.setImages(result.getData().getStringArrayListExtra("img")); // firebase data
+                        articleItem.setReplyCount(result.getData().getStringExtra("cmmt_cnt"));
+                        articleItem.setYoutube(result.getData().getParcelableExtra("youtube"));
+                        mArticleItemValues.set(position, articleItem);
+                        mAdapter.notifyItemChanged(position);
+                    } else {
+                        refreshArticleList();
+                        mBinding.rvArticle.scrollToPosition(0);
+                        ((TabHostLayoutFragment) requireParentFragment()).appbarLayoutExpand();
+                    }
+                }
+            }
+        });
 
         mBinding.rvArticle.setLayoutManager(new LinearLayoutManager(getContext()));
         mBinding.rvArticle.setAdapter(mAdapter);
@@ -141,7 +168,7 @@ public class Tab1Fragment extends Fragment {
                 intent.putExtra("isbottom", v.getId() == R.id.ll_reply);
                 intent.putExtra("grp_key", mKey);
                 intent.putExtra("artl_key", mAdapter.getKey(position));
-                startActivityForResult(intent, UPDATE_ARTICLE);
+                mArticleActivityResultLauncher.launch(intent);
             }
         });
         mBinding.rlWrite.setOnClickListener(new View.OnClickListener() {
@@ -152,12 +179,12 @@ public class Tab1Fragment extends Fragment {
                 mLastClickTime = SystemClock.elapsedRealtime();
                 Intent intent = new Intent(getActivity(), CreateArticleActivity.class);
 
-                intent.putExtra("admin", mIsAdmin);
                 intent.putExtra("grp_id", mGroupId);
                 intent.putExtra("grp_nm", mGroupName);
                 intent.putExtra("grp_img", mGroupImage);
-                intent.putExtra("key", mKey);
-                startActivity(intent);
+                intent.putExtra("grp_key", mKey);
+                intent.putExtra("type", 0);
+                ((TabHostLayoutFragment) requireParentFragment()).mCreateArticleResultLauncher.launch(intent);
             }
         });
         mBinding.srlArticleList.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -166,14 +193,8 @@ public class Tab1Fragment extends Fragment {
                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        mMinId = 0;
-                        mOffSet = 1;
-
-                        mArticleItemKeys.clear();
-                        mArticleItemValues.clear();
-                        mAdapter.addFooterView();
+                        refreshArticleList();
                         mBinding.srlArticleList.setRefreshing(false);
-                        fetchArticleList();
                     }
                 }, 2000);
             }
@@ -187,22 +208,14 @@ public class Tab1Fragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         mBinding = null;
+        mArticleActivityResultLauncher = null;
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == UPDATE_ARTICLE && resultCode == Activity.RESULT_OK) {
-            int position = data.getIntExtra("position", 0) - 1;
-            ArticleItem articleItem = mArticleItemValues.get(position);
-
-            articleItem.setTitle(data.getStringExtra("sbjt"));
-            articleItem.setContent(data.getStringExtra("txt"));
-            articleItem.setImages(data.getStringArrayListExtra("img")); // firebase data
-            articleItem.setReplyCount(data.getStringExtra("cmmt_cnt"));
-            articleItem.setYoutube((YouTubeItem) data.getParcelableExtra("youtube"));
-            mArticleItemValues.set(position, articleItem);
-            mAdapter.notifyDataSetChanged();
+    public void onCreateArticleActivityResult(ActivityResult result) {
+        if (result.getResultCode() == Activity.RESULT_OK) {
+            refreshArticleList();
+            mBinding.rvArticle.scrollToPosition(0);
+            ((TabHostLayoutFragment) requireParentFragment()).appbarLayoutExpand();
         }
     }
 
@@ -300,6 +313,16 @@ public class Tab1Fragment extends Fragment {
             }
         };
         AppController.getInstance().addToRequestQueue(stringRequest);
+    }
+
+    private void refreshArticleList() {
+        mMinId = 0;
+        mOffSet = 1;
+
+        mArticleItemKeys.clear();
+        mArticleItemValues.clear();
+        mAdapter.addFooterView();
+        fetchArticleList();
     }
 
     private void initFirebaseData() {

@@ -33,8 +33,6 @@ public class YouTubeSearchActivity extends AppCompatActivity {
     public static final String API_KEY = "AIzaSyBxQb9CaA01lU5AkXnPGf3s8QjoiV-3Vys";
     private static final int LIMIT = 50;
 
-    private int mType;
-
     private YouTubeListAdapter mAdapter;
 
     private List<YouTubeItem> mYouTubeItemList;
@@ -50,7 +48,6 @@ public class YouTubeSearchActivity extends AppCompatActivity {
         mYouTubeItemList = new ArrayList<>();
         mAdapter = new YouTubeListAdapter(mYouTubeItemList);
         mSearchText = "";
-        mType = getIntent().getIntExtra("type", 0);
 
         setContentView(mBinding.getRoot());
         setSupportActionBar(mBinding.toolbar);
@@ -58,7 +55,7 @@ public class YouTubeSearchActivity extends AppCompatActivity {
             @Override
             public void onItemClick(View v, int position) {
                 YouTubeItem youTubeItem = mYouTubeItemList.get(position);
-                Intent intent = new Intent(getApplicationContext(), mType == 0 ? CreateArticleActivity.class : ModifyActivity.class);
+                Intent intent = new Intent(getApplicationContext(), CreateArticleActivity.class);
 
                 intent.putExtra("youtube", youTubeItem);
                 setResult(RESULT_OK, intent);

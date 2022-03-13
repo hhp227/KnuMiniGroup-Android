@@ -74,10 +74,6 @@
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
         <activity
-            android:name=".activity.ModifyActivity"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-        <activity
             android:name=".activity.WebViewActivity"
             android:label="@string/title_activity_web_view">
         </activity>
