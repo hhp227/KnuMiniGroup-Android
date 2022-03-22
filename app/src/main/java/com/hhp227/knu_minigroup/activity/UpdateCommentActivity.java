@@ -113,6 +113,7 @@ public class UpdateCommentActivity extends AppCompatActivity {
                                 View view = UpdateCommentActivity.this.getCurrentFocus();
                                 if (view != null) {
                                     InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+
                                     inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
                                 }
                                 Intent intent = new Intent(UpdateCommentActivity.this, ArticleActivity.class);
