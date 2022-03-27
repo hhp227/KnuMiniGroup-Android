@@ -90,7 +90,6 @@ public class DCShuttleScheduleFragment extends Fragment {
             public void onResponse(String response) {
                 Source source = new Source(response);
 
-                Log.e("TEST", "response" + response);
                 for (int a = 0; a < 3; a++) {
                     Element table = source.getAllElements(HTMLElementName.TABLE).get(a);
                     List<Element> trs = table.getAllElements(HTMLElementName.TR);

@@ -1,186 +1,205 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#eeeeee"
-        android:orientation="vertical">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#eeeeee"
+    android:orientation="vertical">
 
     <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginTop="10dp"
-            app:cardCornerRadius="4dp">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp"
+        app:cardCornerRadius="4dp">
 
         <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
             <LinearLayout
+                android:id="@+id/ll_header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:orientation="horizontal">
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0"
-                    android:orientation="horizontal">
-
-                <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="horizontal"
-                        android:paddingBottom="7dp"
-                        android:paddingLeft="3dp"
-                        android:paddingRight="3dp"
-                        android:paddingTop="7dp">
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingBottom="7dp"
+                    android:paddingLeft="3dp"
+                    android:paddingRight="3dp"
+                    android:paddingTop="7dp">
 
                     <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="구분"/>
+                        android:id="@+id/tv_col1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
 
                 </LinearLayout>
 
                 <LinearLayout
-                        android:layout_width="1px"
-                        android:layout_height="match_parent"
-                        android:background="@android:color/darker_gray"/>
+                    android:layout_width="1px"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/darker_gray" />
 
                 <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="horizontal"
-                        android:paddingBottom="7dp"
-                        android:paddingLeft="3dp"
-                        android:paddingRight="3dp"
-                        android:paddingTop="7dp">
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingBottom="7dp"
+                    android:paddingLeft="3dp"
+                    android:paddingRight="3dp"
+                    android:paddingTop="7dp">
 
                     <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="상주
-캠퍼스"/>
+                        android:id="@+id/tv_col2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
 
                 <LinearLayout
-                        android:layout_width="1px"
-                        android:layout_height="match_parent"
-                        android:background="@android:color/darker_gray"/>
+                    android:layout_width="1px"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/darker_gray" />
 
                 <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="horizontal"
-                        android:paddingBottom="7dp"
-                        android:paddingLeft="3dp"
-                        android:paddingRight="3dp"
-                        android:paddingTop="7dp">
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingBottom="7dp"
+                    android:paddingLeft="3dp"
+                    android:paddingRight="3dp"
+                    android:paddingTop="7dp">
 
                     <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="낙양
-주유소"/>
+                        android:id="@+id/tv_col3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
 
                 <LinearLayout
-                        android:layout_width="1px"
-                        android:layout_height="match_parent"
-                        android:background="@android:color/darker_gray"/>
+                    android:layout_width="1px"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/darker_gray" />
 
                 <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="horizontal"
-                        android:paddingBottom="7dp"
-                        android:paddingLeft="3dp"
-                        android:paddingRight="3dp"
-                        android:paddingTop="7dp">
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingBottom="7dp"
+                    android:paddingLeft="3dp"
+                    android:paddingRight="3dp"
+                    android:paddingTop="7dp">
 
                     <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="가미 앞"/>
+                        android:id="@+id/tv_col4"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
 
                 </LinearLayout>
 
                 <LinearLayout
-                        android:layout_width="1px"
-                        android:layout_height="match_parent"
-                        android:background="@android:color/darker_gray"/>
+                    android:layout_width="1px"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/darker_gray" />
 
                 <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="horizontal"
-                        android:paddingBottom="7dp"
-                        android:paddingLeft="3dp"
-                        android:paddingRight="3dp"
-                        android:paddingTop="7dp">
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingBottom="7dp"
+                    android:paddingLeft="3dp"
+                    android:paddingRight="3dp"
+                    android:paddingTop="7dp">
 
                     <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="풍물
-거리"/>
+                        android:id="@+id/tv_col5"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
 
                 <LinearLayout
-                        android:layout_width="1px"
-                        android:layout_height="match_parent"
-                        android:background="@android:color/darker_gray"/>
+                    android:layout_width="1px"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/darker_gray" />
 
                 <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="horizontal"
-                        android:paddingBottom="7dp"
-                        android:paddingLeft="3dp"
-                        android:paddingRight="3dp"
-                        android:paddingTop="7dp">
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingBottom="7dp"
+                    android:paddingLeft="3dp"
+                    android:paddingRight="3dp"
+                    android:paddingTop="7dp">
 
                     <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="상주
-캠퍼스"/>
+                        android:id="@+id/tv_col6"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
 
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="1px"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/darker_gray" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingBottom="7dp"
+                    android:paddingLeft="3dp"
+                    android:paddingRight="3dp"
+                    android:paddingTop="7dp">
+
+                    <TextView
+                        android:id="@+id/tv_col7"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
 
             </LinearLayout>
 
             <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1px"
-                    android:background="@android:color/darker_gray"/>
+                android:layout_width="match_parent"
+                android:layout_height="1px"
+                android:background="@android:color/darker_gray" />
 
             <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-                    android:id="@+id/srl_shuttle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                android:id="@+id/srl_shuttle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
                 <ListView
-                        android:id="@+id/lv_shuttle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentLeft="true"
-                        android:layout_below="@+id/linearLayout1"
-                        android:layout_weight="1"
-                        android:divider="@null"
-                        android:scrollbars="none"/>
+                    android:id="@+id/lv_shuttle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@+id/linearLayout1"
+                    android:layout_weight="1"
+                    android:divider="@null"
+                    android:scrollbars="none" />
 
             </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
