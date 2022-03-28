@@ -50,7 +50,7 @@ public class SplashActivity extends Activity {
 
                             if (!jsonObject.getBoolean("isError")) {
                                 startActivity(new Intent(SplashActivity.this, MainActivity.class));
-                                overridePendingTransition(com.hhp227.knu_minigroup.R.anim.splash_in, R.anim.splash_out);
+                                overridePendingTransition(R.anim.splash_in, R.anim.splash_out);
                             } else {
                                 mPreferenceManager.clear();
                                 startActivity(new Intent(SplashActivity.this, LoginActivity.class));

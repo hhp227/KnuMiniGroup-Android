@@ -99,7 +99,8 @@ public class ProfileActivity extends AppCompatActivity {
         mProgressDialog.setCancelable(false);
         mProgressDialog.setMessage("요청중 ...");
         Glide.with(getApplicationContext())
-                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUser.getUid()), new LazyHeaders.Builder().addHeader("Cookie", mCookieManager.getCookie(EndPoint.LOGIN)).build()))
+                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUser.getUid()), new LazyHeaders.Builder()
+                        .addHeader("Cookie", mCookieManager.getCookie(EndPoint.LOGIN)).build()))
                 .apply(RequestOptions
                         .errorOf(R.drawable.user_image_view_circle)
                         .circleCrop()

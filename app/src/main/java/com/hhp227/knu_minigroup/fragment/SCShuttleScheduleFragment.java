@@ -9,6 +9,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -23,8 +25,10 @@ import net.htmlparser.jericho.Source;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class SCShuttleScheduleFragment extends Fragment {
     private static final String TAG = "학교버스시간표";
@@ -60,8 +64,8 @@ public class SCShuttleScheduleFragment extends Fragment {
         mShuttleList = new ArrayList<>();
         mProgressDialog = new ProgressDialog(getActivity());
         mAdapter = new SimpleAdapter(getActivity(), mShuttleList, R.layout.shuttle_sc_item,
-                new String[] {"col1", "col2", "col3", "col4", "col5", "col6"},
-                new int[] {R.id.column1, R.id.column2, R.id.column3, R.id.column4, R.id.column5, R.id.column6});
+                new String[] {"col1", "col2", "col3", "col4", "col5", "col6", "col7"},
+                new int[] {R.id.column1, R.id.column2, R.id.column3, R.id.column4, R.id.column5, R.id.column6, R.id.column7});
 
         mBinding.lvShuttle.setAdapter(mAdapter);
         mBinding.srlShuttle.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -82,42 +86,59 @@ public class SCShuttleScheduleFragment extends Fragment {
                     try {
                         URL URL = new URL(EndPoint.URL_SHUTTLE.replace("{SHUTTLE}", "map03_02"));
                         InputStream html = URL.openStream();
-                        mSource = new Source(new InputStreamReader(html, "utf-8")); // 소스를 UTF-8 인코딩으로 불러온다.
+                        mSource = new Source(new InputStreamReader(html, StandardCharsets.UTF_8)); // 소스를 UTF-8 인코딩으로 불러온다.
 
                         mSource.fullSequentialParse(); // 순차적으로 구문분석
                         Element table = mSource.getAllElements(HTMLElementName.TABLE).get(0);
+                        List<Element> thList = table.getFirstElement(HTMLElementName.TR).getAllElements(HTMLElementName.TH);
 
                         for (int i = 1; i < table.getAllElements(HTMLElementName.TR).size(); i++) {
                             Element TR = table.getAllElements(HTMLElementName.TR).get(i);
                             HashMap<String, String> map = new HashMap<>();
                             Element Col1 = TR.getAllElements(HTMLElementName.TD).get(0);
                             Element Col2 = TR.getAllElements(HTMLElementName.TD).get(1);
-                            Element Col3 = TR.getAllElements(HTMLElementName.TD).get(3);
-                            Element Col4 = TR.getAllElements(HTMLElementName.TD).get(4);
-                            Element Col5 = TR.getAllElements(HTMLElementName.TD).get(5);
-                            Element Col6 = TR.getAllElements(HTMLElementName.TD).get(7);
+                            Element Col3 = TR.getAllElements(HTMLElementName.TD).get(2);
+                            Element Col4 = TR.getAllElements(HTMLElementName.TD).get(3);
+                            Element Col5 = TR.getAllElements(HTMLElementName.TD).get(4);
+                            Element Col6 = TR.getAllElements(HTMLElementName.TD).get(5);
 
-                            map.put("col1", (Col1).getContent().toString());
-                            map.put("col2", (Col2).getContent().toString());
-                            map.put("col3", (Col3).getContent().toString());
-                            map.put("col4", (Col4).getContent().toString());
-                            map.put("col5", (Col5).getContent().toString());
-                            map.put("col6", (Col6).getContent().toString());
+                            map.put("col1", String.valueOf(i));
+                            map.put("col2", (Col1).getContent().toString());
+                            map.put("col3", (Col2).getContent().toString());
+                            map.put("col4", (Col3).getContent().toString());
+                            map.put("col5", (Col4).getContent().toString());
+                            map.put("col6", (Col5).getContent().toString());
+                            map.put("col7", (Col6).getContent().toString());
                             mShuttleList.add(map);
                         }
                         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
                             public void run() {
+                                TextView[] textViews = new TextView[] {
+                                        mBinding.tvCol1,
+                                        mBinding.tvCol2,
+                                        mBinding.tvCol3,
+                                        mBinding.tvCol4,
+                                        mBinding.tvCol5,
+                                        mBinding.tvCol6,
+                                        mBinding.tvCol7
+                                };
+
+                                for (int i = 0; i < thList.size(); i++) {
+                                    textViews[i].setText(thList.get(i).getTextExtractor().toString());
+                                }
                                 mAdapter.notifyDataSetChanged(); // 모든 작업이 끝나면 리스트 갱신
                                 hideProgressDialog();
                             }
                         }, 0);
                     } catch (Exception e) {
+                        hideProgressDialog();
                         Log.e(TAG, "에러" + e);
                     }
                 }
             }.start();
         } catch (Exception e) {
+            hideProgressDialog();
             Log.e(TAG, "에러" + e);
         }
     }
