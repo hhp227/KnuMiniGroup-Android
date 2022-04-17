@@ -107,6 +107,11 @@ public class Tab1Fragment extends Fragment {
         mArticleActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
             public void onActivityResult(ActivityResult result) {
+                /*for (Fragment fragment : getParentFragmentManager().getFragments()) {
+                    if (fragment instanceof Tab1Fragment) {
+                        ((Tab1Fragment) fragment).onArticleActivityResult(result);
+                    }
+                }*/
                 if (result.getResultCode() == Activity.RESULT_OK) {
                     if (result.getData() != null) {
                         int position = result.getData().getIntExtra("position", 0) - 1;

@@ -90,6 +90,11 @@ public class TabHostLayoutFragment extends Fragment {
         mCreateArticleResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
             public void onActivityResult(ActivityResult result) {
+                /*for (Fragment fragment : getChildFragmentManager().getFragments()) {
+                    if (fragment instanceof Tab1Fragment) {
+                        ((Tab1Fragment) fragment).onCreateArticleActivityResult(result);
+                    }
+                }*/
                 tab1Fragment.onCreateArticleActivityResult(result);
             }
         });
