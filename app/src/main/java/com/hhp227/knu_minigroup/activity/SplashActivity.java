@@ -42,18 +42,20 @@ public class SplashActivity extends AppCompatActivity {
         mViewModel.mState.observe(this, new Observer<SplashViewModel.State>() {
             @Override
             public void onChanged(SplashViewModel.State state) {
-                if (state.isSuccess) {
-                    startActivity(new Intent(SplashActivity.this, MainActivity.class));
-                    overridePendingTransition(R.anim.splash_in, R.anim.splash_out);
-                    finish();
-                } else {
-                    if (state.isPreferenceClear) {
-                        AppController.getInstance().getPreferenceManager().clear();
-                        startActivity(new Intent(SplashActivity.this, LoginActivity.class));
+                if (state != null) {
+                    if (state.isSuccess) {
+                        startActivity(new Intent(SplashActivity.this, MainActivity.class));
+                        overridePendingTransition(R.anim.splash_in, R.anim.splash_out);
                         finish();
-                    } else if (state.message != null) {
-                        Toast.makeText(getApplicationContext(), state.message, Toast.LENGTH_LONG).show();
-                        finish();
+                    } else {
+                        if (state.isPreferenceClear) {
+                            AppController.getInstance().getPreferenceManager().clear();
+                            startActivity(new Intent(SplashActivity.this, LoginActivity.class));
+                            finish();
+                        } else if (state.message != null) {
+                            Toast.makeText(getApplicationContext(), state.message, Toast.LENGTH_LONG).show();
+                            finish();
+                        }
                     }
                 }
             }

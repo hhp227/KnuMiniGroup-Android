@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SplashViewModel extends ViewModel {
-    public MutableLiveData<State> mState = new MutableLiveData<>(new State());
+    public MutableLiveData<State> mState = new MutableLiveData<>(null);
 
     public void connection() {
         AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.LOGIN, new Response.Listener<String>() {
@@ -74,9 +74,6 @@ public class SplashViewModel extends ViewModel {
         public boolean isPreferenceClear;
 
         public String message;
-
-        public State() {
-        }
 
         public State(boolean isSuccess, boolean isPreferenceClear, String message) {
             this.isSuccess = isSuccess;

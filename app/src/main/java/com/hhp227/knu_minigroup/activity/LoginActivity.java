@@ -1,6 +1,5 @@
 package com.hhp227.knu_minigroup.activity;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,12 +10,18 @@ import android.webkit.CookieManager;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
-import com.android.volley.*;
+import com.android.volley.Header;
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -28,9 +33,12 @@ import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.ActivityLoginBinding;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
+import com.hhp227.knu_minigroup.viewmodel.LoginViewModel;
+
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -41,7 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class LoginActivity extends Activity {
+public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "로그인화면";
 
     private CookieManager mCookieManager;
@@ -51,6 +59,8 @@ public class LoginActivity extends Activity {
     private PreferenceManager mPreferenceManager;
 
     private ActivityLoginBinding mBinding;
+
+    private LoginViewModel mViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +72,7 @@ public class LoginActivity extends Activity {
         mPreferenceManager = AppController.getInstance().getPreferenceManager();
         mProgressDialog = new ProgressDialog(this);
         mCookieManager = AppController.getInstance().getCookieManager();
+        mViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
         setContentView(mBinding.getRoot());
         mProgressDialog.setCancelable(false);
