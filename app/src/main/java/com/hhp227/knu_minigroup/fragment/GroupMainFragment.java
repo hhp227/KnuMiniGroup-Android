@@ -54,7 +54,7 @@ import com.hhp227.knu_minigroup.activity.RequestActivity;
 import com.hhp227.knu_minigroup.adapter.GroupGridAdapter;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
-import com.hhp227.knu_minigroup.databinding.FragmentGroupBinding;
+import com.hhp227.knu_minigroup.databinding.FragmentGroupMainBinding;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 
@@ -67,11 +67,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GroupFragment extends Fragment {
+public class GroupMainFragment extends Fragment {
     public static final int UPDATE_GROUP = 30;
     private static final int PORTAIT_SPAN_COUNT = 2;
     private static final int LANDSCAPE_SPAN_COUNT = 4;
-    private static final String TAG = GroupFragment.class.getSimpleName();
+    private static final String TAG = GroupMainFragment.class.getSimpleName();
 
     private int mSpanCount;
 
@@ -93,15 +93,12 @@ public class GroupFragment extends Fragment {
 
     private RecyclerView.ItemDecoration mItemDecoration;
 
-    private FragmentGroupBinding mBinding;
+    private FragmentGroupMainBinding mBinding;
 
     private ActivityResultLauncher<Intent> mActivityResultLauncher;
 
-    public GroupFragment() {
-    }
-
-    public static GroupFragment newInstance() {
-        return new GroupFragment();
+    public static GroupMainFragment newInstance() {
+        return new GroupMainFragment();
     }
 
     @Override
@@ -111,7 +108,7 @@ public class GroupFragment extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        mBinding = FragmentGroupBinding.inflate(inflater, container, false);
+        mBinding = FragmentGroupMainBinding.inflate(inflater, container, false);
         return mBinding.getRoot();
     }
 

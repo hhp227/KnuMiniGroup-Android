@@ -148,12 +148,12 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == GroupFragment.UPDATE_GROUP && resultCode == Activity.RESULT_OK) {
+        if (requestCode == GroupMainFragment.UPDATE_GROUP && resultCode == Activity.RESULT_OK) {
             ActionBar actionBar = ((AppCompatActivity) requireActivity()).getSupportActionBar();
             String groupName = data.getStringExtra("grp_nm");
             String groupDescription = data.getStringExtra("grp_desc");
             String joinType = data.getStringExtra("join_div");
-            Intent intent = new Intent(getContext(), GroupFragment.class);
+            Intent intent = new Intent(getContext(), GroupMainFragment.class);
 
             intent.putExtra("grp_nm", groupName);
             intent.putExtra("grp_desc", groupDescription);
@@ -319,7 +319,7 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener {
                 intent.putExtra("grp_id", mGroupId);
                 intent.putExtra("grp_img", mGroupImage);
                 intent.putExtra("key", mKey);
-                startActivityForResult(intent, GroupFragment.UPDATE_GROUP);
+                startActivityForResult(intent, GroupMainFragment.UPDATE_GROUP);
                 break;
             case R.id.ll_notice:
                 startActivity(new Intent(getContext(), NoticeActivity.class));
