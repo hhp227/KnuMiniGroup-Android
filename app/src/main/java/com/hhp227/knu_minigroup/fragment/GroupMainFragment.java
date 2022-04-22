@@ -28,6 +28,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -57,6 +58,7 @@ import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.FragmentGroupMainBinding;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
+import com.hhp227.knu_minigroup.viewmodel.GroupMainViewModel;
 
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
@@ -95,6 +97,8 @@ public class GroupMainFragment extends Fragment {
 
     private FragmentGroupMainBinding mBinding;
 
+    private GroupMainViewModel mViewModel;
+
     private ActivityResultLauncher<Intent> mActivityResultLauncher;
 
     public static GroupMainFragment newInstance() {
@@ -115,6 +119,7 @@ public class GroupMainFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        mViewModel = new ViewModelProvider(this).get(GroupMainViewModel.class);
         mSpanCount = getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ? PORTAIT_SPAN_COUNT :
                 getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? LANDSCAPE_SPAN_COUNT :
                         0;
