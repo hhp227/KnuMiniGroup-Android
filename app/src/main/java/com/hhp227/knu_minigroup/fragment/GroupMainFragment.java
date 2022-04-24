@@ -7,91 +7,52 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Rect;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Handler;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.webkit.CookieManager;
-import android.webkit.ValueCallback;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
-import com.android.volley.toolbox.StringRequest;
 import com.google.android.material.navigation.NavigationBarView;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
+import com.google.android.material.snackbar.Snackbar;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.activity.CreateGroupActivity;
 import com.hhp227.knu_minigroup.activity.FindGroupActivity;
 import com.hhp227.knu_minigroup.activity.GroupActivity;
-import com.hhp227.knu_minigroup.activity.LoginActivity;
 import com.hhp227.knu_minigroup.activity.MainActivity;
 import com.hhp227.knu_minigroup.activity.RequestActivity;
 import com.hhp227.knu_minigroup.adapter.GroupGridAdapter;
-import com.hhp227.knu_minigroup.app.AppController;
-import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.FragmentGroupMainBinding;
 import com.hhp227.knu_minigroup.dto.GroupItem;
-import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import com.hhp227.knu_minigroup.viewmodel.GroupMainViewModel;
 
-import net.htmlparser.jericho.Element;
-import net.htmlparser.jericho.HTMLElementName;
-import net.htmlparser.jericho.Source;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 public class GroupMainFragment extends Fragment {
-    public static final int UPDATE_GROUP = 30;
-    private static final int PORTAIT_SPAN_COUNT = 2;
+    private static final int PORTRAIT_SPAN_COUNT = 2;
+
     private static final int LANDSCAPE_SPAN_COUNT = 4;
-    private static final String TAG = GroupMainFragment.class.getSimpleName();
 
     private int mSpanCount;
-
-    private CookieManager mCookieManager;
-
-    private CountDownTimer mCountDownTimer;
 
     private GridLayoutManager mGridLayoutManager;
 
     private GridLayoutManager.SpanSizeLookup mSpanSizeLookup;
 
     private GroupGridAdapter mAdapter;
-
-    private List<String> mGroupItemKeys;
-
-    private List<Object> mGroupItemValues;
-
-    private PreferenceManager mPreferenceManager;
 
     private RecyclerView.ItemDecoration mItemDecoration;
 
@@ -106,11 +67,6 @@ public class GroupMainFragment extends Fragment {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
-    @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mBinding = FragmentGroupMainBinding.inflate(inflater, container, false);
         return mBinding.getRoot();
@@ -120,7 +76,7 @@ public class GroupMainFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(GroupMainViewModel.class);
-        mSpanCount = getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ? PORTAIT_SPAN_COUNT :
+        mSpanCount = getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ? PORTRAIT_SPAN_COUNT :
                 getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? LANDSCAPE_SPAN_COUNT :
                         0;
         mSpanSizeLookup = new GridLayoutManager.SpanSizeLookup() {
@@ -152,29 +108,12 @@ public class GroupMainFragment extends Fragment {
                 }
             }
         };
-        mGroupItemKeys = new ArrayList<>();
-        mGroupItemValues = new ArrayList<>();
-        mAdapter = new GroupGridAdapter(mGroupItemKeys, mGroupItemValues);
-        mCookieManager = AppController.getInstance().getCookieManager();
-        mPreferenceManager = AppController.getInstance().getPreferenceManager();
-        mCountDownTimer = new CountDownTimer(80000, 8000) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                mAdapter.moveSliderPager();
-            }
-
-            @Override
-            public void onFinish() {
-                start();
-            }
-        };
+        mAdapter = new GroupGridAdapter(mViewModel.mGroupItemKeys, mViewModel.mGroupItemValues);
         mActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
             public void onActivityResult(ActivityResult result) {
                 if (result.getResultCode() == Activity.RESULT_OK) {
-                    mGroupItemKeys.clear();
-                    mGroupItemValues.clear();
-                    fetchDataTask();
+                    mViewModel.refresh();
                     ((MainActivity) requireActivity()).updateProfileImage();
                 }
             }
@@ -185,8 +124,8 @@ public class GroupMainFragment extends Fragment {
         mAdapter.setOnItemClickListener(new GroupGridAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position) {
-                if (mGroupItemValues.get(position) instanceof GroupItem) {
-                    GroupItem groupItem = (GroupItem) mGroupItemValues.get(position);
+                if (mViewModel.mGroupItemValues.get(position) instanceof GroupItem) {
+                    GroupItem groupItem = (GroupItem) mViewModel.mGroupItemValues.get(position);
                     Intent intent = new Intent(getContext(), GroupActivity.class);
 
                     intent.putExtra("admin", groupItem.isAdmin());
@@ -221,10 +160,8 @@ public class GroupMainFragment extends Fragment {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        mGroupItemKeys.clear();
-                        mGroupItemValues.clear();
                         mBinding.srlGroup.setRefreshing(false);
-                        fetchDataTask();
+                        mViewModel.refresh();
                     }
                 }, 1700);
             }
@@ -249,10 +186,38 @@ public class GroupMainFragment extends Fragment {
                 return false;
             }
         });
-        if (AppController.getInstance().getPreferenceManager().getUser() == null)
-            logout();
-        showProgressBar();
-        fetchDataTask();
+        if (mViewModel.getUser() == null) {
+            ((MainActivity) requireActivity()).logout();
+        }
+        mViewModel.mState.observe(getViewLifecycleOwner(), new Observer<GroupMainViewModel.State>() {
+            @Override
+            public void onChanged(GroupMainViewModel.State state) {
+                if (state != null) {
+                    if (state.isLoading) {
+                        requireActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                        showProgressBar();
+                    } else if (state.isSuccess) {
+                        hideProgressBar();
+                        mAdapter.notifyDataSetChanged();
+                        if (getActivity() != null) {
+                            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                        }
+                    } else if (!state.message.isEmpty()) {
+                        hideProgressBar();
+                        Snackbar.make(requireView(), state.message, Snackbar.LENGTH_LONG).show();
+                        if (getActivity() != null) {
+                            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                        }
+                    }
+                }
+            }
+        });
+        mViewModel.mTick.observe(getViewLifecycleOwner(), new Observer<Long>() {
+            @Override
+            public void onChanged(Long aLong) {
+                mAdapter.moveSliderPager();
+            }
+        });
     }
 
     @Override
@@ -266,15 +231,13 @@ public class GroupMainFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        mCountDownTimer.start();
+        mViewModel.startCountDownTimer();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        CountDownTimer countDownTimer = mCountDownTimer;
-        if (countDownTimer != null)
-            countDownTimer.cancel();
+        mViewModel.cancelCountDownTimer();
     }
 
     @Override
@@ -282,7 +245,7 @@ public class GroupMainFragment extends Fragment {
         super.onConfigurationChanged(newConfig);
         switch (newConfig.orientation) {
             case Configuration.ORIENTATION_PORTRAIT:
-                mSpanCount = PORTAIT_SPAN_COUNT;
+                mSpanCount = PORTRAIT_SPAN_COUNT;
                 break;
             case Configuration.ORIENTATION_LANDSCAPE:
                 mSpanCount = LANDSCAPE_SPAN_COUNT;
@@ -291,155 +254,6 @@ public class GroupMainFragment extends Fragment {
         mGridLayoutManager.setSpanSizeLookup(mSpanSizeLookup);
         mGridLayoutManager.setSpanCount(mSpanCount);
         mBinding.rvGroup.invalidateItemDecorations();
-    }
-
-    private void fetchDataTask() {
-        requireActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Source source = new Source(response);
-
-                try {
-                    List<Element> listElementA = source.getAllElements(HTMLElementName.A);
-
-                    for (Element elementA : listElementA) {
-                        try {
-                            String id = groupIdExtract(elementA.getAttributeValue("onclick"));
-                            boolean isAdmin = adminCheck(elementA.getAttributeValue("onclick"));
-                            String image = EndPoint.BASE_URL + elementA.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
-                            String name = elementA.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
-                            GroupItem groupItem = new GroupItem();
-
-                            groupItem.setId(id);
-                            groupItem.setAdmin(isAdmin);
-                            groupItem.setImage(image);
-                            groupItem.setName(name);
-                            mGroupItemKeys.add(id);
-                            mGroupItemValues.add(groupItem);
-                        } catch (NullPointerException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    mAdapter.notifyDataSetChanged();
-                    insertAdvertisement();
-                } catch (Exception e) {
-                    Log.e(TAG, e.getMessage());
-                } finally {
-                    initFirebaseData();
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(TAG, error.getMessage());
-                hideProgressBar();
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
-                return headers;
-            }
-
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-
-                params.put("panel_id", "2");
-                params.put("start", "1");
-                params.put("display", "10");
-                params.put("encoding", "utf-8");
-                return params;
-            }
-        });
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void logout() {
-        mPreferenceManager.clear();
-        mCookieManager.removeAllCookies(new ValueCallback<Boolean>() {
-            @Override
-            public void onReceiveValue(Boolean value) {
-                Log.d(TAG, "onReceiveValue " + value);
-            }
-        });
-        startActivity(new Intent(getContext(), LoginActivity.class));
-        requireActivity().finish();
-    }
-
-    private void insertAdvertisement() {
-        if (!mGroupItemValues.isEmpty()) {
-            mAdapter.addHeaderView("가입중인 그룹", 0);
-            if (mGroupItemValues.size() % 2 == 0)
-                mGroupItemValues.add("광고");
-        } else {
-            mGroupItemValues.add("없음");
-            mAdapter.addHeaderView("인기 모임");
-            mGroupItemValues.add("뷰페이져");
-        }
-        hideProgressBar();
-    }
-
-    private void initFirebaseData() {
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
-
-        fetchDataTaskFromFirebase(databaseReference.child(mPreferenceManager.getUser().getUid()).orderByValue().equalTo(true), false);
-    }
-
-    private void fetchDataTaskFromFirebase(Query query, final boolean isRecursion) {
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (isRecursion) {
-                    try {
-                        String key = dataSnapshot.getKey();
-                        GroupItem value = dataSnapshot.getValue(GroupItem.class);
-                        assert value != null;
-                        int index = mGroupItemKeys.indexOf(value.getId());
-
-                        if (index > -1) {
-                            //mGroupItemValues.set(index, value); //isAdmin값때문에 주석처리
-                            mGroupItemKeys.set(index, key);
-                        }
-                        mAdapter.notifyDataSetChanged();
-                    } catch (Exception e) {
-                        Log.e(TAG, e.getMessage());
-                    } finally {
-                        if (getActivity() != null) {
-                            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-                        }
-                    }
-                } else {
-                    if (dataSnapshot.hasChildren()) {
-                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
-
-                            fetchDataTaskFromFirebase(databaseReference.child(snapshot.getKey()), true);
-                        }
-                    } else {
-                        if (getActivity() != null) {
-                            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
-            }
-        });
-    }
-
-    private String groupIdExtract(String href) {
-        return href.split("'")[3].trim();
-    }
-
-    private boolean adminCheck(String onClick) {
-        return onClick.split("'")[1].trim().equals("0");
     }
 
     private void showProgressBar() {

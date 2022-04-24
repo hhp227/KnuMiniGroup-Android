@@ -1,7 +1,7 @@
 package com.hhp227.knu_minigroup.viewmodel;
 
+import android.os.CountDownTimer;
 import android.util.Log;
-import android.view.WindowManager;
 import android.webkit.CookieManager;
 
 import androidx.annotation.NonNull;
@@ -22,6 +22,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.GroupItem;
+import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 
 import net.htmlparser.jericho.Element;
@@ -38,21 +39,52 @@ public class GroupMainViewModel extends ViewModel {
 
     public final List<Object> mGroupItemValues = new ArrayList<>();
 
+    public final MutableLiveData<Long> mTick = new MutableLiveData<>();
+
+    public final MutableLiveData<State> mState = new MutableLiveData<>(null);
+
     private static final String TAG = GroupMainViewModel.class.getSimpleName();
 
     private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
 
     private final PreferenceManager mPreferenceManager = AppController.getInstance().getPreferenceManager();
 
-    public MutableLiveData<State> mState = new MutableLiveData<>(null);
+    private final CountDownTimer mCountDownTimer = new CountDownTimer(80000, 8000) {
+        @Override
+        public void onTick(long millisUntilFinished) {
+            mTick.postValue(millisUntilFinished);
+        }
+
+        @Override
+        public void onFinish() {
+            start();
+        }
+    };
+
+    public GroupMainViewModel() {
+        fetchDataTask();
+    }
+
+    public User getUser() {
+        return mPreferenceManager.getUser();
+    }
+
+    public void startCountDownTimer() {
+        mCountDownTimer.start();
+    }
+
+    public void cancelCountDownTimer() {
+        mCountDownTimer.cancel();
+    }
 
     public void refresh() {
         mGroupItemKeys.clear();
         mGroupItemValues.clear();
+        fetchDataTask();
     }
 
     private void fetchDataTask() {
-        mState.postValue(new State(true, null));
+        mState.postValue(new State(true, false, null));
         AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -90,7 +122,7 @@ public class GroupMainViewModel extends ViewModel {
             @Override
             public void onErrorResponse(VolleyError error) {
                 VolleyLog.e(TAG, error.getMessage());
-                mState.postValue(new State(false, error.getMessage()));
+                mState.postValue(new State(false, false, error.getMessage()));
             }
         }) {
             @Override
@@ -116,12 +148,20 @@ public class GroupMainViewModel extends ViewModel {
 
     private void insertAdvertisement() {
         if (!mGroupItemValues.isEmpty()) {
-            //mAdapter.addHeaderView("가입중인 그룹", 0);
+            Map<String, String> headerMap = new HashMap<>();
+
+            headerMap.put("text", "가입중인 그룹");
+            mGroupItemKeys.add(0, "가입중인 그룹");
+            mGroupItemValues.add(0, headerMap);
             if (mGroupItemValues.size() % 2 == 0)
                 mGroupItemValues.add("광고");
         } else {
             mGroupItemValues.add("없음");
-            //mAdapter.addHeaderView("인기 모임");
+            Map<String, String> headerMap = new HashMap<>();
+
+            headerMap.put("text", "인기 모임");
+            mGroupItemKeys.add("인기 모임");
+            mGroupItemValues.add(headerMap);
             mGroupItemValues.add("뷰페이져");
         }
     }
@@ -147,39 +187,40 @@ public class GroupMainViewModel extends ViewModel {
                 if (isRecursion) {
                     try {
                         String key = dataSnapshot.getKey();
-                        GroupItem value = dataSnapshot.getValue(GroupItem.class);
-                        assert value != null;
-                        int index = mGroupItemKeys.indexOf(value.getId());
+                        GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
 
-                        if (index > -1) {
-                            //mGroupItemValues.set(index, value); //isAdmin값때문에 주석처리
-                            mGroupItemKeys.set(index, key);
+                        if (groupItem != null) {
+                            int index = mGroupItemKeys.indexOf(groupItem.getId());
+
+                            if (index > -1) {
+                                //mGroupItemValues.set(index, value); //isAdmin값때문에 주석처리
+                                mGroupItemKeys.set(index, key);
+                            }
                         }
-                        //mAdapter.notifyDataSetChanged();
                     } catch (Exception e) {
                         Log.e(TAG, e.getMessage());
                     } finally {
-                        /*if (getActivity() != null) {
-                            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-                        }*/
+                        mState.postValue(new State(false, true, null));
                     }
                 } else {
                     if (dataSnapshot.hasChildren()) {
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                             DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
+                            String key = snapshot.getKey();
 
-                            fetchDataTaskFromFirebase(databaseReference.child(snapshot.getKey()), true);
+                            if (key != null) {
+                                fetchDataTaskFromFirebase(databaseReference.child(key), true);
+                            }
                         }
                     } else {
-                        /*if (getActivity() != null) {
-                            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-                        }*/
+                        mState.postValue(new State(false, true, null));
                     }
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
+                mState.postValue(new State(false, false, databaseError.getMessage()));
                 Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
             }
         });
@@ -188,10 +229,13 @@ public class GroupMainViewModel extends ViewModel {
     public static final class State {
         public boolean isLoading;
 
+        public boolean isSuccess;
+
         public String message;
 
-        public State(boolean isLoading, String message) {
+        public State(boolean isLoading, boolean isSuccess, String message) {
             this.isLoading = isLoading;
+            this.isSuccess = isSuccess;
             this.message = message;
         }
     }

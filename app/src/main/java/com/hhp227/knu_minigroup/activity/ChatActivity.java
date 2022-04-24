@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// TODO
 public class ChatActivity extends AppCompatActivity {
     private static final int LIMIT = 20;
 

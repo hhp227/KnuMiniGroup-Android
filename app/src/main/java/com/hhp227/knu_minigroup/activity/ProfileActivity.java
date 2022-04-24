@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+// TODO
 public class ProfileActivity extends AppCompatActivity {
     private static final String TAG = "프로필";
 

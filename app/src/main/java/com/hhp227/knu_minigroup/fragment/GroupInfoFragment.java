@@ -40,6 +40,7 @@ import java.util.Map;
 
 import static android.app.Activity.RESULT_OK;
 
+// TODO
 public class GroupInfoFragment extends DialogFragment {
     public static final int TYPE_REQUEST = 0;
     public static final int TYPE_CANCEL = 1;

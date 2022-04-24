@@ -15,6 +15,7 @@ import com.hhp227.knu_minigroup.databinding.ActivityGroupBinding;
 import com.hhp227.knu_minigroup.fragment.TabHostLayoutFragment;
 import com.hhp227.knu_minigroup.viewmodel.GroupViewModel;
 
+// TODO
 public class GroupActivity extends AppCompatActivity {
     private String mGroupName, mKey;
 

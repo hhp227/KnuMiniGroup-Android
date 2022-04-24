@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+// TODO
 public class SCShuttleScheduleFragment extends Fragment {
     private static final String TAG = "학교버스시간표";
 

@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// TODO
 public class FindGroupActivity extends AppCompatActivity {
     private static final int LIMIT = 15;
     private static final String TAG = FindGroupActivity.class.getSimpleName();

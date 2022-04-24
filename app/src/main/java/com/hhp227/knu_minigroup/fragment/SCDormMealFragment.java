@@ -22,6 +22,7 @@ import net.htmlparser.jericho.Source;
 
 import java.util.ArrayList;
 
+// TODO
 public class SCDormMealFragment extends Fragment {
     private static final String TAG = "상주기숙사 식단표";
 

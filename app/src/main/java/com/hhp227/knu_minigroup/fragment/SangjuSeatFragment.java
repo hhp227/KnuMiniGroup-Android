@@ -31,6 +31,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+// TODO
 public class SangjuSeatFragment extends Fragment {
     private static final String TAG = "상주 열람실좌석";
 

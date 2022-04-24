@@ -71,6 +71,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// TODO
 public class ArticleActivity extends MyYouTubeBaseActivity {
     private static final int UPDATE_ARTICLE = 10;
 

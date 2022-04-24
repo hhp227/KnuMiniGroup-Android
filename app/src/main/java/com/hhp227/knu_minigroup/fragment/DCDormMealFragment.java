@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 
+// TODO
 public class DCDormMealFragment extends Fragment {
     private static final String TAG = "문화관 식단표";
 

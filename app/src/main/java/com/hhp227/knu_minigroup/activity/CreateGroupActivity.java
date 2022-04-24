@@ -43,6 +43,7 @@ import java.util.UUID;
 
 import static com.hhp227.knu_minigroup.app.EndPoint.GROUP_IMAGE;
 
+// TODO
 public class CreateGroupActivity extends AppCompatActivity {
     private static final String TAG = CreateGroupActivity.class.getSimpleName();
 

@@ -98,11 +98,8 @@ public class MainActivity extends AppCompatActivity {
                         fragment = MealFragment.newInstance();
                         break;
                     case R.id.nav_menu7:
-                        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-
-                        mViewModel.logout();
-                        startActivity(intent);
-                        finish();
+                        logout();
+                        break;
                 }
                 if (fragment != null) {
                     FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
@@ -168,5 +165,13 @@ public class MainActivity extends AppCompatActivity {
                         .skipMemoryCache(true)
                         .diskCacheStrategy(DiskCacheStrategy.NONE))
                 .into(NavHeaderMainBinding.bind(mBinding.navView.getHeaderView(0)).ivProfileImage);
+    }
+
+    public void logout() {
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+
+        mViewModel.logout();
+        startActivity(intent);
+        finish();
     }
 }

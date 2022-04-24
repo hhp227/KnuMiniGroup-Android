@@ -18,6 +18,7 @@ import com.hhp227.knu_minigroup.databinding.FragmentTabsBinding;
 import java.util.List;
 import java.util.Vector;
 
+// TODO
 public class MealFragment extends Fragment {
     public static final String TAG = "식단표";
     private static final String[] TAB_NAMES = {"GP감꽃푸드코트", "GP일청담", "공학관 교직원식당", "공학관 학생식당", "복지관 교직원식당", "복지관 학생식당", "복현회관 교직원식당", "복현회관 학생식당", "정보센터", "상주 학식", "문화관", "BTL", "상주생활관"};

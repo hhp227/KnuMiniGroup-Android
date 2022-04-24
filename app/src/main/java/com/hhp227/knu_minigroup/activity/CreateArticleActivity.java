@@ -55,6 +55,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+// TODO
 public class CreateArticleActivity extends AppCompatActivity {
     private static final String TAG = CreateArticleActivity.class.getSimpleName();
 

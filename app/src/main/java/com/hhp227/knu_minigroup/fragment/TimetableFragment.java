@@ -18,6 +18,7 @@ import com.hhp227.knu_minigroup.databinding.FragmentTabsBinding;
 import java.util.List;
 import java.util.Vector;
 
+// TODO
 public class TimetableFragment extends Fragment {
     public static final String TAG = "시간표";
     private static final String[] TAB_NAMES = {"학기시간표", "모의시간표 작성"};
