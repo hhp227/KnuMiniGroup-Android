@@ -4,53 +4,35 @@ import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import com.hhp227.knu_minigroup.R;
-import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.FragmentShuttleScheduleScBinding;
-import net.htmlparser.jericho.Element;
-import net.htmlparser.jericho.HTMLElementName;
-import net.htmlparser.jericho.Source;
+import com.hhp227.knu_minigroup.viewmodel.SCShuttleScheduleViewModel;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
-// TODO
 public class SCShuttleScheduleFragment extends Fragment {
-    private static final String TAG = "학교버스시간표";
-
-    private ArrayList<HashMap<String, String>> mShuttleList;
-
     private ProgressDialog mProgressDialog;
 
     private SimpleAdapter mAdapter;
 
-    private Source mSource;
-
     private FragmentShuttleScheduleScBinding mBinding;
+
+    private SCShuttleScheduleViewModel mViewModel;
 
     public static SCShuttleScheduleFragment newInstance() {
         return new SCShuttleScheduleFragment();
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
     }
 
     @Override
@@ -62,11 +44,15 @@ public class SCShuttleScheduleFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mShuttleList = new ArrayList<>();
+        mViewModel = new ViewModelProvider(this).get(SCShuttleScheduleViewModel.class);
         mProgressDialog = new ProgressDialog(getActivity());
-        mAdapter = new SimpleAdapter(getActivity(), mShuttleList, R.layout.shuttle_sc_item,
+        mAdapter = new SimpleAdapter(
+                getActivity(),
+                mViewModel.mShuttleList,
+                R.layout.shuttle_sc_item,
                 new String[] {"col1", "col2", "col3", "col4", "col5", "col6", "col7"},
-                new int[] {R.id.column1, R.id.column2, R.id.column3, R.id.column4, R.id.column5, R.id.column6, R.id.column7});
+                new int[] {R.id.column1, R.id.column2, R.id.column3, R.id.column4, R.id.column5, R.id.column6, R.id.column7}
+        );
 
         mBinding.lvShuttle.setAdapter(mAdapter);
         mBinding.srlShuttle.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -74,74 +60,40 @@ public class SCShuttleScheduleFragment extends Fragment {
             public void onRefresh() {
                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     public void run() {
+                        mViewModel.refresh();
                         mBinding.srlShuttle.setRefreshing(false); // 당겨서 새로고침 숨김
                     }
                 }, 1000);
             }
         });
         mProgressDialog.setMessage("불러오는중...");
-        showProgressDialog();
-        try {
-            new Thread() {
-                public void run() {
-                    try {
-                        URL URL = new URL(EndPoint.URL_SHUTTLE.replace("{SHUTTLE}", "map03_02"));
-                        InputStream html = URL.openStream();
-                        mSource = new Source(new InputStreamReader(html, StandardCharsets.UTF_8)); // 소스를 UTF-8 인코딩으로 불러온다.
+        mViewModel.mState.observe(getViewLifecycleOwner(), new Observer<SCShuttleScheduleViewModel.State>() {
+            @Override
+            public void onChanged(SCShuttleScheduleViewModel.State state) {
+                if (state.isLoading) {
+                    showProgressDialog();
+                } else if (!state.list.isEmpty()) {
+                    TextView[] textViews = new TextView[] {
+                            mBinding.tvCol1,
+                            mBinding.tvCol2,
+                            mBinding.tvCol3,
+                            mBinding.tvCol4,
+                            mBinding.tvCol5,
+                            mBinding.tvCol6,
+                            mBinding.tvCol7
+                    };
 
-                        mSource.fullSequentialParse(); // 순차적으로 구문분석
-                        Element table = mSource.getAllElements(HTMLElementName.TABLE).get(0);
-                        List<Element> thList = table.getFirstElement(HTMLElementName.TR).getAllElements(HTMLElementName.TH);
-
-                        for (int i = 1; i < table.getAllElements(HTMLElementName.TR).size(); i++) {
-                            Element TR = table.getAllElements(HTMLElementName.TR).get(i);
-                            HashMap<String, String> map = new HashMap<>();
-                            Element Col1 = TR.getAllElements(HTMLElementName.TD).get(0);
-                            Element Col2 = TR.getAllElements(HTMLElementName.TD).get(1);
-                            Element Col3 = TR.getAllElements(HTMLElementName.TD).get(2);
-                            Element Col4 = TR.getAllElements(HTMLElementName.TD).get(3);
-                            Element Col5 = TR.getAllElements(HTMLElementName.TD).get(4);
-                            Element Col6 = TR.getAllElements(HTMLElementName.TD).get(5);
-
-                            map.put("col1", String.valueOf(i));
-                            map.put("col2", (Col1).getContent().toString());
-                            map.put("col3", (Col2).getContent().toString());
-                            map.put("col4", (Col3).getContent().toString());
-                            map.put("col5", (Col4).getContent().toString());
-                            map.put("col6", (Col5).getContent().toString());
-                            map.put("col7", (Col6).getContent().toString());
-                            mShuttleList.add(map);
-                        }
-                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                TextView[] textViews = new TextView[] {
-                                        mBinding.tvCol1,
-                                        mBinding.tvCol2,
-                                        mBinding.tvCol3,
-                                        mBinding.tvCol4,
-                                        mBinding.tvCol5,
-                                        mBinding.tvCol6,
-                                        mBinding.tvCol7
-                                };
-
-                                for (int i = 0; i < thList.size(); i++) {
-                                    textViews[i].setText(thList.get(i).getTextExtractor().toString());
-                                }
-                                mAdapter.notifyDataSetChanged(); // 모든 작업이 끝나면 리스트 갱신
-                                hideProgressDialog();
-                            }
-                        }, 0);
-                    } catch (Exception e) {
-                        hideProgressDialog();
-                        Log.e(TAG, "에러" + e);
+                    for (int i = 0; i < state.list.size(); i++) {
+                        textViews[i].setText(state.list.get(i));
                     }
+                    mAdapter.notifyDataSetChanged(); // 모든 작업이 끝나면 리스트 갱신
+                    hideProgressDialog();
+                } else if (!state.message.isEmpty()) {
+                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show();
+                    hideProgressDialog();
                 }
-            }.start();
-        } catch (Exception e) {
-            hideProgressDialog();
-            Log.e(TAG, "에러" + e);
-        }
+            }
+        });
     }
 
     @Override
