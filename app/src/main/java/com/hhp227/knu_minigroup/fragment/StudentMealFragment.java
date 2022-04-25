@@ -85,9 +85,10 @@ public class StudentMealFragment extends Fragment {
 
     private String extractText(String key, Map<String, List<Pair<String, String>>> stringListMap) {
         StringBuilder stringBuilder = new StringBuilder();
+        List<Pair<String, String>> stringPairMap = stringListMap.get(key);
 
-        if (stringListMap.get(key) != null) {
-            for (Pair<String, String> pair : stringListMap.get(key)) {
+        if (stringPairMap != null) {
+            for (Pair<String, String> pair : stringPairMap) {
                 stringBuilder.append(pair.second);
             }
         }
