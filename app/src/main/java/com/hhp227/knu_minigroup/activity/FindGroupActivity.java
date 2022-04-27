@@ -5,14 +5,18 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.adapter.GroupListAdapter;
 import com.hhp227.knu_minigroup.app.AppController;
@@ -61,13 +65,13 @@ public class FindGroupActivity extends AppCompatActivity {
         mViewModel = new ViewModelProvider(this).get(FindGroupViewModel.class);
         mGroupItemKeys = new ArrayList<>();
         mGroupItemValues = new ArrayList<>();
-        mAdapter = new GroupListAdapter(this, mGroupItemKeys, mGroupItemValues);
+        mAdapter = new GroupListAdapter(this, mViewModel.mGroupItemKeys, mViewModel.mGroupItemValues);
         mOffSet = 1;
         mOnScrollListener = new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                LinearLayoutManager manager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                /*LinearLayoutManager manager = (LinearLayoutManager) recyclerView.getLayoutManager();
 
                 if (!mHasRequestedMore && dy > 0 && manager != null && manager.findLastCompletelyVisibleItemPosition() >= manager.getItemCount() - 1) {
                     mHasRequestedMore = true;
@@ -76,7 +80,7 @@ public class FindGroupActivity extends AppCompatActivity {
                     mAdapter.setFooterProgressBarVisibility(View.VISIBLE);
                     mAdapter.notifyDataSetChanged();
                     fetchGroupList();
-                }
+                }*/
             }
         };
 
@@ -88,14 +92,15 @@ public class FindGroupActivity extends AppCompatActivity {
         mBinding.recyclerView.setHasFixedSize(true);
         mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         mBinding.recyclerView.setAdapter(mAdapter);
-        mBinding.recyclerView.post(new Runnable() {
+        /*mBinding.recyclerView.post(new Runnable() {
             @Override
             public void run() {
                 mAdapter.setFooterProgressBarVisibility(View.INVISIBLE);
                 mAdapter.addFooterView();
                 mAdapter.setButtonType(GroupInfoFragment.TYPE_REQUEST);
             }
-        });
+        });*/
+
         mBinding.recyclerView.addOnScrollListener(mOnScrollListener);
         mBinding.srlList.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -115,13 +120,29 @@ public class FindGroupActivity extends AppCompatActivity {
                 }, 1000);
             }
         });
-        showProgressBar();
+        /*showProgressBar();
         new Handler(getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
                 fetchGroupList();
             }
-        }, 500);
+        }, 500);*/
+        mViewModel.mState.observe(this, new Observer<FindGroupViewModel.State>() {
+            @Override
+            public void onChanged(FindGroupViewModel.State state) {
+                if (state.isLoading) {
+                    Toast.makeText(getApplicationContext(), "isLoading", Toast.LENGTH_LONG).show();
+                    showProgressBar();
+                } else if (state.isSuccess) {
+                    hideProgressBar();
+                    mAdapter.notifyDataSetChanged();
+                    Toast.makeText(getApplicationContext(), "offset: " + mViewModel.mState.getValue().offset + ", mMinId: " + mViewModel.mMinId, Toast.LENGTH_LONG).show();
+                } else if (state.message != null && !state.message.isEmpty()) {
+                    Snackbar.make(mBinding.recyclerView, state.message, Snackbar.LENGTH_LONG).show();
+                    hideProgressBar();
+                }
+            }
+        });
     }
 
     @Override
