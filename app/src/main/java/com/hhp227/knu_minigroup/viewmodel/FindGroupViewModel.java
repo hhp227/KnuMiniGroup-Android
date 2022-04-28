@@ -44,7 +44,7 @@ public class FindGroupViewModel extends ViewModel {
 
     private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
 
-    private boolean stopRequestMore = false;
+    private boolean mStopRequestMore = false;
 
     private int mMinId;
 
@@ -84,10 +84,10 @@ public class FindGroupViewModel extends ViewModel {
                             }
 
                             if (id > mMinId) {
-                                stopRequestMore = true;
+                                mStopRequestMore = true;
                                 break;
                             } else
-                                stopRequestMore = false;
+                                mStopRequestMore = false;
                             GroupItem groupItem = new GroupItem();
 
                             groupItem.setId(String.valueOf(id));
@@ -160,7 +160,7 @@ public class FindGroupViewModel extends ViewModel {
     }
 
     public void fetchNextPage() {
-        if (mState.getValue() != null && !stopRequestMore) {
+        if (mState.getValue() != null && !mStopRequestMore) {
             mState.postValue(new State(false, false, mState.getValue().offset, true, null));
         }
     }

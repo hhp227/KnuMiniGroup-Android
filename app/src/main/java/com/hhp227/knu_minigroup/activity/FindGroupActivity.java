@@ -78,6 +78,7 @@ public class FindGroupActivity extends AppCompatActivity {
         mViewModel.mState.observe(this, new Observer<FindGroupViewModel.State>() {
             @Override
             public void onChanged(FindGroupViewModel.State state) {
+                // TODO list의 size가 1 이하일때 그룹이 없습니다 처리를 해줘야한다.
                 if (state.isLoading) {
                     if (!state.hasRequestedMore) {
                         showProgressBar();
