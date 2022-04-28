@@ -1,6 +1,5 @@
 package com.hhp227.knu_minigroup.viewmodel;
 
-import android.util.Log;
 import android.webkit.CookieManager;
 
 import androidx.annotation.NonNull;
@@ -45,7 +44,9 @@ public class FindGroupViewModel extends ViewModel {
 
     private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
 
-    public int mMinId;
+    private boolean stopRequestMore = false;
+
+    private int mMinId;
 
     public FindGroupViewModel() {
         if (mState.getValue() != null) {
@@ -54,8 +55,7 @@ public class FindGroupViewModel extends ViewModel {
     }
 
     public void fetchGroupList(int offset) {
-        Log.e("TEST", "offset: " + offset + ", mMinId: " + mMinId);
-        mState.postValue(new State(true, false, offset, false, null));
+        mState.postValue(new State(true, false, offset, mState.getValue() != null && mState.getValue().hasRequestedMore, null));
         AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -83,11 +83,11 @@ public class FindGroupViewModel extends ViewModel {
                                         extractedText + "\n");
                             }
 
-                            /*if (id > mMinId) {
-                                mHasRequestedMore = true;
+                            if (id > mMinId) {
+                                stopRequestMore = true;
                                 break;
                             } else
-                                mHasRequestedMore = false;*/
+                                stopRequestMore = false;
                             GroupItem groupItem = new GroupItem();
 
                             groupItem.setId(String.valueOf(id));
@@ -100,8 +100,7 @@ public class FindGroupViewModel extends ViewModel {
                             mGroupItemValues.add(mGroupItemValues.size() - 1, groupItem);
                         }
                     } catch (Exception e) {
-                        Log.e("TEST", "e: " + e.getMessage());
-                        mState.postValue(new State(false, false, 0, false, e.getMessage()));
+                        mState.postValue(new State(false, false, offset, false, e.getMessage()));
                     } finally {
                         initFirebaseData();
                     }
@@ -115,7 +114,7 @@ public class FindGroupViewModel extends ViewModel {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                mState.postValue(new State(false, false, 0, false, error.getMessage()));
+                mState.postValue(new State(false, false, offset, false, error.getMessage()));
             }
         }) {
             @Override
@@ -160,10 +159,8 @@ public class FindGroupViewModel extends ViewModel {
         });
     }
 
-    // TODO
     public void fetchNextPage() {
-        if (mState.getValue() != null) {
-            Log.e("TEST", "fetchNextPage: " + (mGroupItemValues.size() > 1 && Integer.parseInt(mGroupItemValues.get(mGroupItemValues.size() - 2).getId()) > mMinId));
+        if (mState.getValue() != null && !stopRequestMore) {
             mState.postValue(new State(false, false, mState.getValue().offset, true, null));
         }
     }
@@ -172,11 +169,14 @@ public class FindGroupViewModel extends ViewModel {
         Executors.newSingleThreadExecutor().execute(new Runnable() {
             @Override
             public void run() {
-                mMinId = 0;
+                /*mMinId = 0;
 
                 mGroupItemKeys.clear();
                 mGroupItemValues.clear();
-                mState.postValue(new State(false, false, 1, true, null));
+                mGroupItemKeys.add("");
+                mGroupItemValues.add(null);
+                mState.postValue(new State(false, false, 1, true, null));*/
+                // TODO
             }
         });
     }
