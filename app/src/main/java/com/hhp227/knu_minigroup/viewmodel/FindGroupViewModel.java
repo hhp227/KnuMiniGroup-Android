@@ -54,7 +54,8 @@ public class FindGroupViewModel extends ViewModel {
     }
 
     public void fetchGroupList(int offset) {
-        mState.postValue(new State(true, false, 0, false, null));
+        Log.e("TEST", "offset: " + offset + ", mMinId: " + mMinId);
+        mState.postValue(new State(true, false, offset, false, null));
         AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -159,8 +160,12 @@ public class FindGroupViewModel extends ViewModel {
         });
     }
 
+    // TODO
     public void fetchNextPage() {
-
+        if (mState.getValue() != null) {
+            Log.e("TEST", "fetchNextPage: " + (mGroupItemValues.size() > 1 && Integer.parseInt(mGroupItemValues.get(mGroupItemValues.size() - 2).getId()) > mMinId));
+            mState.postValue(new State(false, false, mState.getValue().offset, true, null));
+        }
     }
 
     public void refresh() {
@@ -200,7 +205,7 @@ public class FindGroupViewModel extends ViewModel {
                     }
                 }
                 if (mState.getValue() != null) {
-                    mState.postValue(new State(false, true, mState.getValue().offset, false, null));
+                    mState.postValue(new State(false, true, mState.getValue().offset + LIMIT, false, null));
                 }
             }
 

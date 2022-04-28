@@ -69,18 +69,19 @@ public class FindGroupActivity extends AppCompatActivity {
         mOffSet = 1;
         mOnScrollListener = new RecyclerView.OnScrollListener() {
             @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                /*LinearLayoutManager manager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                LinearLayoutManager manager = (LinearLayoutManager) recyclerView.getLayoutManager();
 
-                if (!mHasRequestedMore && dy > 0 && manager != null && manager.findLastCompletelyVisibleItemPosition() >= manager.getItemCount() - 1) {
-                    mHasRequestedMore = true;
+                if (dy > 0 && manager != null && manager.findLastCompletelyVisibleItemPosition() >= manager.getItemCount() - 1) {
+                    /*mHasRequestedMore = true;
                     mOffSet += LIMIT;
 
                     mAdapter.setFooterProgressBarVisibility(View.VISIBLE);
                     mAdapter.notifyDataSetChanged();
-                    fetchGroupList();
-                }*/
+                    fetchGroupList();*/
+                    mViewModel.fetchNextPage();
+                }
             }
         };
 
@@ -131,8 +132,10 @@ public class FindGroupActivity extends AppCompatActivity {
             @Override
             public void onChanged(FindGroupViewModel.State state) {
                 if (state.isLoading) {
-                    Toast.makeText(getApplicationContext(), "isLoading", Toast.LENGTH_LONG).show();
                     showProgressBar();
+                } else if (state.hasRequestedMore) {
+                    mViewModel.fetchGroupList(state.offset);
+                    Log.e("TEST", "hasRequestedMore" + state.offset);
                 } else if (state.isSuccess) {
                     hideProgressBar();
                     mAdapter.notifyDataSetChanged();
