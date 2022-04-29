@@ -49,25 +49,23 @@ public class LoginActivity extends AppCompatActivity {
         mViewModel.mState.observe(this, new Observer<LoginViewModel.State>() {
             @Override
             public void onChanged(LoginViewModel.State state) {
-                if (state != null) {
-                    if (state.isLoading) {
-                        showProgressBar();
-                    } else if (state.user != null) {
-                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                if (state.isLoading) {
+                    showProgressBar();
+                } else if (state.user != null) {
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
 
-                        mViewModel.storeUser(state.user);
+                    mViewModel.storeUser(state.user);
 
-                        // 화면이동
-                        hideProgressBar();
-                        startActivity(intent);
-                        finish();
-                    } else if (!TextUtils.isEmpty(state.message)) {
-                        hideProgressBar();
-                        Snackbar.make(getCurrentFocus(), state.message, Snackbar.LENGTH_LONG).setAction("Action", null).show();
-                    } else {
-                        mBinding.etId.setError(state.loginFormState.emailError);
-                        mBinding.etPassword.setError(state.loginFormState.passwordError);
-                    }
+                    // 화면이동
+                    hideProgressBar();
+                    startActivity(intent);
+                    finish();
+                } else if (!TextUtils.isEmpty(state.message)) {
+                    hideProgressBar();
+                    Snackbar.make(getCurrentFocus(), state.message, Snackbar.LENGTH_LONG).setAction("Action", null).show();
+                } else {
+                    mBinding.etId.setError(state.loginFormState.emailError);
+                    mBinding.etPassword.setError(state.loginFormState.passwordError);
                 }
             }
         });

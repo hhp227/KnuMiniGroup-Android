@@ -192,22 +192,20 @@ public class GroupMainFragment extends Fragment {
         mViewModel.mState.observe(getViewLifecycleOwner(), new Observer<GroupMainViewModel.State>() {
             @Override
             public void onChanged(GroupMainViewModel.State state) {
-                if (state != null) {
-                    if (state.isLoading) {
-                        requireActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-                        showProgressBar();
-                    } else if (state.isSuccess) {
-                        hideProgressBar();
-                        mAdapter.notifyDataSetChanged();
-                        if (getActivity() != null) {
-                            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-                        }
-                    } else if (!state.message.isEmpty()) {
-                        hideProgressBar();
-                        Snackbar.make(requireView(), state.message, Snackbar.LENGTH_LONG).show();
-                        if (getActivity() != null) {
-                            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-                        }
+                if (state.isLoading) {
+                    requireActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                    showProgressBar();
+                } else if (state.isSuccess) {
+                    hideProgressBar();
+                    mAdapter.notifyDataSetChanged();
+                    if (getActivity() != null) {
+                        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                    }
+                } else if (!state.message.isEmpty()) {
+                    hideProgressBar();
+                    Snackbar.make(requireView(), state.message, Snackbar.LENGTH_LONG).show();
+                    if (getActivity() != null) {
+                        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
                     }
                 }
             }
