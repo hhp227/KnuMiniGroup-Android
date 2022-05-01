@@ -1,5 +1,6 @@
 package com.hhp227.knu_minigroup.viewmodel;
 
+import android.util.Log;
 import android.webkit.CookieManager;
 
 import androidx.annotation.NonNull;
@@ -9,6 +10,7 @@ import androidx.lifecycle.ViewModel;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -33,14 +35,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
-public class FindGroupViewModel extends ViewModel {
+public class RequestViewModel extends ViewModel {
     public final MutableLiveData<State> mState = new MutableLiveData<>(new State(false, false, 1, false, null));
 
-    public final List<String> mGroupItemKeys = new ArrayList<>(Arrays.asList(""));
+    public List<String> mGroupItemKeys = new ArrayList<>(Arrays.asList(""));
 
-    public final List<GroupItem> mGroupItemValues = new ArrayList<>(Arrays.asList((GroupItem) null));
+    public List<GroupItem> mGroupItemValues = new ArrayList<>(Arrays.asList((GroupItem) null));
 
-    private static final int LIMIT = 15;
+    private static final int LIMIT = 100;
 
     private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
 
@@ -48,14 +50,13 @@ public class FindGroupViewModel extends ViewModel {
 
     private int mMinId;
 
-    public FindGroupViewModel() {
+    public RequestViewModel() {
         if (mState.getValue() != null) {
             fetchGroupList(mState.getValue().offset);
         }
     }
 
     public void fetchGroupList(int offset) {
-        mState.postValue(new State(true, false, offset, mState.getValue() != null && mState.getValue().hasRequestedMore, null));
         AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -72,13 +73,12 @@ public class FindGroupViewModel extends ViewModel {
                             String name = element.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
                             StringBuilder info = new StringBuilder();
                             String description = menuList.getAllElementsByClass("info").get(0).getContent().toString();
-                            String joinType = menuList.getAllElementsByClass("info").get(1).getTextExtractor().toString().trim();
+                            String joinType = menuList.getAllElementsByClass("info").get(1).getContent().toString();
                             GroupItem groupItem = new GroupItem();
                             mMinId = mMinId == 0 ? id : Math.min(mMinId, id);
 
                             for (Element span : element.getFirstElement(HTMLElementName.A).getAllElementsByClass("info")) {
                                 String extractedText = span.getTextExtractor().toString();
-
                                 info.append(extractedText.contains("회원수") ?
                                         extractedText.substring(0, extractedText.lastIndexOf("생성일")).trim() + "\n" :
                                         extractedText + "\n");
@@ -91,7 +91,7 @@ public class FindGroupViewModel extends ViewModel {
                             groupItem.setId(String.valueOf(id));
                             groupItem.setImage(imageUrl);
                             groupItem.setName(name);
-                            groupItem.setInfo(info.toString().trim());
+                            groupItem.setInfo(info.toString());
                             groupItem.setDescription(description);
                             groupItem.setJoinType(joinType.equals("가입방식: 자동 승인") ? "0" : "1");
                             mGroupItemKeys.add(mGroupItemKeys.size() - 1, String.valueOf(id));
@@ -102,6 +102,9 @@ public class FindGroupViewModel extends ViewModel {
                     } finally {
                         initFirebaseData();
                     }
+                }
+                if (mState.getValue() != null) {
+                    mState.postValue(new State(false, true, mState.getValue().offset + LIMIT, false, null));
                 }
             }
         }, new Response.ErrorListener() {
@@ -175,30 +178,43 @@ public class FindGroupViewModel extends ViewModel {
     }
 
     private void initFirebaseData() {
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
 
-        fetchGroupListFromFirebase(databaseReference.orderByKey());
+        fetchDataTaskFromFirebase(databaseReference.child(AppController.getInstance().getPreferenceManager().getUser().getUid()).orderByValue().equalTo(false), false);
     }
 
-    private void fetchGroupListFromFirebase(Query query) {
+    private void fetchDataTaskFromFirebase(Query query, final boolean isRecursion) {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    String key = snapshot.getKey();
-                    GroupItem value = snapshot.getValue(GroupItem.class);
+                if (isRecursion) {
+                    try {
+                        String key = dataSnapshot.getKey();
+                        GroupItem value = dataSnapshot.getValue(GroupItem.class);
 
-                    if (value != null) {
-                        int index = mGroupItemKeys.indexOf(value.getId());
+                        if (value != null) {
+                            int index = mGroupItemKeys.indexOf(value.getId());
 
-                        if (index > -1) {
-                            //mGroupItemValues.set(index, value); //getInfo 구현이 덜되어 주석처리
-                            mGroupItemKeys.set(index, key);
+                            if (index > -1) {
+                                //mGroupItemValues.set(index, value); //isAdmin값때문에 주석처리
+                                mGroupItemKeys.set(index, key);
+                            }
+                            if (mState.getValue() != null) {
+                                mState.postValue(new State(false, true, mState.getValue().offset + LIMIT, false, null));
+                            }
+                        }
+                    } catch (Exception e) {
+                        mState.postValue(new State(false, false, 0, false, e.getMessage()));
+                    }
+                } else {
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
+                        String key = snapshot.getKey();
+
+                        if (key != null) {
+                            fetchDataTaskFromFirebase(databaseReference.child(key), true);
                         }
                     }
-                }
-                if (mState.getValue() != null) {
-                    mState.postValue(new State(false, true, mState.getValue().offset + LIMIT, false, null));
                 }
             }
 
@@ -210,7 +226,7 @@ public class FindGroupViewModel extends ViewModel {
     }
 
     private int groupIdExtract(String onclick) {
-        return Integer.parseInt(onclick.split("[(]|[)]|[,]")[1].trim());
+        return Integer.parseInt(onclick.split("'")[1].trim());
     }
 
     public static final class State {

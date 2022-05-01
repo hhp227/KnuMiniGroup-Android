@@ -2,8 +2,10 @@ package com.hhp227.knu_minigroup.activity;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -78,7 +80,6 @@ public class FindGroupActivity extends AppCompatActivity {
         mViewModel.mState.observe(this, new Observer<FindGroupViewModel.State>() {
             @Override
             public void onChanged(FindGroupViewModel.State state) {
-                // TODO list의 size가 1 이하일때 그룹이 없습니다 처리를 해줘야한다.
                 if (state.isLoading) {
                     if (!state.hasRequestedMore) {
                         showProgressBar();
@@ -92,6 +93,8 @@ public class FindGroupActivity extends AppCompatActivity {
                     hideProgressBar();
                     mAdapter.setFooterProgressBarVisibility(View.INVISIBLE);
                     mAdapter.notifyDataSetChanged();
+                    mBinding.text.setText("가입신청중인 그룹이 없습니다.");
+                    mBinding.rlGroup.setVisibility(mViewModel.mGroupItemValues.size() > 1 ? View.GONE : View.VISIBLE);
                 } else if (state.message != null && !state.message.isEmpty()) {
                     Snackbar.make(mBinding.recyclerView, state.message, Snackbar.LENGTH_LONG).show();
                     hideProgressBar();
