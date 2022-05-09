@@ -7,12 +7,12 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.*;
+import android.widget.RadioGroup;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
@@ -22,35 +22,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.android.volley.*;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.hhp227.knu_minigroup.R;
-import com.hhp227.knu_minigroup.app.AppController;
-import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.ActivityCreateGroupBinding;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
-import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import com.hhp227.knu_minigroup.viewmodel.CreateGroupViewModel;
-import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
-import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
-
-import static com.hhp227.knu_minigroup.app.EndPoint.GROUP_IMAGE;
 
 public class CreateGroupActivity extends AppCompatActivity {
-    private boolean mJoinTypeCheck;
-
     private ProgressDialog mProgressDialog;
 
     private TextWatcher mTextWatcher;
@@ -121,7 +102,7 @@ public class CreateGroupActivity extends AppCompatActivity {
         mBinding.rgJointype.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                mJoinTypeCheck = checkedId != R.id.rb_auto;
+                mViewModel.setJoinType(checkedId != R.id.rb_auto);
             }
         });
         mBinding.rgJointype.check(R.id.rb_auto);
@@ -177,9 +158,8 @@ public class CreateGroupActivity extends AppCompatActivity {
             case R.id.action_send:
                 final String title = mBinding.etTitle.getText().toString().trim();
                 final String description = mBinding.etDescription.getText().toString().trim();
-                final String join = !mJoinTypeCheck ? "0" : "1";
 
-                mViewModel.createGroup(title, description, join);
+                mViewModel.createGroup(title, description);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -224,7 +204,7 @@ public class CreateGroupActivity extends AppCompatActivity {
         intent.putExtra("admin", true);
         intent.putExtra("grp_id", groupItem.getId());
         intent.putExtra("grp_nm", groupItem.getName());
-        intent.putExtra("grp_img", groupItem.getImage()); // 영남대 소모임에도 적용할것
+        intent.putExtra("grp_img", groupItem.getImage());
         intent.putExtra("key", groupItemEntry.getKey());
         setResult(RESULT_OK, intent);
         startActivity(intent);

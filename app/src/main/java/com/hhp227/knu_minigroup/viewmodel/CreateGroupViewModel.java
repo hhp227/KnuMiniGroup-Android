@@ -3,9 +3,7 @@ package com.hhp227.knu_minigroup.viewmodel;
 import static com.hhp227.knu_minigroup.app.EndPoint.GROUP_IMAGE;
 
 import android.graphics.Bitmap;
-import android.util.Log;
 import android.webkit.CookieManager;
-import android.widget.Toast;
 
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -14,7 +12,6 @@ import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -44,11 +41,17 @@ public class CreateGroupViewModel extends ViewModel {
 
     private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
 
+    private String mType;
+
     public void setBitmap(Bitmap bitmap) {
         mBitmap.postValue(bitmap);
     }
 
-    public void createGroup(String title, String description, String type) {
+    public void setJoinType(boolean joinType) {
+        this.mType = !joinType ? "0" : "1";
+    }
+
+    public void createGroup(String title, String description) {
         if (!title.isEmpty() && !description.isEmpty()) {
             mState.postValue(new State(true, null, null, null));
             AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, EndPoint.CREATE_GROUP, null, new Response.Listener<JSONObject>() {
@@ -60,9 +63,9 @@ public class CreateGroupViewModel extends ViewModel {
                             String groupName = response.getString("GRP_NM");
 
                             if (mBitmap.getValue() != null)
-                                groupImageUpdate(groupId, groupName, description, type);
+                                groupImageUpdate(groupId, groupName, description);
                             else {
-                                insertGroupToFirebase(groupId, groupName, description, type);
+                                insertGroupToFirebase(groupId, groupName, description);
                             }
                         }
                     } catch (JSONException e) {
@@ -94,7 +97,7 @@ public class CreateGroupViewModel extends ViewModel {
 
                     params.put("GRP_NM", title);
                     params.put("TXT", description);
-                    params.put("JOIN_DIV", type);
+                    params.put("JOIN_DIV", mType);
                     if (params.size() > 0) {
                         StringBuilder encodedParams = new StringBuilder();
 
@@ -118,17 +121,21 @@ public class CreateGroupViewModel extends ViewModel {
         }
     }
 
-    private void groupImageUpdate(final String clubGrpId, final String grpNm, final String txt, final String joinDiv) {
-        Log.e("TEST", "groupImageUpdate" + clubGrpId);
+    private void groupImageUpdate(final String clubGrpId, final String grpNm, final String txt) {
         AppController.getInstance().addToRequestQueue(new MultipartRequest(Request.Method.POST, EndPoint.GROUP_IMAGE_UPDATE, new Response.Listener<NetworkResponse>() {
             @Override
             public void onResponse(NetworkResponse response) {
-                insertGroupToFirebase(clubGrpId, grpNm, txt, joinDiv);
+                insertGroupToFirebase(clubGrpId, grpNm, txt);
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                mState.postValue(new State(false, null, null, error.getMessage()));
+                if (error.networkResponse.statusCode == 302) {
+                    // 임시로 넣은코드, 서버에서 왜 이런 응답을 보내는지 이해가 안된다.
+                    insertGroupToFirebase(clubGrpId, grpNm, txt);
+                } else {
+                    mState.postValue(new State(false, null, null, error.getMessage()));
+                }
             }
         }) {
             @Override
@@ -151,7 +158,9 @@ public class CreateGroupViewModel extends ViewModel {
             protected Map<String, DataPart> getByteData() {
                 Map<String, DataPart> params = new HashMap<>();
 
-                params.put("file", new DataPart(UUID.randomUUID().toString().replace("-", "").concat(".jpg"), getFileDataFromDrawable(mBitmap.getValue())));
+                if (mBitmap.getValue() != null) {
+                    params.put("file", new DataPart(UUID.randomUUID().toString().replace("-", "").concat(".jpg"), getFileDataFromDrawable(mBitmap.getValue())));
+                }
                 return params;
             }
 
@@ -164,7 +173,7 @@ public class CreateGroupViewModel extends ViewModel {
         });
     }
 
-    private void insertGroupToFirebase(String groupId, String groupName, String description, String joinType) {
+    private void insertGroupToFirebase(String groupId, String groupName, String description) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         Map<String, Boolean> members = new HashMap<>();
         GroupItem groupItem = new GroupItem();
@@ -176,10 +185,10 @@ public class CreateGroupViewModel extends ViewModel {
         groupItem.setTimestamp(System.currentTimeMillis());
         groupItem.setAuthor(mPreferenceManager.getUser().getName());
         groupItem.setAuthorUid(mPreferenceManager.getUser().getUid());
-        groupItem.setImage(EndPoint.BASE_URL + (mBitmap.getValue() != null ? GROUP_IMAGE.replace("{FILE}", groupId.concat(".jpg")) : "/ilos/images/community/share_nophoto.gif"));
+        groupItem.setImage(mBitmap.getValue() != null ? GROUP_IMAGE.replace("{FILE}", groupId.concat(".jpg")) : EndPoint.BASE_URL + "/ilos/images/community/share_nophoto.gif");
         groupItem.setName(groupName);
         groupItem.setDescription(description);
-        groupItem.setJoinType(joinType);
+        groupItem.setJoinType(mType);
         groupItem.setMembers(members);
         groupItem.setMemberCount(members.size());
         childUpdates.put("Groups/" + key, groupItem);
