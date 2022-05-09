@@ -19,8 +19,12 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+
 import com.android.volley.*;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.hhp227.knu_minigroup.R;
@@ -30,6 +34,7 @@ import com.hhp227.knu_minigroup.databinding.ActivityCreateGroupBinding;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
+import com.hhp227.knu_minigroup.viewmodel.CreateGroupViewModel;
 import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,17 +48,8 @@ import java.util.UUID;
 
 import static com.hhp227.knu_minigroup.app.EndPoint.GROUP_IMAGE;
 
-// TODO
 public class CreateGroupActivity extends AppCompatActivity {
-    private static final String TAG = CreateGroupActivity.class.getSimpleName();
-
     private boolean mJoinTypeCheck;
-
-    private String mCookie, mPushId;
-
-    private Bitmap mBitmap;
-
-    private PreferenceManager mPreferenceManager;
 
     private ProgressDialog mProgressDialog;
 
@@ -63,12 +59,13 @@ public class CreateGroupActivity extends AppCompatActivity {
 
     private ActivityResultLauncher<Intent> mCameraPickActivityResultLauncher, mCameraCaptureActivityResultLauncher;
 
+    private CreateGroupViewModel mViewModel;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBinding = ActivityCreateGroupBinding.inflate(getLayoutInflater());
-        mPreferenceManager = AppController.getInstance().getPreferenceManager();
-        mCookie = AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN);
+        mViewModel = new ViewModelProvider(this).get(CreateGroupViewModel.class);
         mProgressDialog = new ProgressDialog(this);
         mTextWatcher = new TextWatcher() {
             @Override
@@ -89,11 +86,10 @@ public class CreateGroupActivity extends AppCompatActivity {
             public void onActivityResult(ActivityResult result) {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     if (result.getData().getExtras().get("data") != null) {
-                        mBitmap = (Bitmap) result.getData().getExtras().get("data");
+                        mViewModel.setBitmap((Bitmap) result.getData().getExtras().get("data"));
                     } else if (result.getData().getData() != null) {
-                        mBitmap = new BitmapUtil(getBaseContext()).bitmapResize(result.getData().getData(), 200);
+                        mViewModel.setBitmap(new BitmapUtil(getBaseContext()).bitmapResize(result.getData().getData(), 200));
                     }
-                    mBinding.ivGroupImage.setImageBitmap(mBitmap);
                 }
             }
         };
@@ -129,6 +125,32 @@ public class CreateGroupActivity extends AppCompatActivity {
             }
         });
         mBinding.rgJointype.check(R.id.rb_auto);
+        mViewModel.mState.observe(this, new Observer<CreateGroupViewModel.State>() {
+            @Override
+            public void onChanged(CreateGroupViewModel.State state) {
+                if (state.isLoading) {
+                    showProgressDialog();
+                } else if (state.groupItemEntry != null) {
+                    createGroupSuccess(state.groupItemEntry);
+                } else if (state.message != null && !state.message.isEmpty()) {
+                    hideProgressDialog();
+                    Snackbar.make(getCurrentFocus(), state.message, Snackbar.LENGTH_LONG).show();
+                } else if (state.createGroupFormState != null) {
+                    mBinding.etTitle.setError(state.createGroupFormState.titleError);
+                    mBinding.etDescription.setError(state.createGroupFormState.descriptionError);
+                }
+            }
+        });
+        mViewModel.mBitmap.observe(this, new Observer<Bitmap>() {
+            @Override
+            public void onChanged(Bitmap bitmap) {
+                if (bitmap != null) {
+                    mBinding.ivGroupImage.setImageBitmap(bitmap);
+                } else {
+                    mBinding.ivGroupImage.setImageResource(R.drawable.add_photo);
+                }
+            }
+        });
     }
 
     @Override
@@ -157,75 +179,7 @@ public class CreateGroupActivity extends AppCompatActivity {
                 final String description = mBinding.etDescription.getText().toString().trim();
                 final String join = !mJoinTypeCheck ? "0" : "1";
 
-                if (!title.isEmpty() && !description.isEmpty()) {
-                    showProgressDialog();
-                    AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, EndPoint.CREATE_GROUP, null, new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            try {
-                                if (!response.getBoolean("isError")) {
-                                    String groupId = response.getString("CLUB_GRP_ID").trim();
-                                    String groupName = response.getString("GRP_NM");
-
-                                    if (mBitmap != null)
-                                        groupImageUpdate(groupId, groupName, description, join);
-                                    else {
-                                        insertGroupToFirebase(groupId, groupName, description, join);
-                                        createGroupSuccess(groupId, groupName);
-                                    }
-                                }
-                            } catch (JSONException e) {
-                                Log.e(TAG, e.getMessage());
-                                hideProgressDialog();
-                            }
-                        }
-                    }, new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            VolleyLog.e(error.getMessage());
-                            hideProgressDialog();
-                        }
-                    }) {
-                        @Override
-                        public Map<String, String> getHeaders() {
-                            Map<String, String> headers = new HashMap<>();
-
-                            headers.put("Cookie", mCookie);
-                            return headers;
-                        }
-
-                        @Override
-                        public String getBodyContentType() {
-                            return "application/x-www-form-urlencoded; charset=" + getParamsEncoding();
-                        }
-
-                        @Override
-                        public byte[] getBody() {
-                            Map<String, String> params = new HashMap<>();
-
-                            params.put("GRP_NM", title);
-                            params.put("TXT", description);
-                            params.put("JOIN_DIV", join);
-                            if (params.size() > 0) {
-                                StringBuilder encodedParams = new StringBuilder();
-
-                                try {
-                                    for (Map.Entry<String, String> entry : params.entrySet()) {
-                                        encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));
-                                        encodedParams.append('=');
-                                        encodedParams.append(URLEncoder.encode(entry.getValue(), getParamsEncoding()));
-                                        encodedParams.append('&');
-                                    }
-                                    return encodedParams.toString().getBytes(getParamsEncoding());
-                                } catch (UnsupportedEncodingException uee) {
-                                    throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), uee);
-                                }
-                            }
-                            return null;
-                        }
-                    });
-                } else
-                    Toast.makeText(getApplicationContext(), "그룹명 또는 그룹설명을 입력해주세요.", Toast.LENGTH_LONG).show();
+                mViewModel.createGroup(title, description, join);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -256,100 +210,27 @@ public class CreateGroupActivity extends AppCompatActivity {
                 mCameraPickActivityResultLauncher.launch(galleryIntent);
                 break;
             case "이미지 없음":
-                mBitmap = null;
-
-                mBinding.ivGroupImage.setImageResource(R.drawable.add_photo);
+                mViewModel.setBitmap(null);
                 Toast.makeText(getBaseContext(), "이미지 없음 선택", Toast.LENGTH_LONG).show();
                 break;
         }
         return super.onContextItemSelected(item);
     }
 
-    private void createGroupSuccess(String groupId, String groupName) {
+    private void createGroupSuccess(Map.Entry<String, GroupItem> groupItemEntry) {
         Intent intent = new Intent(CreateGroupActivity.this, GroupActivity.class);
+        GroupItem groupItem = groupItemEntry.getValue();
 
         intent.putExtra("admin", true);
-        intent.putExtra("grp_id", groupId);
-        intent.putExtra("grp_nm", groupName);
-        intent.putExtra("grp_img", mBitmap != null ? GROUP_IMAGE.replace("{FILE}", groupId.concat(".jpg")) : EndPoint.BASE_URL + "/ilos/images/community/share_nophoto.gif"); // 영남대 소모임에도 적용할것
-        intent.putExtra("key", mPushId);
+        intent.putExtra("grp_id", groupItem.getId());
+        intent.putExtra("grp_nm", groupItem.getName());
+        intent.putExtra("grp_img", groupItem.getImage()); // 영남대 소모임에도 적용할것
+        intent.putExtra("key", groupItemEntry.getKey());
         setResult(RESULT_OK, intent);
         startActivity(intent);
         finish();
         hideProgressDialog();
         Toast.makeText(getApplicationContext(), "그룹이 생성되었습니다.", Toast.LENGTH_LONG).show();
-    }
-
-    private void groupImageUpdate(final String clubGrpId, final String grpNm, final String txt, final String joinDiv) {
-        AppController.getInstance().addToRequestQueue(new MultipartRequest(Request.Method.POST, EndPoint.GROUP_IMAGE_UPDATE, new Response.Listener<NetworkResponse>() {
-            @Override
-            public void onResponse(NetworkResponse response) {
-                insertGroupToFirebase(clubGrpId, grpNm, txt, joinDiv);
-                createGroupSuccess(clubGrpId, grpNm);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(TAG, error.getMessage());
-                hideProgressDialog();
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", mCookie);
-                return headers;
-            }
-
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-
-                params.put("CLUB_GRP_ID", clubGrpId);
-                return params;
-            }
-
-            @Override
-            protected Map<String, DataPart> getByteData() {
-                Map<String, DataPart> params = new HashMap<>();
-
-                params.put("file", new DataPart(UUID.randomUUID().toString().replace("-", "").concat(".jpg"), getFileDataFromDrawable(mBitmap)));
-                return params;
-            }
-
-            private byte[] getFileDataFromDrawable(Bitmap bitmap) {
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-                bitmap.compress(Bitmap.CompressFormat.PNG, 80, byteArrayOutputStream);
-                return byteArrayOutputStream.toByteArray();
-            }
-        });
-    }
-
-    private void insertGroupToFirebase(String groupId, String groupName, String description, String joinType) {
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-        Map<String, Boolean> members = new HashMap<>();
-        GroupItem groupItem = new GroupItem();
-
-        members.put(mPreferenceManager.getUser().getUid(), true);
-        groupItem.setId(groupId);
-        groupItem.setTimestamp(System.currentTimeMillis());
-        groupItem.setAuthor(mPreferenceManager.getUser().getName());
-        groupItem.setAuthorUid(mPreferenceManager.getUser().getUid());
-        groupItem.setImage(EndPoint.BASE_URL + (mBitmap != null ? "/ilosfiles2/club/photo/" + groupId.concat(".jpg") : "/ilos/images/community/share_nophoto.gif"));
-        groupItem.setName(groupName);
-        groupItem.setDescription(description);
-        groupItem.setJoinType(joinType);
-        groupItem.setMembers(members);
-        groupItem.setMemberCount(members.size());
-
-        mPushId = databaseReference.push().getKey();
-        Map<String, Object> childUpdates = new HashMap<>();
-
-        childUpdates.put("Groups/" + mPushId, groupItem);
-        childUpdates.put("UserGroupList/" + mPreferenceManager.getUser().getUid() + "/" + mPushId, true);
-        databaseReference.updateChildren(childUpdates);
     }
 
     private void showProgressDialog() {
