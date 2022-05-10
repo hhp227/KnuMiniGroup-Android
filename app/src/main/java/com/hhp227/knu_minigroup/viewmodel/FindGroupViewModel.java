@@ -55,7 +55,6 @@ public class FindGroupViewModel extends ViewModel {
     }
 
     public void fetchGroupList(int offset) {
-        mState.postValue(new State(true, false, offset, mState.getValue() != null && mState.getValue().hasRequestedMore, null));
         AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -165,7 +164,6 @@ public class FindGroupViewModel extends ViewModel {
         mGroupItemValues.clear();
         mGroupItemKeys.add("");
         mGroupItemValues.add(null);
-        mState.postValue(new State(false, true, 1, false, null));
         Executors.newSingleThreadExecutor().execute(new Runnable() {
             @Override
             public void run() {
