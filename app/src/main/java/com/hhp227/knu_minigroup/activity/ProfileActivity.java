@@ -9,7 +9,6 @@ import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.webkit.CookieManager;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
@@ -17,79 +16,48 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 
-import com.android.volley.NetworkResponse;
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
-import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.ActivityProfileBinding;
-import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
-import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
+import com.hhp227.knu_minigroup.viewmodel.ProfileViewModel;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.ByteArrayOutputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-// TODO
 public class ProfileActivity extends AppCompatActivity {
-    private static final String TAG = "프로필";
-
-    private boolean mIsVisible;
-
-    private Bitmap mBitmap;
-
-    private CookieManager mCookieManager;
-
-    private ProgressDialog mProgressDialog;
-
-    private User mUser;
-
     private ActivityProfileBinding mBinding;
 
     private ActivityResultLauncher<Intent> mCameraPickActivityResultLauncher, mCameraCaptureActivityResultLauncher;
+
+    private ProfileViewModel mViewModel;
+
+    private ProgressDialog mProgressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBinding = ActivityProfileBinding.inflate(getLayoutInflater());
+        mViewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
         ActivityResultCallback<ActivityResult> activityResultCallback = new ActivityResultCallback<ActivityResult>() {
             @Override
             public void onActivityResult(ActivityResult result) {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    mIsVisible = true;
-
                     if (result.getData().getExtras().get("data") != null) {
-                        mBitmap = (Bitmap) result.getData().getExtras().get("data");
+                        mViewModel.setBitmap((Bitmap) result.getData().getExtras().get("data"));
                     } else if (result.getData().getData() != null) {
-                        mBitmap = new BitmapUtil(getBaseContext()).bitmapResize(result.getData().getData(), 200);
+                        mViewModel.setBitmap(new BitmapUtil(getBaseContext()).bitmapResize(result.getData().getData(), 200));
                     }
-                    Glide.with(getApplicationContext())
-                            .load(mBitmap)
-                            .apply(RequestOptions.errorOf(R.drawable.user_image_view_circle).circleCrop())
-                            .into(mBinding.ivProfileImage);
-                    invalidateOptionsMenu();
                 }
             }
         };
         mCameraPickActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), activityResultCallback);
         mCameraCaptureActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), activityResultCallback);
-        mCookieManager = AppController.getInstance().getCookieManager();
-        mUser = AppController.getInstance().getPreferenceManager().getUser();
         mProgressDialog = new ProgressDialog(this);
 
         setContentView(mBinding.getRoot());
@@ -99,15 +67,6 @@ public class ProfileActivity extends AppCompatActivity {
         }
         mProgressDialog.setCancelable(false);
         mProgressDialog.setMessage("요청중 ...");
-        Glide.with(getApplicationContext())
-                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUser.getUid()), new LazyHeaders.Builder()
-                        .addHeader("Cookie", mCookieManager.getCookie(EndPoint.LOGIN)).build()))
-                .apply(RequestOptions
-                        .errorOf(R.drawable.user_image_view_circle)
-                        .circleCrop()
-                        .skipMemoryCache(true)
-                        .diskCacheStrategy(DiskCacheStrategy.NONE))
-                .into(mBinding.ivProfileImage);
         mBinding.ivProfileImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -119,57 +78,50 @@ public class ProfileActivity extends AppCompatActivity {
         mBinding.bSync.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, EndPoint.SYNC_PROFILE, null, new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        hideProgressDialog();
-                        try {
-                            if (!response.getBoolean("isError")) {
-                                Glide.with(getApplicationContext())
-                                        .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mUser.getUid()), new LazyHeaders.Builder().addHeader("Cookie", mCookieManager.getCookie(EndPoint.LOGIN)).build()))
-                                        .apply(RequestOptions
-                                                .errorOf(R.drawable.user_image_view_circle)
-                                                .circleCrop()
-                                                .skipMemoryCache(true)
-                                                .diskCacheStrategy(DiskCacheStrategy.NONE))
-                                        .into(mBinding.ivProfileImage);
-                                setResult(RESULT_OK);
-                                Toast.makeText(getApplicationContext(), response.getString("message"), Toast.LENGTH_LONG).show();
-                            } else
-                                Toast.makeText(getApplicationContext(), "동기화 실패", Toast.LENGTH_LONG).show();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        VolleyLog.e(TAG, error.getMessage());
-                        Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-                        hideProgressDialog();
-                    }
-                }) {
-                    @Override
-                    public Map<String, String> getHeaders() {
-                        HashMap<String, String> headers = new HashMap<>();
-
-                        headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
-                        return headers;
-                    }
-                };
-
-                showProgressDialog();
-                AppController.getInstance().addToRequestQueue(jsonObjectRequest);
+                mViewModel.sync();
             }
         });
-        mBinding.tvName.setText(mUser.getName());
-        mBinding.tvKnuId.setText(mUser.getUserId());
-        mBinding.tvDept.setText(mUser.getDepartment());
-        mBinding.tvStuNum.setText(mUser.getNumber());
-        mBinding.tvGrade.setText(mUser.getGrade());
-        mBinding.tvEmail.setText(mUser.getEmail());
-        mBinding.tvIp.setText(mUser.getUserIp());
-        mBinding.tvPhoneNum.setText(mUser.getPhoneNumber());
+        mViewModel.mBitmap.observe(this, new Observer<Bitmap>() {
+            @Override
+            public void onChanged(Bitmap bitmap) {
+                Glide.with(getApplicationContext())
+                        .load(bitmap)
+                        .apply(RequestOptions.errorOf(R.drawable.user_image_view_circle).circleCrop())
+                        .into(mBinding.ivProfileImage);
+                invalidateOptionsMenu();
+            }
+        });
+        mViewModel.mState.observe(this, new Observer<ProfileViewModel.State>() {
+            @Override
+            public void onChanged(ProfileViewModel.State state) {
+                if (state.isLoading) {
+                    showProgressDialog();
+                } else if (state.user != null) {
+                    mBinding.tvName.setText(state.user.getName());
+                    mBinding.tvKnuId.setText(state.user.getUserId());
+                    mBinding.tvDept.setText(state.user.getDepartment());
+                    mBinding.tvStuNum.setText(state.user.getNumber());
+                    mBinding.tvGrade.setText(state.user.getGrade());
+                    mBinding.tvEmail.setText(state.user.getEmail());
+                    mBinding.tvIp.setText(state.user.getUserIp());
+                    mBinding.tvPhoneNum.setText(state.user.getPhoneNumber());
+                    Glide.with(getApplicationContext())
+                            .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", state.user.getUid()), new LazyHeaders.Builder().addHeader("Cookie", mViewModel.getCookie()).build()))
+                            .apply(RequestOptions.errorOf(R.drawable.user_image_view_circle)
+                                    .circleCrop()
+                                    .skipMemoryCache(true)
+                                    .diskCacheStrategy(DiskCacheStrategy.NONE))
+                            .into(mBinding.ivProfileImage);
+                    if (state.isSuccess) {
+                        setResult(RESULT_OK);
+                        Toast.makeText(getApplicationContext(), state.message, Toast.LENGTH_LONG).show();
+                    }
+                } else if (state.message != null && !state.message.isEmpty()) {
+                    hideProgressDialog();
+                    Toast.makeText(getApplicationContext(), state.message, Toast.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 
     @Override
@@ -209,15 +161,15 @@ public class ProfileActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(com.hhp227.knu_minigroup.R.menu.modify, menu);
+        getMenuInflater().inflate(R.menu.modify, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        MenuItem menuItem = menu.findItem(com.hhp227.knu_minigroup.R.id.action_send);
+        MenuItem menuItem = menu.findItem(R.id.action_send);
 
-        menuItem.setVisible(mIsVisible);
+        menuItem.setVisible(mViewModel.mBitmap.getValue() != null);
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -228,63 +180,10 @@ public class ProfileActivity extends AppCompatActivity {
                 finish();
                 return true;
             case R.id.action_send:
-                uploadImage(false);
+                mViewModel.uploadImage(false);
                 return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private void uploadImage(final boolean isUpdate) {
-        MultipartRequest multipartRequest = new MultipartRequest(Request.Method.POST, isUpdate ? EndPoint.PROFILE_IMAGE_UPDATE : EndPoint.PROFILE_IMAGE_PREVIEW, new Response.Listener<NetworkResponse>() {
-            @Override
-            public void onResponse(NetworkResponse response) {
-                if (isUpdate) {
-                    hideProgressDialog();
-                    setResult(RESULT_OK);
-                    Toast.makeText(getApplicationContext(), new String(response.data).contains("성공") ? "수정되었습니다." : "실패했습니다.", Toast.LENGTH_LONG).show();
-                } else
-                    uploadImage(true);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(TAG, error.getMessage());
-                hideProgressDialog();
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
-                return headers;
-            }
-
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-
-                params.put("FLAG", "FILE");
-                return params;
-            }
-
-            @Override
-            protected Map<String, DataPart> getByteData() {
-                Map<String, DataPart> params = new HashMap<>();
-
-                params.put("img_file", new DataPart(UUID.randomUUID().toString().replace("-", "").concat(".jpg"), getFileDataFromDrawable(mBitmap)));
-                return params;
-            }
-
-            private byte[] getFileDataFromDrawable(Bitmap bitmap) {
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-                bitmap.compress(Bitmap.CompressFormat.PNG, 80, byteArrayOutputStream);
-                return byteArrayOutputStream.toByteArray();
-            }
-        };
-
-        AppController.getInstance().addToRequestQueue(multipartRequest);
     }
 
     private void showProgressDialog() {

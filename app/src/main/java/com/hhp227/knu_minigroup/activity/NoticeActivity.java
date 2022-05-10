@@ -5,7 +5,6 @@ import android.view.MenuItem;
 import androidx.appcompat.app.AppCompatActivity;
 import com.hhp227.knu_minigroup.databinding.ActivityNoticeBinding;
 
-// TODO
 public class NoticeActivity extends AppCompatActivity {
     private ActivityNoticeBinding mBinding;
 

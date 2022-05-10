@@ -1,6 +1,6 @@
 package com.hhp227.knu_minigroup.activity;
 
-import static com.hhp227.knu_minigroup.activity.YouTubeSearchActivity.API_KEY;
+import static com.hhp227.knu_minigroup.viewmodel.YoutubeSearchViewModel.API_KEY;
 
 import android.content.ClipboardManager;
 import android.content.Context;

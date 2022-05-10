@@ -32,15 +32,15 @@ import com.hhp227.knu_minigroup.viewmodel.CreateGroupViewModel;
 import java.util.Map;
 
 public class CreateGroupActivity extends AppCompatActivity {
-    private ProgressDialog mProgressDialog;
-
-    private TextWatcher mTextWatcher;
-
     private ActivityCreateGroupBinding mBinding;
 
     private ActivityResultLauncher<Intent> mCameraPickActivityResultLauncher, mCameraCaptureActivityResultLauncher;
 
     private CreateGroupViewModel mViewModel;
+
+    private ProgressDialog mProgressDialog;
+
+    private TextWatcher mTextWatcher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
