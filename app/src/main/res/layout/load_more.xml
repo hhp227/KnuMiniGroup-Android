@@ -8,7 +8,6 @@
     <ProgressBar
         android:layout_gravity="center"
         android:id="@+id/pb_more"
-        android:visibility="visible"
         android:layout_width="48dp"
         android:layout_height="48dp"/>
 
