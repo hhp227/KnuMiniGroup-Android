@@ -88,7 +88,7 @@ public class SCShuttleScheduleFragment extends Fragment {
                     }
                     mAdapter.notifyDataSetChanged(); // 모든 작업이 끝나면 리스트 갱신
                     hideProgressDialog();
-                } else if (!state.message.isEmpty()) {
+                } else if (state.message != null && !state.message.isEmpty()) {
                     Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show();
                     hideProgressDialog();
                 }

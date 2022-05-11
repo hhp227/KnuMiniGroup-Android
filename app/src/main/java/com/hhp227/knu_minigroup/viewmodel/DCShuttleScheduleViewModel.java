@@ -22,12 +22,11 @@ import java.util.List;
 import java.util.Map;
 
 public class DCShuttleScheduleViewModel extends ViewModel {
-    public final MutableLiveData<State> mState = new MutableLiveData<>();
+    public final MutableLiveData<State> mState = new MutableLiveData<>(new State(true, false, null));
 
     public final List<Map<String, String>> mShuttleList = new ArrayList<>();
 
     public DCShuttleScheduleViewModel() {
-        mState.postValue(new State(true, false, null));
         fetchDataTask();
     }
 

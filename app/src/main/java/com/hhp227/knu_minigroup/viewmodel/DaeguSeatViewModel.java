@@ -28,7 +28,6 @@ public class DaeguSeatViewModel extends ViewModel {
     private static final String TAG = DaeguSeatViewModel.class.getSimpleName();
 
     public DaeguSeatViewModel() {
-        mState.postValue(new State(true, false, null));
         fetchDataTask(false);
     }
 
@@ -83,6 +82,7 @@ public class DaeguSeatViewModel extends ViewModel {
             }
         });
 
+        mState.postValue(new State(!isRefresh, false, null));
         AppController.getInstance().addToRequestQueue(jsonObjectRequest);
     }
 

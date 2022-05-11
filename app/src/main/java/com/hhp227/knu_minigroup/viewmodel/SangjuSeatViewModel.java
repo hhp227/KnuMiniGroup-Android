@@ -28,7 +28,6 @@ public class SangjuSeatViewModel extends ViewModel {
     private static final String TAG = SangjuSeatViewModel.class.getSimpleName();
 
     public SangjuSeatViewModel() {
-        mState.postValue(new State(true, false, null));
         fetchDataTask(false);
     }
 
@@ -83,6 +82,7 @@ public class SangjuSeatViewModel extends ViewModel {
             }
         });
 
+        mState.postValue(new State(!isRefresh, false, null));
         AppController.getInstance().addToRequestQueue(jsonObjectRequest);
     }
 

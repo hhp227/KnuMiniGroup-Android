@@ -65,7 +65,7 @@ public class DaeguSeatFragment extends Fragment {
                 } else if (state.isSuccess) {
                     hideProgressBar();
                     mAdapter.notifyDataSetChanged();
-                } else if (!state.message.isEmpty()) {
+                } else if (state.message != null && !state.message.isEmpty()) {
                     hideProgressBar();
                     Snackbar.make(requireView(), state.message, Snackbar.LENGTH_LONG).show();
                 }
