@@ -17,28 +17,26 @@ import net.htmlparser.jericho.Source;
 import net.htmlparser.jericho.StartTag;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 
-// TODO FindGroupViewModel 참고하여 Paging처리 하기
 public class UnivNoticeViewModel extends ViewModel {
     public final ArrayList<BbsItem> mBbsItemList = new ArrayList<>();
 
-    public final MutableLiveData<State> mState = new MutableLiveData<>(new State(false, false, 1, false, null));
+    public final MutableLiveData<State> mState = new MutableLiveData<>(new State(false, Collections.emptyList(), 1, false, null));
 
     private static final int MAX_PAGE = 10;
 
     private Element mBBS_DIV;
 
     public UnivNoticeViewModel() {
-        if (mState.getValue() != null) {
-            fetchDataList(mState.getValue().offset);
-        }
+        fetchNextPage();
     }
 
     public void fetchNextPage() {
         if (mState.getValue() != null && mState.getValue().offset < MAX_PAGE) {
-            mState.postValue(new State(false, false, mState.getValue().offset, true, null));
+            mState.postValue(new State(false, Collections.emptyList(), mState.getValue().offset, true, null));
         }
     }
 
@@ -47,7 +45,7 @@ public class UnivNoticeViewModel extends ViewModel {
             @Override
             public void run() {
                 mBbsItemList.clear();
-                mState.postValue(new State(false, false, 1, true, null));
+                mState.postValue(new State(false, Collections.emptyList(), 1, true, null));
             }
         });
     }
@@ -57,25 +55,29 @@ public class UnivNoticeViewModel extends ViewModel {
         StringRequest stringRequest = new StringRequest(Request.Method.GET, EndPoint.URL_KNU_NOTICE.replace("{PAGE}", String.valueOf(offset)), new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                parseHTML(response);
                 if (mState.getValue() != null) {
-                    mState.postValue(new State(false, true, mState.getValue().offset + 1, false, null));
+                    mState.postValue(new State(false, parseHTML(response), mState.getValue().offset + 1, false, null));
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                mState.postValue(new State(false, false, 0, false, error.getMessage()));
+                mState.postValue(new State(false, Collections.emptyList(), 0, false, error.getMessage()));
             }
         });
 
-        mState.postValue(new State(true, false, offset, mState.getValue() != null && mState.getValue().hasRequestedMore, null));
+        mState.postValue(new State(true, Collections.emptyList(), offset, offset > 1, null));
         AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
     }
 
-    private void parseHTML(String response) {
+    public void addAll(List<BbsItem> bbsItems) {
+        mBbsItemList.addAll(bbsItems);
+    }
+
+    private List<BbsItem> parseHTML(String response) {
         Source source = new Source(response);
         List<StartTag> tableTags = source.getAllStartTags(HTMLElementName.DIV);
+        List<BbsItem> itemList = new ArrayList<>();
 
         for (int i = 0; i < tableTags.size(); i++) {
             if (tableTags.get(i).toString().equals("<div class=\"board_list\">")) {
@@ -97,17 +99,18 @@ public class UnivNoticeViewModel extends ViewModel {
                 bbsItem.setUrl(BC_a.getAttributeValue("href")); // a 태그의 herf 는 BCS_url 로 선언
                 bbsItem.setWriter(BC_writer.getContent().toString()); // 작성자값을 담은 엘레먼트의 컨텐츠를 문자열로 변환시켜 가져온다.
                 bbsItem.setDate(BC_date.getContent().toString()); // 작성일자값을 담은 엘레먼트의 컨텐츠를 문자열로 변환시켜 가져온다.
-                mBbsItemList.add(bbsItem);
+                itemList.add(bbsItem);
             }
         } catch (Exception e) {
-            mState.postValue(new State(false, false, 0, false, e.getMessage()));
+            mState.postValue(new State(false, Collections.emptyList(), 0, false, e.getMessage()));
         }
+        return itemList;
     }
 
     public static final class State {
         public boolean isLoading;
 
-        public boolean isSuccess;
+        public List<BbsItem> bbsItems;
 
         public int offset;
 
@@ -115,9 +118,9 @@ public class UnivNoticeViewModel extends ViewModel {
 
         public String message;
 
-        public State(boolean isLoading, boolean isSuccess, int offset, boolean hasRequestedMore, String message) {
+        public State(boolean isLoading, List<BbsItem> bbsItems, int offset, boolean hasRequestedMore, String message) {
             this.isLoading = isLoading;
-            this.isSuccess = isSuccess;
+            this.bbsItems = bbsItems;
             this.offset = offset;
             this.hasRequestedMore = hasRequestedMore;
             this.message = message;
