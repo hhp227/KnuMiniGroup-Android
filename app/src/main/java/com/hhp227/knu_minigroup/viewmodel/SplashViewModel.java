@@ -1,5 +1,7 @@
 package com.hhp227.knu_minigroup.viewmodel;
 
+import android.webkit.CookieManager;
+
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -13,6 +15,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.User;
+import com.hhp227.knu_minigroup.helper.PreferenceManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -21,7 +24,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SplashViewModel extends ViewModel {
-    public MutableLiveData<State> mState = new MutableLiveData<>(null);
+    public MutableLiveData<State> mState = new MutableLiveData<>();
+
+    private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
+
+    private final PreferenceManager mPreferenceManager = AppController.getInstance().getPreferenceManager();
 
     public void connection() {
         AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.LOGIN, new Response.Listener<String>() {
@@ -48,15 +55,17 @@ public class SplashViewModel extends ViewModel {
         }) {
             @Override
             protected Response<String> parseNetworkResponse(NetworkResponse response) {
-                for (Header header : response.allHeaders)
-                    if (header.getName().equals("Set-Cookie") && header.getValue().contains("SESSION_NEWLMS"))
-                        AppController.getInstance().getCookieManager().setCookie(EndPoint.LOGIN, header.getValue());
+                if (response.allHeaders != null) {
+                    for (Header header : response.allHeaders)
+                        if (header.getName().equals("Set-Cookie") && header.getValue().contains("SESSION_NEWLMS"))
+                            mCookieManager.setCookie(EndPoint.LOGIN, header.getValue());
+                }
                 return super.parseNetworkResponse(response);
             }
 
             @Override
             protected Map<String, String> getParams() {
-                User user = AppController.getInstance().getPreferenceManager().getUser();
+                User user = mPreferenceManager.getUser();
                 String knuId = user.getUserId();
                 String password = user.getPassword();
                 Map<String, String> params = new HashMap<>();
@@ -66,6 +75,10 @@ public class SplashViewModel extends ViewModel {
                 return params;
             }
         });
+    }
+
+    public void clearUser() {
+        mPreferenceManager.clear();
     }
 
     public static final class State {

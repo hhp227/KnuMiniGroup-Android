@@ -18,6 +18,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+// TODO FindGroupViewModel 참고해서 addAll로 로직 교체
 public class YoutubeSearchViewModel extends ViewModel {
     public static final String API_KEY = "AIzaSyBxQb9CaA01lU5AkXnPGf3s8QjoiV-3Vys";
 

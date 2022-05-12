@@ -12,7 +12,6 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.hhp227.knu_minigroup.R;
-import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.databinding.ActivitySplashBinding;
 import com.hhp227.knu_minigroup.viewmodel.SplashViewModel;
 
@@ -42,20 +41,18 @@ public class SplashActivity extends AppCompatActivity {
         mViewModel.mState.observe(this, new Observer<SplashViewModel.State>() {
             @Override
             public void onChanged(SplashViewModel.State state) {
-                if (state != null) {
-                    if (state.isSuccess) {
-                        startActivity(new Intent(SplashActivity.this, MainActivity.class));
-                        overridePendingTransition(R.anim.splash_in, R.anim.splash_out);
+                if (state.isSuccess) {
+                    startActivity(new Intent(SplashActivity.this, MainActivity.class));
+                    overridePendingTransition(R.anim.splash_in, R.anim.splash_out);
+                    finish();
+                } else {
+                    if (state.isPreferenceClear) {
+                        mViewModel.clearUser();
+                        startActivity(new Intent(SplashActivity.this, LoginActivity.class));
                         finish();
-                    } else {
-                        if (state.isPreferenceClear) {
-                            AppController.getInstance().getPreferenceManager().clear();
-                            startActivity(new Intent(SplashActivity.this, LoginActivity.class));
-                            finish();
-                        } else if (state.message != null) {
-                            Toast.makeText(getApplicationContext(), state.message, Toast.LENGTH_LONG).show();
-                            finish();
-                        }
+                    } else if (state.message != null && !state.message.isEmpty()) {
+                        Toast.makeText(getApplicationContext(), state.message, Toast.LENGTH_LONG).show();
+                        finish();
                     }
                 }
             }
