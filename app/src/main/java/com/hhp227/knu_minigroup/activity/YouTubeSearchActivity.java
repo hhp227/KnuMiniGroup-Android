@@ -69,13 +69,20 @@ public class YouTubeSearchActivity extends AppCompatActivity {
             public void onChanged(YoutubeSearchViewModel.State state) {
                 if (state.isLoading) {
                     showProgressBar();
-                } else if (state.isSuccess) {
+                } else if (!state.youTubeItems.isEmpty()) {
                     hideProgressBar();
+                    mViewModel.addAll(state.youTubeItems);
                     mAdapter.notifyItemRangeChanged(0, mAdapter.getItemCount());
                 } else if (state.message != null && !state.message.isEmpty()) {
                     hideProgressBar();
                     Snackbar.make(findViewById(android.R.id.content), state.message, Snackbar.LENGTH_LONG).show();
                 }
+            }
+        });
+        mViewModel.mQuery.observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                mViewModel.requestData(s);
             }
         });
     }
