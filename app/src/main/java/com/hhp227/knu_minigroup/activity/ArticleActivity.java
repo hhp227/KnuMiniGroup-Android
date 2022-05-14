@@ -25,6 +25,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.Request;
@@ -57,6 +58,7 @@ import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.fragment.Tab1Fragment;
 import com.hhp227.knu_minigroup.helper.MyYouTubeBaseActivity;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
+import com.hhp227.knu_minigroup.viewmodel.ArticleViewModel;
 
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
@@ -107,11 +109,14 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
 
     private ArticleDetailBinding mArticleDetailBinding;
 
+    private ArticleViewModel mViewModel;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mActivityArticleBinding = ActivityArticleBinding.inflate(getLayoutInflater());
         mArticleDetailBinding = ArticleDetailBinding.inflate(getLayoutInflater());
+        mViewModel = new ViewModelProvider(this).get(ArticleViewModel.class);
         mPreferenceManager = AppController.getInstance().getPreferenceManager();
         mCookieManager = AppController.getInstance().getCookieManager();
         Intent intent = getIntent();

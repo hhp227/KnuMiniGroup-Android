@@ -25,6 +25,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 import androidx.exifinterface.media.ExifInterface;
+import androidx.lifecycle.ViewModelProvider;
+
 import com.android.volley.*;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
@@ -44,6 +46,7 @@ import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
+import com.hhp227.knu_minigroup.viewmodel.CreateArticleViewModel;
 import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 import net.htmlparser.jericho.Source;
 import org.json.JSONException;
@@ -87,11 +90,14 @@ public class CreateArticleActivity extends AppCompatActivity {
 
     private ActivityResultLauncher<Intent> mCameraPickActivityResultLauncher, mCameraCaptureActivityResultLauncher, mYouTubeSearchActivityResultLauncher;
 
+    private CreateArticleViewModel mViewModel;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mActivityCreateArticleBinding = ActivityCreateArticleBinding.inflate(getLayoutInflater());
         mWriteTextBinding = WriteTextBinding.inflate(getLayoutInflater());
+        mViewModel = new ViewModelProvider(this).get(CreateArticleViewModel.class);
         mContents = new ArrayList<>();
         mAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, mContents);
         mPreferenceManager = AppController.getInstance().getPreferenceManager();
