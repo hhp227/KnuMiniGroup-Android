@@ -25,6 +25,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -38,6 +39,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerView;
@@ -87,13 +89,9 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
 
     private String mGroupId, mArticleId, mGroupName, mGroupImage, mGroupKey, mArticleKey;
 
-    private CookieManager mCookieManager;
-
     private List<String> mImageList, mReplyItemKeys;
 
     private List<ReplyItem> mReplyItemValues;
-
-    private PreferenceManager mPreferenceManager;
 
     private ReplyListAdapter mAdapter;
 
@@ -117,8 +115,6 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
         mActivityArticleBinding = ActivityArticleBinding.inflate(getLayoutInflater());
         mArticleDetailBinding = ArticleDetailBinding.inflate(getLayoutInflater());
         mViewModel = new ViewModelProvider(this).get(ArticleViewModel.class);
-        mPreferenceManager = AppController.getInstance().getPreferenceManager();
-        mCookieManager = AppController.getInstance().getCookieManager();
         Intent intent = getIntent();
         mGroupId = intent.getStringExtra("grp_id");
         mGroupName = intent.getStringExtra("grp_nm");
@@ -199,8 +195,106 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
             }
         });
         registerForContextMenu(mActivityArticleBinding.lvArticle); // 콘텍스트메뉴
-        showProgressBar();
         fetchArticleData();
+        mViewModel.mState.observe(this, new Observer<ArticleViewModel.State>() {
+            @Override
+            public void onChanged(ArticleViewModel.State state) {
+                if (state.isLoading) {
+                    showProgressBar();
+                } else if (state.articleItem != null) {
+                    Toast.makeText(getApplicationContext(), "ArticleItem != null", Toast.LENGTH_SHORT).show();
+                    hideProgressBar();
+
+                    Glide.with(getApplicationContext())
+                            .load(state.articleItem.getUid() != null ? new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", state.articleItem.getUid()), new LazyHeaders.Builder()
+                                    .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
+                                    .build()) : null)
+                            .apply(RequestOptions
+                                    .errorOf(R.drawable.user_image_view_circle)
+                                    .circleCrop()
+                                    .skipMemoryCache(true)
+                                    .diskCacheStrategy(DiskCacheStrategy.NONE))
+                            .into(mArticleDetailBinding.ivProfileImage);
+                    mArticleDetailBinding.tvTitle.setText(state.articleItem.getTitle() + " - " + state.articleItem.getName());
+                    mArticleDetailBinding.tvTimestamp.setText(state.articleItem.getDate());
+                    mArticleDetailBinding.tvContent.setText(state.articleItem.getContent());
+                    mArticleDetailBinding.tvContent.setVisibility(!TextUtils.isEmpty(state.articleItem.getContent()) ? View.VISIBLE : View.GONE);
+                    if (!state.articleItem.getImages().isEmpty() || state.articleItem.getYoutube() != null) {
+                        for (int i = 0; i < state.articleItem.getImages().size(); i++) {
+                            if (mArticleDetailBinding.llImage.getChildCount() > state.articleItem.getImages().size() - 1)
+                                break;
+                            final int position = i;
+                            ImageView articleImage = new ImageView(getApplicationContext());
+
+                            articleImage.setAdjustViewBounds(true);
+                            articleImage.setPadding(0, 0, 0, 30);
+                            articleImage.setScaleType(ImageView.ScaleType.FIT_XY);
+                            articleImage.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Intent intent = new Intent(getApplicationContext(), PictureActivity.class);
+
+                                    intent.putStringArrayListExtra("images", (ArrayList<String>) state.articleItem.getImages());
+                                    intent.putExtra("position", position);
+                                    startActivity(intent);
+                                }
+                            });
+                            Glide.with(getApplicationContext())
+                                    .load(state.articleItem.getImages().get(i))
+                                    .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
+                                    .into(articleImage);
+                            mArticleDetailBinding.llImage.addView(articleImage);
+                        }
+                        if (state.articleItem.getYoutube() != null) {
+                            LinearLayout youtubeContainer = new LinearLayout(getApplicationContext());
+                            mYouTubePlayerView = new YouTubePlayerView(ArticleActivity.this);
+
+                            mYouTubePlayerView.initialize(API_KEY, new YouTubePlayer.OnInitializedListener() {
+                                @Override
+                                public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
+                                    youTubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT);
+                                    youTubePlayer.setShowFullscreenButton(true);
+                                    if (b) {
+                                        youTubePlayer.play();
+                                    } else {
+                                        try {
+                                            youTubePlayer.cueVideo(state.articleItem.getYoutube().videoId);
+                                        } catch (IllegalStateException e) {
+                                            mYouTubePlayerView.initialize(API_KEY, this);
+                                        }
+                                    }
+                                }
+
+                                @Override
+                                public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
+                                    try {
+                                        if (youTubeInitializationResult.isUserRecoverableError())
+                                            youTubeInitializationResult.getErrorDialog(getParent(), 0).show();
+                                    } catch (Exception e) {
+                                        if (e.getMessage() != null) {
+                                            Log.e(TAG, e.getMessage());
+                                        }
+                                    }
+                                }
+                            });
+                            youtubeContainer.addView(mYouTubePlayerView);
+                            youtubeContainer.setPadding(0, 0, 0, 30);
+                            mArticleDetailBinding.llImage.addView(youtubeContainer, state.articleItem.getYoutube().position);
+                        }
+                        mArticleDetailBinding.llImage.setVisibility(View.VISIBLE);
+                    } else {
+                        mArticleDetailBinding.llImage.setVisibility(View.GONE);
+                    }
+                } else if (state.isSetResultOK) {
+                    setResult(RESULT_OK);
+                    finish();
+                    Toast.makeText(getApplicationContext(), state.message, Toast.LENGTH_LONG).show();
+                } else if (state.message != null && !state.message.isEmpty()) {
+                    hideProgressBar();
+                    Snackbar.make(getCurrentFocus(), state.message, Snackbar.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 
     @Override
@@ -242,55 +336,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
                 startActivityForResult(intent, UPDATE_ARTICLE);
                 return true;
             case 2:
-                String tag_string_req = "req_delete";
-                StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.DELETE_ARTICLE, new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        try {
-                            JSONObject jsonObject = new JSONObject(response);
-                            boolean error = jsonObject.getBoolean("isError");
-                            if (!error) {
-                                setResult(RESULT_OK);
-                                finish();
-                                Toast.makeText(getApplicationContext(), "삭제완료", Toast.LENGTH_LONG).show();
-                            } else {
-                                Toast.makeText(getApplicationContext(), "삭제할수 없습니다.", Toast.LENGTH_LONG).show();
-                            }
-                        } catch (JSONException e) {
-                            Log.e(TAG, "json 파싱 에러 : " + e.getMessage());
-                        } finally {
-                            deleteArticleFromFirebase();
-                        }
-                        hideProgressBar();
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e(TAG, "전송 에러: " + error.getMessage());
-                        Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-                        hideProgressBar();
-                    }
-                }) {
-                    @Override
-                    public Map<String, String> getHeaders() {
-                        Map<String, String> headers = new HashMap<>();
-
-                        headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
-                        return headers;
-                    }
-
-                    @Override
-                    protected Map<String, String> getParams() {
-                        Map<String, String> params = new HashMap<>();
-
-                        params.put("CLUB_GRP_ID", mGroupId);
-                        params.put("ARTL_NUM", mArticleId);
-                        return params;
-                    }
-                };
-
-                showProgressBar();
-                AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
+                mViewModel.deleteArticle();
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -389,7 +435,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
                     public Map<String, String> getHeaders() {
                         Map<String, String> headers = new HashMap<>();
 
-                        headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
+                        headers.put("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN));
                         return headers;
                     }
 
@@ -533,7 +579,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
 
-                headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
+                headers.put("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN));
                 return headers;
             }
         };
@@ -607,7 +653,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
 
-                headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
+                headers.put("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN));
                 return headers;
             }
 
@@ -704,7 +750,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
 
                     Glide.with(getApplicationContext())
                             .load(articleItem.getUid() != null ? new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", articleItem.getUid()), new LazyHeaders.Builder()
-                                    .addHeader("Cookie", mCookieManager.getCookie(EndPoint.LOGIN))
+                                    .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
                                     .build()) : null)
                             .apply(RequestOptions
                                     .errorOf(R.drawable.user_image_view_circle)
@@ -721,14 +767,6 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
                 Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
             }
         });
-    }
-
-    private void deleteArticleFromFirebase() {
-        DatabaseReference articlesReference = FirebaseDatabase.getInstance().getReference("Articles");
-        DatabaseReference replysReference = FirebaseDatabase.getInstance().getReference("Replys");
-
-        articlesReference.child(mGroupKey).child(mArticleKey).removeValue();
-        replysReference.child(mArticleKey).removeValue();
     }
 
     private void fetchReplyListFromFirebase() {
@@ -766,8 +804,8 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
         ReplyItem replyItem = new ReplyItem();
 
         replyItem.setId(replyId);
-        replyItem.setUid(mPreferenceManager.getUser().getUid());
-        replyItem.setName(mPreferenceManager.getUser().getName());
+        replyItem.setUid(AppController.getInstance().getPreferenceManager().getUser().getUid());
+        replyItem.setName(AppController.getInstance().getPreferenceManager().getUser().getName());
         replyItem.setTimestamp(System.currentTimeMillis());
         replyItem.setReply(text);
         databaseReference.child(mArticleKey).push().setValue(replyItem);
