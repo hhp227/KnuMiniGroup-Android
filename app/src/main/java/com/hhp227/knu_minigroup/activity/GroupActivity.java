@@ -15,10 +15,7 @@ import com.hhp227.knu_minigroup.databinding.ActivityGroupBinding;
 import com.hhp227.knu_minigroup.fragment.TabHostLayoutFragment;
 import com.hhp227.knu_minigroup.viewmodel.GroupViewModel;
 
-// TODO
 public class GroupActivity extends AppCompatActivity {
-    private String mGroupName, mKey;
-
     private TabHostLayoutFragment mFragMain;
 
     private ActivityGroupBinding mBinding;
@@ -30,14 +27,7 @@ public class GroupActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         mBinding = ActivityGroupBinding.inflate(getLayoutInflater());
         mViewModel = new ViewModelProvider(this).get(GroupViewModel.class);
-        Intent intent = getIntent();
-        boolean isAdmin = intent.getBooleanExtra("admin", false);
-        String groupId = intent.getStringExtra("grp_id");
-        mGroupName = intent.getStringExtra("grp_nm");
-        String groupImage = intent.getStringExtra("grp_img");
-        int position = intent.getIntExtra("pos", 0);
-        mKey = intent.getStringExtra("key");
-        mFragMain = TabHostLayoutFragment.newInstance(isAdmin, groupId, mGroupName, groupImage, position, mKey);
+        mFragMain = TabHostLayoutFragment.newInstance(mViewModel.isAdmin, mViewModel.mGroupId, mViewModel.mGroupName, mViewModel.mGroupImage, mViewModel.mPosition, mViewModel.mKey);
 
         setContentView(mBinding.getRoot());
         getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, mFragMain).commit();
@@ -64,8 +54,8 @@ public class GroupActivity extends AppCompatActivity {
             Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
 
             intent.putExtra("grp_chat", true);
-            intent.putExtra("chat_nm", mGroupName);
-            intent.putExtra("uid", mKey);
+            intent.putExtra("chat_nm", mViewModel.mGroupName);
+            intent.putExtra("uid", mViewModel.mKey);
             startActivity(intent);
         }
         return super.onOptionsItemSelected(item);

@@ -328,6 +328,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
                 startActivityForResult(intent, UPDATE_REPLY);
                 return true;
             case 3:
+                //mViewModel.deleteReply(replyId, replyKey);
                 String tag_string_req = "req_delete";
                 StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.DELETE_REPLY, new Response.Listener<String>() {
                     @Override

@@ -243,6 +243,56 @@ public class ArticleViewModel extends ViewModel {
         AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
     }
 
+    public void deleteReply(String replyId, String replyKey) {
+        String tag_string_req = "req_delete";
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.DELETE_REPLY, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Source source = new Source(response);
+
+                try {
+                    if (!response.contains("처리를 실패했습니다")) {
+                        List<Element> commentList = source.getAllElementsByClass("comment-list");
+
+                        refreshReply(commentList);
+                    }
+                } catch (Exception e) {
+                    mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, e.getMessage()));
+                    Log.e(TAG, e.getMessage());
+                } finally {
+                    deleteReplyFromFirebase(replyKey);
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e(TAG, error.getMessage());
+                mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, error.getMessage()));
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+
+                headers.put("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN));
+                return headers;
+            }
+
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+
+                params.put("CLUB_GRP_ID", mGroupId);
+                params.put("CMMT_NUM", replyId);
+                params.put("ARTL_NUM", mArticleId);
+                return params;
+            }
+        };
+
+        mState.postValue(new State(true, null, Collections.emptyList(), Collections.emptyList(), false, null));
+        AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
+    }
+
     public void refreshReply(List<Element> commentList) {
         mReplyItemKeys.clear();
         mReplyItemValues.clear();
@@ -317,6 +367,12 @@ public class ArticleViewModel extends ViewModel {
                 mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, databaseError.getMessage()));
             }
         });
+    }
+
+    private void deleteReplyFromFirebase(String replyKey) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Replys");
+
+        databaseReference.child(mArticleKey).child(replyKey).removeValue();
     }
 
     private String contentExtractor(Element listCont) {
