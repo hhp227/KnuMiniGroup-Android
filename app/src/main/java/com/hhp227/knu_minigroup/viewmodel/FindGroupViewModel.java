@@ -39,7 +39,7 @@ public class FindGroupViewModel extends ViewModel {
 
     public final List<String> mGroupItemKeys = new ArrayList<>(Collections.singletonList(""));
 
-    public final List<GroupItem> mGroupItemValues = new ArrayList<>(Collections.singletonList((GroupItem) null));
+    public final List<GroupItem> mGroupItemValues = new ArrayList<>(Collections.singletonList(null));
 
     private static final int LIMIT = 15;
 
