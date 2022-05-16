@@ -62,6 +62,10 @@ import java.util.Map;
 public class ArticleViewModel extends ViewModel {
     public final MutableLiveData<State> mState = new MutableLiveData<>();
 
+    public final List<String> mReplyItemKeys = new ArrayList<>();
+
+    public final List<ReplyItem> mReplyItemValues = new ArrayList<>();
+
     private static final String TAG = ArticleViewModel.class.getSimpleName();
 
     private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
@@ -125,14 +129,13 @@ public class ArticleViewModel extends ViewModel {
                     articleItem.setDate(timeStamp);
                     articleItem.setReplyCount(replyCnt);
                     Log.e("TEST", "articleItem: " + articleItem);
-                    // TODO 위치변경 요망 fetchArticleDataFromFirebase안으로
-                    mState.postValue(new State(false, articleItem, Collections.emptyList(), false, null));
+                    mState.postValue(new State(false, articleItem, Collections.emptyList(), Collections.emptyList(), false, null));
                     fetchReplyData(commentList);
                     /*if (mIsUpdate)
                         deliveryUpdate(title, content, replyCnt);*/
                 } catch (Exception e) {
                     Log.e(TAG, e.getMessage());
-                    mState.postValue(new State(false, null, Collections.emptyList(), false, "값이 없습니다."));
+                    mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, "값이 없습니다."));
                 } finally {
                     fetchArticleDataFromFirebase();
                 }
@@ -140,24 +143,27 @@ public class ArticleViewModel extends ViewModel {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                mState.postValue(new State(false, null, Collections.emptyList(), false, error.getMessage()));
+                mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, error.getMessage()));
             }
         }) {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
 
-                headers.put("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN));
+                headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
                 return headers;
             }
         };
 
+        mState.postValue(new State(true, null, Collections.emptyList(), Collections.emptyList(), false, null));
         AppController.getInstance().addToRequestQueue(stringRequest);
     }
 
     private void fetchReplyData(List<Element> commentList) {
-        Log.e("TEST", "commentList: " + commentList);
-        /*try {
+        List<String> replyItemKeys = new ArrayList<>();
+        List<ReplyItem> replyItemValues = new ArrayList<>();
+
+        try {
             for (Element comment : commentList) {
                 Element commentName = comment.getFirstElementByClass("comment-name");
                 Element commentAddr = comment.getFirstElementByClass("comment-addr");
@@ -173,19 +179,18 @@ public class ArticleViewModel extends ViewModel {
                 replyItem.setReply(Html.fromHtml(replyContent).toString());
                 replyItem.setDate(timeStamp.replaceAll("[(]|[)]", ""));
                 replyItem.setAuth(authorization);
-                mReplyItemKeys.add(replyId);
-                mReplyItemValues.add(replyItem);
+                replyItemKeys.add(replyId);
+                replyItemValues.add(replyItem);
             }
-            mAdapter.notifyDataSetChanged();
-
             // isBotoom이 참이면 화면 아래로 이동
-            if (mIsBottom)
-                setListViewBottom();
+            /*if (mIsBottom)
+                setListViewBottom();*/
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
+            mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, e.getMessage()));
         } finally {
-            fetchReplyListFromFirebase();
-        }*/
+            fetchReplyListFromFirebase(replyItemKeys, replyItemValues);
+        }
     }
 
     public void deleteArticle() {
@@ -198,12 +203,13 @@ public class ArticleViewModel extends ViewModel {
                     boolean error = jsonObject.getBoolean("isError");
 
                     if (!error) {
-                        mState.postValue(new State(false, null, Collections.emptyList(), true, "삭제완료"));
+                        mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), true, "삭제완료"));
                     } else {
-                        mState.postValue(new State(false, null, Collections.emptyList(), false, "삭제할수 없습니다."));
+                        mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, "삭제할수 없습니다."));
                     }
                 } catch (JSONException e) {
-                    mState.postValue(new State(false, null, Collections.emptyList(), false, e.getMessage()));
+                    Log.e(TAG, e.getMessage());
+                    mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, e.getMessage()));
                 } finally {
                     // 로직 애매함 get은 파이어베이스에서 데이터 처리후 state에 postValue하는데 여기서는 파이어베이스 처리전에 postValue함
                     deleteArticleFromFirebase();
@@ -212,7 +218,7 @@ public class ArticleViewModel extends ViewModel {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                mState.postValue(new State(false, null, Collections.emptyList(), false, error.getMessage()));
+                mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, error.getMessage()));
             }
         }) {
             @Override
@@ -233,8 +239,21 @@ public class ArticleViewModel extends ViewModel {
             }
         };
 
-        mState.postValue(new State(true, null, Collections.emptyList(), false, null));
+        mState.postValue(new State(true, null, Collections.emptyList(), Collections.emptyList(), false, null));
         AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
+    }
+
+    public void refreshReply(List<Element> commentList) {
+        mReplyItemKeys.clear();
+        mReplyItemValues.clear();
+        fetchReplyData(commentList);
+    }
+
+    public void addAll(List<String> replyItemKeys, List<ReplyItem> replyItemValues) {
+        if (replyItemKeys.size() == replyItemValues.size()) {
+            mReplyItemKeys.addAll(replyItemKeys);
+            mReplyItemValues.addAll(replyItemValues);
+        }
     }
 
     private void fetchArticleDataFromFirebase() {
@@ -243,27 +262,16 @@ public class ArticleViewModel extends ViewModel {
         databaseReference.child(mGroupKey).child(mArticleKey).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.getValue() != null) {
-                    ArticleItem articleItem = dataSnapshot.getValue(ArticleItem.class);
+                ArticleItem value = dataSnapshot.getValue(ArticleItem.class);
 
-                    /*Glide.with(getApplicationContext())
-                            .load(articleItem.getUid() != null ? new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", articleItem.getUid()), new LazyHeaders.Builder()
-                                    .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
-                                    .build()) : null)
-                            .apply(RequestOptions
-                                    .errorOf(R.drawable.user_image_view_circle)
-                                    .circleCrop()
-                                    .skipMemoryCache(true)
-                                    .diskCacheStrategy(DiskCacheStrategy.NONE))
-                            .into(mArticleDetailBinding.ivProfileImage);
-                    mArticleDetailBinding.tvTimestamp.setText(new SimpleDateFormat("yyyy.MM.dd a h:mm:ss").format(articleItem.getTimestamp()));*/
-                    Log.e("TEST", "fetchArticleDataFromFirebase: " + articleItem.toString());
+                if (value != null) {
+                    mState.postValue(new State(false, value, Collections.emptyList(), Collections.emptyList(), false, null));
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                mState.postValue(new State(false, null, Collections.emptyList(), false, databaseError.getMessage()));
+                mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, databaseError.getMessage()));
             }
         });
     }
@@ -274,6 +282,41 @@ public class ArticleViewModel extends ViewModel {
 
         articlesReference.child(mGroupKey).child(mArticleKey).removeValue();
         replysReference.child(mArticleKey).removeValue();
+    }
+
+    private void fetchReplyListFromFirebase(List<String> replyItemKeys, List<ReplyItem> replyItemValues) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Replys");
+
+        databaseReference.child(mArticleKey).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String key = snapshot.getKey();
+                    ReplyItem value = snapshot.getValue(ReplyItem.class);
+
+                    if (value != null) {
+                        int index = replyItemKeys.indexOf(value.getId());
+
+                        if (index > -1) {
+                            ReplyItem replyItem = replyItemValues.get(index);
+
+                            replyItem.setUid(value.getUid());
+                            replyItemKeys.set(index, key);
+                            replyItemValues.set(index, replyItem);
+                        }
+                    }
+                }
+                if (mState.getValue() != null) {
+                    mState.postValue(new State(false, null, replyItemKeys, replyItemValues, false, null));
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
+                mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, databaseError.getMessage()));
+            }
+        });
     }
 
     private String contentExtractor(Element listCont) {
@@ -331,16 +374,19 @@ public class ArticleViewModel extends ViewModel {
 
         public ArticleItem articleItem;
 
-        public List<ReplyItem> replyItems;
+        public List<String> replyItemKeys;
+
+        public List<ReplyItem> replyItemValues;
 
         public boolean isSetResultOK;
 
         public String message;
 
-        public State(boolean isLoading, ArticleItem articleItem, List<ReplyItem> replyItems, boolean isSetResultOK, String message) {
+        public State(boolean isLoading, ArticleItem articleItem, List<String> replyItemKeys, List<ReplyItem> replyItemValues, boolean isSetResultOK, String message) {
             this.isLoading = isLoading;
             this.articleItem = articleItem;
-            this.replyItems = replyItems;
+            this.replyItemKeys = replyItemKeys;
+            this.replyItemValues = replyItemValues;
             this.isSetResultOK = isSetResultOK;
             this.message = message;
         }

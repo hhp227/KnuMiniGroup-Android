@@ -201,90 +201,15 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
             public void onChanged(ArticleViewModel.State state) {
                 if (state.isLoading) {
                     showProgressBar();
+                } else if (!state.replyItemKeys.isEmpty() && !state.replyItemValues.isEmpty()) {
+                    Log.e("TEST", "isNotEmpty");
+                    hideProgressBar();
+                    mViewModel.addAll(state.replyItemKeys, state.replyItemValues);
+                    mAdapter.notifyDataSetChanged();
                 } else if (state.articleItem != null) {
                     Toast.makeText(getApplicationContext(), "ArticleItem != null", Toast.LENGTH_SHORT).show();
                     hideProgressBar();
-
-                    Glide.with(getApplicationContext())
-                            .load(state.articleItem.getUid() != null ? new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", state.articleItem.getUid()), new LazyHeaders.Builder()
-                                    .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
-                                    .build()) : null)
-                            .apply(RequestOptions
-                                    .errorOf(R.drawable.user_image_view_circle)
-                                    .circleCrop()
-                                    .skipMemoryCache(true)
-                                    .diskCacheStrategy(DiskCacheStrategy.NONE))
-                            .into(mArticleDetailBinding.ivProfileImage);
-                    mArticleDetailBinding.tvTitle.setText(state.articleItem.getTitle() + " - " + state.articleItem.getName());
-                    mArticleDetailBinding.tvTimestamp.setText(state.articleItem.getDate());
-                    mArticleDetailBinding.tvContent.setText(state.articleItem.getContent());
-                    mArticleDetailBinding.tvContent.setVisibility(!TextUtils.isEmpty(state.articleItem.getContent()) ? View.VISIBLE : View.GONE);
-                    if (!state.articleItem.getImages().isEmpty() || state.articleItem.getYoutube() != null) {
-                        for (int i = 0; i < state.articleItem.getImages().size(); i++) {
-                            if (mArticleDetailBinding.llImage.getChildCount() > state.articleItem.getImages().size() - 1)
-                                break;
-                            final int position = i;
-                            ImageView articleImage = new ImageView(getApplicationContext());
-
-                            articleImage.setAdjustViewBounds(true);
-                            articleImage.setPadding(0, 0, 0, 30);
-                            articleImage.setScaleType(ImageView.ScaleType.FIT_XY);
-                            articleImage.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    Intent intent = new Intent(getApplicationContext(), PictureActivity.class);
-
-                                    intent.putStringArrayListExtra("images", (ArrayList<String>) state.articleItem.getImages());
-                                    intent.putExtra("position", position);
-                                    startActivity(intent);
-                                }
-                            });
-                            Glide.with(getApplicationContext())
-                                    .load(state.articleItem.getImages().get(i))
-                                    .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
-                                    .into(articleImage);
-                            mArticleDetailBinding.llImage.addView(articleImage);
-                        }
-                        if (state.articleItem.getYoutube() != null) {
-                            LinearLayout youtubeContainer = new LinearLayout(getApplicationContext());
-                            mYouTubePlayerView = new YouTubePlayerView(ArticleActivity.this);
-
-                            mYouTubePlayerView.initialize(API_KEY, new YouTubePlayer.OnInitializedListener() {
-                                @Override
-                                public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
-                                    youTubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT);
-                                    youTubePlayer.setShowFullscreenButton(true);
-                                    if (b) {
-                                        youTubePlayer.play();
-                                    } else {
-                                        try {
-                                            youTubePlayer.cueVideo(state.articleItem.getYoutube().videoId);
-                                        } catch (IllegalStateException e) {
-                                            mYouTubePlayerView.initialize(API_KEY, this);
-                                        }
-                                    }
-                                }
-
-                                @Override
-                                public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
-                                    try {
-                                        if (youTubeInitializationResult.isUserRecoverableError())
-                                            youTubeInitializationResult.getErrorDialog(getParent(), 0).show();
-                                    } catch (Exception e) {
-                                        if (e.getMessage() != null) {
-                                            Log.e(TAG, e.getMessage());
-                                        }
-                                    }
-                                }
-                            });
-                            youtubeContainer.addView(mYouTubePlayerView);
-                            youtubeContainer.setPadding(0, 0, 0, 30);
-                            mArticleDetailBinding.llImage.addView(youtubeContainer, state.articleItem.getYoutube().position);
-                        }
-                        mArticleDetailBinding.llImage.setVisibility(View.VISIBLE);
-                    } else {
-                        mArticleDetailBinding.llImage.setVisibility(View.GONE);
-                    }
+                    bindArticle(state.articleItem);
                 } else if (state.isSetResultOK) {
                     setResult(RESULT_OK);
                     finish();
@@ -455,6 +380,91 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
                 return true;
         }
         return false;
+    }
+
+    private void bindArticle(final ArticleItem articleItem) {
+        Glide.with(getApplicationContext())
+                .load(articleItem.getUid() != null ? new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", articleItem.getUid()), new LazyHeaders.Builder()
+                        .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
+                        .build()) : null)
+                .apply(RequestOptions
+                        .errorOf(R.drawable.user_image_view_circle)
+                        .circleCrop()
+                        .skipMemoryCache(true)
+                        .diskCacheStrategy(DiskCacheStrategy.NONE))
+                .into(mArticleDetailBinding.ivProfileImage);
+        mArticleDetailBinding.tvTitle.setText(articleItem.getTitle() + " - " + articleItem.getName());
+        mArticleDetailBinding.tvTimestamp.setText(articleItem.getDate() != null ? articleItem.getDate() : new SimpleDateFormat("yyyy.MM.dd a h:mm:ss").format(articleItem.getTimestamp()));
+        mArticleDetailBinding.tvContent.setText(articleItem.getContent());
+        mArticleDetailBinding.tvContent.setVisibility(!TextUtils.isEmpty(articleItem.getContent()) ? View.VISIBLE : View.GONE);
+        if ((articleItem.getImages() != null && !articleItem.getImages().isEmpty()) || articleItem.getYoutube() != null) {
+            if (articleItem.getImages() != null) {
+                for (int i = 0; i < articleItem.getImages().size(); i++) {
+                    if (mArticleDetailBinding.llImage.getChildCount() > articleItem.getImages().size() - 1)
+                        break;
+                    final int position = i;
+                    ImageView articleImage = new ImageView(getApplicationContext());
+
+                    articleImage.setAdjustViewBounds(true);
+                    articleImage.setPadding(0, 0, 0, 30);
+                    articleImage.setScaleType(ImageView.ScaleType.FIT_XY);
+                    articleImage.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(getApplicationContext(), PictureActivity.class);
+
+                            intent.putStringArrayListExtra("images", (ArrayList<String>) articleItem.getImages());
+                            intent.putExtra("position", position);
+                            startActivity(intent);
+                        }
+                    });
+                    Glide.with(getApplicationContext())
+                            .load(articleItem.getImages().get(i))
+                            .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
+                            .into(articleImage);
+                    mArticleDetailBinding.llImage.addView(articleImage);
+                }
+            }
+            if (articleItem.getYoutube() != null && mYouTubePlayerView == null) {
+                LinearLayout youtubeContainer = new LinearLayout(getApplicationContext());
+                mYouTubePlayerView = new YouTubePlayerView(ArticleActivity.this);
+
+                mYouTubePlayerView.initialize(API_KEY, new YouTubePlayer.OnInitializedListener() {
+                    @Override
+                    public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
+                        youTubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT);
+                        youTubePlayer.setShowFullscreenButton(true);
+                        if (b) {
+                            youTubePlayer.play();
+                        } else {
+                            try {
+                                youTubePlayer.cueVideo(articleItem.getYoutube().videoId);
+                            } catch (IllegalStateException e) {
+                                mYouTubePlayerView.initialize(API_KEY, this);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
+                        try {
+                            if (youTubeInitializationResult.isUserRecoverableError())
+                                youTubeInitializationResult.getErrorDialog(getParent(), 0).show();
+                        } catch (Exception e) {
+                            if (e.getMessage() != null) {
+                                Log.e(TAG, e.getMessage());
+                            }
+                        }
+                    }
+                });
+                youtubeContainer.addView(mYouTubePlayerView);
+                youtubeContainer.setPadding(0, 0, 0, 30);
+                mArticleDetailBinding.llImage.addView(youtubeContainer, articleItem.getYoutube().position);
+            }
+            mArticleDetailBinding.llImage.setVisibility(View.VISIBLE);
+        } else {
+            mArticleDetailBinding.llImage.setVisibility(View.GONE);
+        }
     }
 
     private void fetchArticleData() {
