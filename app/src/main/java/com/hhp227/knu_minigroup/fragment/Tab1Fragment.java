@@ -12,11 +12,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
@@ -29,31 +27,16 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import com.android.volley.*;
-import com.android.volley.toolbox.StringRequest;
+
 import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.database.*;
-import com.hhp227.knu_minigroup.activity.ArticleActivity;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.activity.ArticleActivity;
 import com.hhp227.knu_minigroup.activity.CreateArticleActivity;
 import com.hhp227.knu_minigroup.adapter.ArticleListAdapter;
-import com.hhp227.knu_minigroup.app.AppController;
-import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.FragmentTab1Binding;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
-import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.viewmodel.Tab1ViewModel;
 
-import net.htmlparser.jericho.Element;
-import net.htmlparser.jericho.HTMLElementName;
-import net.htmlparser.jericho.Source;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-// TODO
 public class Tab1Fragment extends Fragment {
     private long mLastClickTime;
 
@@ -195,6 +178,7 @@ public class Tab1Fragment extends Fragment {
                     hideProgressBar();
                     mViewModel.addAll(state.articleItemKeys, state.articleItemValues);
                     mAdapter.setFooterProgressBarVisibility(View.INVISIBLE);
+                    mBinding.rlWrite.setVisibility(mAdapter.getItemCount() > 1 ? View.GONE : View.VISIBLE);
                 } else if (state.isEndReached) {
                     hideProgressBar();
                     mAdapter.setFooterProgressBarVisibility(View.GONE);

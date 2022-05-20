@@ -3,7 +3,6 @@ package com.hhp227.knu_minigroup.viewmodel;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
-import android.view.View;
 import android.webkit.CookieManager;
 
 import androidx.annotation.NonNull;
@@ -25,7 +24,6 @@ import com.google.firebase.database.ValueEventListener;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
-import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
@@ -34,13 +32,11 @@ import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
 
 public class Tab1ViewModel extends ViewModel {
     public static boolean mIsAdmin;
