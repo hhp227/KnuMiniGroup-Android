@@ -66,7 +66,7 @@ public class UpdateReplyActivity extends AppCompatActivity {
                 return 1;
             }
         });
-        mViewModel.mState.observe(this, new Observer<UpdateReplyViewModel.State>() {
+        mViewModel.getState().observe(this, new Observer<UpdateReplyViewModel.State>() {
             @Override
             public void onChanged(UpdateReplyViewModel.State state) {
                 if (state.isLoading) {
@@ -86,12 +86,16 @@ public class UpdateReplyActivity extends AppCompatActivity {
                     intent.putExtra("update_reply", state.text);
                     setResult(RESULT_OK, intent);
                     finish();
-                } else if (state.replyFormState != null) {
-                    Snackbar.make(getCurrentFocus(), state.replyFormState.replyError, Snackbar.LENGTH_LONG).show();
                 } else if (state.message != null && !state.message.isEmpty()) {
                     hideProgressDialog();
                     Snackbar.make(getCurrentFocus(), state.message, Snackbar.LENGTH_LONG).show();
                 }
+            }
+        });
+        mViewModel.getReplyFormState().observe(this, new Observer<UpdateReplyViewModel.ReplyFormState>() {
+            @Override
+            public void onChanged(UpdateReplyViewModel.ReplyFormState replyFormState) {
+                Snackbar.make(getCurrentFocus(), replyFormState.replyError, Snackbar.LENGTH_LONG).show();
             }
         });
     }
