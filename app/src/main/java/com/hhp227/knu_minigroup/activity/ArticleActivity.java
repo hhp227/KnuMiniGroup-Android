@@ -197,10 +197,11 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
         });
         registerForContextMenu(mActivityArticleBinding.lvArticle); // 콘텍스트메뉴
         fetchArticleData();
-        mViewModel.mState.observe(this, new Observer<ArticleViewModel.State>() {
+        mViewModel.getState().observe(this, new Observer<ArticleViewModel.State>() {
             @Override
             public void onChanged(ArticleViewModel.State state) {
                 if (state.isLoading) {
+                    Log.e("TEST", "isLoading");
                     showProgressBar();
                 } else if (!state.replyItemKeys.isEmpty() && !state.replyItemValues.isEmpty()) {
                     Log.e("TEST", "isNotEmpty");
@@ -212,10 +213,12 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
                     hideProgressBar();
                     bindArticle(state.articleItem);
                 } else if (state.isSetResultOK) {
+                    Log.e("TEST", "isSetResultOK");
                     setResult(RESULT_OK);
                     finish();
                     Toast.makeText(getApplicationContext(), state.message, Toast.LENGTH_LONG).show();
                 } else if (state.message != null && !state.message.isEmpty()) {
+                    Log.e("TEST", "message is Not Empty");
                     hideProgressBar();
                     Snackbar.make(getCurrentFocus(), state.message, Snackbar.LENGTH_LONG).show();
                 }

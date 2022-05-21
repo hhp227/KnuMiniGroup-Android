@@ -1,18 +1,13 @@
 package com.hhp227.knu_minigroup.viewmodel;
 
-import static com.hhp227.knu_minigroup.viewmodel.YoutubeSearchViewModel.API_KEY;
-
-import android.content.Intent;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.text.Html;
-import android.text.TextUtils;
 import android.util.Log;
-import android.view.View;
 import android.webkit.CookieManager;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModel;
@@ -22,22 +17,11 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.model.GlideUrl;
-import com.bumptech.glide.load.model.LazyHeaders;
-import com.bumptech.glide.request.RequestOptions;
-import com.google.android.youtube.player.YouTubeInitializationResult;
-import com.google.android.youtube.player.YouTubePlayer;
-import com.google.android.youtube.player.YouTubePlayerView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.hhp227.knu_minigroup.R;
-import com.hhp227.knu_minigroup.activity.ArticleActivity;
-import com.hhp227.knu_minigroup.activity.PictureActivity;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
@@ -53,7 +37,6 @@ import net.htmlparser.jericho.Source;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -61,13 +44,11 @@ import java.util.List;
 import java.util.Map;
 
 public class ArticleViewModel extends ViewModel {
-    public final MutableLiveData<State> mState = new MutableLiveData<>();
-
     public final List<String> mReplyItemKeys = new ArrayList<>();
 
     public final List<ReplyItem> mReplyItemValues = new ArrayList<>();
 
-    private static final String TAG = ArticleViewModel.class.getSimpleName();
+    private static final String TAG = ArticleViewModel.class.getSimpleName(), STATE = "state";
 
     private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
 
@@ -77,7 +58,7 @@ public class ArticleViewModel extends ViewModel {
 
     private final String mGroupId, mArticleId, mGroupKey, mArticleKey;
 
-    private SavedStateHandle mSavedStateHandle;
+    private final SavedStateHandle mSavedStateHandle;
 
     public ArticleViewModel(SavedStateHandle savedStateHandle) {
         this.mSavedStateHandle = savedStateHandle;
@@ -88,7 +69,6 @@ public class ArticleViewModel extends ViewModel {
         this.mArticleKey = savedStateHandle.get("artl_key");
         this.mPosition = savedStateHandle.get("position");
         Log.e("TEST", "ArticleViewModel init");
-        Log.e("TEST", "???" + savedStateHandle.get("grp_id"));
         //fetchArticleData(mArticleId);
     }
 
@@ -96,6 +76,10 @@ public class ArticleViewModel extends ViewModel {
     protected void onCleared() {
         super.onCleared();
         Log.e("TEST", "ArticleViewModel onCleared");
+    }
+
+    public LiveData<State> getState() {
+        return mSavedStateHandle.getLiveData(STATE);
     }
 
     private void fetchArticleData(String articleId) {
@@ -130,13 +114,13 @@ public class ArticleViewModel extends ViewModel {
                     articleItem.setTimestamp(DateUtil.getTimeStamp(timeStamp));
                     articleItem.setReplyCount(replyCnt);
                     Log.e("TEST", "articleItem: " + articleItem);
-                    mState.postValue(new State(false, articleItem, Collections.emptyList(), Collections.emptyList(), false, null));
+                    mSavedStateHandle.set(STATE, new State(false, articleItem, Collections.emptyList(), Collections.emptyList(), false, null));
                     fetchReplyData(commentList);
                     /*if (mIsUpdate)
                         deliveryUpdate(title, content, replyCnt);*/
                 } catch (Exception e) {
                     Log.e(TAG, e.getMessage());
-                    mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, "값이 없습니다."));
+                    mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), Collections.emptyList(), false, "값이 없습니다."));
                 } finally {
                     fetchArticleDataFromFirebase();
                 }
@@ -144,7 +128,7 @@ public class ArticleViewModel extends ViewModel {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, error.getMessage()));
+                mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), Collections.emptyList(), false, error.getMessage()));
             }
         }) {
             @Override
@@ -156,7 +140,7 @@ public class ArticleViewModel extends ViewModel {
             }
         };
 
-        mState.postValue(new State(true, null, Collections.emptyList(), Collections.emptyList(), false, null));
+        mSavedStateHandle.set(STATE, new State(true, null, Collections.emptyList(), Collections.emptyList(), false, null));
         AppController.getInstance().addToRequestQueue(stringRequest);
     }
 
@@ -188,7 +172,7 @@ public class ArticleViewModel extends ViewModel {
                 setListViewBottom();*/
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
-            mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, e.getMessage()));
+            mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), Collections.emptyList(), false, e.getMessage()));
         } finally {
             fetchReplyListFromFirebase(replyItemKeys, replyItemValues);
         }
@@ -204,13 +188,13 @@ public class ArticleViewModel extends ViewModel {
                     boolean error = jsonObject.getBoolean("isError");
 
                     if (!error) {
-                        mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), true, "삭제완료"));
+                        mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), Collections.emptyList(), true, "삭제완료"));
                     } else {
-                        mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, "삭제할수 없습니다."));
+                        mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), Collections.emptyList(), false, "삭제할수 없습니다."));
                     }
                 } catch (JSONException e) {
                     Log.e(TAG, e.getMessage());
-                    mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, e.getMessage()));
+                    mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), Collections.emptyList(), false, e.getMessage()));
                 } finally {
                     // 로직 애매함 get은 파이어베이스에서 데이터 처리후 state에 postValue하는데 여기서는 파이어베이스 처리전에 postValue함
                     deleteArticleFromFirebase();
@@ -219,7 +203,7 @@ public class ArticleViewModel extends ViewModel {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, error.getMessage()));
+                mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), Collections.emptyList(), false, error.getMessage()));
             }
         }) {
             @Override
@@ -240,7 +224,7 @@ public class ArticleViewModel extends ViewModel {
             }
         };
 
-        mState.postValue(new State(true, null, Collections.emptyList(), Collections.emptyList(), false, null));
+        mSavedStateHandle.set(STATE, new State(true, null, Collections.emptyList(), Collections.emptyList(), false, null));
         AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
     }
 
@@ -258,7 +242,7 @@ public class ArticleViewModel extends ViewModel {
                         refreshReply(commentList);
                     }
                 } catch (Exception e) {
-                    mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, e.getMessage()));
+                    mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), Collections.emptyList(), false, e.getMessage()));
                     Log.e(TAG, e.getMessage());
                 } finally {
                     deleteReplyFromFirebase(replyKey);
@@ -268,7 +252,7 @@ public class ArticleViewModel extends ViewModel {
             @Override
             public void onErrorResponse(VolleyError error) {
                 VolleyLog.e(TAG, error.getMessage());
-                mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, error.getMessage()));
+                mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), Collections.emptyList(), false, error.getMessage()));
             }
         }) {
             @Override
@@ -290,7 +274,7 @@ public class ArticleViewModel extends ViewModel {
             }
         };
 
-        mState.postValue(new State(true, null, Collections.emptyList(), Collections.emptyList(), false, null));
+        mSavedStateHandle.set(STATE, new State(true, null, Collections.emptyList(), Collections.emptyList(), false, null));
         AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
     }
 
@@ -316,13 +300,13 @@ public class ArticleViewModel extends ViewModel {
                 ArticleItem value = dataSnapshot.getValue(ArticleItem.class);
 
                 if (value != null) {
-                    mState.postValue(new State(false, value, Collections.emptyList(), Collections.emptyList(), false, null));
+                    mSavedStateHandle.set(STATE, new State(false, value, Collections.emptyList(), Collections.emptyList(), false, null));
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, databaseError.getMessage()));
+                mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), Collections.emptyList(), false, databaseError.getMessage()));
             }
         });
     }
@@ -357,15 +341,13 @@ public class ArticleViewModel extends ViewModel {
                         }
                     }
                 }
-                if (mState.getValue() != null) {
-                    mState.postValue(new State(false, null, replyItemKeys, replyItemValues, false, null));
-                }
+                mSavedStateHandle.set(STATE, new State(false, null, replyItemKeys, replyItemValues, false, null));
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e(TAG, "파이어베이스 데이터 불러오기 실패", databaseError.toException());
-                mState.postValue(new State(false, null, Collections.emptyList(), Collections.emptyList(), false, databaseError.getMessage()));
+                mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), Collections.emptyList(), false, databaseError.getMessage()));
             }
         });
     }
@@ -426,7 +408,7 @@ public class ArticleViewModel extends ViewModel {
         return youTubeItem;
     }
 
-    public static final class State {
+    public static final class State implements Parcelable {
         public boolean isLoading;
 
         public ArticleItem articleItem;
@@ -446,6 +428,72 @@ public class ArticleViewModel extends ViewModel {
             this.replyItemValues = replyItemValues;
             this.isSetResultOK = isSetResultOK;
             this.message = message;
+        }
+
+        protected State(Parcel in) {
+            isLoading = in.readByte() != 0;
+            replyItemKeys = in.createStringArrayList();
+            isSetResultOK = in.readByte() != 0;
+            message = in.readString();
+        }
+
+        public static final Creator<State> CREATOR = new Creator<State>() {
+            @Override
+            public State createFromParcel(Parcel in) {
+                return new State(in);
+            }
+
+            @Override
+            public State[] newArray(int size) {
+                return new State[size];
+            }
+        };
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel parcel, int i) {
+            parcel.writeByte((byte) (isLoading ? 1 : 0));
+            parcel.writeStringList(replyItemKeys);
+            parcel.writeByte((byte) (isSetResultOK ? 1 : 0));
+            parcel.writeString(message);
+        }
+    }
+
+    public static final class ReplyFormState implements Parcelable {
+        public String replyError;
+
+        public ReplyFormState(String replyError) {
+            this.replyError = replyError;
+        }
+
+        protected ReplyFormState(Parcel in) {
+            replyError = in.readString();
+        }
+
+        public static final Creator<ReplyFormState> CREATOR = new Creator<ReplyFormState>() {
+            @Override
+            public ReplyFormState createFromParcel(Parcel in) {
+                return new ReplyFormState(in);
+            }
+
+            @Override
+            public ReplyFormState[] newArray(int size) {
+                return new ReplyFormState[size];
+            }
+        };
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel parcel, int i) {
+            parcel.writeString(replyError);
         }
     }
 }
