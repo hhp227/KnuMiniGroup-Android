@@ -116,10 +116,14 @@ public class CreateGroupActivity extends AppCompatActivity {
                 } else if (state.message != null && !state.message.isEmpty()) {
                     hideProgressDialog();
                     Snackbar.make(getCurrentFocus(), state.message, Snackbar.LENGTH_LONG).show();
-                } else if (state.createGroupFormState != null) {
-                    mBinding.etTitle.setError(state.createGroupFormState.titleError);
-                    mBinding.etDescription.setError(state.createGroupFormState.descriptionError);
                 }
+            }
+        });
+        mViewModel.mCreateGroupFormState.observe(this, new Observer<CreateGroupViewModel.CreateGroupFormState>() {
+            @Override
+            public void onChanged(CreateGroupViewModel.CreateGroupFormState createGroupFormState) {
+                mBinding.etTitle.setError(createGroupFormState.titleError);
+                mBinding.etDescription.setError(createGroupFormState.descriptionError);
             }
         });
         mViewModel.mBitmap.observe(this, new Observer<Bitmap>() {
