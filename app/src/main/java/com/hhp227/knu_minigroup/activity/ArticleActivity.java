@@ -84,7 +84,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
 
     private static final String TAG = ArticleActivity.class.getSimpleName();
 
-    private boolean mIsBottom, mIsUpdate, mIsAuthorized;
+    private boolean mIsUpdate, mIsAuthorized;
 
     private int mPosition;
 
@@ -125,11 +125,11 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
         mArticleKey = intent.getStringExtra("artl_key");
         mPosition = intent.getIntExtra("position", 0);
         mIsAuthorized = intent.getBooleanExtra("auth", false);
-        mIsBottom = intent.getBooleanExtra("isbottom", false);
         mImageList = new ArrayList<>();
         mReplyItemKeys = new ArrayList<>();
         mReplyItemValues = new ArrayList<>();
         mAdapter = new ReplyListAdapter(mReplyItemKeys, mReplyItemValues);
+        //mAdapter = new ReplyListAdapter(mViewModel.mReplyItemKeys, mViewModel.mReplyItemValues);
         mTextWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -160,6 +160,10 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
         mActivityArticleBinding.cvBtnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                /*String text = mActivityArticleBinding.etReply.getText().toString().trim();
+
+                mViewModel.actionSend(text);*/
+
                 if (mActivityArticleBinding.etReply.getText().toString().trim().length() > 0) {
                     actionSend(mActivityArticleBinding.etReply.getText().toString());
 
@@ -221,6 +225,20 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
                     Log.e("TEST", "message is Not Empty");
                     hideProgressBar();
                     Snackbar.make(getCurrentFocus(), state.message, Snackbar.LENGTH_LONG).show();
+                }
+            }
+        });
+        mViewModel.getReplyFormState().observe(this, new Observer<ArticleViewModel.ReplyFormState>() {
+            @Override
+            public void onChanged(ArticleViewModel.ReplyFormState replyFormState) {
+                Toast.makeText(ArticleActivity.this, replyFormState.replyError, Toast.LENGTH_SHORT).show();
+            }
+        });
+        mViewModel.getScrollToLastState().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean isScrollToLast) {
+                if (isScrollToLast) {
+                    setListViewBottom();
                 }
             }
         });
@@ -623,10 +641,6 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
                 mReplyItemValues.add(replyItem);
             }
             mAdapter.notifyDataSetChanged();
-
-            // isBotoom이 참이면 화면 아래로 이동
-            if (mIsBottom)
-                setListViewBottom();
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
         } finally {
@@ -649,7 +663,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
                     hideProgressBar();
 
                     // 전송할때마다 리스트뷰 아래로
-                    setListViewBottom();
+                    mViewModel.setScrollToLastState(true);
                 } catch (Exception e) {
                     Log.e(TAG, e.getMessage());
                 } finally {
@@ -695,7 +709,6 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
             @Override
             public void run() {
                 int articleHeight = mArticleDetailBinding.getRoot().getMeasuredHeight();
-                mIsBottom = false;
 
                 mActivityArticleBinding.lvArticle.setSelection(articleHeight);
             }

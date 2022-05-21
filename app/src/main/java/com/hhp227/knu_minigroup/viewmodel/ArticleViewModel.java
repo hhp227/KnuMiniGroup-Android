@@ -5,6 +5,7 @@ import android.os.Parcelable;
 import android.text.Html;
 import android.util.Log;
 import android.webkit.CookieManager;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
@@ -48,7 +49,7 @@ public class ArticleViewModel extends ViewModel {
 
     public final List<ReplyItem> mReplyItemValues = new ArrayList<>();
 
-    private static final String TAG = ArticleViewModel.class.getSimpleName(), STATE = "state";
+    private static final String TAG = ArticleViewModel.class.getSimpleName(), STATE = "state", REPLY_FORM_STATE = "replyFormState";
 
     private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
 
@@ -80,6 +81,18 @@ public class ArticleViewModel extends ViewModel {
 
     public LiveData<State> getState() {
         return mSavedStateHandle.getLiveData(STATE);
+    }
+
+    public LiveData<ReplyFormState> getReplyFormState() {
+        return mSavedStateHandle.getLiveData(REPLY_FORM_STATE);
+    }
+
+    public void setScrollToLastState(boolean bool) {
+        mSavedStateHandle.set("isbottom", bool);
+    }
+
+    public LiveData<Boolean> getScrollToLastState() {
+        return mSavedStateHandle.getLiveData("isbottom");
     }
 
     private void fetchArticleData(String articleId) {
@@ -175,6 +188,72 @@ public class ArticleViewModel extends ViewModel {
             mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), Collections.emptyList(), false, e.getMessage()));
         } finally {
             fetchReplyListFromFirebase(replyItemKeys, replyItemValues);
+        }
+    }
+
+    public void actionSend(String text) {
+        if (text.length() > 0) {
+            String tag_string_req = "req_send";
+            StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.INSERT_REPLY, new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    Source source = new Source(response);
+                    List<Element> commentList = source.getAllElementsByClass("comment-list");
+
+                    try {
+                        refreshReply(commentList);
+
+                        // 전송할때마다 리스트뷰 아래로
+                        setScrollToLastState(true);
+                    } catch (Exception e) {
+                        Log.e(TAG, e.getMessage());
+                    } finally {
+                        insertReplyToFirebase(commentList.get(commentList.size() - 1).getFirstElementByClass("comment-addr").getAttributeValue("id").replace("cmt_txt_", ""), text);
+                    }
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    VolleyLog.e(TAG, error.getMessage());
+                    mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), Collections.emptyList(), false, error.getMessage()));
+                }
+            }) {
+                @Override
+                public Map<String, String> getHeaders() {
+                    Map<String, String> headers = new HashMap<>();
+
+                    headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
+                    return headers;
+                }
+
+                @Override
+                protected Map<String, String> getParams() {
+                    Map<String, String> params = new HashMap<>();
+
+                    params.put("CLUB_GRP_ID", mGroupId);
+                    params.put("ARTL_NUM", mArticleId);
+                    params.put("CMT", text);
+                    return params;
+                }
+            };
+
+            mSavedStateHandle.set(STATE, new State(true, null, Collections.emptyList(), Collections.emptyList(), false, null));
+            AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
+
+
+
+
+            /*actionSend(text);
+
+            // 전송하면 텍스트 초기화
+            mActivityArticleBinding.etReply.setText("");
+            if (v != null) {
+                InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+
+                inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+            }*/
+        } else {
+            mSavedStateHandle.set(REPLY_FORM_STATE, new ReplyFormState("댓글을 입력하세요."));
         }
     }
 
@@ -350,6 +429,18 @@ public class ArticleViewModel extends ViewModel {
                 mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), Collections.emptyList(), false, databaseError.getMessage()));
             }
         });
+    }
+
+    private void insertReplyToFirebase(String replyId, String text) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Replys");
+        ReplyItem replyItem = new ReplyItem();
+
+        replyItem.setId(replyId);
+        replyItem.setUid(mPreferenceManager.getUser().getUid());
+        replyItem.setName(mPreferenceManager.getUser().getName());
+        replyItem.setTimestamp(System.currentTimeMillis());
+        replyItem.setReply(text);
+        databaseReference.child(mArticleKey).push().setValue(replyItem);
     }
 
     private void deleteReplyFromFirebase(String replyKey) {
