@@ -43,6 +43,7 @@ import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.dto.ReplyItem;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
+import com.hhp227.knu_minigroup.helper.DateUtil;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 
 import net.htmlparser.jericho.Element;
@@ -126,7 +127,7 @@ public class ArticleViewModel extends ViewModel {
                     articleItem.setContent(content);
                     articleItem.setImages(imageList);
                     articleItem.setYoutube(youTubeItem);
-                    articleItem.setDate(timeStamp);
+                    articleItem.setTimestamp(DateUtil.getTimeStamp(timeStamp));
                     articleItem.setReplyCount(replyCnt);
                     Log.e("TEST", "articleItem: " + articleItem);
                     mState.postValue(new State(false, articleItem, Collections.emptyList(), Collections.emptyList(), false, null));

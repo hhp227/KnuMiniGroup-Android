@@ -2,6 +2,7 @@ package com.hhp227.knu_minigroup.viewmodel;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.webkit.CookieManager;
 
@@ -26,12 +27,16 @@ import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
+import com.hhp227.knu_minigroup.helper.DateUtil;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
 
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -125,7 +130,8 @@ public class Tab1ViewModel extends ViewModel {
                         articleItem.setId(id);
                         articleItem.setTitle(title.trim());
                         articleItem.setName(name.trim());
-                        articleItem.setDate(date);
+                        // 언어설정을 영어로 변역하면 따로 처리를 해줘야함
+                        articleItem.setTimestamp(DateUtil.getTimeStamp(date));
                         articleItem.setContent(content.toString().trim());
                         articleItem.setImages(imageList);
                         articleItem.setReplyCount(replyCnt);

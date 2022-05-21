@@ -58,6 +58,7 @@ import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.dto.ReplyItem;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.fragment.Tab1Fragment;
+import com.hhp227.knu_minigroup.helper.DateUtil;
 import com.hhp227.knu_minigroup.helper.MyYouTubeBaseActivity;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import com.hhp227.knu_minigroup.viewmodel.ArticleViewModel;
@@ -395,7 +396,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
                         .diskCacheStrategy(DiskCacheStrategy.NONE))
                 .into(mArticleDetailBinding.ivProfileImage);
         mArticleDetailBinding.tvTitle.setText(articleItem.getTitle() + " - " + articleItem.getName());
-        mArticleDetailBinding.tvTimestamp.setText(articleItem.getDate() != null ? articleItem.getDate() : new SimpleDateFormat("yyyy.MM.dd a h:mm:ss").format(articleItem.getTimestamp()));
+        mArticleDetailBinding.tvTimestamp.setText(DateUtil.getDateString(articleItem.getTimestamp()));
         mArticleDetailBinding.tvContent.setText(articleItem.getContent());
         mArticleDetailBinding.tvContent.setVisibility(!TextUtils.isEmpty(articleItem.getContent()) ? View.VISIBLE : View.GONE);
         if ((articleItem.getImages() != null && !articleItem.getImages().isEmpty()) || articleItem.getYoutube() != null) {
