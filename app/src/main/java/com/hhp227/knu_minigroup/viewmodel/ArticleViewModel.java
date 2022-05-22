@@ -1,15 +1,15 @@
 package com.hhp227.knu_minigroup.viewmodel;
 
+import static java.util.Objects.requireNonNull;
+
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.Html;
 import android.util.Log;
 import android.webkit.CookieManager;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModel;
 
@@ -49,34 +49,36 @@ public class ArticleViewModel extends ViewModel {
 
     public final List<ReplyItem> mReplyItemValues = new ArrayList<>();
 
-    private static final String TAG = ArticleViewModel.class.getSimpleName(), STATE = "state", REPLY_FORM_STATE = "replyFormState";
+    public boolean mIsAuthorized;
+
+    public final int mPosition;
+
+    public final String mGroupId, mArticleId, mGroupName, mGroupImage, mGroupKey, mArticleKey;
+
+    private static final String TAG = ArticleViewModel.class.getSimpleName(), STATE = "state", REPLY_FORM_STATE = "replyFormState", UPDATE_ARTICLE_STATE = "updateArticleState";
 
     private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
 
     private final PreferenceManager mPreferenceManager = AppController.getInstance().getPreferenceManager();
 
-    private final Integer mPosition;
-
-    private final String mGroupId, mArticleId, mGroupKey, mArticleKey;
-
     private final SavedStateHandle mSavedStateHandle;
 
     public ArticleViewModel(SavedStateHandle savedStateHandle) {
-        this.mSavedStateHandle = savedStateHandle;
-        this.mGroupId = savedStateHandle.get("grp_id");
-        this.mArticleId = savedStateHandle.get("artl_num");
+        mSavedStateHandle = savedStateHandle;
+        mGroupId = savedStateHandle.get("grp_id");
+        mGroupName = savedStateHandle.get("grp_nm");
+        mGroupImage = savedStateHandle.get("grp_img");
+        mArticleId = savedStateHandle.get("artl_num");
+        mGroupKey = savedStateHandle.get("grp_key");
+        mArticleKey = savedStateHandle.get("artl_key");
+        mPosition = savedStateHandle.get("position");
+        mIsAuthorized = savedStateHandle.get("auth");
 
-        this.mGroupKey = savedStateHandle.get("grp_key");
-        this.mArticleKey = savedStateHandle.get("artl_key");
-        this.mPosition = savedStateHandle.get("position");
-        Log.e("TEST", "ArticleViewModel init");
-        //fetchArticleData(mArticleId);
+        fetchArticleData(mArticleId);
     }
 
-    @Override
-    protected void onCleared() {
-        super.onCleared();
-        Log.e("TEST", "ArticleViewModel onCleared");
+    public String getCookie() {
+        return mCookieManager.getCookie(EndPoint.LOGIN);
     }
 
     public LiveData<State> getState() {
@@ -87,108 +89,20 @@ public class ArticleViewModel extends ViewModel {
         return mSavedStateHandle.getLiveData(REPLY_FORM_STATE);
     }
 
+    public void setUpdateArticleState(boolean bool) {
+        mSavedStateHandle.set(UPDATE_ARTICLE_STATE, bool);
+    }
+
+    public LiveData<Boolean> getUpdateArticleState() {
+        return mSavedStateHandle.getLiveData(UPDATE_ARTICLE_STATE);
+    }
+
     public void setScrollToLastState(boolean bool) {
         mSavedStateHandle.set("isbottom", bool);
     }
 
     public LiveData<Boolean> getScrollToLastState() {
         return mSavedStateHandle.getLiveData("isbottom");
-    }
-
-    private void fetchArticleData(String articleId) {
-        String params = "?CLUB_GRP_ID=" + mGroupId + "&startL=" + mPosition + "&displayL=1";
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, EndPoint.GROUP_ARTICLE_LIST + params, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Source source = new Source(response.trim());
-                ArticleItem articleItem = new ArticleItem();
-
-                try {
-                    Element element = source.getFirstElementByClass("listbox2");
-                    Element viewArt = element.getFirstElementByClass("view_art");
-                    Element commentWrap = element.getFirstElementByClass("comment_wrap");
-                    Element listCont = viewArt.getFirstElementByClass("list_cont");
-                    List<Element> commentList = element.getAllElementsByClass("comment-list");
-                    String listTitle = viewArt.getFirstElementByClass("list_title").getTextExtractor().toString();
-                    String title = listTitle.substring(0, listTitle.lastIndexOf("-")).trim();
-                    String name = listTitle.substring(listTitle.lastIndexOf("-") + 1).trim();
-                    String timeStamp = viewArt.getFirstElement(HTMLElementName.TD).getTextExtractor().toString();
-                    String content = contentExtractor(listCont);
-                    List<String> imageList = imageExtract(listCont);
-                    YouTubeItem youTubeItem = youtubeExtract(listCont);
-                    String replyCnt = commentWrap.getFirstElementByClass("commentBtn").getTextExtractor().toString();
-
-                    articleItem.setId(articleId);
-                    articleItem.setName(name);
-                    articleItem.setTitle(title);
-                    articleItem.setContent(content);
-                    articleItem.setImages(imageList);
-                    articleItem.setYoutube(youTubeItem);
-                    articleItem.setTimestamp(DateUtil.getTimeStamp(timeStamp));
-                    articleItem.setReplyCount(replyCnt);
-                    Log.e("TEST", "articleItem: " + articleItem);
-                    mSavedStateHandle.set(STATE, new State(false, articleItem, Collections.emptyList(), Collections.emptyList(), false, null));
-                    fetchReplyData(commentList);
-                    /*if (mIsUpdate)
-                        deliveryUpdate(title, content, replyCnt);*/
-                } catch (Exception e) {
-                    Log.e(TAG, e.getMessage());
-                    mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), Collections.emptyList(), false, "값이 없습니다."));
-                } finally {
-                    fetchArticleDataFromFirebase();
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), Collections.emptyList(), false, error.getMessage()));
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
-                return headers;
-            }
-        };
-
-        mSavedStateHandle.set(STATE, new State(true, null, Collections.emptyList(), Collections.emptyList(), false, null));
-        AppController.getInstance().addToRequestQueue(stringRequest);
-    }
-
-    private void fetchReplyData(List<Element> commentList) {
-        List<String> replyItemKeys = new ArrayList<>();
-        List<ReplyItem> replyItemValues = new ArrayList<>();
-
-        try {
-            for (Element comment : commentList) {
-                Element commentName = comment.getFirstElementByClass("comment-name");
-                Element commentAddr = comment.getFirstElementByClass("comment-addr");
-                String replyId = commentAddr.getAttributeValue("id").replace("cmt_txt_", "");
-                String name = commentName.getTextExtractor().toString().trim();
-                String timeStamp = commentName.getFirstElement(HTMLElementName.SPAN).getContent().toString().trim();
-                String replyContent = commentAddr.getContent().toString().trim();
-                boolean authorization = commentName.getAllElements(HTMLElementName.INPUT).size() > 0;
-                ReplyItem replyItem = new ReplyItem();
-
-                replyItem.setId(replyId);
-                replyItem.setName(name.substring(0, name.lastIndexOf("(")));
-                replyItem.setReply(Html.fromHtml(replyContent).toString());
-                replyItem.setDate(timeStamp.replaceAll("[(]|[)]", ""));
-                replyItem.setAuth(authorization);
-                replyItemKeys.add(replyId);
-                replyItemValues.add(replyItem);
-            }
-            // isBotoom이 참이면 화면 아래로 이동
-            /*if (mIsBottom)
-                setListViewBottom();*/
-        } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
-            mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), Collections.emptyList(), false, e.getMessage()));
-        } finally {
-            fetchReplyListFromFirebase(replyItemKeys, replyItemValues);
-        }
     }
 
     public void actionSend(String text) {
@@ -222,7 +136,7 @@ public class ArticleViewModel extends ViewModel {
                 public Map<String, String> getHeaders() {
                     Map<String, String> headers = new HashMap<>();
 
-                    headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
+                    headers.put("Cookie", getCookie());
                     return headers;
                 }
 
@@ -237,21 +151,8 @@ public class ArticleViewModel extends ViewModel {
                 }
             };
 
-            mSavedStateHandle.set(STATE, new State(true, null, Collections.emptyList(), Collections.emptyList(), false, null));
+            mSavedStateHandle.set(STATE, new State(true, ((State) requireNonNull(mSavedStateHandle.get(STATE))).articleItem, Collections.emptyList(), Collections.emptyList(), false, null));
             AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
-
-
-
-
-            /*actionSend(text);
-
-            // 전송하면 텍스트 초기화
-            mActivityArticleBinding.etReply.setText("");
-            if (v != null) {
-                InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-
-                inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
-            }*/
         } else {
             mSavedStateHandle.set(REPLY_FORM_STATE, new ReplyFormState("댓글을 입력하세요."));
         }
@@ -289,7 +190,7 @@ public class ArticleViewModel extends ViewModel {
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
 
-                headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
+                headers.put("Cookie", getCookie());
                 return headers;
             }
 
@@ -338,7 +239,7 @@ public class ArticleViewModel extends ViewModel {
             public Map<String, String> getHeaders() {
                 Map<String, String> headers = new HashMap<>();
 
-                headers.put("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN));
+                headers.put("Cookie", getCookie());
                 return headers;
             }
 
@@ -353,8 +254,12 @@ public class ArticleViewModel extends ViewModel {
             }
         };
 
-        mSavedStateHandle.set(STATE, new State(true, null, Collections.emptyList(), Collections.emptyList(), false, null));
+        mSavedStateHandle.set(STATE, new State(true, ((State) requireNonNull(mSavedStateHandle.get(STATE))).articleItem, Collections.emptyList(), Collections.emptyList(), false, null));
         AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
+    }
+
+    public void refresh() {
+        fetchArticleData(mArticleId);
     }
 
     public void refreshReply(List<Element> commentList) {
@@ -370,7 +275,96 @@ public class ArticleViewModel extends ViewModel {
         }
     }
 
-    private void fetchArticleDataFromFirebase() {
+    private void fetchArticleData(String articleId) {
+        String params = "?CLUB_GRP_ID=" + mGroupId + "&startL=" + mPosition + "&displayL=1";
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, EndPoint.GROUP_ARTICLE_LIST + params, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Source source = new Source(response.trim());
+                ArticleItem articleItem = new ArticleItem();
+
+                try {
+                    Element element = source.getFirstElementByClass("listbox2");
+                    Element viewArt = element.getFirstElementByClass("view_art");
+                    Element commentWrap = element.getFirstElementByClass("comment_wrap");
+                    Element listCont = viewArt.getFirstElementByClass("list_cont");
+                    List<Element> commentList = element.getAllElementsByClass("comment-list");
+                    String listTitle = viewArt.getFirstElementByClass("list_title").getTextExtractor().toString();
+                    String title = listTitle.substring(0, listTitle.lastIndexOf("-")).trim();
+                    String name = listTitle.substring(listTitle.lastIndexOf("-") + 1).trim();
+                    String timeStamp = viewArt.getFirstElement(HTMLElementName.TD).getTextExtractor().toString();
+                    String content = contentExtractor(listCont);
+                    List<String> imageList = imageExtract(listCont);
+                    YouTubeItem youTubeItem = youtubeExtract(listCont);
+                    String replyCnt = commentWrap.getFirstElementByClass("commentBtn").getTextExtractor().toString();
+
+                    articleItem.setId(articleId);
+                    articleItem.setName(name);
+                    articleItem.setTitle(title);
+                    articleItem.setContent(content);
+                    articleItem.setImages(imageList);
+                    articleItem.setYoutube(youTubeItem);
+                    articleItem.setTimestamp(DateUtil.getTimeStamp(timeStamp));
+                    articleItem.setReplyCount(replyCnt);
+                    refreshReply(commentList);
+                } catch (Exception e) {
+                    Log.e(TAG, e.getMessage());
+                    mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), Collections.emptyList(), false, "값이 없습니다."));
+                } finally {
+                    fetchArticleDataFromFirebase(articleItem);
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), Collections.emptyList(), false, error.getMessage()));
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+
+                headers.put("Cookie", getCookie());
+                return headers;
+            }
+        };
+
+        mSavedStateHandle.set(STATE, new State(true, null, Collections.emptyList(), Collections.emptyList(), false, null));
+        AppController.getInstance().addToRequestQueue(stringRequest);
+    }
+
+    private void fetchReplyData(List<Element> commentList) {
+        List<String> replyItemKeys = new ArrayList<>();
+        List<ReplyItem> replyItemValues = new ArrayList<>();
+
+        try {
+            for (Element comment : commentList) {
+                Element commentName = comment.getFirstElementByClass("comment-name");
+                Element commentAddr = comment.getFirstElementByClass("comment-addr");
+                String replyId = commentAddr.getAttributeValue("id").replace("cmt_txt_", "");
+                String name = commentName.getTextExtractor().toString().trim();
+                String timeStamp = commentName.getFirstElement(HTMLElementName.SPAN).getContent().toString().trim();
+                String replyContent = commentAddr.getContent().toString().trim();
+                boolean authorization = commentName.getAllElements(HTMLElementName.INPUT).size() > 0;
+                ReplyItem replyItem = new ReplyItem();
+
+                replyItem.setId(replyId);
+                replyItem.setName(name.substring(0, name.lastIndexOf("(")));
+                replyItem.setReply(Html.fromHtml(replyContent).toString());
+                replyItem.setDate(timeStamp.replaceAll("[(]|[)]", ""));
+                replyItem.setAuth(authorization);
+                replyItemKeys.add(replyId);
+                replyItemValues.add(replyItem);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
+            mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), Collections.emptyList(), false, e.getMessage()));
+        } finally {
+            fetchReplyListFromFirebase(replyItemKeys, replyItemValues);
+        }
+    }
+
+    private void fetchArticleDataFromFirebase(ArticleItem articleItem) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
 
         databaseReference.child(mGroupKey).child(mArticleKey).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -379,8 +373,9 @@ public class ArticleViewModel extends ViewModel {
                 ArticleItem value = dataSnapshot.getValue(ArticleItem.class);
 
                 if (value != null) {
-                    mSavedStateHandle.set(STATE, new State(false, value, Collections.emptyList(), Collections.emptyList(), false, null));
+                    articleItem.setUid(value.getUid());
                 }
+                mSavedStateHandle.set(STATE, new State(false, articleItem, Collections.emptyList(), Collections.emptyList(), false, null));
             }
 
             @Override
@@ -420,7 +415,7 @@ public class ArticleViewModel extends ViewModel {
                         }
                     }
                 }
-                mSavedStateHandle.set(STATE, new State(false, null, replyItemKeys, replyItemValues, false, null));
+                mSavedStateHandle.set(STATE, new State(false, ((State) requireNonNull(mSavedStateHandle.get(STATE))).articleItem, replyItemKeys, replyItemValues, false, null));
             }
 
             @Override
