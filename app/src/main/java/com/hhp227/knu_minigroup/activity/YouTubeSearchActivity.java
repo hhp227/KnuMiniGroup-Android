@@ -42,6 +42,7 @@ public class YouTubeSearchActivity extends AppCompatActivity {
             @Override
             public void onItemClick(View v, int position) {
                 YouTubeItem youTubeItem = mViewModel.mYouTubeItemList.get(position);
+                youTubeItem.position = -1;
                 Intent intent = new Intent(getApplicationContext(), CreateArticleActivity.class);
 
                 intent.putExtra("youtube", youTubeItem);

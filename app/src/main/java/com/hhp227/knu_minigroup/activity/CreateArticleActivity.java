@@ -7,6 +7,9 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.provider.MediaStore;
 import android.text.Html;
 import android.text.TextUtils;
@@ -25,6 +28,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 import androidx.exifinterface.media.ExifInterface;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.android.volley.*;
@@ -57,6 +61,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.Executors;
 
 // TODO
 public class CreateArticleActivity extends AppCompatActivity {
@@ -68,10 +73,6 @@ public class CreateArticleActivity extends AppCompatActivity {
 
     private String mArtlNum, mTitle, mContent, mGrpKey, mArtlKey;
 
-    private List<String> mImageList;
-
-    private List<Object> mContents;
-
     private PreferenceManager mPreferenceManager;
 
     private ProgressDialog mProgressDialog;
@@ -81,8 +82,6 @@ public class CreateArticleActivity extends AppCompatActivity {
     private Uri mPhotoUri;
 
     private WriteListAdapter mAdapter;
-
-    private YouTubeItem mYouTubeItem;
 
     private ActivityCreateArticleBinding mActivityCreateArticleBinding;
 
@@ -98,8 +97,7 @@ public class CreateArticleActivity extends AppCompatActivity {
         mActivityCreateArticleBinding = ActivityCreateArticleBinding.inflate(getLayoutInflater());
         mWriteTextBinding = WriteTextBinding.inflate(getLayoutInflater());
         mViewModel = new ViewModelProvider(this).get(CreateArticleViewModel.class);
-        mContents = new ArrayList<>();
-        mAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, mContents);
+        mAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, mViewModel.mContents);
         mPreferenceManager = AppController.getInstance().getPreferenceManager();
         mCookie = AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN);
         mProgressDialog = new ProgressDialog(this);
@@ -109,25 +107,27 @@ public class CreateArticleActivity extends AppCompatActivity {
         mArtlNum = getIntent().getStringExtra("artl_num");
         mTitle = getIntent().getStringExtra("sbjt");
         mContent = getIntent().getStringExtra("txt");
-        mImageList = getIntent().getStringArrayListExtra("img");
-        mYouTubeItem = getIntent().getParcelableExtra("vid");
         mGrpKey = getIntent().getStringExtra("grp_key");
         mArtlKey = getIntent().getStringExtra("artl_key");
         mCameraPickActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
             public void onActivityResult(ActivityResult result) {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    ClipData clipData = result.getData().getClipData();
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            ClipData clipData = result.getData().getClipData();
 
-                    if (clipData != null) {
-                        for (int i = 0; i < clipData.getItemCount(); i++) {
-                            Uri fileUri = clipData.getItemAt(i).getUri();
-                            Bitmap bitmap = new BitmapUtil(getBaseContext()).bitmapResize(fileUri, 200);
+                            if (clipData != null) {
+                                for (int i = 0; i < clipData.getItemCount(); i++) {
+                                    Uri fileUri = clipData.getItemAt(i).getUri();
+                                    Bitmap bitmap = new BitmapUtil(getBaseContext()).bitmapResize(fileUri, 200);
 
-                            mContents.add(bitmap);
+                                    mViewModel.setBitmap(bitmap);
+                                }
+                            }
                         }
-                        mAdapter.notifyDataSetChanged();
-                    }
+                    });
                 }
             }
         });
@@ -135,24 +135,28 @@ public class CreateArticleActivity extends AppCompatActivity {
             @Override
             public void onActivityResult(ActivityResult result) {
                 if (result.getResultCode() == RESULT_OK) {
-                    try {
-                        Bitmap bitmap = new BitmapUtil(getBaseContext()).bitmapResize(mPhotoUri, 200);
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                Bitmap bitmap = new BitmapUtil(getBaseContext()).bitmapResize(mPhotoUri, 200);
 
-                        if (bitmap != null) {
-                            ExifInterface ei = new ExifInterface(mCurrentPhotoPath);
-                            int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
-                            int angle = orientation == ExifInterface.ORIENTATION_ROTATE_90 ? 90
-                                    : orientation == ExifInterface.ORIENTATION_ROTATE_180 ? 180
-                                    : orientation == ExifInterface.ORIENTATION_ROTATE_270 ? 270
-                                    : 0;
-                            Bitmap rotatedBitmap = new BitmapUtil(getBaseContext()).rotateImage(bitmap, angle);
+                                if (bitmap != null) {
+                                    ExifInterface ei = new ExifInterface(mCurrentPhotoPath);
+                                    int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+                                    int angle = orientation == ExifInterface.ORIENTATION_ROTATE_90 ? 90
+                                            : orientation == ExifInterface.ORIENTATION_ROTATE_180 ? 180
+                                            : orientation == ExifInterface.ORIENTATION_ROTATE_270 ? 270
+                                            : 0;
+                                    Bitmap rotatedBitmap = new BitmapUtil(getBaseContext()).rotateImage(bitmap, angle);
 
-                            mContents.add(rotatedBitmap);
-                            mAdapter.notifyDataSetChanged();
+                                    mViewModel.setBitmap(rotatedBitmap);
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    });
                 }
             }
         });
@@ -160,10 +164,9 @@ public class CreateArticleActivity extends AppCompatActivity {
             @Override
             public void onActivityResult(ActivityResult result) {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    mYouTubeItem = result.getData().getParcelableExtra("youtube");
+                    YouTubeItem youTubeItem = result.getData().getParcelableExtra("youtube");
 
-                    mContents.add(mYouTubeItem);
-                    mAdapter.notifyDataSetChanged();
+                    mViewModel.setYoutube(youTubeItem);
                 }
             }
         });
@@ -205,14 +208,29 @@ public class CreateArticleActivity extends AppCompatActivity {
                 view.showContextMenu();
             }
         });
+        mProgressDialog.setMessage("전송중...");
         mProgressDialog.setCancelable(false);
-        if (mImageList != null && mImageList.size() > 0) {
-            mContents.addAll(mImageList);
-            mAdapter.notifyDataSetChanged();
-        }
-        if (mYouTubeItem != null)
-            mContents.add(mYouTubeItem.position, mYouTubeItem);
         registerForContextMenu(mActivityCreateArticleBinding.lvWrite);
+        mViewModel.getBitmapState().observe(this, new Observer<Bitmap>() {
+            @Override
+            public void onChanged(Bitmap bitmap) {
+                mViewModel.addItem(bitmap);
+                mAdapter.notifyDataSetChanged();
+            }
+        });
+        mViewModel.getYoutubeState().observe(this, new Observer<YouTubeItem>() {
+            @Override
+            public void onChanged(YouTubeItem youTubeItem) {
+                if (youTubeItem != null) {
+                    if (youTubeItem.position > -1) {
+                        mViewModel.addItem(youTubeItem.position, youTubeItem);
+                    } else {
+                        mViewModel.addItem(youTubeItem);
+                    }
+                    mAdapter.notifyDataSetChanged();
+                }
+            }
+        });
     }
 
     @Override
@@ -241,26 +259,25 @@ public class CreateArticleActivity extends AppCompatActivity {
                 String title = mWriteTextBinding.etTitle.getEditableText().toString();
                 String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(mWriteTextBinding.etContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(mWriteTextBinding.etContent.getText());
 
-                if (!title.isEmpty() && !(TextUtils.isEmpty(content) && mContents.size() == 0)) {
+                if (!title.isEmpty() && !(TextUtils.isEmpty(content) && mViewModel.mContents.size() == 0)) {
                     mMakeHtmlContents = new StringBuilder();
-                    mImageList = new ArrayList<>();
+                    mViewModel.mImageList = new ArrayList<>();
 
-                    mProgressDialog.setMessage("전송중...");
-                    mProgressDialog.setProgressStyle(mContents.size() > 0 ? ProgressDialog.STYLE_HORIZONTAL : ProgressDialog.STYLE_SPINNER);
+                    mProgressDialog.setProgressStyle(mViewModel.mContents.size() > 0 ? ProgressDialog.STYLE_HORIZONTAL : ProgressDialog.STYLE_SPINNER);
                     showProgressDialog();
-                    if (mContents.size() > 0) {
+                    if (mViewModel.mContents.size() > 0) {
                         int position = 0;
 
-                        if (mContents.get(position) instanceof String) {
-                            String image = (String) mContents.get(position);
+                        if (mViewModel.mContents.get(position) instanceof String) {
+                            String image = (String) mViewModel.mContents.get(position);
 
                             uploadProcess(position, image, false);
-                        } else if (mContents.get(position) instanceof Bitmap) {////////////// 리팩토링 요망
-                            Bitmap bitmap = (Bitmap) mContents.get(position);// 수정
+                        } else if (mViewModel.mContents.get(position) instanceof Bitmap) {////////////// 리팩토링 요망
+                            Bitmap bitmap = (Bitmap) mViewModel.mContents.get(position);// 수정
 
                             uploadImage(position, bitmap); // 수정
-                        } else if (mContents.get(position) instanceof YouTubeItem) {
-                            YouTubeItem youTubeItem = (YouTubeItem) mContents.get(position);
+                        } else if (mViewModel.mContents.get(position) instanceof YouTubeItem) {
+                            YouTubeItem youTubeItem = (YouTubeItem) mViewModel.mContents.get(position);
 
                             uploadProcess(position, youTubeItem.videoId, true);
                         }
@@ -300,10 +317,10 @@ public class CreateArticleActivity extends AppCompatActivity {
             case 1:
                 int position = ((AdapterView.AdapterContextMenuInfo) item.getMenuInfo()).position - 1;
 
-                if (mContents.get(position) instanceof YouTubeItem) {
-                    mYouTubeItem = null;
+                if (mViewModel.mContents.get(position) instanceof YouTubeItem) {
+                    mViewModel.setYoutube(null);
                 }
-                mContents.remove(position);
+                mViewModel.mContents.remove(position);
                 mAdapter.notifyDataSetChanged();
                 return true;
             case 2:
@@ -333,7 +350,7 @@ public class CreateArticleActivity extends AppCompatActivity {
                 }
                 return true;
             case 4:
-                if (mYouTubeItem != null)
+                if (mViewModel.getYoutubeState().getValue() != null)
                     Toast.makeText(getApplicationContext(), "동영상은 하나만 첨부 할수 있습니다.", Toast.LENGTH_LONG).show();
                 else {
                     Intent ysIntent = new Intent(getApplicationContext(), YouTubeSearchActivity.class);
@@ -389,28 +406,28 @@ public class CreateArticleActivity extends AppCompatActivity {
 
     private void uploadProcess(int position, String imageUrl, boolean isYoutube) {
         if (!isYoutube)
-            mImageList.add(imageUrl);
-        mProgressDialog.setProgress((int) ((double) (position) / (mContents.size() - 1) * 100));
+            mViewModel.mImageList.add(imageUrl);
+        mProgressDialog.setProgress((int) ((double) (position) / (mViewModel.mContents.size() - 1) * 100));
         try {
             String test = (isYoutube ? "<p><embed title=\"YouTube video player\" class=\"youtube-player\" autostart=\"true\" src=\"//www.youtube.com/embed/" + imageUrl + "?autoplay=1\"  width=\"488\" height=\"274\"></embed><p>" // 유튜브 태그
-                    : ("<p><img src=\"" + imageUrl + "\" width=\"488\"><p>")) + (position < mContents.size() - 1 ? "<br>": "");
+                    : ("<p><img src=\"" + imageUrl + "\" width=\"488\"><p>")) + (position < mViewModel.mContents.size() - 1 ? "<br>": "");
 
             mMakeHtmlContents.append(test);
-            if (position < mContents.size() - 1) {
+            if (position < mViewModel.mContents.size() - 1) {
                 position++;
                 Thread.sleep(isYoutube ? 0 : 700);
 
                 // 분기
-                if (mContents.get(position) instanceof Bitmap) {
-                    Bitmap bitmap = (Bitmap) mContents.get(position);
+                if (mViewModel.mContents.get(position) instanceof Bitmap) {
+                    Bitmap bitmap = (Bitmap) mViewModel.mContents.get(position);
 
                     uploadImage(position, bitmap);
-                } else if (mContents.get(position) instanceof String) {
-                    String imageSrc = (String) mContents.get(position);
+                } else if (mViewModel.mContents.get(position) instanceof String) {
+                    String imageSrc = (String) mViewModel.mContents.get(position);
 
                     uploadProcess(position, imageSrc, false);
-                } else if (mContents.get(position) instanceof YouTubeItem) {
-                    YouTubeItem youTubeItem = (YouTubeItem) mContents.get(position);
+                } else if (mViewModel.mContents.get(position) instanceof YouTubeItem) {
+                    YouTubeItem youTubeItem = (YouTubeItem) mViewModel.mContents.get(position);
 
                     uploadProcess(position, youTubeItem.videoId, true);
                 }
@@ -584,8 +601,8 @@ public class CreateArticleActivity extends AppCompatActivity {
         map.put("title", mWriteTextBinding.etTitle.getText().toString());
         map.put("timestamp", System.currentTimeMillis());
         map.put("content", TextUtils.isEmpty(mWriteTextBinding.etContent.getText().toString()) ? null : mWriteTextBinding.etContent.getText().toString());
-        map.put("images", mImageList);
-        map.put("youtube", mYouTubeItem);
+        map.put("images", mViewModel.mImageList);
+        map.put("youtube", mViewModel.getYoutubeState().getValue());
         databaseReference.child(mGrpKey).push().setValue(map);
     }
 
@@ -603,8 +620,8 @@ public class CreateArticleActivity extends AppCompatActivity {
                 if (articleItem != null) {
                     articleItem.setTitle(mWriteTextBinding.etTitle.getText().toString());
                     articleItem.setContent(TextUtils.isEmpty(mWriteTextBinding.etContent.getText()) ? null : mWriteTextBinding.etContent.getText().toString());
-                    articleItem.setImages(mImageList.isEmpty() ? null : mImageList);
-                    articleItem.setYoutube(mYouTubeItem);
+                    articleItem.setImages(mViewModel.mImageList.isEmpty() ? null : mViewModel.mImageList);
+                    articleItem.setYoutube(mViewModel.getYoutubeState().getValue());
                     query.getRef().setValue(articleItem);
                 }
             }

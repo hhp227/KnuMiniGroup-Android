@@ -109,20 +109,4 @@ public class ArticleItem {
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
     }
-
-    @Override
-    public String toString() {
-        return "ArticleItem{" +
-                "auth=" + auth +
-                ", timestamp=" + timestamp +
-                ", id='" + id + '\'' +
-                ", uid='" + uid + '\'' +
-                ", name='" + name + '\'' +
-                ", title='" + title + '\'' +
-                ", content='" + content + '\'' +
-                ", replyCount='" + replyCount + '\'' +
-                ", images=" + images +
-                ", youtube=" + youtube +
-                '}';
-    }
 }
