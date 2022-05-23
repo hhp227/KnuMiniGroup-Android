@@ -2,7 +2,6 @@ package com.hhp227.knu_minigroup.viewmodel;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.text.format.DateUtils;
 import android.util.Log;
 import android.webkit.CookieManager;
 
@@ -34,9 +33,6 @@ import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
 
-import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -74,8 +70,10 @@ public class Tab1ViewModel extends ViewModel {
         mGroupImage = savedStateHandle.get("grp_img");
         mKey = savedStateHandle.get("key");
 
-        mSavedStateHandle.set(STATE, new State(false, Collections.emptyList(), Collections.emptyList(), 1, false, false, null));
-        fetchNextPage();
+        if (!mSavedStateHandle.contains(STATE)) {
+            mSavedStateHandle.set(STATE, new State(false, Collections.emptyList(), Collections.emptyList(), 1, false, false, null));
+            fetchNextPage();
+        }
     }
 
     public LiveData<State> getState() {
