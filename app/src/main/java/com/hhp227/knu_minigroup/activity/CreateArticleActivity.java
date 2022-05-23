@@ -221,6 +221,7 @@ public class CreateArticleActivity extends AppCompatActivity {
         mViewModel.getYoutubeState().observe(this, new Observer<YouTubeItem>() {
             @Override
             public void onChanged(YouTubeItem youTubeItem) {
+                Log.e("TEST", "youtube: " + youTubeItem);
                 if (youTubeItem != null) {
                     if (youTubeItem.position > -1) {
                         mViewModel.addItem(youTubeItem.position, youTubeItem);
@@ -320,7 +321,7 @@ public class CreateArticleActivity extends AppCompatActivity {
                 if (mViewModel.mContents.get(position) instanceof YouTubeItem) {
                     mViewModel.setYoutube(null);
                 }
-                mViewModel.mContents.remove(position);
+                mViewModel.removeItem(position);
                 mAdapter.notifyDataSetChanged();
                 return true;
             case 2:
@@ -470,7 +471,7 @@ public class CreateArticleActivity extends AppCompatActivity {
                 } catch (JSONException e) {
                     Log.e(TAG, "에러 : " + e.getMessage());
                 } finally {
-                    getArticleId();
+                    getArticleId(title, content);
                 }
             }
         }, new Response.ErrorListener() {
@@ -551,7 +552,7 @@ public class CreateArticleActivity extends AppCompatActivity {
         AppController.getInstance().addToRequestQueue(stringRequest, tagStringReq);
     }
 
-    private void getArticleId() {
+    private void getArticleId(String title, String content) {
         String params = "?CLUB_GRP_ID=" + mGrpId + "&displayL=1";
 
         AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.GROUP_ARTICLE_LIST + params, new Response.Listener<String>() {
@@ -560,7 +561,7 @@ public class CreateArticleActivity extends AppCompatActivity {
                 Source source = new Source(response);
                 String artlNum = source.getFirstElementByClass("comment_wrap").getAttributeValue("num");
 
-                insertArticleToFirebase(artlNum);
+                insertArticleToFirebase(artlNum, title, content);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -591,16 +592,16 @@ public class CreateArticleActivity extends AppCompatActivity {
         return image;
     }
 
-    private void insertArticleToFirebase(String artlNum) {
+    private void insertArticleToFirebase(String artlNum, String title, String content) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
         Map<String, Object> map = new HashMap<>();
 
         map.put("id", artlNum);
         map.put("uid", mPreferenceManager.getUser().getUid());
         map.put("name", mPreferenceManager.getUser().getName());
-        map.put("title", mWriteTextBinding.etTitle.getText().toString());
+        map.put("title", title);
         map.put("timestamp", System.currentTimeMillis());
-        map.put("content", TextUtils.isEmpty(mWriteTextBinding.etContent.getText().toString()) ? null : mWriteTextBinding.etContent.getText().toString());
+        map.put("content", TextUtils.isEmpty(content) ? null : content);
         map.put("images", mViewModel.mImageList);
         map.put("youtube", mViewModel.getYoutubeState().getValue());
         databaseReference.child(mGrpKey).push().setValue(map);
