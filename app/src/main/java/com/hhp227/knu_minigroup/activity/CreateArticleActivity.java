@@ -77,8 +77,6 @@ public class CreateArticleActivity extends AppCompatActivity {
 
     private ProgressDialog mProgressDialog;
 
-    private StringBuilder mMakeHtmlContents;
-
     private Uri mPhotoUri;
 
     private WriteListAdapter mAdapter;
@@ -232,6 +230,22 @@ public class CreateArticleActivity extends AppCompatActivity {
                 }
             }
         });
+        mViewModel.getState().observe(this, new Observer<CreateArticleViewModel.State>() {
+            @Override
+            public void onChanged(CreateArticleViewModel.State state) {
+                if (state.isLoading) {
+                    mProgressDialog.setProgressStyle(mViewModel.mContents.size() > 0 ? ProgressDialog.STYLE_HORIZONTAL : ProgressDialog.STYLE_SPINNER);
+                    showProgressDialog();
+                }
+                Log.e("TEST", "state: " + state);
+            }
+        });
+        mViewModel.getArticleFormState().observe(this, new Observer<CreateArticleViewModel.ArticleFormState>() {
+            @Override
+            public void onChanged(CreateArticleViewModel.ArticleFormState articleFormState) {
+                Toast.makeText(getApplicationContext(), articleFormState.message, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     @Override
@@ -260,32 +274,7 @@ public class CreateArticleActivity extends AppCompatActivity {
                 String title = mWriteTextBinding.etTitle.getEditableText().toString();
                 String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(mWriteTextBinding.etContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(mWriteTextBinding.etContent.getText());
 
-                if (!title.isEmpty() && !(TextUtils.isEmpty(content) && mViewModel.mContents.size() == 0)) {
-                    mMakeHtmlContents = new StringBuilder();
-                    mViewModel.mImageList = new ArrayList<>();
-
-                    mProgressDialog.setProgressStyle(mViewModel.mContents.size() > 0 ? ProgressDialog.STYLE_HORIZONTAL : ProgressDialog.STYLE_SPINNER);
-                    showProgressDialog();
-                    if (mViewModel.mContents.size() > 0) {
-                        int position = 0;
-
-                        if (mViewModel.mContents.get(position) instanceof String) {
-                            String image = (String) mViewModel.mContents.get(position);
-
-                            uploadProcess(position, image, false);
-                        } else if (mViewModel.mContents.get(position) instanceof Bitmap) {////////////// 리팩토링 요망
-                            Bitmap bitmap = (Bitmap) mViewModel.mContents.get(position);// 수정
-
-                            uploadImage(position, bitmap); // 수정
-                        } else if (mViewModel.mContents.get(position) instanceof YouTubeItem) {
-                            YouTubeItem youTubeItem = (YouTubeItem) mViewModel.mContents.get(position);
-
-                            uploadProcess(position, youTubeItem.videoId, true);
-                        }
-                    } else
-                        actionSend(title, content);
-                } else
-                    Toast.makeText(getApplicationContext(), (title.isEmpty() ? "제목" : "내용") + "을 입력하세요.", Toast.LENGTH_LONG).show();
+                mViewModel.actionSend(title, content);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -363,7 +352,7 @@ public class CreateArticleActivity extends AppCompatActivity {
         return false;
     }
 
-    private void uploadImage(final int position, final Bitmap bitmap) {
+    /*private void uploadImage(final int position, final Bitmap bitmap) {
         MultipartRequest multipartRequest = new MultipartRequest(Request.Method.POST, EndPoint.IMAGE_UPLOAD, new Response.Listener<NetworkResponse>() {
             @Override
             public void onResponse(NetworkResponse response) {
@@ -403,9 +392,9 @@ public class CreateArticleActivity extends AppCompatActivity {
             }
         };
         Volley.newRequestQueue(this).add(multipartRequest);
-    }
+    }*/
 
-    private void uploadProcess(int position, String imageUrl, boolean isYoutube) {
+    /*private void uploadProcess(int position, String imageUrl, boolean isYoutube) {
         if (!isYoutube)
             mViewModel.mImageList.add(imageUrl);
         mProgressDialog.setProgress((int) ((double) (position) / (mViewModel.mContents.size() - 1) * 100));
@@ -436,22 +425,14 @@ public class CreateArticleActivity extends AppCompatActivity {
                 String title = mWriteTextBinding.etTitle.getEditableText().toString();
                 String content = (!TextUtils.isEmpty(mWriteTextBinding.etContent.getText().toString()) ? Html.toHtml(mWriteTextBinding.etContent.getText()) + "<p><br data-mce-bogus=\"1\"></p>" : "") + mMakeHtmlContents.toString();
 
-                actionSend(title, content);
+                typeCheck(title, content);
             }
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(getApplicationContext(), "이미지 업로드 실패", Toast.LENGTH_LONG).show();
             hideProgressDialog();
         }
-    }
-
-    private void actionSend(final String title, final String content) {
-        if (getIntent().getIntExtra("type", -1) == 0) {
-            actionCreate(title, content);
-        } else {
-            actionUpdate(title, content);
-        }
-    }
+    }*/
 
     private void actionCreate(final String title, final String content) {
         String tagStringReq = "req_send";
