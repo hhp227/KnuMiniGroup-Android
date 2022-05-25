@@ -69,11 +69,9 @@ public class CreateArticleActivity extends AppCompatActivity {
 
     private int mContextMenuRequest;
 
-    private String mGrpId, mGrpNm, mGrpImg, mCurrentPhotoPath, mCookie;
+    private String mGrpNm, mGrpImg, mCurrentPhotoPath;
 
-    private String mArtlNum, mTitle, mContent, mGrpKey, mArtlKey;
-
-    private PreferenceManager mPreferenceManager;
+    private String mTitle, mContent;
 
     private ProgressDialog mProgressDialog;
 
@@ -96,17 +94,11 @@ public class CreateArticleActivity extends AppCompatActivity {
         mWriteTextBinding = WriteTextBinding.inflate(getLayoutInflater());
         mViewModel = new ViewModelProvider(this).get(CreateArticleViewModel.class);
         mAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, mViewModel.mContents);
-        mPreferenceManager = AppController.getInstance().getPreferenceManager();
-        mCookie = AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN);
         mProgressDialog = new ProgressDialog(this);
-        mGrpId = getIntent().getStringExtra("grp_id");
         mGrpNm = getIntent().getStringExtra("grp_nm");
         mGrpImg = getIntent().getStringExtra("grp_img");
-        mArtlNum = getIntent().getStringExtra("artl_num");
         mTitle = getIntent().getStringExtra("sbjt");
         mContent = getIntent().getStringExtra("txt");
-        mGrpKey = getIntent().getStringExtra("grp_key");
-        mArtlKey = getIntent().getStringExtra("artl_key");
         mCameraPickActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
             public void onActivityResult(ActivityResult result) {
@@ -236,6 +228,14 @@ public class CreateArticleActivity extends AppCompatActivity {
                 if (state.isLoading) {
                     mProgressDialog.setProgressStyle(mViewModel.mContents.size() > 0 ? ProgressDialog.STYLE_HORIZONTAL : ProgressDialog.STYLE_SPINNER);
                     showProgressDialog();
+                } else if (state.articleId != null && !state.articleId.isEmpty()) {
+                    setResult(RESULT_OK);
+                    finish();
+                    Toast.makeText(getApplicationContext(), "전송완료", Toast.LENGTH_LONG).show();
+                    hideProgressDialog();
+                } else if (state.message != null && !state.message.isEmpty()) {
+                    Toast.makeText(getApplicationContext(), state.message, Toast.LENGTH_LONG).show();
+                    hideProgressDialog();
                 }
                 Log.e("TEST", "state: " + state);
             }
@@ -260,7 +260,7 @@ public class CreateArticleActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(com.hhp227.knu_minigroup.R.menu.write, menu);
+        getMenuInflater().inflate(R.menu.write, menu);
         return true;
     }
 
@@ -434,132 +434,6 @@ public class CreateArticleActivity extends AppCompatActivity {
         }
     }*/
 
-    private void actionCreate(final String title, final String content) {
-        String tagStringReq = "req_send";
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.WRITE_ARTICLE, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                hideProgressDialog();
-                try {
-                    JSONObject jsonObject = new JSONObject(response);
-                    boolean error = jsonObject.getBoolean("isError");
-
-                    if (!error) {
-                        setResult(RESULT_OK);
-                        finish();
-                        Toast.makeText(getApplicationContext(), "전송완료", Toast.LENGTH_LONG).show();
-                    }
-                } catch (JSONException e) {
-                    Log.e(TAG, "에러 : " + e.getMessage());
-                } finally {
-                    getArticleId(title, content);
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(error.getMessage());
-                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-                hideProgressDialog();
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", mCookie);
-                return headers;
-            }
-
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-
-                params.put("SBJT", title);
-                params.put("CLUB_GRP_ID", mGrpId);
-                params.put("TXT", content);
-                return params;
-            }
-        };
-        AppController.getInstance().addToRequestQueue(stringRequest, tagStringReq);
-    }
-
-    private void actionUpdate(final String title, final String content) {
-        String tagStringReq = "req_send";
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.MODIFY_ARTICLE, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                hideProgressDialog();
-                try {
-                    Intent intent = new Intent(CreateArticleActivity.this, ArticleActivity.class);
-
-                    Toast.makeText(getApplicationContext(), "수정완료", Toast.LENGTH_LONG).show();
-                    setResult(RESULT_OK, intent);
-                    finish();
-                } catch (Exception e) {
-                    Log.e(TAG, e.getMessage());
-                } finally {
-                    initFirebaseData();
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(error.getMessage());
-                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-                hideProgressDialog();
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", mCookie);
-                return headers;
-            }
-
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-
-                params.put("CLUB_GRP_ID", mGrpId);
-                params.put("ARTL_NUM", mArtlNum);
-                params.put("SBJT", title);
-                params.put("TXT", content);
-                return params;
-            }
-        };
-
-        AppController.getInstance().addToRequestQueue(stringRequest, tagStringReq);
-    }
-
-    private void getArticleId(String title, String content) {
-        String params = "?CLUB_GRP_ID=" + mGrpId + "&displayL=1";
-
-        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.GROUP_ARTICLE_LIST + params, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Source source = new Source(response);
-                String artlNum = source.getFirstElementByClass("comment_wrap").getAttributeValue("num");
-
-                insertArticleToFirebase(artlNum, title, content);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(error.getMessage());
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", mCookie);
-                return headers;
-            }
-        });
-    }
-
     private File createImageFile() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
@@ -571,48 +445,6 @@ public class CreateArticleActivity extends AppCompatActivity {
         );
         mCurrentPhotoPath = image.getAbsolutePath();
         return image;
-    }
-
-    private void insertArticleToFirebase(String artlNum, String title, String content) {
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
-        Map<String, Object> map = new HashMap<>();
-
-        map.put("id", artlNum);
-        map.put("uid", mPreferenceManager.getUser().getUid());
-        map.put("name", mPreferenceManager.getUser().getName());
-        map.put("title", title);
-        map.put("timestamp", System.currentTimeMillis());
-        map.put("content", TextUtils.isEmpty(content) ? null : content);
-        map.put("images", mViewModel.mImageList);
-        map.put("youtube", mViewModel.getYoutubeState().getValue());
-        databaseReference.child(mGrpKey).push().setValue(map);
-    }
-
-    private void initFirebaseData() {
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
-
-        updateArticleDataToFirebase(databaseReference.child(mGrpKey).child(mArtlKey));
-    }
-
-    private void updateArticleDataToFirebase(final Query query) {
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                ArticleItem articleItem = dataSnapshot.getValue(ArticleItem.class);
-                if (articleItem != null) {
-                    articleItem.setTitle(mWriteTextBinding.etTitle.getText().toString());
-                    articleItem.setContent(TextUtils.isEmpty(mWriteTextBinding.etContent.getText()) ? null : mWriteTextBinding.etContent.getText().toString());
-                    articleItem.setImages(mViewModel.mImageList.isEmpty() ? null : mViewModel.mImageList);
-                    articleItem.setYoutube(mViewModel.getYoutubeState().getValue());
-                    query.getRef().setValue(articleItem);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.e("파이어베이스", databaseError.getMessage());
-            }
-        });
     }
 
     private void showProgressDialog() {
