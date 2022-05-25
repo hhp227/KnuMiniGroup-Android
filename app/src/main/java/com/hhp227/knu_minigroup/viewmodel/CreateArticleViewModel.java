@@ -1,20 +1,20 @@
 package com.hhp227.knu_minigroup.viewmodel;
 
-import android.app.ProgressDialog;
 import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.Html;
+import android.text.Spannable;
 import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.CookieManager;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModel;
 
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -32,12 +32,14 @@ import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
+import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 
 import net.htmlparser.jericho.Source;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -110,28 +112,30 @@ public class CreateArticleViewModel extends ViewModel {
         mContents.remove(position);
     }
 
-    public void actionSend(String title, String content) {
-        Log.e("TEST", "actionSend: " + title + ", " + content + ", " + mContents);
+    public void actionSend(Spannable spannableTitle, Spannable spannableContent) {
+        String title = spannableTitle.toString();
+        String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(spannableContent, Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(spannableContent);
+
         if (!title.isEmpty() && !(TextUtils.isEmpty(content) && mContents.size() == 0)) {
             mMakeHtmlContents = new StringBuilder();
             mImageList = new ArrayList<>();
 
-            mSavedStateHandle.set(STATE, new State(true, null, Collections.emptyList(), null));
+            mSavedStateHandle.set(STATE, new State(0, null, Collections.emptyList(), null));
             if (mContents.size() > 0) {
                 int position = 0;
 
                 if (mContents.get(position) instanceof String) {
                     String image = (String) mContents.get(position);
 
-                    uploadProcess(position, image, false);
+                    uploadProcess(spannableTitle, spannableContent, position, image, false);
                 } else if (mContents.get(position) instanceof Bitmap) {////////////// 리팩토링 요망
                     Bitmap bitmap = (Bitmap) mContents.get(position);// 수정
 
-                    uploadImage(position, bitmap); // 수정
+                    uploadImage(spannableTitle, spannableContent, position, bitmap); // 수정
                 } else if (mContents.get(position) instanceof YouTubeItem) {
                     YouTubeItem youTubeItem = (YouTubeItem) mContents.get(position);
 
-                    uploadProcess(position, youTubeItem.videoId, true);
+                    uploadProcess(spannableTitle, spannableContent, position, youTubeItem.videoId, true);
                 }
             } else {
                 typeCheck(title, content);
@@ -150,7 +154,6 @@ public class CreateArticleViewModel extends ViewModel {
     }
 
     private void actionCreate(final String title, final String content) {
-        Log.e("TEST", "actionCreate: " + title + ", " + content + ", escapeHtml: " + Html.fromHtml(content).toString());
         String tagStringReq = "req_send";
         StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.WRITE_ARTICLE, new Response.Listener<String>() {
             @Override
@@ -164,14 +167,14 @@ public class CreateArticleViewModel extends ViewModel {
                     }
                 } catch (JSONException e) {
                     Log.e(TAG, "에러 : " + e.getMessage());
-                    mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), e.getMessage()));
+                    mSavedStateHandle.set(STATE, new State(-1, null, Collections.emptyList(), e.getMessage()));
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 VolleyLog.e(error.getMessage());
-                mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), error.getMessage()));
+                mSavedStateHandle.set(STATE, new State(-1, null, Collections.emptyList(), error.getMessage()));
             }
         }) {
             @Override
@@ -197,29 +200,22 @@ public class CreateArticleViewModel extends ViewModel {
     }
 
     private void actionUpdate(final String title, final String content) {
-        Log.e("TEST", "actionUpdate: " + title + ", " + content);
         String tagStringReq = "req_send";
         StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.MODIFY_ARTICLE, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Log.e("TEST", "onResponse: " + response);
                 try {
-                    /*Intent intent = new Intent(CreateArticleActivity.this, ArticleActivity.class);
-
-                    Toast.makeText(getApplicationContext(), "수정완료", Toast.LENGTH_LONG).show();
-                    setResult(RESULT_OK, intent);
-                    finish();*/
+                    initFirebaseData(title, Html.fromHtml(content).toString().trim());
                 } catch (Exception e) {
                     Log.e(TAG, e.getMessage());
-                } finally {
-                    initFirebaseData(title, content);
+                    mSavedStateHandle.set(STATE, new State(-1, null, Collections.emptyList(), e.getMessage()));
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 VolleyLog.e(error.getMessage());
-                mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), error.getMessage()));
+                mSavedStateHandle.set(STATE, new State(-1, null, Collections.emptyList(), error.getMessage()));
             }
         }) {
             @Override
@@ -260,7 +256,7 @@ public class CreateArticleViewModel extends ViewModel {
             @Override
             public void onErrorResponse(VolleyError error) {
                 VolleyLog.e(error.getMessage());
-                mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), error.getMessage()));
+                mSavedStateHandle.set(STATE, new State(-1, null, Collections.emptyList(), error.getMessage()));
             }
         }) {
             @Override
@@ -273,12 +269,85 @@ public class CreateArticleViewModel extends ViewModel {
         });
     }
 
-    private void uploadImage(final int position, final Bitmap bitmap) {
+    private void uploadImage(final Spannable title, final Spannable content, final int position, final Bitmap bitmap) {
+        MultipartRequest multipartRequest = new MultipartRequest(Request.Method.POST, EndPoint.IMAGE_UPLOAD, new Response.Listener<NetworkResponse>() {
+            @Override
+            public void onResponse(NetworkResponse response) {
+                String imageSrc = new String(response.data);
+                imageSrc = EndPoint.BASE_URL + imageSrc.substring(imageSrc.lastIndexOf("/ilosfiles2/"), imageSrc.lastIndexOf("\""));
 
+                uploadProcess(title, content, position, imageSrc, false);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e(error.getMessage());
+                mSavedStateHandle.set(STATE, new State(-1, null, Collections.emptyList(), error.getMessage()));
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+
+                headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
+                return headers;
+            }
+
+            @Override
+            protected Map<String, DataPart> getByteData() {
+                Map<String, DataPart> params = new HashMap<>();
+
+                params.put("file", new DataPart(System.currentTimeMillis() + position + ".jpg", getFileDataFromDrawable(bitmap)));
+                return params;
+            }
+
+            private byte[] getFileDataFromDrawable(Bitmap bitmap) {
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+                bitmap.compress(Bitmap.CompressFormat.PNG, 80, byteArrayOutputStream);
+                return byteArrayOutputStream.toByteArray();
+            }
+        };
+        AppController.getInstance().addToRequestQueue(multipartRequest);
     }
 
-    private void uploadProcess(int position, String imageUrl, boolean isYoutube) {
+    private void uploadProcess(Spannable spannableTitle, Spannable spannableContent, int position, String imageUrl, boolean isYoutube) {
+        if (!isYoutube)
+            mImageList.add(imageUrl);
+        mSavedStateHandle.set(STATE, new State((int) ((double) (position) / (mContents.size() - 1) * 100), null, Collections.emptyList(), null));
+        try {
+            String test = (isYoutube ? "<p><embed title=\"YouTube video player\" class=\"youtube-player\" autostart=\"true\" src=\"//www.youtube.com/embed/" + imageUrl + "?autoplay=1\"  width=\"488\" height=\"274\"></embed><p>" // 유튜브 태그
+                    : ("<p><img src=\"" + imageUrl + "\" width=\"488\"><p>")) + (position < mContents.size() - 1 ? "<br>": "");
 
+            mMakeHtmlContents.append(test);
+            if (position < mContents.size() - 1) {
+                position++;
+                Thread.sleep(isYoutube ? 0 : 700);
+
+                // 분기
+                if (mContents.get(position) instanceof Bitmap) {
+                    Bitmap bitmap = (Bitmap) mContents.get(position);
+
+                    uploadImage(spannableTitle, spannableContent, position, bitmap);
+                } else if (mContents.get(position) instanceof String) {
+                    String imageSrc = (String) mContents.get(position);
+
+                    uploadProcess(spannableTitle, spannableContent, position, imageSrc, false);
+                } else if (mContents.get(position) instanceof YouTubeItem) {
+                    YouTubeItem youTubeItem = (YouTubeItem) mContents.get(position);
+
+                    uploadProcess(spannableTitle, spannableContent, position, youTubeItem.videoId, true);
+                }
+            } else {
+                String title = spannableTitle.toString();
+                String content = (!TextUtils.isEmpty(spannableContent.toString()) ? Html.toHtml(spannableContent) + "<p><br data-mce-bogus=\"1\"></p>" : "") + mMakeHtmlContents.toString();
+
+                typeCheck(title, content);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            mSavedStateHandle.set(STATE, new State(-1, null, Collections.emptyList(), "이미지 업로드 실패: " + e.getMessage()));
+        }
     }
 
     private void insertArticleToFirebase(String artlNum, String title, String content) {
@@ -295,7 +364,7 @@ public class CreateArticleViewModel extends ViewModel {
         map.put("images", mImageList);
         map.put("youtube", getYoutubeState().getValue());
         databaseReference.child(mGrpKey).push().setValue(map);
-        mSavedStateHandle.set(STATE, new State(false, artlNum, Collections.emptyList(), null));
+        mSavedStateHandle.set(STATE, new State(-1, artlNum, Collections.emptyList(), "전송완료"));
     }
 
     private void initFirebaseData(String title, String content) {
@@ -316,19 +385,22 @@ public class CreateArticleViewModel extends ViewModel {
                     articleItem.setImages(mImageList.isEmpty() ? null : mImageList);
                     articleItem.setYoutube(getYoutubeState().getValue());
                     query.getRef().setValue(articleItem);
+                    mSavedStateHandle.set(STATE, new State(-1, articleItem.getId(), Collections.emptyList(), "수정완료"));
+                } else {
+                    mSavedStateHandle.set(STATE, new State(-1, "dummy", Collections.emptyList(), "수정완료"));
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e(TAG, databaseError.getMessage());
-                mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), databaseError.getMessage()));
+                mSavedStateHandle.set(STATE, new State(-1, null, Collections.emptyList(), databaseError.getMessage()));
             }
         });
     }
 
     public static final class State implements Parcelable {
-        public boolean isLoading;
+        public int progress;
 
         public String articleId;
 
@@ -336,15 +408,15 @@ public class CreateArticleViewModel extends ViewModel {
 
         public String message;
 
-        public State(boolean isLoading, String articleId, List<Object> contents, String message) {
-            this.isLoading = isLoading;
+        public State(int progress, String articleId, List<Object> contents, String message) {
+            this.progress = progress;
             this.articleId = articleId;
             this.contents = contents;
             this.message = message;
         }
 
         protected State(Parcel in) {
-            isLoading = in.readByte() != 0;
+            progress = in.readInt();
             articleId = in.readString();
             message = in.readString();
         }
@@ -368,7 +440,7 @@ public class CreateArticleViewModel extends ViewModel {
 
         @Override
         public void writeToParcel(Parcel parcel, int i) {
-            parcel.writeByte((byte) (isLoading ? 1 : 0));
+            parcel.writeInt(progress);
             parcel.writeString(articleId);
             parcel.writeString(message);
         }

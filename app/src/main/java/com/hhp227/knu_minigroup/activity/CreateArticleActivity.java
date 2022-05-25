@@ -12,6 +12,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.provider.MediaStore;
 import android.text.Html;
+import android.text.Spannable;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -65,13 +66,9 @@ import java.util.concurrent.Executors;
 
 // TODO
 public class CreateArticleActivity extends AppCompatActivity {
-    private static final String TAG = CreateArticleActivity.class.getSimpleName();
-
     private int mContextMenuRequest;
 
-    private String mGrpNm, mGrpImg, mCurrentPhotoPath;
-
-    private String mTitle, mContent;
+    private String mCurrentPhotoPath;
 
     private ProgressDialog mProgressDialog;
 
@@ -95,10 +92,6 @@ public class CreateArticleActivity extends AppCompatActivity {
         mViewModel = new ViewModelProvider(this).get(CreateArticleViewModel.class);
         mAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, mViewModel.mContents);
         mProgressDialog = new ProgressDialog(this);
-        mGrpNm = getIntent().getStringExtra("grp_nm");
-        mGrpImg = getIntent().getStringExtra("grp_img");
-        mTitle = getIntent().getStringExtra("sbjt");
-        mContent = getIntent().getStringExtra("txt");
         mCameraPickActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
             public void onActivityResult(ActivityResult result) {
@@ -186,8 +179,8 @@ public class CreateArticleActivity extends AppCompatActivity {
                 unregisterForContextMenu(v);
             }
         });
-        mWriteTextBinding.etTitle.setText(mTitle);
-        mWriteTextBinding.etContent.setText(mContent);
+        mWriteTextBinding.etTitle.setText(getIntent().getStringExtra("sbjt"));
+        mWriteTextBinding.etContent.setText(getIntent().getStringExtra("txt"));
         mActivityCreateArticleBinding.lvWrite.addHeaderView(mWriteTextBinding.getRoot());
         mActivityCreateArticleBinding.lvWrite.setAdapter(mAdapter);
         mActivityCreateArticleBinding.lvWrite.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -211,7 +204,6 @@ public class CreateArticleActivity extends AppCompatActivity {
         mViewModel.getYoutubeState().observe(this, new Observer<YouTubeItem>() {
             @Override
             public void onChanged(YouTubeItem youTubeItem) {
-                Log.e("TEST", "youtube: " + youTubeItem);
                 if (youTubeItem != null) {
                     if (youTubeItem.position > -1) {
                         mViewModel.addItem(youTubeItem.position, youTubeItem);
@@ -225,13 +217,14 @@ public class CreateArticleActivity extends AppCompatActivity {
         mViewModel.getState().observe(this, new Observer<CreateArticleViewModel.State>() {
             @Override
             public void onChanged(CreateArticleViewModel.State state) {
-                if (state.isLoading) {
+                if (state.progress >= 0) {
                     mProgressDialog.setProgressStyle(mViewModel.mContents.size() > 0 ? ProgressDialog.STYLE_HORIZONTAL : ProgressDialog.STYLE_SPINNER);
+                    mProgressDialog.setProgress(state.progress);
                     showProgressDialog();
                 } else if (state.articleId != null && !state.articleId.isEmpty()) {
                     setResult(RESULT_OK);
                     finish();
-                    Toast.makeText(getApplicationContext(), "전송완료", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), state.message, Toast.LENGTH_LONG).show();
                     hideProgressDialog();
                 } else if (state.message != null && !state.message.isEmpty()) {
                     Toast.makeText(getApplicationContext(), state.message, Toast.LENGTH_LONG).show();
@@ -271,8 +264,8 @@ public class CreateArticleActivity extends AppCompatActivity {
                 finish();
                 return true;
             case R.id.action_send:
-                String title = mWriteTextBinding.etTitle.getEditableText().toString();
-                String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(mWriteTextBinding.etContent.getText(), Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(mWriteTextBinding.etContent.getText());
+                Spannable title = mWriteTextBinding.etTitle.getEditableText();
+                Spannable content = mWriteTextBinding.etContent.getText();
 
                 mViewModel.actionSend(title, content);
                 return true;
@@ -351,88 +344,6 @@ public class CreateArticleActivity extends AppCompatActivity {
         }
         return false;
     }
-
-    /*private void uploadImage(final int position, final Bitmap bitmap) {
-        MultipartRequest multipartRequest = new MultipartRequest(Request.Method.POST, EndPoint.IMAGE_UPLOAD, new Response.Listener<NetworkResponse>() {
-            @Override
-            public void onResponse(NetworkResponse response) {
-                String imageSrc = new String(response.data);
-                imageSrc = EndPoint.BASE_URL + imageSrc.substring(imageSrc.lastIndexOf("/ilosfiles2/"), imageSrc.lastIndexOf("\""));
-
-                uploadProcess(position, imageSrc, false);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(error.getMessage());
-                hideProgressDialog();
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", mCookie);
-                return headers;
-            }
-
-            @Override
-            protected Map<String, DataPart> getByteData() {
-                Map<String, DataPart> params = new HashMap<>();
-
-                params.put("file", new DataPart(System.currentTimeMillis() + position + ".jpg", getFileDataFromDrawable(bitmap)));
-                return params;
-            }
-
-            private byte[] getFileDataFromDrawable(Bitmap bitmap) {
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-                bitmap.compress(Bitmap.CompressFormat.PNG, 80, byteArrayOutputStream);
-                return byteArrayOutputStream.toByteArray();
-            }
-        };
-        Volley.newRequestQueue(this).add(multipartRequest);
-    }*/
-
-    /*private void uploadProcess(int position, String imageUrl, boolean isYoutube) {
-        if (!isYoutube)
-            mViewModel.mImageList.add(imageUrl);
-        mProgressDialog.setProgress((int) ((double) (position) / (mViewModel.mContents.size() - 1) * 100));
-        try {
-            String test = (isYoutube ? "<p><embed title=\"YouTube video player\" class=\"youtube-player\" autostart=\"true\" src=\"//www.youtube.com/embed/" + imageUrl + "?autoplay=1\"  width=\"488\" height=\"274\"></embed><p>" // 유튜브 태그
-                    : ("<p><img src=\"" + imageUrl + "\" width=\"488\"><p>")) + (position < mViewModel.mContents.size() - 1 ? "<br>": "");
-
-            mMakeHtmlContents.append(test);
-            if (position < mViewModel.mContents.size() - 1) {
-                position++;
-                Thread.sleep(isYoutube ? 0 : 700);
-
-                // 분기
-                if (mViewModel.mContents.get(position) instanceof Bitmap) {
-                    Bitmap bitmap = (Bitmap) mViewModel.mContents.get(position);
-
-                    uploadImage(position, bitmap);
-                } else if (mViewModel.mContents.get(position) instanceof String) {
-                    String imageSrc = (String) mViewModel.mContents.get(position);
-
-                    uploadProcess(position, imageSrc, false);
-                } else if (mViewModel.mContents.get(position) instanceof YouTubeItem) {
-                    YouTubeItem youTubeItem = (YouTubeItem) mViewModel.mContents.get(position);
-
-                    uploadProcess(position, youTubeItem.videoId, true);
-                }
-            } else {
-                String title = mWriteTextBinding.etTitle.getEditableText().toString();
-                String content = (!TextUtils.isEmpty(mWriteTextBinding.etContent.getText().toString()) ? Html.toHtml(mWriteTextBinding.etContent.getText()) + "<p><br data-mce-bogus=\"1\"></p>" : "") + mMakeHtmlContents.toString();
-
-                typeCheck(title, content);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(getApplicationContext(), "이미지 업로드 실패", Toast.LENGTH_LONG).show();
-            hideProgressDialog();
-        }
-    }*/
 
     private File createImageFile() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
