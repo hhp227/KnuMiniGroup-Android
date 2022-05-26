@@ -9,65 +9,39 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.provider.MediaStore;
-import android.text.Html;
 import android.text.Spannable;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.*;
+import android.widget.AdapterView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 import androidx.exifinterface.media.ExifInterface;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.android.volley.*;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.WriteListAdapter;
-import com.hhp227.knu_minigroup.app.AppController;
-import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.ActivityCreateArticleBinding;
 import com.hhp227.knu_minigroup.databinding.WriteTextBinding;
-import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
-import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import com.hhp227.knu_minigroup.viewmodel.CreateArticleViewModel;
-import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
-import net.htmlparser.jericho.Source;
-import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.concurrent.Executors;
+import java.util.Date;
 
-// TODO
 public class CreateArticleActivity extends AppCompatActivity {
-    private int mContextMenuRequest;
-
     private String mCurrentPhotoPath;
 
     private ProgressDialog mProgressDialog;
@@ -162,8 +136,6 @@ public class CreateArticleActivity extends AppCompatActivity {
         mActivityCreateArticleBinding.llImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mContextMenuRequest = 2;
-
                 registerForContextMenu(v);
                 openContextMenu(v);
                 unregisterForContextMenu(v);
@@ -172,8 +144,6 @@ public class CreateArticleActivity extends AppCompatActivity {
         mActivityCreateArticleBinding.llVideo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mContextMenuRequest = 3;
-
                 registerForContextMenu(v);
                 openContextMenu(v);
                 unregisterForContextMenu(v);
@@ -186,8 +156,6 @@ public class CreateArticleActivity extends AppCompatActivity {
         mActivityCreateArticleBinding.lvWrite.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                mContextMenuRequest = 1;
-
                 view.showContextMenu();
             }
         });
@@ -230,7 +198,6 @@ public class CreateArticleActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), state.message, Toast.LENGTH_LONG).show();
                     hideProgressDialog();
                 }
-                Log.e("TEST", "state: " + state);
             }
         });
         mViewModel.getArticleFormState().observe(this, new Observer<CreateArticleViewModel.ArticleFormState>() {
@@ -276,19 +243,19 @@ public class CreateArticleActivity extends AppCompatActivity {
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
-        switch (mContextMenuRequest) {
-            case 1:
-                menu.setHeaderTitle("작업 선택");
-                menu.add(Menu.NONE, 1, Menu.NONE, "삭제");
-                break;
-            case 2:
+        switch (v.getId()) {
+            case R.id.ll_image:
                 menu.setHeaderTitle("이미지 선택");
                 menu.add(Menu.NONE, 2, Menu.NONE, "갤러리");
                 menu.add(Menu.NONE, 3, Menu.NONE, "카메라");
                 break;
-            case 3:
+            case R.id.ll_video:
                 menu.setHeaderTitle("동영상 선택");
                 menu.add(Menu.NONE, 4, Menu.NONE, "유튜브");
+                break;
+            default:
+                menu.setHeaderTitle("작업 선택");
+                menu.add(Menu.NONE, 1, Menu.NONE, "삭제");
                 break;
         }
     }

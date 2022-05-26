@@ -51,7 +51,7 @@ public class CreateArticleViewModel extends ViewModel {
 
     private static final String TAG = CreateArticleViewModel.class.getSimpleName(), STATE = "state", BITMAP = "bitmap";
 
-    public List<String> mImageList; // TEMP
+    private List<String> mImageList; // TEMP
 
     private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
 
@@ -124,19 +124,7 @@ public class CreateArticleViewModel extends ViewModel {
             if (mContents.size() > 0) {
                 int position = 0;
 
-                if (mContents.get(position) instanceof String) {
-                    String image = (String) mContents.get(position);
-
-                    uploadProcess(spannableTitle, spannableContent, position, image, false);
-                } else if (mContents.get(position) instanceof Bitmap) {////////////// 리팩토링 요망
-                    Bitmap bitmap = (Bitmap) mContents.get(position);// 수정
-
-                    uploadImage(spannableTitle, spannableContent, position, bitmap); // 수정
-                } else if (mContents.get(position) instanceof YouTubeItem) {
-                    YouTubeItem youTubeItem = (YouTubeItem) mContents.get(position);
-
-                    uploadProcess(spannableTitle, spannableContent, position, youTubeItem.videoId, true);
-                }
+                itemTypeCheck(position, spannableTitle, spannableContent);
             } else {
                 typeCheck(title, content);
             }
@@ -308,6 +296,7 @@ public class CreateArticleViewModel extends ViewModel {
                 return byteArrayOutputStream.toByteArray();
             }
         };
+
         AppController.getInstance().addToRequestQueue(multipartRequest);
     }
 
@@ -325,19 +314,7 @@ public class CreateArticleViewModel extends ViewModel {
                 Thread.sleep(isYoutube ? 0 : 700);
 
                 // 분기
-                if (mContents.get(position) instanceof Bitmap) {
-                    Bitmap bitmap = (Bitmap) mContents.get(position);
-
-                    uploadImage(spannableTitle, spannableContent, position, bitmap);
-                } else if (mContents.get(position) instanceof String) {
-                    String imageSrc = (String) mContents.get(position);
-
-                    uploadProcess(spannableTitle, spannableContent, position, imageSrc, false);
-                } else if (mContents.get(position) instanceof YouTubeItem) {
-                    YouTubeItem youTubeItem = (YouTubeItem) mContents.get(position);
-
-                    uploadProcess(spannableTitle, spannableContent, position, youTubeItem.videoId, true);
-                }
+                itemTypeCheck(position, spannableTitle, spannableContent);
             } else {
                 String title = spannableTitle.toString();
                 String content = (!TextUtils.isEmpty(spannableContent.toString()) ? Html.toHtml(spannableContent) + "<p><br data-mce-bogus=\"1\"></p>" : "") + mMakeHtmlContents.toString();
@@ -347,6 +324,22 @@ public class CreateArticleViewModel extends ViewModel {
         } catch (Exception e) {
             e.printStackTrace();
             mSavedStateHandle.set(STATE, new State(-1, null, Collections.emptyList(), "이미지 업로드 실패: " + e.getMessage()));
+        }
+    }
+
+    private void itemTypeCheck(int position, Spannable spannableTitle, Spannable spannableContent) {
+        if (mContents.get(position) instanceof Bitmap) {
+            Bitmap bitmap = (Bitmap) mContents.get(position);
+
+            uploadImage(spannableTitle, spannableContent, position, bitmap);
+        } else if (mContents.get(position) instanceof String) {
+            String imageSrc = (String) mContents.get(position);
+
+            uploadProcess(spannableTitle, spannableContent, position, imageSrc, false);
+        } else if (mContents.get(position) instanceof YouTubeItem) {
+            YouTubeItem youTubeItem = (YouTubeItem) mContents.get(position);
+
+            uploadProcess(spannableTitle, spannableContent, position, youTubeItem.videoId, true);
         }
     }
 
@@ -404,7 +397,7 @@ public class CreateArticleViewModel extends ViewModel {
 
         public String articleId;
 
-        public List<Object> contents;
+        public List<Object> contents; // 현재는 사용안함
 
         public String message;
 
