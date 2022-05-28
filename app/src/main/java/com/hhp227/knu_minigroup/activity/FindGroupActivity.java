@@ -18,6 +18,7 @@ import com.hhp227.knu_minigroup.adapter.GroupListAdapter;
 import com.hhp227.knu_minigroup.databinding.ActivityListBinding;
 import com.hhp227.knu_minigroup.fragment.GroupInfoFragment;
 import com.hhp227.knu_minigroup.viewmodel.FindGroupViewModel;
+import com.hhp227.knu_minigroup.viewmodel.GroupInfoViewModel;
 
 public class FindGroupActivity extends AppCompatActivity {
     private GroupListAdapter mAdapter;
@@ -52,7 +53,7 @@ public class FindGroupActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
         mAdapter.setFooterProgressBarVisibility(View.INVISIBLE);
-        mAdapter.setButtonType(GroupInfoFragment.TYPE_REQUEST);
+        mAdapter.setButtonType(GroupInfoViewModel.TYPE_REQUEST);
         mBinding.recyclerView.setHasFixedSize(true);
         mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         mBinding.recyclerView.setAdapter(mAdapter);

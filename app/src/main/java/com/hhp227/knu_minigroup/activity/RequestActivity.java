@@ -17,6 +17,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.hhp227.knu_minigroup.adapter.GroupListAdapter;
 import com.hhp227.knu_minigroup.databinding.ActivityListBinding;
 import com.hhp227.knu_minigroup.fragment.GroupInfoFragment;
+import com.hhp227.knu_minigroup.viewmodel.GroupInfoViewModel;
 import com.hhp227.knu_minigroup.viewmodel.RequestViewModel;
 
 public class RequestActivity extends AppCompatActivity {
@@ -39,7 +40,7 @@ public class RequestActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
         mAdapter.setFooterProgressBarVisibility(View.INVISIBLE);
-        mAdapter.setButtonType(GroupInfoFragment.TYPE_CANCEL);
+        mAdapter.setButtonType(GroupInfoViewModel.TYPE_CANCEL);
         mBinding.recyclerView.setHasFixedSize(true);
         mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         mBinding.recyclerView.setAdapter(mAdapter);

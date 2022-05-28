@@ -1,56 +1,34 @@
 package com.hhp227.knu_minigroup.fragment;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
-import com.android.volley.toolbox.StringRequest;
+
 import com.hhp227.knu_minigroup.adapter.MemberGridAdapter;
-import com.hhp227.knu_minigroup.app.AppController;
-import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.FragmentTab3Binding;
 import com.hhp227.knu_minigroup.dto.MemberItem;
-import net.htmlparser.jericho.Element;
-import net.htmlparser.jericho.HTMLElementName;
-import net.htmlparser.jericho.Source;
+import com.hhp227.knu_minigroup.viewmodel.Tab3ViewModel;
 
-import java.util.ArrayList;
-import java.util.List;
-
-// TODO
 public class Tab3Fragment extends Fragment {
-    private static final int LIMIT = 40;
-    private static final String TAG = "맴버목록";
-
-    private boolean mHasRequestedMore;
-
-    private int mOffSet;
-
-    private String mGroupId;
-
-    private List<MemberItem> mMemberItems;
-
     private MemberGridAdapter mAdapter;
 
     private FragmentTab3Binding mBinding;
 
-    public Tab3Fragment() {
-    }
+    private Tab3ViewModel mViewModel;
 
     public static Tab3Fragment newInstance(String grpId) {
         Tab3Fragment fragment = new Tab3Fragment();
@@ -62,14 +40,6 @@ public class Tab3Fragment extends Fragment {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mGroupId = getArguments().getString("grp_id");
-        }
-    }
-
-    @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mBinding = FragmentTab3Binding.inflate(inflater, container, false);
         return mBinding.getRoot();
@@ -78,16 +48,15 @@ public class Tab3Fragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        mViewModel = new ViewModelProvider(this).get(Tab3ViewModel.class);
         GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 4);
-        mMemberItems = new ArrayList<>();
-        mAdapter = new MemberGridAdapter(mMemberItems);
-        mOffSet = 1;
+        mAdapter = new MemberGridAdapter(mViewModel.mMemberItems);
 
         mAdapter.setHasStableIds(true);
         mAdapter.setOnItemClickListener(new MemberGridAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                MemberItem memberItem = mMemberItems.get(position);
+                MemberItem memberItem = mViewModel.mMemberItems.get(position);
                 String uid = memberItem.uid;
                 String name = memberItem.name;
                 String value = memberItem.value;
@@ -107,17 +76,9 @@ public class Tab3Fragment extends Fragment {
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
-                if (!mHasRequestedMore && !recyclerView.canScrollVertically(1)) {
-                    mHasRequestedMore = true;
-                    mOffSet += LIMIT;
-
-                    fetchMemberList();
+                if (!recyclerView.canScrollVertically(1)) {
+                    mViewModel.fetchNextPage();
                 }
-            }
-
-            @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
             }
         });
         mBinding.srlMember.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -126,17 +87,31 @@ public class Tab3Fragment extends Fragment {
                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        mMemberItems.clear();
-                        mOffSet = 1;
-
-                        fetchMemberList();
+                        mViewModel.refresh();
                         mBinding.srlMember.setRefreshing(false);
                     }
                 }, 1000);
             }
         });
-        showProgressBar();
-        fetchMemberList();
+        mViewModel.getState().observe(getViewLifecycleOwner(), new Observer<Tab3ViewModel.State>() {
+            @Override
+            public void onChanged(Tab3ViewModel.State state) {
+                if (state.isLoading) {
+                    if (!state.hasRequestedMore) {
+                        showProgressBar();
+                    }
+                } else if (state.hasRequestedMore) {
+                    mViewModel.fetchMemberList(state.offset);
+                } else if (!state.memberItems.isEmpty()) {
+                    hideProgressBar();
+                    mViewModel.addAll(state.memberItems);
+                    mAdapter.notifyDataSetChanged();
+                } else if (state.message != null && !state.message.isEmpty()) {
+                    hideProgressBar();
+                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     @Override
@@ -149,45 +124,6 @@ public class Tab3Fragment extends Fragment {
         if (result.getResultCode() == Activity.RESULT_OK) {
             mAdapter.notifyDataSetChanged();
         }
-    }
-
-    private void fetchMemberList() {
-        String params = "?CLUB_GRP_ID=" + mGroupId + "&startM=" + mOffSet + "&displayM=" + LIMIT;
-
-        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.MEMBER_LIST + params, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                try {
-                    Source source = new Source(response);
-                    Element memberList = source.getElementById("member_list");
-
-                    // 페이징 처리
-                    String page = memberList.getFirstElementByClass("paging").getFirstElement("title", "현재 선택 목록", false).getTextExtractor().toString();
-                    List<Element> inputElements = memberList.getAllElements("name", "memberIdCheck", false);
-                    List<Element> imgElements = memberList.getAllElements("title", "프로필", false);
-                    List<Element> spanElements = memberList.getAllElements(HTMLElementName.SPAN);
-
-                    for (int i = 0; i < inputElements.size(); i++) {
-                        String name = spanElements.get(i).getContent().toString();
-                        String imageUrl = imgElements.get(i).getAttributeValue("src");
-                        String value = inputElements.get(i).getAttributeValue("value");
-
-                        mMemberItems.add(new MemberItem(imageUrl.substring(imageUrl.indexOf("id=") + "id=".length(), imageUrl.lastIndexOf("&ext")), name, value));
-                    }
-                    mAdapter.notifyDataSetChanged();
-                } catch (NullPointerException e) {
-                    e.printStackTrace();
-                }
-                mHasRequestedMore = false;
-                hideProgressBar();
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(TAG, error.getMessage());
-                hideProgressBar();
-            }
-        }));
     }
 
     private void showProgressBar() {
