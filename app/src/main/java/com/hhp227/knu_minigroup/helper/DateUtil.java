@@ -19,4 +19,20 @@ public class DateUtil {
     public static String getDateString(long timeStamp) {
         return dateFormat.format(timeStamp);
     }
+
+    public static String getCalendarStamp(String dateStr) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        String timestamp = "";
+
+        try {
+            Date date = format.parse(dateStr);
+            format = new SimpleDateFormat("dd");
+            String date1 = format.format(date);
+            timestamp = date1;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return timestamp;
+    }
 }
