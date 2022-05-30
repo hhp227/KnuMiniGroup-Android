@@ -45,9 +45,6 @@ public class TabHostLayoutFragment extends Fragment {
 
     private FragmentTabHostLayoutBinding mBinding;
 
-    public TabHostLayoutFragment() {
-    }
-
     public static TabHostLayoutFragment newInstance(boolean isAdmin, String groupId, String groupName, String groupImage, String key) {
         TabHostLayoutFragment fragment = new TabHostLayoutFragment();
         Bundle args = new Bundle();
