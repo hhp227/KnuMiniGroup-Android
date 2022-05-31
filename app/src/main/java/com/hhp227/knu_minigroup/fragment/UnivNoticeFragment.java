@@ -49,7 +49,7 @@ public class UnivNoticeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(UnivNoticeViewModel.class);
-        mAdapter = new BbsListAdapter(mViewModel.mBbsItemList);
+        mAdapter = new BbsListAdapter();
         mOnScrollListener = new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -79,14 +79,14 @@ public class UnivNoticeFragment extends Fragment {
         mAdapter.setOnItemClickListener(new BbsListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position) {
-                BbsItem bbsItem = mViewModel.mBbsItemList.get(position);
+                BbsItem bbsItem = mAdapter.getCurrentList().get(position);
                 Intent intent = new Intent(v.getContext(), WebViewActivity.class);
 
                 intent.putExtra(WebViewActivity.URL, EndPoint.URL_KNU + bbsItem.getUrl());
                 startActivity(intent);
             }
         });
-        mViewModel.mState.observe(getViewLifecycleOwner(), new Observer<UnivNoticeViewModel.State>() {
+        mViewModel.getState().observe(getViewLifecycleOwner(), new Observer<UnivNoticeViewModel.State>() {
             @Override
             public void onChanged(UnivNoticeViewModel.State state) {
                 if (state.isLoading) {
@@ -95,12 +95,11 @@ public class UnivNoticeFragment extends Fragment {
                     } else {
                         showProgressBar();
                     }
-                } else if (!state.bbsItems.isEmpty()) {
-                    hideProgressBar();
-                    mViewModel.addAll(state.bbsItems);
-                    mAdapter.notifyDataSetChanged();
                 } else if (state.hasRequestedMore) {
                     mViewModel.fetchDataList(state.offset);
+                } else if (!state.bbsItems.isEmpty()) {
+                    hideProgressBar();
+                    mAdapter.submitList(state.bbsItems);
                 } else if (state.message != null && !state.message.isEmpty()) {
                     hideProgressBar();
                     Snackbar.make(requireView(), state.message, Snackbar.LENGTH_LONG).setAction("Action", null).show();

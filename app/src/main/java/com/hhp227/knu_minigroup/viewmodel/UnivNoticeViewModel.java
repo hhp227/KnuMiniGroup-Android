@@ -1,5 +1,6 @@
 package com.hhp227.knu_minigroup.viewmodel;
 
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -23,9 +24,7 @@ import java.util.concurrent.Executors;
 
 // TODO FindGroupViewModel 참고해서 비슷한 로직으로 고치기
 public class UnivNoticeViewModel extends ViewModel {
-    public final ArrayList<BbsItem> mBbsItemList = new ArrayList<>();
-
-    public final MutableLiveData<State> mState = new MutableLiveData<>(new State(false, Collections.emptyList(), 1, false, null));
+    private final MutableLiveData<State> mState = new MutableLiveData<>(new State(false, Collections.emptyList(), 1, false, null));
 
     private static final int MAX_PAGE = 10;
 
@@ -35,9 +34,13 @@ public class UnivNoticeViewModel extends ViewModel {
         fetchNextPage();
     }
 
+    public LiveData<State> getState() {
+        return mState;
+    }
+
     public void fetchNextPage() {
         if (mState.getValue() != null && mState.getValue().offset < MAX_PAGE) {
-            mState.postValue(new State(false, Collections.emptyList(), mState.getValue().offset, true, null));
+            mState.postValue(new State(false, mState.getValue().bbsItems, mState.getValue().offset, true, null));
         }
     }
 
@@ -45,7 +48,6 @@ public class UnivNoticeViewModel extends ViewModel {
         Executors.newSingleThreadExecutor().execute(new Runnable() {
             @Override
             public void run() {
-                mBbsItemList.clear();
                 mState.postValue(new State(false, Collections.emptyList(), 1, true, null));
             }
         });
@@ -57,7 +59,7 @@ public class UnivNoticeViewModel extends ViewModel {
             @Override
             public void onResponse(String response) {
                 if (mState.getValue() != null) {
-                    mState.postValue(new State(false, parseHTML(response), mState.getValue().offset + 1, false, null));
+                    mState.postValue(new State(false, mergedList(mState.getValue().bbsItems, parseHTML(response)), mState.getValue().offset + 1, false, null));
                 }
             }
         }, new Response.ErrorListener() {
@@ -67,12 +69,10 @@ public class UnivNoticeViewModel extends ViewModel {
             }
         });
 
-        mState.postValue(new State(true, Collections.emptyList(), offset, offset > 1, null));
+        if (mState.getValue() != null) {
+            mState.postValue(new State(true, mState.getValue().bbsItems, offset, offset > 1, null));
+        }
         AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
-    }
-
-    public void addAll(List<BbsItem> bbsItems) {
-        mBbsItemList.addAll(bbsItems);
     }
 
     private List<BbsItem> parseHTML(String response) {
@@ -106,6 +106,14 @@ public class UnivNoticeViewModel extends ViewModel {
             mState.postValue(new State(false, Collections.emptyList(), 0, false, e.getMessage()));
         }
         return itemList;
+    }
+
+    private List<BbsItem> mergedList(List<BbsItem> existingList, List<BbsItem> newList) {
+        List<BbsItem> result = new ArrayList<>();
+
+        result.addAll(existingList);
+        result.addAll(newList);
+        return result;
     }
 
     public static final class State {
