@@ -20,6 +20,7 @@ import net.htmlparser.jericho.StartTag;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 
 // TODO FindGroupViewModel 참고해서 비슷한 로직으로 고치기
@@ -69,9 +70,7 @@ public class UnivNoticeViewModel extends ViewModel {
             }
         });
 
-        if (mState.getValue() != null) {
-            mState.postValue(new State(true, mState.getValue().bbsItems, offset, offset > 1, null));
-        }
+        mState.postValue(new State(true, Objects.requireNonNull(mState.getValue()).bbsItems, offset, offset > 1, null));
         AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
     }
 
