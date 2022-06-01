@@ -24,6 +24,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.MessageListAdapter;
 import com.hhp227.knu_minigroup.app.AppController;
@@ -182,6 +183,7 @@ public class ChatActivity extends AppCompatActivity {
         query.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s) {
+                Log.e("TEST", "onChildAdded: " + dataSnapshot);
                 if (mFirstMessageKey != null && mFirstMessageKey.equals(dataSnapshot.getKey()))
                     return;
                 else if (s == null)

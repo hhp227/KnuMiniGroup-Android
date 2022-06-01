@@ -18,12 +18,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class SangjuSeatViewModel extends ViewModel {
     public final MutableLiveData<State> mState = new MutableLiveData<>();
-
-    public final List<SeatItem> mSeatItemList = new ArrayList<>();
 
     private static final String TAG = SangjuSeatViewModel.class.getSimpleName();
 
@@ -40,6 +39,7 @@ public class SangjuSeatViewModel extends ViewModel {
             @Override
             public void onResponse(JSONObject response) {
                 try {
+                    List<SeatItem> seatItemList = new ArrayList<>();
                     JSONObject jsonObject = response.getJSONObject("data");
                     JSONArray jsonArray = jsonObject.getJSONArray("list");
 
@@ -59,43 +59,40 @@ public class SangjuSeatViewModel extends ViewModel {
                             disable[1] = disablePeriod.getString("beginTime");
                             disable[2] = disablePeriod.getString("endTime");
                         } catch (JSONException e) {
-                            mState.postValue(new State(false, false, e.getMessage()));
+                            mState.postValue(new State(false, Collections.emptyList(), e.getMessage()));
                             Log.e(TAG, e.getMessage());
+                        } finally {
+                            SeatItem listItem = new SeatItem(id, name, total, occupied, available, disable);
+
+                            seatItemList.add(listItem);
                         }
-
-                        SeatItem listItem = new SeatItem(id, name, total, occupied, available, disable);
-
-                        if (!isRefresh)
-                            mSeatItemList.add(listItem);
-                        else
-                            mSeatItemList.set(i, listItem);
                     }
-                    mState.postValue(new State(false, true, null));
+                    mState.postValue(new State(false, seatItemList, null));
                 } catch (JSONException e) {
-                    mState.postValue(new State(false, false, e.getMessage()));
+                    mState.postValue(new State(false, Collections.emptyList(), e.getMessage()));
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                mState.postValue(new State(false, false, error.getMessage()));
+                mState.postValue(new State(false, Collections.emptyList(), error.getMessage()));
             }
         });
 
-        mState.postValue(new State(!isRefresh, false, null));
+        mState.postValue(new State(!isRefresh, Collections.emptyList(), null));
         AppController.getInstance().addToRequestQueue(jsonObjectRequest);
     }
 
     public static final class State {
         public boolean isLoading;
 
-        public boolean isSuccess;
+        public List<SeatItem> seatItemList;
 
         public String message;
 
-        public State(boolean isLoading, boolean isSuccess, String message) {
+        public State(boolean isLoading, List<SeatItem> seatItemList, String message) {
             this.isLoading = isLoading;
-            this.isSuccess = isSuccess;
+            this.seatItemList = seatItemList;
             this.message = message;
         }
     }

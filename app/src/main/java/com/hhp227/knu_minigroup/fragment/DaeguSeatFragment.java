@@ -41,7 +41,7 @@ public class DaeguSeatFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(DaeguSeatViewModel.class);
-        mAdapter = new SeatListAdapter(mViewModel.mSeatItemList);
+        mAdapter = new SeatListAdapter();
 
         mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mBinding.recyclerView.setAdapter(mAdapter);
@@ -62,9 +62,9 @@ public class DaeguSeatFragment extends Fragment {
             public void onChanged(DaeguSeatViewModel.State state) {
                 if (state.isLoading) {
                     showProgressBar();
-                } else if (state.isSuccess) {
+                } else if (!state.seatItemList.isEmpty()) {
                     hideProgressBar();
-                    mAdapter.notifyDataSetChanged();
+                    mAdapter.submitList(state.seatItemList);
                 } else if (state.message != null && !state.message.isEmpty()) {
                     hideProgressBar();
                     Snackbar.make(requireView(), state.message, Snackbar.LENGTH_LONG).show();
