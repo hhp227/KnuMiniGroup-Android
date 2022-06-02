@@ -75,7 +75,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
         mActivityArticleBinding = ActivityArticleBinding.inflate(getLayoutInflater());
         mArticleDetailBinding = ArticleDetailBinding.inflate(getLayoutInflater());
         mViewModel = new ViewModelProvider(this).get(ArticleViewModel.class);
-        mAdapter = new ReplyListAdapter(mViewModel.mReplyItemKeys, mViewModel.mReplyItemValues);
+        mAdapter = new ReplyListAdapter(mViewModel.mReplyItemList);
         mTextWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -144,8 +144,8 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
             public void onChanged(ArticleViewModel.State state) {
                 if (state.isLoading) {
                     showProgressBar();
-                } else if (!state.replyItemKeys.isEmpty() && !state.replyItemValues.isEmpty()) {
-                    mViewModel.addAll(state.replyItemKeys, state.replyItemValues);
+                } else if (!state.replyItemList.isEmpty()) {
+                    mViewModel.addAll(state.replyItemList);
                     mAdapter.notifyDataSetChanged();
                     if (state.articleItem != null) {
                         hideProgressBar();
@@ -263,7 +263,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         int position = ((AdapterView.AdapterContextMenuInfo) menuInfo).position;
-        boolean auth = !mViewModel.mReplyItemValues.isEmpty() && position != 0 && mViewModel.mReplyItemValues.get((position - 1)).isAuth();
+        boolean auth = !mViewModel.mReplyItemList.isEmpty() && position != 0 && mViewModel.mReplyItemList.get((position - 1)).getValue().isAuth();
 
         menu.setHeaderTitle("작업선택");
         menu.add(Menu.NONE, 1, Menu.NONE, "내용 복사");
@@ -276,8 +276,8 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        final String replyKey = mViewModel.mReplyItemKeys.isEmpty() || info.position == 0 ? null : mViewModel.mReplyItemKeys.get(info.position - 1);
-        ReplyItem replyItem = mViewModel.mReplyItemValues.isEmpty() || info.position == 0 ? null : mViewModel.mReplyItemValues.get(info.position - 1); // 헤더가 있기때문에 포지션에서 -1을 해준다.
+        final String replyKey = mViewModel.mReplyItemList.isEmpty() || info.position == 0 ? null : mViewModel.mReplyItemList.get(info.position - 1).getKey();
+        ReplyItem replyItem = mViewModel.mReplyItemList.isEmpty() || info.position == 0 ? null : mViewModel.mReplyItemList.get(info.position - 1).getValue(); // 헤더가 있기때문에 포지션에서 -1을 해준다.
 
         if (replyItem != null) {
             final String replyId = replyItem.getId();

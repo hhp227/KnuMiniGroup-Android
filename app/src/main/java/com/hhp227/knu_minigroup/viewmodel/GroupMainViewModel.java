@@ -22,6 +22,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.GroupItem;
+import com.hhp227.knu_minigroup.dto.ReplyItem;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 
@@ -29,6 +30,7 @@ import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,9 +38,7 @@ import java.util.Map;
 
 // TODO FindGroupViewModel 참고해서 로직 addAll로 맞추기
 public class GroupMainViewModel extends ViewModel {
-    public final List<String> mGroupItemKeys = new ArrayList<>();
-
-    public final List<Object> mGroupItemValues = new ArrayList<>();
+    public final List<Map.Entry<String, Object>> mGroupItemList = new ArrayList<>();
 
     public final MutableLiveData<Long> mTick = new MutableLiveData<>();
 
@@ -79,8 +79,7 @@ public class GroupMainViewModel extends ViewModel {
     }
 
     public void refresh() {
-        mGroupItemKeys.clear();
-        mGroupItemValues.clear();
+        mGroupItemList.clear();
         fetchDataTask();
     }
 
@@ -106,8 +105,7 @@ public class GroupMainViewModel extends ViewModel {
                             groupItem.setAdmin(isAdmin);
                             groupItem.setImage(image);
                             groupItem.setName(name);
-                            mGroupItemKeys.add(id);
-                            mGroupItemValues.add(groupItem);
+                            mGroupItemList.add(new AbstractMap.SimpleEntry<>(id, groupItem));
                         } catch (NullPointerException e) {
                             e.printStackTrace();
                         }
@@ -150,22 +148,17 @@ public class GroupMainViewModel extends ViewModel {
     private void insertAdvertisement() {
         Map<String, String> headerMap = new HashMap<>();
 
-        if (!mGroupItemValues.isEmpty()) {
+        if (!mGroupItemList.isEmpty()) {
             headerMap.put("text", "가입중인 그룹");
-            mGroupItemKeys.add(0, "가입중인 그룹");
-            mGroupItemValues.add(0, headerMap);
-            if (mGroupItemValues.size() % 2 == 0) {
-                mGroupItemKeys.add("광고");
-                mGroupItemValues.add("광고");
+            mGroupItemList.add(0, new AbstractMap.SimpleEntry<>("가입중인 그룹", headerMap));
+            if (mGroupItemList.size() % 2 == 0) {
+                mGroupItemList.add(new AbstractMap.SimpleEntry<>("광고", "광고"));
             }
         } else {
-            mGroupItemKeys.add("없음");
-            mGroupItemValues.add("없음");
+            mGroupItemList.add(new AbstractMap.SimpleEntry<>("없음", "없음"));
             headerMap.put("text", "인기 모임");
-            mGroupItemKeys.add("인기 모임");
-            mGroupItemValues.add(headerMap);
-            mGroupItemKeys.add("뷰페이져");
-            mGroupItemValues.add("뷰페이져");
+            mGroupItemList.add(new AbstractMap.SimpleEntry<>("인기 모임", headerMap));
+            mGroupItemList.add(new AbstractMap.SimpleEntry<>("뷰페이져", "뷰페이져"));
         }
     }
 
@@ -193,11 +186,20 @@ public class GroupMainViewModel extends ViewModel {
                         GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
 
                         if (groupItem != null) {
-                            int index = mGroupItemKeys.indexOf(groupItem.getId());
+                            int index = -1;
 
+                            for (int i = 0; i < mGroupItemList.size(); i++) {
+                                Map.Entry<String, Object> entry = mGroupItemList.get(i);
+
+                                if (entry.getKey().equals(groupItem.getId())) {
+                                    index = i;
+                                    break;
+                                }
+                            }
                             if (index > -1) {
-                                //mGroupItemValues.set(index, value); //isAdmin값때문에 주석처리
-                                mGroupItemKeys.set(index, key);
+                                Map.Entry<String, Object> entry = mGroupItemList.get(index);
+
+                                mGroupItemList.set(index, new AbstractMap.SimpleEntry<>(key, entry.getValue()));
                             }
                         }
                     } catch (Exception e) {

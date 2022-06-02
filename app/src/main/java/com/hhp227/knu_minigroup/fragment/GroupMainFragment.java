@@ -108,7 +108,7 @@ public class GroupMainFragment extends Fragment {
                 }
             }
         };
-        mAdapter = new GroupGridAdapter(mViewModel.mGroupItemKeys, mViewModel.mGroupItemValues);
+        mAdapter = new GroupGridAdapter(mViewModel.mGroupItemList);
         mActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
             public void onActivityResult(ActivityResult result) {
@@ -124,8 +124,8 @@ public class GroupMainFragment extends Fragment {
         mAdapter.setOnItemClickListener(new GroupGridAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position) {
-                if (mViewModel.mGroupItemValues.get(position) instanceof GroupItem) {
-                    GroupItem groupItem = (GroupItem) mViewModel.mGroupItemValues.get(position);
+                if (mViewModel.mGroupItemList.get(position).getValue() instanceof GroupItem) {
+                    GroupItem groupItem = (GroupItem) mViewModel.mGroupItemList.get(position).getValue();
                     Intent intent = new Intent(getContext(), GroupActivity.class);
 
                     intent.putExtra("admin", groupItem.isAdmin());
