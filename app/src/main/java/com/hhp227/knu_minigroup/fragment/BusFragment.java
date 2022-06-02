@@ -24,16 +24,8 @@ public class BusFragment extends Fragment {
 
     private FragmentTabsBinding mBinding;
 
-    public BusFragment() {
-    }
-
     public static BusFragment newInstance() {
         return new BusFragment();
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
     }
 
     @Override

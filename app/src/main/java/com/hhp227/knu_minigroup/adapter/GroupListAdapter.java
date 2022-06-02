@@ -2,6 +2,7 @@ package com.hhp227.knu_minigroup.adapter;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -68,13 +69,10 @@ public class GroupListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         return mGroupItemValues.get(position) != null ? TYPE_GROUP : TYPE_LOADER;
     }
 
-    public void addFooterView() {
-        mGroupItemKeys.add("");
-        mGroupItemValues.add(null);
-    }
-
     public void setFooterProgressBarVisibility(int visibility) {
         this.mProgressBarVisibility = visibility;
+
+        notifyDataSetChanged();
     }
 
     public void setButtonType(int type) {

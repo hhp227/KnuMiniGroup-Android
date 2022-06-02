@@ -15,25 +15,15 @@ import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.activity.MainActivity;
 import com.hhp227.knu_minigroup.databinding.FragmentTabsBinding;
 
-import java.util.List;
-import java.util.Vector;
-
 public class TimetableFragment extends Fragment {
     public static final String TAG = "시간표";
+
     private static final String[] TAB_NAMES = {"학기시간표", "모의시간표 작성"};
 
     private FragmentTabsBinding mBinding;
 
-    public TimetableFragment() {
-    }
-
     public static TimetableFragment newInstance() {
         return new TimetableFragment();
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
     }
 
     @Override
@@ -45,23 +35,21 @@ public class TimetableFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        final List<Fragment> fragments = new Vector<>();
+        Fragment[] fragments = new Fragment[] {SemesterTimeTableFragment.newInstance(), MockTimeTableFragment.newInstance()};
         FragmentPagerAdapter adapter = new FragmentPagerAdapter(getChildFragmentManager(), FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
             @NonNull
             @Override
             public Fragment getItem(int position) {
-                return fragments.get(position);
+                return fragments[position];
             }
 
             @Override
             public int getCount() {
-                return fragments.size();
+                return fragments.length;
             }
         };
 
         ((MainActivity) requireActivity()).setAppBar(mBinding.toolbar, getString(R.string.timetable));
-        fragments.add(SemesterTimeTableFragment.newInstance());
-        fragments.add(MockTimeTableFragment.newInstance());
         for (String s : TAB_NAMES)
             mBinding.tabLayout.addTab(mBinding.tabLayout.newTab().setText(s));
         mBinding.tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mBinding.viewPager));

@@ -1,6 +1,7 @@
 package com.hhp227.knu_minigroup.adapter;
 
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,8 @@ import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.ArticleItemBinding;
 import com.hhp227.knu_minigroup.databinding.LoadMoreBinding;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
+import com.hhp227.knu_minigroup.helper.DateUtil;
+
 import java.text.SimpleDateFormat;
 import java.util.List;
 
@@ -32,14 +35,11 @@ public class ArticleListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     private int mProgressBarVisibility;
 
-    private String mGroupKey;
-
     private OnItemClickListener mOnItemClickListener;
 
-    public ArticleListAdapter(List<String> articleItemKeys, List<ArticleItem> articleItemValues, String groupKey) {
+    public ArticleListAdapter(List<String> articleItemKeys, List<ArticleItem> articleItemValues) {
         this.mArticleItemKeys = articleItemKeys;
         this.mArticleItemValues = articleItemValues;
-        this.mGroupKey = groupKey;
     }
 
     @NonNull
@@ -72,13 +72,10 @@ public class ArticleListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         return mArticleItemValues.get(position) != null ? TYPE_ARTICLE : TYPE_LOADER;
     }
 
-    public void addFooterView() {
-        mArticleItemKeys.add("");
-        mArticleItemValues.add(null);
-    }
-
     public void setFooterProgressBarVisibility(int visibility) {
         this.mProgressBarVisibility = visibility;
+
+        notifyDataSetChanged();
     }
 
     public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
@@ -123,7 +120,7 @@ public class ArticleListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                             .diskCacheStrategy(DiskCacheStrategy.NONE))
                     .into(mBinding.ivProfileImage);
             mBinding.tvTitle.setText(articleItem.getName() != null ? articleItem.getTitle() + " - " + articleItem.getName() : articleItem.getTitle());
-            mBinding.tvTimestamp.setText(articleItem.getDate() != null ? articleItem.getDate() : new SimpleDateFormat("yyyy.MM.dd a h:mm:ss").format(articleItem.getTimestamp()));
+            mBinding.tvTimestamp.setText(DateUtil.getDateString(articleItem.getTimestamp()));
             if (!TextUtils.isEmpty(articleItem.getContent())) {
                 mBinding.tvContent.setText(articleItem.getContent());
                 mBinding.tvContent.setMaxLines(CONTENT_MAX_LINE);

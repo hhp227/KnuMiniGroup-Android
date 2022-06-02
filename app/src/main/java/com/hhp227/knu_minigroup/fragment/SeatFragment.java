@@ -7,11 +7,9 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
+
 import com.google.android.material.tabs.TabLayout;
 import com.hhp227.knu_minigroup.activity.MainActivity;
 import com.hhp227.knu_minigroup.R;
@@ -22,20 +20,13 @@ import java.util.Vector;
 
 public class SeatFragment extends Fragment {
     public static final String TAG = "도서관 좌석";
+
     private static final String[] TAB_NAMES = {"대구 열람실", "상주 열람실"};
 
     private FragmentTabsBinding mBinding;
 
-    public SeatFragment() {
-    }
-
     public static SeatFragment newInstance() {
         return new SeatFragment();
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
     }
 
     @Override
@@ -47,23 +38,21 @@ public class SeatFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        final List<Fragment> fragments = new Vector<>();
+        Fragment[] fragments = new Fragment[] {DaeguSeatFragment.newInstance(), SangjuSeatFragment.newInstance()};
         FragmentPagerAdapter adapter = new FragmentPagerAdapter(getChildFragmentManager(), FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
             @NonNull
             @Override
             public Fragment getItem(int position) {
-                return fragments.get(position);
+                return fragments[position];
             }
 
             @Override
             public int getCount() {
-                return fragments.size();
+                return fragments.length;
             }
         };
 
         ((MainActivity) requireActivity()).setAppBar(mBinding.toolbar, getString(R.string.library_seat));
-        fragments.add(new DaeguSeatFragment());
-        fragments.add(new SangjuSeatFragment());
         for (String s : TAB_NAMES)
             mBinding.tabLayout.addTab(mBinding.tabLayout.newTab().setText(s));
         mBinding.tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mBinding.viewPager));

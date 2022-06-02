@@ -21,6 +21,7 @@ import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.FragmentUserBinding;
 
+// TODO
 public class UserDialogFragment extends DialogFragment {
     private String mUid, mName, mValue;
 

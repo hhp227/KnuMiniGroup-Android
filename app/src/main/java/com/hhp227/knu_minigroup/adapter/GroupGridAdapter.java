@@ -2,11 +2,21 @@ package com.hhp227.knu_minigroup.adapter;
 
 import android.content.Context;
 import android.util.Log;
-import android.view.*;
-import android.widget.*;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.PopupMenu;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
+
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -17,25 +27,29 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdLoader;
 import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.formats.MediaView;
 import com.google.android.gms.ads.formats.UnifiedNativeAd;
-import com.google.android.gms.ads.formats.UnifiedNativeAdView;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
-import com.hhp227.knu_minigroup.databinding.*;
+import com.hhp227.knu_minigroup.databinding.GroupGridAdBinding;
+import com.hhp227.knu_minigroup.databinding.GroupGridHeaderBinding;
+import com.hhp227.knu_minigroup.databinding.GroupGridItemBinding;
+import com.hhp227.knu_minigroup.databinding.GroupGridNoItemBinding;
+import com.hhp227.knu_minigroup.databinding.GroupGridViewPagerBinding;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.ui.loopviewpager.LoopViewPager;
-import com.hhp227.knu_minigroup.ui.pageindicator.LoopingCirclePageIndicator;
+
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GroupGridAdapter extends RecyclerView.Adapter {
     public static final int TYPE_TEXT = 0;
@@ -130,24 +144,6 @@ public class GroupGridAdapter extends RecyclerView.Adapter {
         adText.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         adText.setGravity(Gravity.CENTER_VERTICAL);
         return adText;
-    }
-
-    public void addHeaderView(String text) {
-        Map<String, String> headerMap = new HashMap<>();
-
-        headerMap.put("text", text);
-        mGroupItemKeys.add(text);
-        mGroupItemValues.add(headerMap);
-        notifyItemInserted(mGroupItemValues.size() - 1);
-    }
-
-    public void addHeaderView(String text, int position) {
-        Map<String, String> headerMap = new HashMap<>();
-
-        headerMap.put("text", text);
-        mGroupItemKeys.add(position, text);
-        mGroupItemValues.add(position, headerMap);
-        notifyItemInserted(position);
     }
 
     public void setOnItemClickListener(OnItemClickListener onItemClickListener) {

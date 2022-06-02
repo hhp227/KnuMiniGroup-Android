@@ -15,25 +15,17 @@ import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.activity.MainActivity;
 import com.hhp227.knu_minigroup.databinding.FragmentTabsBinding;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
 public class MealFragment extends Fragment {
-    public static final String TAG = "식단표";
     private static final String[] TAB_NAMES = {"GP감꽃푸드코트", "GP일청담", "공학관 교직원식당", "공학관 학생식당", "복지관 교직원식당", "복지관 학생식당", "복현회관 교직원식당", "복현회관 학생식당", "정보센터", "상주 학식", "문화관", "BTL", "상주생활관"};
 
     private FragmentTabsBinding mBinding;
 
-    public MealFragment() {
-    }
-
     public static MealFragment newInstance() {
         return new MealFragment();
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
     }
 
     @Override
@@ -60,19 +52,10 @@ public class MealFragment extends Fragment {
         };
 
         ((MainActivity) requireActivity()).setAppBar(mBinding.toolbar, getString(R.string.meal));
-        fragments.add(StudentMealFragment.newInstance(46));
-        fragments.add(StudentMealFragment.newInstance(57));
-        fragments.add(StudentMealFragment.newInstance(85));
-        fragments.add(StudentMealFragment.newInstance(86));
-        fragments.add(StudentMealFragment.newInstance(36));
-        fragments.add(StudentMealFragment.newInstance(37));
-        fragments.add(StudentMealFragment.newInstance(39));
-        fragments.add(StudentMealFragment.newInstance(56));
-        fragments.add(StudentMealFragment.newInstance(35));
-        fragments.add(StudentMealFragment.newInstance(49));
-        fragments.add(new DCDormMealFragment());
-        fragments.add(new BTLDormMealFragment());
-        fragments.add(new SCDormMealFragment());
+        for (int num : new int[] {46, 57, 85, 86, 36, 37, 39, 56, 35, 49}) {
+            fragments.add(StudentMealFragment.newInstance(num));
+        }
+        fragments.addAll(Arrays.asList(DCDormMealFragment.newInstance(), BTLDormMealFragment.newInstance(), SCDormMealFragment.newInstance()));
         for (String s : TAB_NAMES)
             mBinding.tabLayout.addTab(mBinding.tabLayout.newTab().setText(s));
         mBinding.tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mBinding.viewPager));
