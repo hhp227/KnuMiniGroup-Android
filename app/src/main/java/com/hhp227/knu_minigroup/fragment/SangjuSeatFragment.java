@@ -56,7 +56,7 @@ public class SangjuSeatFragment extends Fragment {
                 }, 1000);
             }
         });
-        mViewModel.mState.observe(getViewLifecycleOwner(), new Observer<SangjuSeatViewModel.State>() {
+        mViewModel.getState().observe(getViewLifecycleOwner(), new Observer<SangjuSeatViewModel.State>() {
             @Override
             public void onChanged(SangjuSeatViewModel.State state) {
                 if (state.isLoading) {

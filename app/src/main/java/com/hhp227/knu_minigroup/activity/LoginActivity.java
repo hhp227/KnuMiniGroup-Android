@@ -46,7 +46,7 @@ public class LoginActivity extends AppCompatActivity {
                 mViewModel.login(id, password);
             }
         });
-        mViewModel.mState.observe(this, new Observer<LoginViewModel.State>() {
+        mViewModel.getState().observe(this, new Observer<LoginViewModel.State>() {
             @Override
             public void onChanged(LoginViewModel.State state) {
                 if (state.isLoading) {
@@ -66,7 +66,7 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
         });
-        mViewModel.mLoginFormState.observe(this, new Observer<LoginViewModel.LoginFormState>() {
+        mViewModel.getLoginFormState().observe(this, new Observer<LoginViewModel.LoginFormState>() {
             @Override
             public void onChanged(LoginViewModel.LoginFormState loginFormState) {
                 mBinding.etId.setError(loginFormState.emailError);

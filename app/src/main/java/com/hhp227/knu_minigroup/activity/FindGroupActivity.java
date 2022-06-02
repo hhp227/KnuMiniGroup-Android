@@ -20,6 +20,7 @@ import com.hhp227.knu_minigroup.fragment.GroupInfoFragment;
 import com.hhp227.knu_minigroup.viewmodel.FindGroupViewModel;
 import com.hhp227.knu_minigroup.viewmodel.GroupInfoViewModel;
 
+// TODO
 public class FindGroupActivity extends AppCompatActivity {
     private GroupListAdapter mAdapter;
 

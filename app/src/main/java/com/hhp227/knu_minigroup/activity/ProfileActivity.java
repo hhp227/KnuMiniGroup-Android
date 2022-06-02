@@ -81,7 +81,7 @@ public class ProfileActivity extends AppCompatActivity {
                 mViewModel.sync();
             }
         });
-        mViewModel.mBitmap.observe(this, new Observer<Bitmap>() {
+        mViewModel.getBitmap().observe(this, new Observer<Bitmap>() {
             @Override
             public void onChanged(Bitmap bitmap) {
                 Glide.with(getApplicationContext())
@@ -91,7 +91,7 @@ public class ProfileActivity extends AppCompatActivity {
                 invalidateOptionsMenu();
             }
         });
-        mViewModel.mState.observe(this, new Observer<ProfileViewModel.State>() {
+        mViewModel.getState().observe(this, new Observer<ProfileViewModel.State>() {
             @Override
             public void onChanged(ProfileViewModel.State state) {
                 if (state.isLoading) {
@@ -169,7 +169,7 @@ public class ProfileActivity extends AppCompatActivity {
     public boolean onPrepareOptionsMenu(Menu menu) {
         MenuItem menuItem = menu.findItem(R.id.action_send);
 
-        menuItem.setVisible(mViewModel.mBitmap.getValue() != null);
+        menuItem.setVisible(mViewModel.getBitmap().getValue() != null);
         return super.onPrepareOptionsMenu(menu);
     }
 

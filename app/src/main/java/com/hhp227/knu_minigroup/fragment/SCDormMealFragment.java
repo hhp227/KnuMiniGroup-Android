@@ -41,7 +41,7 @@ public class SCDormMealFragment extends Fragment {
                 mBinding.dinner
         };
 
-        viewModel.mState.observe(getViewLifecycleOwner(), new Observer<SCDormMealViewModel.State>() {
+        viewModel.getState().observe(getViewLifecycleOwner(), new Observer<SCDormMealViewModel.State>() {
             @Override
             public void onChanged(SCDormMealViewModel.State state) {
                 if (state.isLoading) {

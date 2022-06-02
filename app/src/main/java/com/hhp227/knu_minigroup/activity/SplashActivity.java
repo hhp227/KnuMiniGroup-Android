@@ -38,7 +38,7 @@ public class SplashActivity extends AppCompatActivity {
                 mViewModel.connection();
             }
         }, SPLASH_TIME_OUT);
-        mViewModel.mState.observe(this, new Observer<SplashViewModel.State>() {
+        mViewModel.getState().observe(this, new Observer<SplashViewModel.State>() {
             @Override
             public void onChanged(SplashViewModel.State state) {
                 if (state.isSuccess) {

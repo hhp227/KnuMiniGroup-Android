@@ -40,6 +40,7 @@ import com.hhp227.knu_minigroup.viewmodel.Tab1ViewModel;
 import java.util.AbstractMap;
 import java.util.Map;
 
+// TODO
 public class Tab1Fragment extends Fragment {
     private long mLastClickTime;
 

@@ -55,7 +55,7 @@ public class StudentMealFragment extends Fragment {
                 new Pair<>(KEY_LAUNCH, mBinding.lunch),
                 new Pair<>(KEY_DINNER, mBinding.dinner)
         };
-        viewModel.mState.observe(getViewLifecycleOwner(), new Observer<StudentMealViewModel.State>() {
+        viewModel.getState().observe(getViewLifecycleOwner(), new Observer<StudentMealViewModel.State>() {
             @Override
             public void onChanged(StudentMealViewModel.State state) {
                 if (state.isLoading) {

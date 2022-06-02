@@ -1,5 +1,6 @@
 package com.hhp227.knu_minigroup.viewmodel;
 
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -18,14 +19,18 @@ import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class SCDormMealViewModel extends ViewModel {
-    public final MutableLiveData<State> mState = new MutableLiveData<>();
+    private final MutableLiveData<State> mState = new MutableLiveData<>();
 
     public SCDormMealViewModel() {
-        mState.postValue(new State(true, new ArrayList<>(), null));
         fetchDataTask();
+    }
+
+    public LiveData<State> getState() {
+        return mState;
     }
 
     private void fetchDataTask() {
@@ -48,6 +53,7 @@ public class SCDormMealViewModel extends ViewModel {
             }
         });
 
+        mState.postValue(new State(true, Collections.emptyList(), null));
         AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
     }
 

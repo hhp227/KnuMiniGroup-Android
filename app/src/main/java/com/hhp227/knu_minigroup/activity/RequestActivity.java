@@ -20,6 +20,7 @@ import com.hhp227.knu_minigroup.fragment.GroupInfoFragment;
 import com.hhp227.knu_minigroup.viewmodel.GroupInfoViewModel;
 import com.hhp227.knu_minigroup.viewmodel.RequestViewModel;
 
+// TODO
 public class RequestActivity extends AppCompatActivity {
     private GroupListAdapter mAdapter;
 

@@ -4,6 +4,7 @@ import android.text.Html;
 import android.text.SpannableString;
 import android.util.Pair;
 
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModel;
@@ -32,10 +33,14 @@ public class StudentMealViewModel extends ViewModel {
     public static final String KEY_LAUNCH = "lunch";
     public static final String KEY_DINNER = "dinner";
 
-    public final MutableLiveData<State> mState = new MutableLiveData<>();
+    private final MutableLiveData<State> mState = new MutableLiveData<>();
 
     public StudentMealViewModel(SavedStateHandle savedStateHandle) {
         fetchDataTask(savedStateHandle.get("id"));
+    }
+
+    public LiveData<State> getState() {
+        return mState;
     }
 
     private void fetchDataTask(int id) {

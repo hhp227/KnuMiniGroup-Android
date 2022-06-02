@@ -2,6 +2,7 @@ package com.hhp227.knu_minigroup.viewmodel;
 
 import android.util.Log;
 
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -22,12 +23,16 @@ import java.util.Collections;
 import java.util.List;
 
 public class SangjuSeatViewModel extends ViewModel {
-    public final MutableLiveData<State> mState = new MutableLiveData<>();
-
     private static final String TAG = SangjuSeatViewModel.class.getSimpleName();
+
+    private final MutableLiveData<State> mState = new MutableLiveData<>();
 
     public SangjuSeatViewModel() {
         fetchDataTask(false);
+    }
+
+    public LiveData<State> getState() {
+        return mState;
     }
 
     public void refresh() {

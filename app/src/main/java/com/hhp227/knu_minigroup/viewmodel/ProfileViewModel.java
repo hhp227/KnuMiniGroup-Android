@@ -3,6 +3,7 @@ package com.hhp227.knu_minigroup.viewmodel;
 import android.graphics.Bitmap;
 import android.webkit.CookieManager;
 
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -26,9 +27,9 @@ import java.util.Map;
 import java.util.UUID;
 
 public class ProfileViewModel extends ViewModel {
-    public final MutableLiveData<State> mState = new MutableLiveData<>();
+    private final MutableLiveData<State> mState = new MutableLiveData<>();
 
-    public final MutableLiveData<Bitmap> mBitmap = new MutableLiveData<>();
+    private final MutableLiveData<Bitmap> mBitmap = new MutableLiveData<>();
 
     private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
 
@@ -38,8 +39,16 @@ public class ProfileViewModel extends ViewModel {
         mState.postValue(new State(false, false, mPreferenceManager.getUser(), null));
     }
 
+    public LiveData<State> getState() {
+        return mState;
+    }
+
     public void setBitmap(Bitmap bitmap) {
         mBitmap.postValue(bitmap);
+    }
+
+    public LiveData<Bitmap> getBitmap() {
+        return mBitmap;
     }
 
     public String getCookie() {
