@@ -27,13 +27,11 @@ import java.util.List;
 import java.util.Map;
 
 public class Tab2ViewModel extends ViewModel {
-    public final List<Map<String, String>> mList = new ArrayList<>();
+    private static final String TAG = Tab2ViewModel.class.getSimpleName();
 
     private final MutableLiveData<State> mState = new MutableLiveData<>();
 
     private final MutableLiveData<Calendar> mCalendar = new MutableLiveData<>(Calendar.getInstance());
-
-    private static final String TAG = Tab2ViewModel.class.getSimpleName();
 
     public LiveData<State> getState() {
         return mState;
@@ -125,11 +123,6 @@ public class Tab2ViewModel extends ViewModel {
                 }
             }
         }));
-    }
-
-    public void addAll(List<Map<String, String>> list) {
-        mList.clear();
-        mList.addAll(list);
     }
 
     public static final class State {

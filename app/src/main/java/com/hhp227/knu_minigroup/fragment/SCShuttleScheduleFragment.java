@@ -46,15 +46,7 @@ public class SCShuttleScheduleFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(SCShuttleScheduleViewModel.class);
         mProgressDialog = new ProgressDialog(getActivity());
-        mAdapter = new SimpleAdapter(
-                getActivity(),
-                mViewModel.mShuttleList,
-                R.layout.shuttle_sc_item,
-                new String[] {"col1", "col2", "col3", "col4", "col5", "col6", "col7"},
-                new int[] {R.id.column1, R.id.column2, R.id.column3, R.id.column4, R.id.column5, R.id.column6, R.id.column7}
-        );
 
-        mBinding.lvShuttle.setAdapter(mAdapter);
         mBinding.srlShuttle.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -67,12 +59,12 @@ public class SCShuttleScheduleFragment extends Fragment {
             }
         });
         mProgressDialog.setMessage("불러오는중...");
-        mViewModel.mState.observe(getViewLifecycleOwner(), new Observer<SCShuttleScheduleViewModel.State>() {
+        mViewModel.getState().observe(getViewLifecycleOwner(), new Observer<SCShuttleScheduleViewModel.State>() {
             @Override
             public void onChanged(SCShuttleScheduleViewModel.State state) {
                 if (state.isLoading) {
                     showProgressDialog();
-                } else if (!state.list.isEmpty()) {
+                } else if (!state.shuttleList.isEmpty() && !state.list.isEmpty()) {
                     TextView[] textViews = new TextView[] {
                             mBinding.tvCol1,
                             mBinding.tvCol2,
@@ -82,7 +74,15 @@ public class SCShuttleScheduleFragment extends Fragment {
                             mBinding.tvCol6,
                             mBinding.tvCol7
                     };
+                    mAdapter = new SimpleAdapter(
+                            getActivity(),
+                            state.shuttleList,
+                            R.layout.shuttle_sc_item,
+                            new String[] {"col1", "col2", "col3", "col4", "col5", "col6", "col7"},
+                            new int[] {R.id.column1, R.id.column2, R.id.column3, R.id.column4, R.id.column5, R.id.column6, R.id.column7}
+                    );
 
+                    mBinding.lvShuttle.setAdapter(mAdapter);
                     for (int i = 0; i < state.list.size(); i++) {
                         textViews[i].setText(state.list.get(i));
                     }

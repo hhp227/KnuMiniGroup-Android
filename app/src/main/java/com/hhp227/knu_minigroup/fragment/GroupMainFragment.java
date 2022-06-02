@@ -108,7 +108,7 @@ public class GroupMainFragment extends Fragment {
                 }
             }
         };
-        mAdapter = new GroupGridAdapter(mViewModel.mGroupItemList);
+        mAdapter = new GroupGridAdapter();
         mActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
             public void onActivityResult(ActivityResult result) {
@@ -124,8 +124,8 @@ public class GroupMainFragment extends Fragment {
         mAdapter.setOnItemClickListener(new GroupGridAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position) {
-                if (mViewModel.mGroupItemList.get(position).getValue() instanceof GroupItem) {
-                    GroupItem groupItem = (GroupItem) mViewModel.mGroupItemList.get(position).getValue();
+                if (mAdapter.getCurrentList().get(position).getValue() instanceof GroupItem) {
+                    GroupItem groupItem = (GroupItem) mAdapter.getCurrentList().get(position).getValue();
                     Intent intent = new Intent(getContext(), GroupActivity.class);
 
                     intent.putExtra("admin", groupItem.isAdmin());
@@ -188,15 +188,15 @@ public class GroupMainFragment extends Fragment {
         if (mViewModel.getUser() == null) {
             ((MainActivity) requireActivity()).logout();
         }
-        mViewModel.mState.observe(getViewLifecycleOwner(), new Observer<GroupMainViewModel.State>() {
+        mViewModel.getState().observe(getViewLifecycleOwner(), new Observer<GroupMainViewModel.State>() {
             @Override
             public void onChanged(GroupMainViewModel.State state) {
                 if (state.isLoading) {
                     requireActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
                     showProgressBar();
-                } else if (state.isSuccess) {
+                } else if (!state.groupItemList.isEmpty()) {
                     hideProgressBar();
-                    mAdapter.notifyDataSetChanged();
+                    mAdapter.submitList(state.groupItemList);
                     if (getActivity() != null) {
                         getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
                     }
@@ -209,7 +209,7 @@ public class GroupMainFragment extends Fragment {
                 }
             }
         });
-        mViewModel.mTick.observe(getViewLifecycleOwner(), new Observer<Long>() {
+        mViewModel.getTick().observe(getViewLifecycleOwner(), new Observer<Long>() {
             @Override
             public void onChanged(Long aLong) {
                 mAdapter.moveSliderPager();

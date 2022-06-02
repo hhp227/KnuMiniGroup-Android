@@ -41,9 +41,7 @@ public class DCShuttleScheduleFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(DCShuttleScheduleViewModel.class);
-        mAdapter = new SimpleAdapter(getContext(), mViewModel.mShuttleList, R.layout.shuttle_item, new String[] {"col1", "col2"}, new int[] {R.id.division, R.id.time_label});
 
-        mBinding.lvShuttle.setAdapter(mAdapter);
         mBinding.srlShuttle.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -56,12 +54,15 @@ public class DCShuttleScheduleFragment extends Fragment {
                 }, 1000);
             }
         });
-        mViewModel.mState.observe(getViewLifecycleOwner(), new Observer<DCShuttleScheduleViewModel.State>() {
+        mViewModel.getState().observe(getViewLifecycleOwner(), new Observer<DCShuttleScheduleViewModel.State>() {
             @Override
             public void onChanged(DCShuttleScheduleViewModel.State state) {
                 if (state.isLoading) {
 
-                } else if (state.isSuccess) {
+                } else if (!state.shuttleList.isEmpty()) {
+                    mAdapter = new SimpleAdapter(getContext(), state.shuttleList, R.layout.shuttle_item, new String[] {"col1", "col2"}, new int[] {R.id.division, R.id.time_label});
+
+                    mBinding.lvShuttle.setAdapter(mAdapter);
                     mAdapter.notifyDataSetChanged();
                 } else if (state.message != null && !state.message.isEmpty()) {
                     Snackbar.make(requireView(), state.message, Snackbar.LENGTH_LONG).show();
