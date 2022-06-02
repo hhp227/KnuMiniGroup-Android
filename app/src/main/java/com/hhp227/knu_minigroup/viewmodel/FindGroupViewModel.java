@@ -20,6 +20,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.GroupItem;
+import com.hhp227.knu_minigroup.dto.ReplyItem;
 
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
@@ -27,6 +28,7 @@ import net.htmlparser.jericho.Source;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,11 +37,9 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 
 public class FindGroupViewModel extends ViewModel {
-    public final MutableLiveData<State> mState = new MutableLiveData<>(new State(false, Collections.emptyList(), Collections.emptyList(), 1, false, false, null));
+    public final MutableLiveData<State> mState = new MutableLiveData<>(new State(false, Collections.emptyList(), 1, false, false, null));
 
-    public final List<String> mGroupItemKeys = new ArrayList<>(Collections.singletonList(""));
-
-    public final List<GroupItem> mGroupItemValues = new ArrayList<>(Collections.singletonList(null));
+    public final List<Map.Entry<String, GroupItem>> mGroupItemList = new ArrayList<>(Collections.singletonList(null));
 
     private static final int LIMIT = 15;
 
@@ -54,14 +54,13 @@ public class FindGroupViewModel extends ViewModel {
     }
 
     public void fetchGroupList(int offset) {
-        mState.postValue(new State(true, Collections.emptyList(), Collections.emptyList(), offset, offset > 1, false, null));
+        mState.postValue(new State(true, Collections.emptyList(), offset, offset > 1, false, null));
         AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 Source source = new Source(response);
                 List<Element> list = source.getAllElements("id", "accordion", false);
-                List<String> groupItemKeys = new ArrayList<>();
-                List<GroupItem> groupItemValues = new ArrayList<>();
+                List<Map.Entry<String, GroupItem>> groupItemList = new ArrayList<>();
 
                 for (Element element : list) {
                     try {
@@ -95,19 +94,18 @@ public class FindGroupViewModel extends ViewModel {
                             groupItem.setInfo(info.toString().trim());
                             groupItem.setDescription(description);
                             groupItem.setJoinType(joinType.equals("가입방식: 자동 승인") ? "0" : "1");
-                            groupItemKeys.add(String.valueOf(id));
-                            groupItemValues.add(groupItem);
+                            groupItemList.add(new AbstractMap.SimpleEntry<>(String.valueOf(id), groupItem));
                         }
                     } catch (Exception e) {
                         Log.e(FindGroupViewModel.class.getSimpleName(), e.getMessage());
                     }
                 }
-                initFirebaseData(groupItemKeys, groupItemValues);
+                initFirebaseData(groupItemList);
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                mState.postValue(new State(false, Collections.emptyList(), Collections.emptyList(), offset, false, false, error.getMessage()));
+                mState.postValue(new State(false, Collections.emptyList(), offset, false, false, error.getMessage()));
             }
         }) {
             @Override
@@ -154,40 +152,35 @@ public class FindGroupViewModel extends ViewModel {
 
     public void fetchNextPage() {
         if (mState.getValue() != null && !mStopRequestMore) {
-            mState.postValue(new State(false, Collections.emptyList(), Collections.emptyList(), mState.getValue().offset, true, false, null));
+            mState.postValue(new State(false, Collections.emptyList(), mState.getValue().offset, true, false, null));
         }
     }
 
     public void refresh() {
         mMinId = 0;
 
-        mGroupItemKeys.clear();
-        mGroupItemValues.clear();
-        mGroupItemKeys.add("");
-        mGroupItemValues.add(null);
+        mGroupItemList.clear();
+        mGroupItemList.add(null);
         Executors.newSingleThreadExecutor().execute(new Runnable() {
             @Override
             public void run() {
-                mState.postValue(new State(false, Collections.emptyList(), Collections.emptyList(), 1, true, false, null));
+                mState.postValue(new State(false, Collections.emptyList(), 1, true, false, null));
             }
         });
     }
 
-    public void addAll(List<String> groupItemKeys, List<GroupItem> groupItemValues) {
-        if (groupItemKeys.size() == groupItemValues.size()) {
-            mGroupItemKeys.addAll(mGroupItemKeys.size() - 1, groupItemKeys);
-            mGroupItemValues.addAll(mGroupItemValues.size() - 1, groupItemValues);
-        }
+    public void addAll(List<Map.Entry<String, GroupItem>> groupItemList) {
+        mGroupItemList.addAll(mGroupItemList.size() - 1, groupItemList);
     }
 
-    private void initFirebaseData(List<String> groupItemKeys, List<GroupItem> groupItemValues) {
+    private void initFirebaseData(List<Map.Entry<String, GroupItem>> groupItemList) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
 
-        fetchGroupListFromFirebase(databaseReference.orderByKey(), groupItemKeys, groupItemValues);
+        fetchGroupListFromFirebase(databaseReference.orderByKey(), groupItemList);
     }
 
     // firebase도 페이징 처리가 필요함
-    private void fetchGroupListFromFirebase(Query query, List<String> groupItemKeys, List<GroupItem> groupItemValues) {
+    private void fetchGroupListFromFirebase(Query query, List<Map.Entry<String, GroupItem>> groupItemList) {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -196,22 +189,31 @@ public class FindGroupViewModel extends ViewModel {
                     GroupItem value = snapshot.getValue(GroupItem.class);
 
                     if (value != null) {
-                        int index = groupItemKeys.indexOf(value.getId());
+                        int index = -1;
 
+                        for (int i = 0; i < groupItemList.size(); i++) {
+                            Map.Entry<String, GroupItem> entry = groupItemList.get(i);
+
+                            if (entry.getKey().equals(value.getId())) {
+                                index = i;
+                                break;
+                            }
+                        }
                         if (index > -1) {
-                            groupItemKeys.set(index, key);
-                            //groupItemValues.set(index, value); //getInfo 구현이 덜되어 주석처리
+                            GroupItem groupItem = groupItemList.get(index).getValue();
+
+                            groupItemList.set(index, new AbstractMap.SimpleEntry<>(key, groupItem));
                         }
                     }
                 }
                 if (mState.getValue() != null) {
-                    mState.postValue(new State(false, groupItemKeys, groupItemValues, mState.getValue().offset + LIMIT, false, groupItemKeys.isEmpty() && groupItemValues.isEmpty(), null));
+                    mState.postValue(new State(false, groupItemList, mState.getValue().offset + LIMIT, false, groupItemList.isEmpty(), null));
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                mState.postValue(new State(false, Collections.emptyList(), Collections.emptyList(), 1, false, false, databaseError.getMessage()));
+                mState.postValue(new State(false, Collections.emptyList(), 1, false, false, databaseError.getMessage()));
             }
         });
     }
@@ -223,9 +225,7 @@ public class FindGroupViewModel extends ViewModel {
     public static final class State {
         public boolean isLoading;
 
-        public List<String> groupItemKeys;
-
-        public List<GroupItem> groupItemValues;
+        public List<Map.Entry<String, GroupItem>> groupItemList;
 
         public int offset;
 
@@ -235,10 +235,9 @@ public class FindGroupViewModel extends ViewModel {
 
         public String message;
 
-        public State(boolean isLoading, List<String> groupItemKeys, List<GroupItem> groupItemValues, int offset, boolean hasRequestedMore, boolean isEndReached, String message) {
+        public State(boolean isLoading, List<Map.Entry<String, GroupItem>> groupItemList, int offset, boolean hasRequestedMore, boolean isEndReached, String message) {
             this.isLoading = isLoading;
-            this.groupItemKeys = groupItemKeys;
-            this.groupItemValues = groupItemValues;
+            this.groupItemList = groupItemList;
             this.offset = offset;
             this.hasRequestedMore = hasRequestedMore;
             this.isEndReached = isEndReached;

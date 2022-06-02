@@ -37,6 +37,9 @@ import com.hhp227.knu_minigroup.databinding.FragmentTab1Binding;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.viewmodel.Tab1ViewModel;
 
+import java.util.AbstractMap;
+import java.util.Map;
+
 public class Tab1Fragment extends Fragment {
     private long mLastClickTime;
 
@@ -71,7 +74,7 @@ public class Tab1Fragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(Tab1ViewModel.class);
-        mAdapter = new ArticleListAdapter(mViewModel.mArticleItemKeys, mViewModel.mArticleItemValues);
+        mAdapter = new ArticleListAdapter(mViewModel.mArticleItemList);
         mArticleActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
             public void onActivityResult(ActivityResult result) {
@@ -83,14 +86,16 @@ public class Tab1Fragment extends Fragment {
                 if (result.getResultCode() == Activity.RESULT_OK) {
                     if (result.getData() != null) {
                         int position = result.getData().getIntExtra("position", 0) - 1;
-                        ArticleItem articleItem = mViewModel.mArticleItemValues.get(position);
+                        Map.Entry<String, ArticleItem> entry = mViewModel.mArticleItemList.get(position);
+                        String key = entry.getKey();
+                        ArticleItem articleItem = entry.getValue();
 
                         articleItem.setTitle(result.getData().getStringExtra("sbjt"));
                         articleItem.setContent(result.getData().getStringExtra("txt"));
                         articleItem.setImages(result.getData().getStringArrayListExtra("img")); // firebase data
                         articleItem.setReplyCount(result.getData().getStringExtra("cmmt_cnt"));
                         articleItem.setYoutube(result.getData().getParcelableExtra("youtube"));
-                        mViewModel.mArticleItemValues.set(position, articleItem);
+                        mViewModel.mArticleItemList.set(position, new AbstractMap.SimpleEntry<>(key, articleItem));
                         mAdapter.notifyItemChanged(position);
                     } else {
                         mViewModel.refresh();
@@ -118,7 +123,7 @@ public class Tab1Fragment extends Fragment {
         mAdapter.setOnItemClickListener(new ArticleListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position) {
-                ArticleItem articleItem = mViewModel.mArticleItemValues.get(position);
+                ArticleItem articleItem = mViewModel.mArticleItemList.get(position).getValue();
                 Intent intent = new Intent(getContext(), ArticleActivity.class);
 
                 intent.putExtra("admin", mIsAdmin);
@@ -174,9 +179,9 @@ public class Tab1Fragment extends Fragment {
                     }
                 } else if (state.hasRequestedMore) {
                     mViewModel.fetchArticleList(state.offset);
-                } else if (!state.articleItemKeys.isEmpty() && !state.articleItemValues.isEmpty()) {
+                } else if (!state.articleItemList.isEmpty()) {
                     hideProgressBar();
-                    mViewModel.addAll(state.articleItemKeys, state.articleItemValues);
+                    mViewModel.addAll(state.articleItemList);
                     mAdapter.setFooterProgressBarVisibility(View.INVISIBLE);
                     mBinding.rlWrite.setVisibility(mAdapter.getItemCount() > 1 ? View.GONE : View.VISIBLE);
                 } else if (state.isEndReached) {

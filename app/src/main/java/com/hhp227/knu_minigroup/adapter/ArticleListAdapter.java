@@ -23,23 +23,21 @@ import com.hhp227.knu_minigroup.helper.DateUtil;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Map;
 
 public class ArticleListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int TYPE_ARTICLE = 0;
     private static final int TYPE_LOADER = 1;
     private static final int CONTENT_MAX_LINE = 4;
 
-    private final List<String> mArticleItemKeys;
-
-    private final List<ArticleItem> mArticleItemValues;
+    private final List<Map.Entry<String, ArticleItem>> mArticleItemList;
 
     private int mProgressBarVisibility;
 
     private OnItemClickListener mOnItemClickListener;
 
-    public ArticleListAdapter(List<String> articleItemKeys, List<ArticleItem> articleItemValues) {
-        this.mArticleItemKeys = articleItemKeys;
-        this.mArticleItemValues = articleItemValues;
+    public ArticleListAdapter(List<Map.Entry<String, ArticleItem>> articleItemList) {
+        mArticleItemList = articleItemList;
     }
 
     @NonNull
@@ -57,19 +55,19 @@ public class ArticleListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, final int position) {
         if (holder instanceof ItemHolder) {
-            ((ItemHolder) holder).bind(mArticleItemValues.get(position));
+            ((ItemHolder) holder).bind(mArticleItemList.get(position).getValue());
         } else if (holder instanceof FooterHolder)
             ((FooterHolder) holder).bind(mProgressBarVisibility);
     }
 
     @Override
     public int getItemCount() {
-        return mArticleItemValues.size();
+        return mArticleItemList.size();
     }
 
     @Override
     public int getItemViewType(int position) {
-        return mArticleItemValues.get(position) != null ? TYPE_ARTICLE : TYPE_LOADER;
+        return mArticleItemList.get(position) != null ? TYPE_ARTICLE : TYPE_LOADER;
     }
 
     public void setFooterProgressBarVisibility(int visibility) {
@@ -83,7 +81,7 @@ public class ArticleListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     }
 
     public String getKey(int position) {
-        return mArticleItemKeys.get(position);
+        return mArticleItemList.get(position).getKey();
     }
 
     public class ItemHolder extends RecyclerView.ViewHolder {
