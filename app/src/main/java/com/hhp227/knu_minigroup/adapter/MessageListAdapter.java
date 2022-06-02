@@ -68,8 +68,8 @@ public class MessageListAdapter extends BaseAdapter {
         MessageItem messageItem = mMessageItems.get(position);
         viewHolder.name.setText(messageItem.getName());
         viewHolder.message.setText(messageItem.getMessage());
-        viewHolder.timeStamp.setText(getTimeStamp(messageItem.getTimeStamp()));
-        if (position > 0 && getTimeStamp(mMessageItems.get(position - 1).getTimeStamp()).equals(getTimeStamp(messageItem.getTimeStamp())) && mMessageItems.get(position - 1).getFrom().equals(messageItem.getFrom())) {
+        viewHolder.timeStamp.setText(getTimeStamp(messageItem.getTimestamp()));
+        if (position > 0 && getTimeStamp(mMessageItems.get(position - 1).getTimestamp()).equals(getTimeStamp(messageItem.getTimestamp())) && mMessageItems.get(position - 1).getFrom().equals(messageItem.getFrom())) {
             viewHolder.name.setVisibility(View.GONE);
             viewHolder.messageBox.setPadding(viewHolder.messageBox.getPaddingLeft(), 0, viewHolder.messageBox.getPaddingRight(), viewHolder.messageBox.getPaddingBottom());
             viewHolder.profileImage.setVisibility(View.INVISIBLE);
@@ -87,7 +87,7 @@ public class MessageListAdapter extends BaseAdapter {
                             .diskCacheStrategy(DiskCacheStrategy.NONE))
                     .into(viewHolder.profileImage);
         }
-        if (position + 1 != mMessageItems.size() && getTimeStamp(messageItem.getTimeStamp()).equals(getTimeStamp(mMessageItems.get(position + 1).getTimeStamp())) && messageItem.getFrom().equals(mMessageItems.get(position + 1).getFrom()))
+        if (position + 1 != mMessageItems.size() && getTimeStamp(messageItem.getTimestamp()).equals(getTimeStamp(mMessageItems.get(position + 1).getTimestamp())) && messageItem.getFrom().equals(mMessageItems.get(position + 1).getFrom()))
             viewHolder.timeStamp.setText("");
 
         return convertView;
