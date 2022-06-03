@@ -24,6 +24,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
+import com.hhp227.knu_minigroup.dto.BbsItem;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.helper.DateUtil;
@@ -39,13 +40,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class Tab1ViewModel extends ViewModel {
     public static Boolean mIsAdmin;
 
     public static String mGroupId, mGroupName, mGroupImage, mKey;
-
-    public final List<Map.Entry<String, ArticleItem>> mArticleItemList = new ArrayList<>(Collections.singletonList(null));
 
     private static final int LIMIT = 10;
 
@@ -166,7 +166,7 @@ public class Tab1ViewModel extends ViewModel {
             }
         };
 
-        mSavedStateHandle.set(STATE, new State(true, Collections.emptyList(), offset, offset > 1, false, null));
+        mSavedStateHandle.set(STATE, new State(true, ((State) Objects.requireNonNull(mSavedStateHandle.get(STATE))).articleItemList, offset, offset > 1, false, null));
         AppController.getInstance().addToRequestQueue(stringRequest);
     }
 
@@ -174,20 +174,23 @@ public class Tab1ViewModel extends ViewModel {
         State state = mSavedStateHandle.get(STATE);
 
         if (state != null && !mStopRequestMore) {
-            mSavedStateHandle.set(STATE, new State(false, Collections.emptyList(), state.offset, true, false, null));
+            mSavedStateHandle.set(STATE, new State(false, state.articleItemList, state.offset, true, false, null));
         }
     }
 
     public void refresh() {
         mMinId = 0;
 
-        mArticleItemList.clear();
-        mArticleItemList.add(null);
         mSavedStateHandle.set(STATE, new State(false, Collections.emptyList(), 1, true, false, null));
     }
 
-    public void addAll(List<Map.Entry<String, ArticleItem>> articleItemList) {
-        mArticleItemList.addAll(mArticleItemList.size() - 1, articleItemList);
+    public void updateArticleItem(int position, AbstractMap.SimpleEntry<String, ArticleItem> kvSimpleEntry) {
+        State state = mSavedStateHandle.get(STATE);
+
+        if (state != null) {
+            state.articleItemList.set(position, kvSimpleEntry);
+            mSavedStateHandle.set(STATE, state);
+        }
     }
 
     private void initFirebaseData(List<Map.Entry<String, ArticleItem>> articleItemList) {
@@ -200,6 +203,8 @@ public class Tab1ViewModel extends ViewModel {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                State state = mSavedStateHandle.get(STATE);
+
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     String key = snapshot.getKey();
                     ArticleItem value = snapshot.getValue(ArticleItem.class);
@@ -223,8 +228,8 @@ public class Tab1ViewModel extends ViewModel {
                         }
                     }
                 }
-                if (mSavedStateHandle.get(STATE) != null) {
-                    mSavedStateHandle.set(STATE, new State(false, articleItemList, ((State) mSavedStateHandle.get(STATE)).offset + LIMIT, false, articleItemList.isEmpty(), null));
+                if (state != null) {
+                    mSavedStateHandle.set(STATE, new State(false, mergedList(state.articleItemList, articleItemList), state.offset + LIMIT, false, articleItemList.isEmpty(), null));
                 }
             }
 
@@ -234,6 +239,14 @@ public class Tab1ViewModel extends ViewModel {
                 Log.e("파이어베이스", databaseError.getMessage());
             }
         });
+    }
+
+    private List<Map.Entry<String, ArticleItem>> mergedList(List<Map.Entry<String, ArticleItem>> existingList, List<Map.Entry<String, ArticleItem>> newList) {
+        List<Map.Entry<String, ArticleItem>> result = new ArrayList<>();
+
+        result.addAll(existingList);
+        result.addAll(newList);
+        return result;
     }
 
     public static final class State implements Parcelable {

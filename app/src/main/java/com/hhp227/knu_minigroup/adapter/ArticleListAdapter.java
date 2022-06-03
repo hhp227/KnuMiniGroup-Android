@@ -22,6 +22,8 @@ import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.helper.DateUtil;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -30,15 +32,11 @@ public class ArticleListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     private static final int TYPE_LOADER = 1;
     private static final int CONTENT_MAX_LINE = 4;
 
-    private final List<Map.Entry<String, ArticleItem>> mArticleItemList;
+    private final List<Map.Entry<String, ArticleItem>> mArticleItemList = new ArrayList<>(Collections.singletonList(null));
 
     private int mProgressBarVisibility;
 
     private OnItemClickListener mOnItemClickListener;
-
-    public ArticleListAdapter(List<Map.Entry<String, ArticleItem>> articleItemList) {
-        mArticleItemList = articleItemList;
-    }
 
     @NonNull
     @Override
@@ -73,7 +71,7 @@ public class ArticleListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     public void setFooterProgressBarVisibility(int visibility) {
         this.mProgressBarVisibility = visibility;
 
-        notifyDataSetChanged();
+        notifyItemChanged(getItemCount() - 1);
     }
 
     public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
@@ -84,7 +82,10 @@ public class ArticleListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         return mArticleItemList.get(position).getKey();
     }
 
-    // TODO
+    public List<Map.Entry<String, ArticleItem>> getCurrentList() {
+        return mArticleItemList;
+    }
+
     public void submitList(List<Map.Entry<String, ArticleItem>> articleItemList) {
         mArticleItemList.clear();
         mArticleItemList.add(null);
