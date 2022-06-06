@@ -20,7 +20,6 @@ import com.hhp227.knu_minigroup.fragment.GroupInfoFragment;
 import com.hhp227.knu_minigroup.viewmodel.FindGroupViewModel;
 import com.hhp227.knu_minigroup.viewmodel.GroupInfoViewModel;
 
-// TODO
 public class FindGroupActivity extends AppCompatActivity {
     private GroupListAdapter mAdapter;
 
@@ -35,15 +34,23 @@ public class FindGroupActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         mBinding = ActivityListBinding.inflate(getLayoutInflater());
         mViewModel = new ViewModelProvider(this).get(FindGroupViewModel.class);
-        mAdapter = new GroupListAdapter(this, mViewModel.mGroupItemList);
+        mAdapter = new GroupListAdapter(this);
         mOnScrollListener = new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
                 LinearLayoutManager manager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                RecyclerView.OnScrollListener onScrollListener = this;
 
                 if (dy > 0 && manager != null && manager.findLastCompletelyVisibleItemPosition() >= manager.getItemCount() - 1) {
+                    recyclerView.removeOnScrollListener(onScrollListener);
                     mViewModel.fetchNextPage();
+                    recyclerView.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            recyclerView.addOnScrollListener(onScrollListener);
+                        }
+                    }, 500);
                 }
             }
         };
@@ -71,7 +78,7 @@ public class FindGroupActivity extends AppCompatActivity {
                 }, 1000);
             }
         });
-        mViewModel.mState.observe(this, new Observer<FindGroupViewModel.State>() {
+        mViewModel.getState().observe(this, new Observer<FindGroupViewModel.State>() {
             @Override
             public void onChanged(FindGroupViewModel.State state) {
                 if (state.isLoading) {
@@ -82,13 +89,10 @@ public class FindGroupActivity extends AppCompatActivity {
                     }
                 } else if (state.hasRequestedMore) {
                     mViewModel.fetchGroupList(state.offset);
-                } else if (!state.groupItemList.isEmpty()) {
+                } else if (!state.groupItemList.isEmpty() || state.isEndReached) {
                     hideProgressBar();
-                    mViewModel.addAll(state.groupItemList);
-                    mAdapter.setFooterProgressBarVisibility(View.INVISIBLE);
-                } else if (state.isEndReached) {
-                    hideProgressBar();
-                    mAdapter.setFooterProgressBarVisibility(View.GONE);
+                    mAdapter.submitList(state.groupItemList);
+                    mAdapter.setFooterProgressBarVisibility(state.isEndReached ? View.GONE : View.INVISIBLE);
                     mBinding.text.setText("가입신청중인 그룹이 없습니다.");
                     mBinding.rlGroup.setVisibility(mAdapter.getItemCount() > 1 ? View.GONE : View.VISIBLE);
                 } else if (state.message != null && !state.message.isEmpty()) {

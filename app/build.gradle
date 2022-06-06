@@ -8,8 +8,8 @@ android {
         applicationId "com.hhp227.knu_minigroup"
         minSdkVersion 21
         targetSdkVersion 32
-        versionCode 29
-        versionName "1.49"
+        versionCode 30
+        versionName "1.50"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

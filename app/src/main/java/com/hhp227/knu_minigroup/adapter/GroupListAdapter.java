@@ -2,7 +2,6 @@ package com.hhp227.knu_minigroup.adapter;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +16,8 @@ import com.hhp227.knu_minigroup.databinding.LoadMoreBinding;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.fragment.GroupInfoFragment;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -27,13 +28,12 @@ public class GroupListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     private final Activity mActivity;
 
-    private final List<Map.Entry<String, GroupItem>> mGroupItemList;
+    private final List<Map.Entry<String, GroupItem>> mGroupItemList = new ArrayList<>(Collections.singletonList(null));
 
     private int mProgressBarVisibility, mButtonType;
 
-    public GroupListAdapter(Activity activity, List<Map.Entry<String, GroupItem>> groupItemList) {
+    public GroupListAdapter(Activity activity) {
         this.mActivity = activity;
-        this.mGroupItemList = groupItemList;
     }
 
     @NonNull
@@ -79,6 +79,13 @@ public class GroupListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     public String getKey(int position) {
         return mGroupItemList.get(position).getKey();
+    }
+
+    public void submitList(List<Map.Entry<String, GroupItem>> groupItemList) {
+        mGroupItemList.clear();
+        mGroupItemList.add(null);
+        mGroupItemList.addAll(mGroupItemList.size() - 1, groupItemList);
+        notifyDataSetChanged();
     }
 
     public static class ItemHolder extends RecyclerView.ViewHolder {

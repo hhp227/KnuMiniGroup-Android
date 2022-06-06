@@ -4,6 +4,7 @@ import android.util.Log;
 import android.webkit.CookieManager;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -36,9 +37,7 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 
 public class RequestViewModel extends ViewModel {
-    public final MutableLiveData<State> mState = new MutableLiveData<>(new State(false, Collections.emptyList(), 1, false, false, null));
-
-    public List<Map.Entry<String, GroupItem>> mGroupItemList = new ArrayList<>(Collections.singletonList(null));
+    private final MutableLiveData<State> mState = new MutableLiveData<>(new State(false, Collections.emptyList(), 1, false, false, null));
 
     private static final int LIMIT = 100;
 
@@ -50,6 +49,10 @@ public class RequestViewModel extends ViewModel {
 
     public RequestViewModel() {
         fetchNextPage();
+    }
+
+    public LiveData<State> getState() {
+        return mState;
     }
 
     public void fetchGroupList(int offset) {
@@ -149,25 +152,19 @@ public class RequestViewModel extends ViewModel {
 
     public void fetchNextPage() {
         if (mState.getValue() != null && !mStopRequestMore) {
-            mState.postValue(new State(false, Collections.emptyList(), mState.getValue().offset, true, false, null));
+            mState.postValue(new State(false, mState.getValue().groupItemList, mState.getValue().offset, true, false, null));
         }
     }
 
     public void refresh() {
         mMinId = 0;
 
-        mGroupItemList.clear();
-        mGroupItemList.add(null);
         Executors.newSingleThreadExecutor().execute(new Runnable() {
             @Override
             public void run() {
                 mState.postValue(new State(false, Collections.emptyList(), 1, true, false, null));
             }
         });
-    }
-
-    public void addAll(List<Map.Entry<String, GroupItem>> groupItemList) {
-        mGroupItemList.addAll(mGroupItemList.size() - 1, groupItemList);
     }
 
     private void initFirebaseData(List<Map.Entry<String, GroupItem>> groupItemList) {
@@ -206,7 +203,7 @@ public class RequestViewModel extends ViewModel {
                         mState.postValue(new State(false, Collections.emptyList(), 1, false, false, e.getMessage()));
                     } finally {
                         if (mState.getValue() != null && mState.getValue().groupItemList.size() != groupItemList.size()) {
-                            mState.postValue(new State(false, groupItemList, mState.getValue().offset + LIMIT, false, groupItemList.isEmpty(), null));
+                            mState.postValue(new State(false, mergedList(mState.getValue().groupItemList, groupItemList), mState.getValue().offset + LIMIT, false, groupItemList.isEmpty(), null));
                         }
                     }
                 } else {
@@ -220,7 +217,9 @@ public class RequestViewModel extends ViewModel {
                             }
                         }
                     } else {
-                        mState.postValue(new State(false, groupItemList, 1, false, groupItemList.isEmpty(), null));
+                        if (mState.getValue() != null) {
+                            mState.postValue(new State(false, mergedList(mState.getValue().groupItemList, groupItemList), 1, false, groupItemList.isEmpty(), null));
+                        }
                     }
                 }
             }
@@ -234,6 +233,14 @@ public class RequestViewModel extends ViewModel {
 
     private int groupIdExtract(String onclick) {
         return Integer.parseInt(onclick.split("'")[1].trim());
+    }
+
+    private List<Map.Entry<String, GroupItem>> mergedList(List<Map.Entry<String, GroupItem>> existingList, List<Map.Entry<String, GroupItem>> newList) {
+        List<Map.Entry<String, GroupItem>> result = new ArrayList<>();
+
+        result.addAll(existingList);
+        result.addAll(newList);
+        return result;
     }
 
     public static final class State {
