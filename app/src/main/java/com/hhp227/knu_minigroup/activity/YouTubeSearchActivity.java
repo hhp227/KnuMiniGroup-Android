@@ -22,6 +22,7 @@ import com.hhp227.knu_minigroup.databinding.ActivityListBinding;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.viewmodel.YoutubeSearchViewModel;
 
+// TODO
 public class YouTubeSearchActivity extends AppCompatActivity {
     private YouTubeListAdapter mAdapter;
 
