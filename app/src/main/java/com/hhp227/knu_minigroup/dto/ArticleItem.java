@@ -1,9 +1,11 @@
 package com.hhp227.knu_minigroup.dto;
 
-import java.io.Serializable;
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.List;
 
-public class ArticleItem implements Serializable {
+public class ArticleItem implements Parcelable {
     private boolean auth;
 
     private long timestamp;
@@ -30,6 +32,31 @@ public class ArticleItem implements Serializable {
         this.auth = auth;
         this.timestamp = timestamp;
     }
+
+    protected ArticleItem(Parcel in) {
+        auth = in.readByte() != 0;
+        timestamp = in.readLong();
+        id = in.readString();
+        uid = in.readString();
+        name = in.readString();
+        title = in.readString();
+        content = in.readString();
+        replyCount = in.readString();
+        images = in.createStringArrayList();
+        youtube = in.readParcelable(YouTubeItem.class.getClassLoader());
+    }
+
+    public static final Creator<ArticleItem> CREATOR = new Creator<ArticleItem>() {
+        @Override
+        public ArticleItem createFromParcel(Parcel in) {
+            return new ArticleItem(in);
+        }
+
+        @Override
+        public ArticleItem[] newArray(int size) {
+            return new ArticleItem[size];
+        }
+    };
 
     public String getId() {
         return id;
@@ -109,5 +136,24 @@ public class ArticleItem implements Serializable {
 
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeByte((byte) (auth ? 1 : 0));
+        parcel.writeLong(timestamp);
+        parcel.writeString(id);
+        parcel.writeString(uid);
+        parcel.writeString(name);
+        parcel.writeString(title);
+        parcel.writeString(content);
+        parcel.writeString(replyCount);
+        parcel.writeStringList(images);
+        parcel.writeParcelable(youtube, i);
     }
 }

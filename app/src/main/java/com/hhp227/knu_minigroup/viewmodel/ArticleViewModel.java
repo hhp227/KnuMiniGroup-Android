@@ -329,7 +329,7 @@ public class ArticleViewModel extends ViewModel {
             }
         };
 
-        mSavedStateHandle.set(STATE, new State(true, null, ((State) mSavedStateHandle.get(STATE)).replyItemList, false, null));
+        mSavedStateHandle.set(STATE, new State(true, null, ((State) requireNonNull(mSavedStateHandle.get(STATE))).replyItemList, false, null));
         AppController.getInstance().addToRequestQueue(stringRequest);
     }
 
@@ -373,7 +373,7 @@ public class ArticleViewModel extends ViewModel {
                 if (value != null) {
                     articleItem.setUid(value.getUid());
                 }
-                mSavedStateHandle.set(STATE, new State(false, articleItem, ((State) mSavedStateHandle.get(STATE)).replyItemList, false, null));
+                mSavedStateHandle.set(STATE, new State(false, articleItem, ((State) requireNonNull(mSavedStateHandle.get(STATE))).replyItemList, false, null));
             }
 
             @Override
