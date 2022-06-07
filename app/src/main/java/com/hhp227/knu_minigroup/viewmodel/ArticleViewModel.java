@@ -46,15 +46,13 @@ import java.util.List;
 import java.util.Map;
 
 public class ArticleViewModel extends ViewModel {
-    public final List<Map.Entry<String, ReplyItem>> mReplyItemList = new ArrayList<>();
-
     public Boolean mIsAuthorized;
 
     public final Integer mPosition;
 
     public final String mGroupId, mArticleId, mGroupName, mGroupImage, mGroupKey, mArticleKey;
 
-    private static final String TAG = ArticleViewModel.class.getSimpleName(), STATE = "state", REPLY_FORM_STATE = "replyFormState", UPDATE_ARTICLE_STATE = "updateArticleState";
+    private static final String TAG = ArticleViewModel.class.getSimpleName(), STATE = "state", REPLY_FORM_STATE = "replyFormState", UPDATE_ARTICLE_STATE = "updateArticleState", ARTICLE = "article";
 
     private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
 
@@ -73,7 +71,10 @@ public class ArticleViewModel extends ViewModel {
         mPosition = savedStateHandle.get("position");
         mIsAuthorized = savedStateHandle.get("auth");
 
-        fetchArticleData(mArticleId);
+        if (!mSavedStateHandle.contains(STATE)) {
+            mSavedStateHandle.set(STATE, new State(false, null, Collections.emptyList(), false, null));
+            fetchArticleData(mArticleId);
+        }
     }
 
     public String getCookie() {
@@ -92,8 +93,17 @@ public class ArticleViewModel extends ViewModel {
         mSavedStateHandle.set(UPDATE_ARTICLE_STATE, bool);
     }
 
+    // TODO ArticleState가 업데이트되면 변경되는걸로 변경하기
     public LiveData<Boolean> getUpdateArticleState() {
         return mSavedStateHandle.getLiveData(UPDATE_ARTICLE_STATE);
+    }
+
+    public void setArticleState(ArticleItem articleItem) {
+        mSavedStateHandle.set(ARTICLE, articleItem);
+    }
+
+    public LiveData<ArticleItem> getArticleState() {
+        return mSavedStateHandle.getLiveData(ARTICLE);
     }
 
     public void setScrollToLastState(boolean bool) {
@@ -253,7 +263,7 @@ public class ArticleViewModel extends ViewModel {
             }
         };
 
-        mSavedStateHandle.set(STATE, new State(true, ((State) requireNonNull(mSavedStateHandle.get(STATE))).articleItem, Collections.emptyList(), false, null));
+        mSavedStateHandle.set(STATE, new State(true, ((State) requireNonNull(mSavedStateHandle.get(STATE))).articleItem, ((State) requireNonNull(mSavedStateHandle.get(STATE))).replyItemList, false, null));
         AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
     }
 
@@ -262,12 +272,7 @@ public class ArticleViewModel extends ViewModel {
     }
 
     public void refreshReply(List<Element> commentList) {
-        mReplyItemList.clear();
         fetchReplyData(commentList);
-    }
-
-    public void addAll(List<Map.Entry<String, ReplyItem>> replyItemList) {
-        mReplyItemList.addAll(replyItemList);
     }
 
     private void fetchArticleData(String articleId) {
@@ -324,7 +329,7 @@ public class ArticleViewModel extends ViewModel {
             }
         };
 
-        mSavedStateHandle.set(STATE, new State(true, null, Collections.emptyList(), false, null));
+        mSavedStateHandle.set(STATE, new State(true, null, ((State) mSavedStateHandle.get(STATE)).replyItemList, false, null));
         AppController.getInstance().addToRequestQueue(stringRequest);
     }
 
@@ -368,7 +373,7 @@ public class ArticleViewModel extends ViewModel {
                 if (value != null) {
                     articleItem.setUid(value.getUid());
                 }
-                mSavedStateHandle.set(STATE, new State(false, articleItem, Collections.emptyList(), false, null));
+                mSavedStateHandle.set(STATE, new State(false, articleItem, ((State) mSavedStateHandle.get(STATE)).replyItemList, false, null));
             }
 
             @Override
@@ -416,7 +421,7 @@ public class ArticleViewModel extends ViewModel {
                         }
                     }
                 }
-                mSavedStateHandle.set(STATE, new State(false, ((State) requireNonNull(mSavedStateHandle.get(STATE))).articleItem, replyItemList, false, null));
+                mSavedStateHandle.set(STATE, new State(false, null, replyItemList, false, null));
             }
 
             @Override

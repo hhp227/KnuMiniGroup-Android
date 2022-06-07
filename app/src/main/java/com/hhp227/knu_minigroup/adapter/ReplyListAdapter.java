@@ -15,15 +15,12 @@ import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.ReplyItemBinding;
 import com.hhp227.knu_minigroup.dto.ReplyItem;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class ReplyListAdapter extends BaseAdapter {
-    public final List<Map.Entry<String, ReplyItem>> mReplyItemList;
-
-    public ReplyListAdapter(List<Map.Entry<String, ReplyItem>> replyItemList) {
-        this.mReplyItemList = replyItemList;
-    }
+    private final List<Map.Entry<String, ReplyItem>> mReplyItemList = new ArrayList<>();
 
     @Override
     public int getCount() {
@@ -58,6 +55,16 @@ public class ReplyListAdapter extends BaseAdapter {
 
     public String getKey(int position) {
         return mReplyItemList.get(position).getKey();
+    }
+
+    public List<Map.Entry<String, ReplyItem>> getCurrentList() {
+        return mReplyItemList;
+    }
+
+    public void submitList(List<Map.Entry<String, ReplyItem>> replyItemList) {
+        mReplyItemList.clear();
+        mReplyItemList.addAll(replyItemList);
+        notifyDataSetChanged();
     }
 
     private static class ViewHolder {

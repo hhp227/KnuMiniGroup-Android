@@ -37,7 +37,6 @@ import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerView;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.ReplyListAdapter;
-import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.ActivityArticleBinding;
 import com.hhp227.knu_minigroup.databinding.ArticleDetailBinding;
@@ -54,7 +53,6 @@ import net.htmlparser.jericho.Source;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO
 public class ArticleActivity extends MyYouTubeBaseActivity {
     private static final int UPDATE_ARTICLE = 10;
 
@@ -76,7 +74,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
         mActivityArticleBinding = ActivityArticleBinding.inflate(getLayoutInflater());
         mArticleDetailBinding = ArticleDetailBinding.inflate(getLayoutInflater());
         mViewModel = new ViewModelProvider(this).get(ArticleViewModel.class);
-        mAdapter = new ReplyListAdapter(mViewModel.mReplyItemList);
+        mAdapter = new ReplyListAdapter();
         mTextWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -145,22 +143,19 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
             public void onChanged(ArticleViewModel.State state) {
                 if (state.isLoading) {
                     showProgressBar();
-                } else if (!state.replyItemList.isEmpty()) {
-                    mViewModel.addAll(state.replyItemList);
-                    mAdapter.notifyDataSetChanged();
-                    if (state.articleItem != null) {
-                        hideProgressBar();
-                    }
-                } else if (state.articleItem != null) {
-                    hideProgressBar();
-                    bindArticle(state.articleItem);
-                    if (mViewModel.getUpdateArticleState().getValue() != null) {
-                        deliveryUpdate(state.articleItem);
-                    }
                 } else if (state.isSetResultOK) {
                     setResult(RESULT_OK);
                     finish();
                     Toast.makeText(getApplicationContext(), state.message, Toast.LENGTH_LONG).show();
+                } else if (state.articleItem != null || state.replyItemList != null) {
+                    mAdapter.submitList(state.replyItemList);
+                    hideProgressBar();
+                    if (state.articleItem != null) {
+                        mViewModel.setArticleState(state.articleItem);
+                        if (mViewModel.getUpdateArticleState().getValue() != null) {
+                            deliveryUpdate(state.articleItem);
+                        }
+                    }
                 } else if (state.message != null && !state.message.isEmpty()) {
                     hideProgressBar();
                     Snackbar.make(mActivityArticleBinding.lvArticle, state.message, Snackbar.LENGTH_LONG).show();
@@ -171,6 +166,12 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
             @Override
             public void onChanged(ArticleViewModel.ReplyFormState replyFormState) {
                 Toast.makeText(ArticleActivity.this, replyFormState.replyError, Toast.LENGTH_SHORT).show();
+            }
+        });
+        mViewModel.getArticleState().observe(this, new Observer<ArticleItem>() {
+            @Override
+            public void onChanged(ArticleItem articleItem) {
+                bindArticle(articleItem);
             }
         });
         mViewModel.getUpdateArticleState().observe(this, new Observer<Boolean>() {
@@ -218,23 +219,19 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
                 return true;
             case 1:
                 Intent intent = new Intent(this, CreateArticleActivity.class);
-                ArticleViewModel.State state = mViewModel.getState().getValue();
+                ArticleItem articleItem = mViewModel.getArticleState().getValue();
 
-                if (state != null) {
-                    ArticleItem articleItem = state.articleItem;
-
-                    if (articleItem != null) {
-                        intent.putExtra("grp_id", mViewModel.mGroupId);
-                        intent.putExtra("artl_num", articleItem.getId());
-                        intent.putExtra("sbjt", articleItem.getTitle());
-                        intent.putExtra("txt", articleItem.getContent());
-                        intent.putStringArrayListExtra("img", (ArrayList<String>) articleItem.getImages());
-                        intent.putExtra("vid", articleItem.getYoutube());
-                        intent.putExtra("grp_key", mViewModel.mGroupKey);
-                        intent.putExtra("artl_key", mViewModel.mArticleKey);
-                        intent.putExtra("type", 1);
-                        startActivityForResult(intent, UPDATE_ARTICLE);
-                    }
+                if (articleItem != null) {
+                    intent.putExtra("grp_id", mViewModel.mGroupId);
+                    intent.putExtra("artl_num", articleItem.getId());
+                    intent.putExtra("sbjt", articleItem.getTitle());
+                    intent.putExtra("txt", articleItem.getContent());
+                    intent.putStringArrayListExtra("img", (ArrayList<String>) articleItem.getImages());
+                    intent.putExtra("vid", articleItem.getYoutube());
+                    intent.putExtra("grp_key", mViewModel.mGroupKey);
+                    intent.putExtra("artl_key", mViewModel.mArticleKey);
+                    intent.putExtra("type", 1);
+                    startActivityForResult(intent, UPDATE_ARTICLE);
                 }
                 return true;
             case 2:
@@ -264,7 +261,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         int position = ((AdapterView.AdapterContextMenuInfo) menuInfo).position;
-        boolean auth = !mViewModel.mReplyItemList.isEmpty() && position != 0 && mViewModel.mReplyItemList.get((position - 1)).getValue().isAuth();
+        boolean auth = !mAdapter.getCurrentList().isEmpty() && position != 0 && mAdapter.getCurrentList().get((position - 1)).getValue().isAuth();
 
         menu.setHeaderTitle("작업선택");
         menu.add(Menu.NONE, 1, Menu.NONE, "내용 복사");
@@ -277,8 +274,8 @@ public class ArticleActivity extends MyYouTubeBaseActivity {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        final String replyKey = mViewModel.mReplyItemList.isEmpty() || info.position == 0 ? null : mViewModel.mReplyItemList.get(info.position - 1).getKey();
-        ReplyItem replyItem = mViewModel.mReplyItemList.isEmpty() || info.position == 0 ? null : mViewModel.mReplyItemList.get(info.position - 1).getValue(); // 헤더가 있기때문에 포지션에서 -1을 해준다.
+        final String replyKey = mAdapter.getCurrentList().isEmpty() || info.position == 0 ? null : mAdapter.getCurrentList().get(info.position - 1).getKey();
+        ReplyItem replyItem = mAdapter.getCurrentList().isEmpty() || info.position == 0 ? null : mAdapter.getCurrentList().get(info.position - 1).getValue(); // 헤더가 있기때문에 포지션에서 -1을 해준다.
 
         if (replyItem != null) {
             final String replyId = replyItem.getId();

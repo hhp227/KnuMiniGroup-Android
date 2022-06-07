@@ -1,8 +1,9 @@
 package com.hhp227.knu_minigroup.dto;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class ArticleItem {
+public class ArticleItem implements Serializable {
     private boolean auth;
 
     private long timestamp;
