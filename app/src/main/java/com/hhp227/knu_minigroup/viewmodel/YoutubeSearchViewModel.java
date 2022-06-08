@@ -1,5 +1,6 @@
 package com.hhp227.knu_minigroup.viewmodel;
 
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -23,11 +24,9 @@ import java.util.concurrent.Executors;
 public class YoutubeSearchViewModel extends ViewModel {
     public static final String API_KEY = "AIzaSyBxQb9CaA01lU5AkXnPGf3s8QjoiV-3Vys";
 
-    public final MutableLiveData<State> mState = new MutableLiveData<>();
+    private final MutableLiveData<State> mState = new MutableLiveData<>();
 
-    public final List<YouTubeItem> mYouTubeItemList = new ArrayList<>();
-
-    public final MutableLiveData<String> mQuery = new MutableLiveData<>();
+    private final MutableLiveData<String> mQuery = new MutableLiveData<>();
 
     private static final int LIMIT = 50;
 
@@ -39,22 +38,25 @@ public class YoutubeSearchViewModel extends ViewModel {
         mQuery.postValue(query);
     }
 
+    public LiveData<String> getQuery() {
+        return mQuery;
+    }
+
+    public LiveData<State> getState() {
+        return mState;
+    }
+
     public void refresh() {
         setQuery(mQuery.getValue());
     }
 
     public void requestData(String query) {
-        mYouTubeItemList.clear();
         Executors.newSingleThreadExecutor().execute(new Runnable() {
             @Override
             public void run() {
                 fetchDataTask(query);
             }
         });
-    }
-
-    public void addAll(List<YouTubeItem> youTubeItems) {
-        mYouTubeItemList.addAll(youTubeItems);
     }
 
     private void fetchDataTask(String query) {

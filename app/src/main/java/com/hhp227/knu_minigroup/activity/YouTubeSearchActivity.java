@@ -22,7 +22,6 @@ import com.hhp227.knu_minigroup.databinding.ActivityListBinding;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.viewmodel.YoutubeSearchViewModel;
 
-// TODO
 public class YouTubeSearchActivity extends AppCompatActivity {
     private YouTubeListAdapter mAdapter;
 
@@ -35,14 +34,14 @@ public class YouTubeSearchActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         mBinding = ActivityListBinding.inflate(getLayoutInflater());
         mViewModel = new ViewModelProvider(this).get(YoutubeSearchViewModel.class);
-        mAdapter = new YouTubeListAdapter(mViewModel.mYouTubeItemList);
+        mAdapter = new YouTubeListAdapter();
 
         setContentView(mBinding.getRoot());
         setSupportActionBar(mBinding.toolbar);
         mAdapter.setOnItemClickListener(new YouTubeListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position) {
-                YouTubeItem youTubeItem = mViewModel.mYouTubeItemList.get(position);
+                YouTubeItem youTubeItem = mAdapter.getCurrentList().get(position);
                 youTubeItem.position = -1;
                 Intent intent = new Intent(getApplicationContext(), CreateArticleActivity.class);
 
@@ -66,22 +65,21 @@ public class YouTubeSearchActivity extends AppCompatActivity {
         });
         mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         mBinding.recyclerView.setAdapter(mAdapter);
-        mViewModel.mState.observe(this, new Observer<YoutubeSearchViewModel.State>() {
+        mViewModel.getState().observe(this, new Observer<YoutubeSearchViewModel.State>() {
             @Override
             public void onChanged(YoutubeSearchViewModel.State state) {
                 if (state.isLoading) {
                     showProgressBar();
                 } else if (!state.youTubeItems.isEmpty()) {
                     hideProgressBar();
-                    mViewModel.addAll(state.youTubeItems);
-                    mAdapter.notifyItemRangeChanged(0, mAdapter.getItemCount());
+                    mAdapter.submitList(state.youTubeItems);
                 } else if (state.message != null && !state.message.isEmpty()) {
                     hideProgressBar();
                     Snackbar.make(findViewById(android.R.id.content), state.message, Snackbar.LENGTH_LONG).show();
                 }
             }
         });
-        mViewModel.mQuery.observe(this, new Observer<String>() {
+        mViewModel.getQuery().observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
                 mViewModel.requestData(s);

@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+// TODO
 public class CreateArticleActivity extends AppCompatActivity {
     private String mCurrentPhotoPath;
 

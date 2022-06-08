@@ -12,16 +12,13 @@ import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.databinding.YoutubeItemBinding;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class YouTubeListAdapter extends RecyclerView.Adapter<YouTubeListAdapter.YouTubeListHolder> {
-    private final List<YouTubeItem> mYouTubeItemList;
+    private final List<YouTubeItem> mYouTubeItemList = new ArrayList<>();
 
     private OnItemClickListener mOnItemClickListener;
-
-    public YouTubeListAdapter(List<YouTubeItem> mYouTubeItemList) {
-        this.mYouTubeItemList = mYouTubeItemList;
-    }
 
     @NonNull
     @Override
@@ -46,6 +43,16 @@ public class YouTubeListAdapter extends RecyclerView.Adapter<YouTubeListAdapter.
 
     public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
         this.mOnItemClickListener = onItemClickListener;
+    }
+
+    public List<YouTubeItem> getCurrentList() {
+        return mYouTubeItemList;
+    }
+
+    public void submitList(List<YouTubeItem> youTubeItems) {
+        mYouTubeItemList.clear();
+        mYouTubeItemList.addAll(youTubeItems);
+        notifyDataSetChanged();
     }
 
     public class YouTubeListHolder extends RecyclerView.ViewHolder {
