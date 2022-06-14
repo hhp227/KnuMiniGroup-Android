@@ -1,5 +1,8 @@
 package com.hhp227.knu_minigroup.data;
 
+import android.telecom.Call;
+import android.text.Html;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -18,9 +21,11 @@ import com.google.firebase.database.ValueEventListener;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
+import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.helper.Callback;
 import com.hhp227.knu_minigroup.helper.DateUtil;
+import com.hhp227.knu_minigroup.viewmodel.CreateArticleViewModel;
 
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
@@ -31,6 +36,7 @@ import org.json.JSONObject;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -198,6 +204,53 @@ public class ArticleRepository {
         AppController.getInstance().addToRequestQueue(stringRequest);
     }
 
+    // TODO
+    /*public void addArticle(String cookie, String title, String content, Callback callback) {
+        String tagStringReq = "req_send";
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.WRITE_ARTICLE, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject jsonObject = new JSONObject(response);
+                    boolean error = jsonObject.getBoolean("isError");
+
+                    if (!error) {
+                        getArticleId(cookie, title, Html.fromHtml(content).toString().trim(), callback);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    callback.onFailure(e);
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e(error.getMessage());
+                callback.onFailure(error);
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+
+                headers.put("Cookie", cookie);
+                return headers;
+            }
+
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+
+                params.put("SBJT", title);
+                params.put("CLUB_GRP_ID", mGroupId);
+                params.put("TXT", content);
+                return params;
+            }
+        };
+
+        AppController.getInstance().addToRequestQueue(stringRequest, tagStringReq);
+    }*/
+
     public void removeArticle(String cookie, String articleId, String articleKey, Callback callback) {
         String tag_string_req = "req_delete";
         StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.DELETE_ARTICLE, new Response.Listener<String>() {
@@ -242,6 +295,35 @@ public class ArticleRepository {
         callback.onLoading();
         AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
     }
+
+    // TODO
+    /*private void getArticleId(String cookie, String title, String content, Callback callback) {
+        String params = "?CLUB_GRP_ID=" + mGroupId + "&displayL=1";
+
+        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.GROUP_ARTICLE_LIST + params, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Source source = new Source(response);
+                String artlNum = source.getFirstElementByClass("comment_wrap").getAttributeValue("num");
+
+                insertArticleToFirebase(artlNum, title, content);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e(error.getMessage());
+                callback.onFailure(error);
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+
+                headers.put("Cookie", cookie);
+                return headers;
+            }
+        });
+    }*/
 
     private void initFirebaseData(List<Map.Entry<String, ArticleItem>> articleItemList, Callback callback) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
@@ -307,6 +389,24 @@ public class ArticleRepository {
             }
         });
     }
+
+    // TODO
+    /*private void insertArticleToFirebase(String artlNum, String title, String content) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
+        Map<String, Object> map = new HashMap<>();
+        User user = mPreferenceManager.getUser();
+
+        map.put("id", artlNum);
+        map.put("uid", user.getUid());
+        map.put("name", user.getName());
+        map.put("title", title);
+        map.put("timestamp", System.currentTimeMillis());
+        map.put("content", TextUtils.isEmpty(content) ? null : content);
+        map.put("images", mImageList);
+        map.put("youtube", getYoutubeState().getValue());
+        databaseReference.child(mGrpKey).push().setValue(map);
+        mSavedStateHandle.set(STATE, new CreateArticleViewModel.State(-1, artlNum, Collections.emptyList(), "전송완료"));
+    }*/
 
     private void deleteArticleFromFirebase(String articleKey, Callback callback) {
         DatabaseReference articlesReference = FirebaseDatabase.getInstance().getReference("Articles");

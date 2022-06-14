@@ -142,49 +142,7 @@ public class CreateArticleViewModel extends ViewModel {
     }
 
     private void actionCreate(final String title, final String content) {
-        String tagStringReq = "req_send";
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.WRITE_ARTICLE, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                try {
-                    JSONObject jsonObject = new JSONObject(response);
-                    boolean error = jsonObject.getBoolean("isError");
 
-                    if (!error) {
-                        getArticleId(title, Html.fromHtml(content).toString().trim());
-                    }
-                } catch (JSONException e) {
-                    Log.e(TAG, "에러 : " + e.getMessage());
-                    mSavedStateHandle.set(STATE, new State(-1, null, Collections.emptyList(), e.getMessage()));
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(error.getMessage());
-                mSavedStateHandle.set(STATE, new State(-1, null, Collections.emptyList(), error.getMessage()));
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
-                return headers;
-            }
-
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-
-                params.put("SBJT", title);
-                params.put("CLUB_GRP_ID", mGrpId);
-                params.put("TXT", content);
-                return params;
-            }
-        };
-
-        AppController.getInstance().addToRequestQueue(stringRequest, tagStringReq);
     }
 
     private void actionUpdate(final String title, final String content) {
