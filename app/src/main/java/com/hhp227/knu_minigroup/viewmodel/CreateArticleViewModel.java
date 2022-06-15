@@ -33,7 +33,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// TODO 영남대 소모임에도 적용
 public class CreateArticleViewModel extends ViewModel {
     public final List<Object> mContents = new ArrayList<>();
 

@@ -1,6 +1,5 @@
 package com.hhp227.knu_minigroup.data;
 
-import android.telecom.Call;
 import android.text.Html;
 import android.text.TextUtils;
 import android.util.Log;
@@ -25,7 +24,6 @@ import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.helper.Callback;
 import com.hhp227.knu_minigroup.helper.DateUtil;
-import com.hhp227.knu_minigroup.viewmodel.CreateArticleViewModel;
 
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
@@ -36,7 +34,6 @@ import org.json.JSONObject;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -204,7 +201,6 @@ public class ArticleRepository {
         AppController.getInstance().addToRequestQueue(stringRequest);
     }
 
-    // TODO
     public void addArticle(String cookie, User user, String title, String content, List<String> imageList, YouTubeItem youTubeItem, Callback callback) {
         String tagStringReq = "req_send";
         StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.WRITE_ARTICLE, new Response.Listener<String>() {
@@ -337,7 +333,6 @@ public class ArticleRepository {
         AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
     }
 
-    // TODO
     private void getArticleId(String cookie, User user, String title, String content, List<String> imageList, YouTubeItem youTubeItem, Callback callback) {
         String params = "?CLUB_GRP_ID=" + mGroupId + "&displayL=1";
 
