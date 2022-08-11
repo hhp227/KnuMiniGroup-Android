@@ -55,7 +55,7 @@ public class CreateGroupActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                mBinding.ivReset.setImageResource(s.length() > 0 ? com.hhp227.knu_minigroup.R.drawable.ic_clear_black_24dp : com.hhp227.knu_minigroup.R.drawable.ic_clear_gray_24dp);
+                mBinding.ivReset.setImageResource(s.length() > 0 ? R.drawable.ic_clear_black_24dp : R.drawable.ic_clear_gray_24dp);
             }
 
             @Override
