@@ -17,7 +17,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.data.GroupRepository;
 import com.hhp227.knu_minigroup.dto.GroupItem;
+import com.hhp227.knu_minigroup.helper.Callback;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 
@@ -43,6 +45,8 @@ public class CreateGroupViewModel extends ViewModel {
 
     private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
 
+    private final GroupRepository mGroupRepository = new GroupRepository();
+
     private String mType;
 
     public void setBitmap(Bitmap bitmap) {
@@ -55,6 +59,22 @@ public class CreateGroupViewModel extends ViewModel {
 
     public void createGroup(String title, String description) {
         if (!title.isEmpty() && !description.isEmpty()) {
+            /*mGroupRepository.addGroup(mCookieManager.getCookie(EndPoint.LOGIN), mBitmap.getValue(), title, description, mType, new Callback() {
+                @Override
+                public <T> void onSuccess(T data) {
+                    mState.postValue(new State(false, (Map.Entry<String, GroupItem>) data, null));
+                }
+
+                @Override
+                public void onFailure(Throwable throwable) {
+                    mState.postValue(new State(false, null, throwable.getMessage()));
+                }
+
+                @Override
+                public void onLoading() {
+                    mState.postValue(new State(true, null, null));
+                }
+            });*/
             mState.postValue(new State(true, null, null));
             AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, EndPoint.CREATE_GROUP, null, new Response.Listener<JSONObject>() {
                 @Override
