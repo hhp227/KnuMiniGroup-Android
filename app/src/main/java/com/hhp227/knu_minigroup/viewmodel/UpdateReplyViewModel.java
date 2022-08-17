@@ -90,7 +90,7 @@ public class UpdateReplyViewModel extends ViewModel {
             this.message = message;
         }
 
-        protected State(Parcel in) {
+        private State(Parcel in) {
             isLoading = in.readByte() != 0;
             text = in.readString();
             message = in.readString();
@@ -128,7 +128,7 @@ public class UpdateReplyViewModel extends ViewModel {
             this.replyError = replyError;
         }
 
-        protected ReplyFormState(Parcel in) {
+        private ReplyFormState(Parcel in) {
             replyError = in.readString();
         }
 
