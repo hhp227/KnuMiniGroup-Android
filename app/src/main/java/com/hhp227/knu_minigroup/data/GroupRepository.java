@@ -2,6 +2,7 @@ package com.hhp227.knu_minigroup.data;
 
 import android.graphics.Bitmap;
 
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -9,14 +10,17 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.helper.Callback;
+import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class GroupRepository {
     public GroupRepository() {
@@ -37,7 +41,7 @@ public class GroupRepository {
                         String groupName = response.getString("GRP_NM");
 
                         if (bitmap != null)
-                            groupImageUpdate(groupId, groupName, description, bitmap);
+                            groupImageUpdate(cookie, groupId, groupName, description, bitmap, callback);
                         else {
                             insertGroupToFirebase(groupId, groupName, description, null);
                         }
@@ -100,7 +104,56 @@ public class GroupRepository {
 
     }
 
-    private void groupImageUpdate(String groupId, String groupName, String description, Bitmap bitmap) {
+    private void groupImageUpdate(String cookie, String groupId, String groupName, String description, Bitmap bitmap, Callback callback) {
+        AppController.getInstance().addToRequestQueue(new MultipartRequest(Request.Method.POST, EndPoint.GROUP_IMAGE_UPDATE, new Response.Listener<NetworkResponse>() {
+            @Override
+            public void onResponse(NetworkResponse response) {
+                insertGroupToFirebase(groupId, groupName, description, bitmap);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                if (error.networkResponse.statusCode == 302) {
+                    // 임시로 넣은코드, 서버에서 왜 이런 응답을 보내는지 이해가 안된다.
+                    insertGroupToFirebase(groupId, groupName, description, bitmap);
+                } else {
+                    callback.onFailure(error);
+                }
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+
+                headers.put("Cookie", cookie);
+                return headers;
+            }
+
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+
+                params.put("CLUB_GRP_ID", groupId);
+                return params;
+            }
+
+            @Override
+            protected Map<String, DataPart> getByteData() {
+                Map<String, DataPart> params = new HashMap<>();
+
+                if (bitmap != null) {
+                    params.put("file", new DataPart(UUID.randomUUID().toString().replace("-", "").concat(".jpg"), getFileDataFromDrawable(bitmap)));
+                }
+                return params;
+            }
+
+            private byte[] getFileDataFromDrawable(Bitmap bitmap) {
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+                bitmap.compress(Bitmap.CompressFormat.PNG, 80, byteArrayOutputStream);
+                return byteArrayOutputStream.toByteArray();
+            }
+        });
     }
 
     private void insertGroupToFirebase(String groupId, String groupName, String description, Object o) {
