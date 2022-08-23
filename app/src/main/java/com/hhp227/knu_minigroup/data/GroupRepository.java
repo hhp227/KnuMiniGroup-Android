@@ -12,10 +12,12 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
@@ -24,6 +26,10 @@ import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.helper.Callback;
 import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 
+import net.htmlparser.jericho.Element;
+import net.htmlparser.jericho.HTMLElementName;
+import net.htmlparser.jericho.Source;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -31,7 +37,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -39,7 +47,73 @@ public class GroupRepository {
     public GroupRepository() {
     }
 
-    public void getGroupList() {
+    public void getJoinedGroupList(String cookie, User user, Callback callback) {
+        callback.onLoading();
+        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Source source = new Source(response);
+                List<Map.Entry<String, Object>> groupItemList = new ArrayList<>();
+
+                try {
+                    List<Element> listElementA = source.getAllElements(HTMLElementName.A);
+
+                    for (Element elementA : listElementA) {
+                        try {
+                            String id = groupIdExtract(elementA.getAttributeValue("onclick"));
+                            boolean isAdmin = adminCheck(elementA.getAttributeValue("onclick"));
+                            String image = EndPoint.BASE_URL + elementA.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
+                            String name = elementA.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
+                            GroupItem groupItem = new GroupItem();
+
+                            groupItem.setId(id);
+                            groupItem.setAdmin(isAdmin);
+                            groupItem.setImage(image);
+                            groupItem.setName(name);
+                            groupItemList.add(new AbstractMap.SimpleEntry<>(id, groupItem));
+                        } catch (NullPointerException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } catch (Exception e) {
+                    callback.onFailure(e);
+                } finally {
+                    initFirebaseData(user, insertAdvertisement(groupItemList), callback);
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e(error.getMessage());
+                callback.onFailure(error);
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+
+                headers.put("Cookie", cookie);
+                return headers;
+            }
+
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+
+                params.put("panel_id", "2");
+                params.put("start", "1");
+                params.put("display", "10");
+                params.put("encoding", "utf-8");
+                return params;
+            }
+        });
+    }
+
+    public void getNotJoinedGroupList() {
+
+    }
+
+    public void getJoinRequestGroupList() {
 
     }
 
@@ -222,6 +296,66 @@ public class GroupRepository {
         });
     }
 
+    private void initFirebaseData(User user, List<Map.Entry<String, Object>> groupItemList, Callback callback) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
+
+        fetchDataTaskFromFirebase(databaseReference.child(user.getUid()).orderByValue().equalTo(true), false, groupItemList, callback);
+    }
+
+    private void fetchDataTaskFromFirebase(Query query, final boolean isRecursion, List<Map.Entry<String, Object>> groupItemList, Callback callback) {
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (isRecursion) {
+                    try {
+                        String key = dataSnapshot.getKey();
+                        GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
+
+                        if (groupItem != null) {
+                            int index = -1;
+
+                            for (int i = 0; i < groupItemList.size(); i++) {
+                                Map.Entry<String, Object> entry = groupItemList.get(i);
+
+                                if (entry.getKey().equals(groupItem.getId())) {
+                                    index = i;
+                                    break;
+                                }
+                            }
+                            if (index > -1) {
+                                Map.Entry<String, Object> entry = groupItemList.get(index);
+
+                                groupItemList.set(index, new AbstractMap.SimpleEntry<>(key, entry.getValue()));
+                            }
+                        }
+                    } catch (Exception e) {
+                        callback.onFailure(e);
+                    } finally {
+                        callback.onSuccess(groupItemList);
+                    }
+                } else {
+                    if (dataSnapshot.hasChildren()) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
+                            String key = snapshot.getKey();
+
+                            if (key != null) {
+                                fetchDataTaskFromFirebase(databaseReference.child(key), true, groupItemList, callback);
+                            }
+                        }
+                    } else {
+                        callback.onSuccess(groupItemList);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                callback.onFailure(databaseError.toException());
+            }
+        });
+    }
+
     private void insertGroupToFirebase(User user, String groupId, String groupName, String description, Bitmap bitmap, String type, Callback callback) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         Map<String, Boolean> members = new HashMap<>();
@@ -312,5 +446,31 @@ public class GroupRepository {
             userGroupListReference.child(user.getUid()).child(key).removeValue();
         }
         callback.onSuccess(true);
+    }
+
+    private List<Map.Entry<String, Object>> insertAdvertisement(List<Map.Entry<String, Object>> groupItemList) {
+        Map<String, String> headerMap = new HashMap<>();
+
+        if (!groupItemList.isEmpty()) {
+            headerMap.put("text", "가입중인 그룹");
+            groupItemList.add(0, new AbstractMap.SimpleEntry<>("가입중인 그룹", headerMap));
+            if (groupItemList.size() % 2 == 0) {
+                groupItemList.add(new AbstractMap.SimpleEntry<>("광고", "광고"));
+            }
+        } else {
+            groupItemList.add(new AbstractMap.SimpleEntry<>("없음", "없음"));
+            headerMap.put("text", "인기 모임");
+            groupItemList.add(new AbstractMap.SimpleEntry<>("인기 모임", headerMap));
+            groupItemList.add(new AbstractMap.SimpleEntry<>("뷰페이져", "뷰페이져"));
+        }
+        return groupItemList;
+    }
+
+    private String groupIdExtract(String href) {
+        return href.split("'")[3].trim();
+    }
+
+    private boolean adminCheck(String onClick) {
+        return onClick.split("'")[1].trim().equals("0");
     }
 }
