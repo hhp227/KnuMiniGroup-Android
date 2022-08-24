@@ -3,6 +3,7 @@ package com.hhp227.knu_minigroup.data;
 import static com.hhp227.knu_minigroup.app.EndPoint.GROUP_IMAGE;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -44,7 +45,19 @@ import java.util.Map;
 import java.util.UUID;
 
 public class GroupRepository {
+    private boolean mStopRequestMore = false;
+
+    private int mMinId;
+
     public GroupRepository() {
+    }
+
+    public boolean isStopRequestMore() {
+        return mStopRequestMore;
+    }
+
+    public void setMinId(int minId) {
+        this.mMinId = minId;
     }
 
     public void getJoinedGroupList(String cookie, User user, Callback callback) {
@@ -60,7 +73,7 @@ public class GroupRepository {
 
                     for (Element elementA : listElementA) {
                         try {
-                            String id = groupIdExtract(elementA.getAttributeValue("onclick"));
+                            String id = groupIdExtract(elementA.getAttributeValue("onclick"), 3);
                             boolean isAdmin = adminCheck(elementA.getAttributeValue("onclick"));
                             String image = EndPoint.BASE_URL + elementA.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
                             String name = elementA.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
@@ -78,7 +91,7 @@ public class GroupRepository {
                 } catch (Exception e) {
                     callback.onFailure(e);
                 } finally {
-                    initFirebaseData(user, insertAdvertisement(groupItemList), callback);
+                    initFirebaseData(user.getUid(), insertAdvertisement(groupItemList), true, callback);
                 }
             }
         }, new Response.ErrorListener() {
@@ -109,12 +122,199 @@ public class GroupRepository {
         });
     }
 
-    public void getNotJoinedGroupList() {
+    public void getNotJoinedGroupList(String cookie, int offset, int limit, Callback callback) {
+        callback.onLoading();
+        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Source source = new Source(response);
+                List<Element> list = source.getAllElements("id", "accordion", false);
+                List<Map.Entry<String, GroupItem>> groupItemList = new ArrayList<>();
 
+                for (Element element : list) {
+                    try {
+                        Element menuList = element.getFirstElementByClass("menu_list");
+
+                        if (element.getAttributeValue("class").equals("accordion")) {
+                            int id = groupIdExtract(menuList.getFirstElementByClass("button").getAttributeValue("onclick"));
+                            String imageUrl = EndPoint.BASE_URL + element.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
+                            String name = element.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
+                            StringBuilder info = new StringBuilder();
+                            String description = menuList.getAllElementsByClass("info").get(0).getContent().toString();
+                            String joinType = menuList.getAllElementsByClass("info").get(1).getTextExtractor().toString().trim();
+                            GroupItem groupItem = new GroupItem();
+                            mMinId = mMinId == 0 ? id : Math.min(mMinId, id);
+
+                            for (Element span : element.getFirstElement(HTMLElementName.A).getAllElementsByClass("info")) {
+                                String extractedText = span.getTextExtractor().toString();
+
+                                info.append(extractedText.contains("회원수") ?
+                                        extractedText.substring(0, extractedText.lastIndexOf("생성일")).trim() + "\n" :
+                                        extractedText + "\n");
+                            }
+                            if (id > mMinId) {
+                                mStopRequestMore = true;
+                                break;
+                            } else
+                                mStopRequestMore = false;
+                            groupItem.setId(String.valueOf(id));
+                            groupItem.setImage(imageUrl);
+                            groupItem.setName(name);
+                            groupItem.setInfo(info.toString().trim());
+                            groupItem.setDescription(description);
+                            groupItem.setJoinType(joinType.equals("가입방식: 자동 승인") ? "0" : "1");
+                            groupItemList.add(new AbstractMap.SimpleEntry<>(String.valueOf(id), groupItem));
+                        }
+                    } catch (Exception e) {
+                        callback.onFailure(e);
+                        Log.e(GroupRepository.class.getSimpleName(), e.getMessage());
+                    }
+                }
+                initFirebaseData(groupItemList, callback);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                callback.onFailure(error);
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+
+                headers.put("Cookie", cookie);
+                return headers;
+            }
+
+            @Override
+            public String getBodyContentType() {
+                return "application/x-www-form-urlencoded; charset=" + getParamsEncoding();
+            }
+
+            @Override
+            public byte[] getBody() {
+                Map<String, String> params = new HashMap<>();
+
+                params.put("panel_id", "1");
+                params.put("gubun", "select_share_total");
+                params.put("start", String.valueOf(offset));
+                params.put("display", String.valueOf(limit));
+                params.put("encoding", "utf-8");
+                if (params.size() > 0) {
+                    StringBuilder encodedParams = new StringBuilder();
+
+                    try {
+                        for (Map.Entry<String, String> entry : params.entrySet()) {
+                            encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));
+                            encodedParams.append('=');
+                            encodedParams.append(URLEncoder.encode(entry.getValue(), getParamsEncoding()));
+                            encodedParams.append('&');
+                        }
+                        return encodedParams.toString().getBytes(getParamsEncoding());
+                    } catch (UnsupportedEncodingException uee) {
+                        throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), uee);
+                    }
+                }
+                return null;
+            }
+        });
     }
 
-    public void getJoinRequestGroupList() {
+    public void getJoinRequestGroupList(String cookie, User user, int offset, int limit, Callback callback) {
+        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Source source = new Source(response);
+                List<Element> list = source.getAllElements("id", "accordion", false);
+                List<Map.Entry<String, Object>> groupItemList = new ArrayList<>();
 
+                for (Element element : list) {
+                    try {
+                        Element menuList = element.getFirstElementByClass("menu_list");
+
+                        if (element.getAttributeValue("class").equals("accordion")) {
+                            int id = Integer.parseInt(groupIdExtract(menuList.getFirstElementByClass("button").getAttributeValue("onclick"), 1));
+                            String imageUrl = EndPoint.BASE_URL + element.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
+                            String name = element.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
+                            StringBuilder info = new StringBuilder();
+                            String description = menuList.getAllElementsByClass("info").get(0).getContent().toString();
+                            String joinType = menuList.getAllElementsByClass("info").get(1).getContent().toString();
+                            GroupItem groupItem = new GroupItem();
+                            mMinId = mMinId == 0 ? id : Math.min(mMinId, id);
+
+                            for (Element span : element.getFirstElement(HTMLElementName.A).getAllElementsByClass("info")) {
+                                String extractedText = span.getTextExtractor().toString();
+                                info.append(extractedText.contains("회원수") ?
+                                        extractedText.substring(0, extractedText.lastIndexOf("생성일")).trim() + "\n" :
+                                        extractedText + "\n");
+                            }
+                            if (id > mMinId) {
+                                mStopRequestMore = true;
+                                break;
+                            } else
+                                mStopRequestMore = false;
+                            groupItem.setId(String.valueOf(id));
+                            groupItem.setImage(imageUrl);
+                            groupItem.setName(name);
+                            groupItem.setInfo(info.toString());
+                            groupItem.setDescription(description);
+                            groupItem.setJoinType(joinType.equals("가입방식: 자동 승인") ? "0" : "1");
+                            groupItemList.add(new AbstractMap.SimpleEntry<>(String.valueOf(id), groupItem));
+                        }
+                    } catch (Exception e) {
+                        callback.onFailure(e);
+                        Log.e(GroupRepository.class.getSimpleName(), e.getMessage());
+                    }
+                }
+                initFirebaseData(user.getUid(), groupItemList, false, callback);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.e(error.getMessage());
+                callback.onFailure(error);
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+
+                headers.put("Cookie", cookie);
+                return headers;
+            }
+
+            @Override
+            public String getBodyContentType() {
+                return "application/x-www-form-urlencoded; charset=" + getParamsEncoding();
+            }
+
+            @Override
+            public byte[] getBody() {
+                Map<String, String> params = new HashMap<>();
+
+                params.put("panel_id", "1");
+                params.put("gubun", "select_share_total");
+                params.put("start", String.valueOf(offset));
+                params.put("display", String.valueOf(limit));
+                params.put("encoding", "utf-8");
+                if (params.size() > 0) {
+                    StringBuilder encodedParams = new StringBuilder();
+
+                    try {
+                        for (Map.Entry<String, String> entry : params.entrySet()) {
+                            encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));
+                            encodedParams.append('=');
+                            encodedParams.append(URLEncoder.encode(entry.getValue(), getParamsEncoding()));
+                            encodedParams.append('&');
+                        }
+                        return encodedParams.toString().getBytes(getParamsEncoding());
+                    } catch (UnsupportedEncodingException uee) {
+                        throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), uee);
+                    }
+                }
+                return null;
+            }
+        });
     }
 
     public void addGroup(String cookie, User user, Bitmap bitmap, String title, String description, String type, Callback callback) {
@@ -296,10 +496,16 @@ public class GroupRepository {
         });
     }
 
-    private void initFirebaseData(User user, List<Map.Entry<String, Object>> groupItemList, Callback callback) {
+    private void initFirebaseData(String uid, List<Map.Entry<String, Object>> groupItemList, boolean isTrue, Callback callback) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
 
-        fetchDataTaskFromFirebase(databaseReference.child(user.getUid()).orderByValue().equalTo(true), false, groupItemList, callback);
+        fetchDataTaskFromFirebase(databaseReference.child(uid).orderByValue().equalTo(isTrue), false, groupItemList, callback);
+    }
+
+    private void initFirebaseData(List<Map.Entry<String, GroupItem>> groupItemList, Callback callback) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
+
+        fetchGroupListFromFirebase(databaseReference.orderByKey(), groupItemList, callback);
     }
 
     private void fetchDataTaskFromFirebase(Query query, final boolean isRecursion, List<Map.Entry<String, Object>> groupItemList, Callback callback) {
@@ -347,6 +553,43 @@ public class GroupRepository {
                         callback.onSuccess(groupItemList);
                     }
                 }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                callback.onFailure(databaseError.toException());
+            }
+        });
+    }
+
+    // firebase도 페이징 처리가 필요함
+    private void fetchGroupListFromFirebase(Query query, List<Map.Entry<String, GroupItem>> groupItemList, Callback callback) {
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String key = snapshot.getKey();
+                    GroupItem value = snapshot.getValue(GroupItem.class);
+
+                    if (value != null) {
+                        int index = -1;
+
+                        for (int i = 0; i < groupItemList.size(); i++) {
+                            Map.Entry<String, GroupItem> entry = groupItemList.get(i);
+
+                            if (entry.getKey().equals(value.getId())) {
+                                index = i;
+                                break;
+                            }
+                        }
+                        if (index > -1) {
+                            GroupItem groupItem = groupItemList.get(index).getValue();
+
+                            groupItemList.set(index, new AbstractMap.SimpleEntry<>(key, groupItem));
+                        }
+                    }
+                }
+                callback.onSuccess(groupItemList);
             }
 
             @Override
@@ -466,8 +709,12 @@ public class GroupRepository {
         return groupItemList;
     }
 
-    private String groupIdExtract(String href) {
-        return href.split("'")[3].trim();
+    private String groupIdExtract(String href, int pos) {
+        return href.split("'")[pos].trim();
+    }
+
+    private int groupIdExtract(String onclick) {
+        return Integer.parseInt(onclick.split("[(]|[)]|[,]")[1].trim());
     }
 
     private boolean adminCheck(String onClick) {

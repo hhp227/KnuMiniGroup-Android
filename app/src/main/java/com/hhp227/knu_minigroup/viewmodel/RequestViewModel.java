@@ -20,7 +20,10 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.data.GroupRepository;
 import com.hhp227.knu_minigroup.dto.GroupItem;
+import com.hhp227.knu_minigroup.helper.Callback;
+import com.hhp227.knu_minigroup.helper.PreferenceManager;
 
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
@@ -34,6 +37,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 
 public class RequestViewModel extends ViewModel {
@@ -42,6 +46,10 @@ public class RequestViewModel extends ViewModel {
     private static final int LIMIT = 100;
 
     private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
+
+    private final PreferenceManager mPreferenceManager = AppController.getInstance().getPreferenceManager();
+
+    private final GroupRepository mGroupRepository = new GroupRepository();
 
     private boolean mStopRequestMore = false;
 
@@ -56,6 +64,26 @@ public class RequestViewModel extends ViewModel {
     }
 
     public void fetchGroupList(int offset) {
+        /*mGroupRepository.getJoinRequestGroupList(mCookieManager.getCookie(EndPoint.LOGIN), mPreferenceManager.getUser(), offset, LIMIT, new Callback() {
+            @Override
+            public <T> void onSuccess(T data) {
+                List<Map.Entry<String, GroupItem>> groupItemList = (List<Map.Entry<String, GroupItem>>) data;
+
+                if (mState.getValue() != null && mState.getValue().groupItemList.size() != groupItemList.size()) {
+                    mState.postValue(new State(false, mergedList(mState.getValue().groupItemList, groupItemList), mState.getValue().offset + LIMIT, false, groupItemList.isEmpty(), null));
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable throwable) {
+                mState.postValue(new State(false, Collections.emptyList(), offset, false, false, throwable.getMessage()));
+            }
+
+            @Override
+            public void onLoading() {
+                mState.postValue(new State(true, Objects.requireNonNull(mState.getValue()).groupItemList, offset, offset > 1, false, null));
+            }
+        });*/
         AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
