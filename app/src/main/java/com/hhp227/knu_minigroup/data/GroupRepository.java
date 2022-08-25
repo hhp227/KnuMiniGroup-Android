@@ -25,6 +25,7 @@ import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.helper.Callback;
+import com.hhp227.knu_minigroup.viewmodel.RequestViewModel;
 import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 
 import net.htmlparser.jericho.Element;
@@ -39,6 +40,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -262,7 +264,6 @@ public class GroupRepository {
                             groupItemList.add(new AbstractMap.SimpleEntry<>(String.valueOf(id), groupItem));
                         }
                     } catch (Exception e) {
-                        callback.onFailure(e);
                         Log.e(GroupRepository.class.getSimpleName(), e.getMessage());
                     }
                 }
@@ -515,15 +516,15 @@ public class GroupRepository {
                 if (isRecursion) {
                     try {
                         String key = dataSnapshot.getKey();
-                        GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
+                        GroupItem value = dataSnapshot.getValue(GroupItem.class);
 
-                        if (groupItem != null) {
+                        if (value != null) {
                             int index = -1;
 
                             for (int i = 0; i < groupItemList.size(); i++) {
                                 Map.Entry<String, Object> entry = groupItemList.get(i);
 
-                                if (entry.getKey().equals(groupItem.getId())) {
+                                if (entry.getKey().equals(value.getId())) {
                                     index = i;
                                     break;
                                 }
