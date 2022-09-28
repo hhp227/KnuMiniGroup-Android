@@ -25,7 +25,6 @@ import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.helper.Callback;
-import com.hhp227.knu_minigroup.viewmodel.RequestViewModel;
 import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 
 import net.htmlparser.jericho.Element;
@@ -40,7 +39,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -503,6 +501,12 @@ public class GroupRepository {
         fetchDataTaskFromFirebase(databaseReference.child(uid).orderByValue().equalTo(isTrue), false, groupItemList, callback);
     }
 
+    private void initFirebaseData2(String uid, List<Map.Entry<String, GroupItem>> groupItemList, boolean isTrue, Callback callback) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("UserGroupList");
+
+        fetchDataTaskFromFirebase2(databaseReference.child(AppController.getInstance().getPreferenceManager().getUser().getUid()).orderByValue().equalTo(isTrue), false, groupItemList, callback);
+    }
+
     private void initFirebaseData(List<Map.Entry<String, GroupItem>> groupItemList, Callback callback) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
 
@@ -548,6 +552,60 @@ public class GroupRepository {
 
                             if (key != null) {
                                 fetchDataTaskFromFirebase(databaseReference.child(key), true, groupItemList, callback);
+                            }
+                        }
+                    } else {
+                        callback.onSuccess(groupItemList);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                callback.onFailure(databaseError.toException());
+            }
+        });
+    }
+
+    private void fetchDataTaskFromFirebase2(Query query, final boolean isRecursion, List<Map.Entry<String, GroupItem>> groupItemList, Callback callback) {
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (isRecursion) {
+                    try {
+                        String key = dataSnapshot.getKey();
+                        GroupItem value = dataSnapshot.getValue(GroupItem.class);
+
+                        if (value != null) {
+                            int index = -1;
+
+                            for (int i = 0; i < groupItemList.size(); i++) {
+                                Map.Entry<String, GroupItem> entry = groupItemList.get(i);
+
+                                if (entry.getKey().equals(value.getId())) {
+                                    index = i;
+                                    break;
+                                }
+                            }
+                            if (index > -1) {
+                                GroupItem groupItem = groupItemList.get(index).getValue();
+
+                                groupItemList.set(index, new AbstractMap.SimpleEntry<>(key, groupItem));
+                            }
+                        }
+                    } catch (Exception e) {
+                        callback.onFailure(e);
+                    } finally {
+                        callback.onSuccess(groupItemList);
+                    }
+                } else {
+                    if (dataSnapshot.hasChildren()) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
+                            String key = snapshot.getKey();
+
+                            if (key != null) {
+                                fetchDataTaskFromFirebase2(databaseReference.child(key), true, groupItemList, callback);
                             }
                         }
                     } else {
