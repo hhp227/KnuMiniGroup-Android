@@ -48,6 +48,8 @@ public class RequestViewModel extends ViewModel {
                 if (mState.getValue() != null) {
                     if (mState.getValue().groupItemList.size() != groupItemList.size()) {
                         mState.postValue(new State(false, mergedList(mState.getValue().groupItemList, groupItemList), mState.getValue().offset + LIMIT, false, groupItemList.isEmpty(), null));
+                    } else {
+                        mState.postValue(new State(false, groupItemList, 1, false, groupItemList.isEmpty(), null));
                     }
                 }
             }
