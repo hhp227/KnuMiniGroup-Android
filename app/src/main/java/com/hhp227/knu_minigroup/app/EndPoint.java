@@ -1,10 +1,10 @@
 package com.hhp227.knu_minigroup.app;
 
 public interface EndPoint {
-
     // 경북대 LMS URL
     String BASE_URL = "https://lms.knu.ac.kr";
-    String LOGIN = BASE_URL + "/ilos/lo/login.acl";
+    //String LOGIN = BASE_URL + "/ilos/lo/login.acl";
+    String LOGIN = "https://knusso.knu.ac.kr/authentication/idpw/loginProcess";
     String GROUP_LIST = BASE_URL + "/ilos/m/community/share_group_list.acl";
     String CREATE_GROUP = BASE_URL + "/ilos/community/share_group_insert.acl";
     String REGISTER_GROUP = BASE_URL + "/ilos/community/share_group_register.acl";
