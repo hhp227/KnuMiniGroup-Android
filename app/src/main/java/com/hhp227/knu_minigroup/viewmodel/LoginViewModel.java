@@ -1,5 +1,6 @@
 package com.hhp227.knu_minigroup.viewmodel;
 
+import android.util.Log;
 import android.webkit.CookieManager;
 
 import androidx.annotation.NonNull;
@@ -66,7 +67,7 @@ public class LoginViewModel extends ViewModel {
             if (id.equals("TestUser") && password.equals("TestUser")) {
                 firebaseLogin(id, password);
             } else {
-                loginLMS(id, password);
+                loginKNUSSO(id, password);
             }
         } else {
             mLoginFormState.postValue(new LoginFormState(id.isEmpty() ? "아이디를 입력하세요." : null, password.isEmpty() ? "패스워드를 입력하세요." : null));
@@ -81,21 +82,31 @@ public class LoginViewModel extends ViewModel {
         return mPreferenceManager.getUser();
     }
 
-    private void loginLMS(String id, String password) {
-        String tagStringReq = "req_login_LMS";
+    private void loginKNUSSO(String id, String password) {
+        String tagStringReq = "req_login_KNU";
         StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.LOGIN, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 try {
-                    JSONObject jsonObject = new JSONObject(response);
-                    boolean error = jsonObject.getBoolean("isError");
+                    Source source = new Source(response);
+                    source.fullSequentialParse();
 
-                    if (!error)
-                        getUserInfo(id, password);
-                    else
-                        mState.postValue(new State(false, null, "로그인 실패"));
-                } catch (JSONException e) {
-                    mState.postValue(new State(false, null, "로그인 실패" + e.getMessage()));
+                    // 특정 id 값을 가진 input 태그에서 value 속성 값 추출
+                    String userId = getInputValueById(source, "userId");
+                    String resultCode = getInputValueById(source, "resultCode");
+                    String resultMessage = getInputValueById(source, "resultMessage");
+                    String secureToken = getInputValueById(source, "secureToken");
+
+                    if (resultCode != null && resultCode.equals("000000")) {
+                        //getUserInfo(id, password);
+                        // TODO getUser작성할것
+                        mState.postValue(new State(false, null, response));
+                    } else {
+                        mState.postValue(new State(false, null, resultMessage));
+                    }
+                    Log.e("TEST", "userId: " + userId + ", resultCode: " + resultCode + ", resultMessage: " + resultMessage + ", secureToken: " + secureToken);
+                } catch (Exception e) {
+                    mState.postValue(new State(false, null, e.getMessage()));
                 }
             }
         }, new Response.ErrorListener() {
@@ -108,6 +119,7 @@ public class LoginViewModel extends ViewModel {
             protected Response<String> parseNetworkResponse(NetworkResponse response) {
                 List<Header> headers = response.allHeaders;
 
+                Log.e("TEST", "headers: " + headers);
                 for (Header header : headers)
                     if (header.getName().equals("Set-Cookie") && header.getValue().contains("SESSION_NEWLMS"))
                         mCookieManager.setCookie(EndPoint.LOGIN, header.getValue());
@@ -123,8 +135,9 @@ public class LoginViewModel extends ViewModel {
             public byte[] getBody() {
                 Map<String, String> params = new HashMap<>();
 
-                params.put("usr_id", id);
-                params.put("usr_pwd", password);
+                params.put("id", id);
+                params.put("pw", password);
+                params.put("agentId", "2");
                 params.size();
                 StringBuilder encodedParams = new StringBuilder();
 
@@ -143,6 +156,11 @@ public class LoginViewModel extends ViewModel {
         };
 
         AppController.getInstance().addToRequestQueue(stringRequest, tagStringReq);
+    }
+
+    private static String getInputValueById(Source source, String id) {
+        Element element = source.getElementById(id);
+        return (element != null) ? element.getAttributeValue("value") : null;
     }
 
     private void getUserInfo(final String id, final String password) {
