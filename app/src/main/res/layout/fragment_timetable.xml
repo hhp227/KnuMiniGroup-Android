@@ -1,186 +1,190 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<layout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#eeeeee">
+        xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <androidx.cardview.widget.CardView
+    <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginTop="10dp"
-            app:cardCornerRadius="4dp">
+            android:layout_height="match_parent"
+            android:background="#eeeeee">
 
-        <LinearLayout
-                android:layout_width="wrap_content"
+        <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="10dp"
+                app:cardCornerRadius="4dp">
 
             <LinearLayout
-                    android:id="@+id/lay_0"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/lay_1"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/lay_2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
+                    android:orientation="vertical">
 
-            <LinearLayout
-                    android:id="@+id/lay_3"
+                <LinearLayout
+                        android:id="@+id/lay_0"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_1"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_4"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_5"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_6"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_7"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_8"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_9"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_10"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_11"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_12"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_13"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_14"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_15"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_16"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_17"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_18"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_19"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_20"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+                <LinearLayout
+                        android:id="@+id/lay_21"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:orientation="horizontal" />
+
+            </LinearLayout>
+
+            <ProgressBar
+                    android:id="@+id/pb_group"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
+                    android:layout_gravity="center" />
 
-            <LinearLayout
-                    android:id="@+id/lay_4"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
+        </androidx.cardview.widget.CardView>
 
-            <LinearLayout
-                    android:id="@+id/lay_5"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
+    </ScrollView>
 
-            <LinearLayout
-                    android:id="@+id/lay_6"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/lay_7"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/lay_8"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/lay_9"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/lay_10"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/lay_11"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/lay_12"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/lay_13"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/lay_14"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/lay_15"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/lay_16"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/lay_17"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/lay_18"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/lay_19"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/lay_20"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
-
-            <LinearLayout
-                    android:id="@+id/lay_21"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:orientation="horizontal"/>
-
-        </LinearLayout>
-
-        <ProgressBar
-                android:id="@+id/pb_group"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"/>
-
-    </androidx.cardview.widget.CardView>
-
-</ScrollView>
+</layout>
