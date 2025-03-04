@@ -111,22 +111,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
-        Glide.with(this)
-                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mViewModel.getUser().getUid()), new LazyHeaders.Builder()
-                        .addHeader("Cookie", mViewModel.getCookie())
-                        .build()))
-                .apply(new RequestOptions().circleCrop()
-                        .error(R.drawable.user_image_view_circle)
-                        .skipMemoryCache(true)
-                        .diskCacheStrategy(DiskCacheStrategy.NONE))
-                .into(NavHeaderMainBinding.bind(mBinding.navView.getHeaderView(0)).ivProfileImage);
-        NavHeaderMainBinding.bind(mBinding.navView.getHeaderView(0)).ivProfileImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mProfileActivityResultLauncher.launch(new Intent(getApplicationContext(), ProfileActivity.class));
-            }
-        });
-        NavHeaderMainBinding.bind(mBinding.navView.getHeaderView(0)).tvName.setText(mViewModel.getUser().getName());
+        subscribeUi(NavHeaderMainBinding.bind(mBinding.navView.getHeaderView(0)));
     }
 
     @Override
@@ -173,5 +158,24 @@ public class MainActivity extends AppCompatActivity {
         mViewModel.logout();
         startActivity(intent);
         finish();
+    }
+
+    private void subscribeUi(NavHeaderMainBinding navHeaderMainBinding) {
+        Glide.with(this)
+                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mViewModel.getUser().getUid()), new LazyHeaders.Builder()
+                        .addHeader("Cookie", mViewModel.getCookie())
+                        .build()))
+                .apply(new RequestOptions().circleCrop()
+                        .error(R.drawable.user_image_view_circle)
+                        .skipMemoryCache(true)
+                        .diskCacheStrategy(DiskCacheStrategy.NONE))
+                .into(navHeaderMainBinding.ivProfileImage);
+        navHeaderMainBinding.ivProfileImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mProfileActivityResultLauncher.launch(new Intent(getApplicationContext(), ProfileActivity.class));
+            }
+        });
+        navHeaderMainBinding.tvName.setText(mViewModel.getUser().getName());
     }
 }
