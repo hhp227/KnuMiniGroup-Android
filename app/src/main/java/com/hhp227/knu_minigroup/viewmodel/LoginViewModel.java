@@ -119,7 +119,6 @@ public class LoginViewModel extends ViewModel {
             protected Response<String> parseNetworkResponse(NetworkResponse response) {
                 List<Header> headers = response.allHeaders;
 
-                Log.e("TEST", "headers: " + headers);
                 for (Header header : headers)
                     if (header.getName().equals("Set-Cookie") && header.getValue().contains("SESSION_NEWLMS"))
                         mCookieManager.setCookie(EndPoint.LOGIN, header.getValue());
