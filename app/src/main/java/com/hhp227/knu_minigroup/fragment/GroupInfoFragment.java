@@ -29,6 +29,7 @@ import com.hhp227.knu_minigroup.activity.RequestActivity;
 import com.hhp227.knu_minigroup.databinding.FragmentGroupInfoBinding;
 import com.hhp227.knu_minigroup.viewmodel.GroupInfoViewModel;
 
+// TODO
 public class GroupInfoFragment extends DialogFragment {
     private static final int DESC_MAX_LINE = 6;
 

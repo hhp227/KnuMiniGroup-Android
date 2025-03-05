@@ -18,6 +18,7 @@ import com.hhp227.knu_minigroup.databinding.FragmentTabsBinding;
 import java.util.List;
 import java.util.Vector;
 
+// TODO
 public class BusFragment extends Fragment {
     public static final String TAG = "버스시간표";
     private static final String[] TAB_NAMES = {"학교(대구)", "학교(상주)"/*, "시외(대구→상주)"*/};

@@ -8,6 +8,7 @@ import android.view.Window;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -18,8 +19,6 @@ import com.hhp227.knu_minigroup.viewmodel.SplashViewModel;
 public class SplashActivity extends AppCompatActivity {
     private static final int SPLASH_TIME_OUT = 1250;
 
-    private ActivitySplashBinding mBinding;
-
     private SplashViewModel mViewModel;
 
     @Override
@@ -28,40 +27,43 @@ public class SplashActivity extends AppCompatActivity {
         // 액션바 안보이기
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
-        mBinding = ActivitySplashBinding.inflate(getLayoutInflater());
+        DataBindingUtil.setContentView(this, R.layout.activity_splash);
         mViewModel = new ViewModelProvider(this).get(SplashViewModel.class);
 
-        setContentView(mBinding.getRoot());
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
                 mViewModel.connection();
             }
         }, SPLASH_TIME_OUT);
-        mViewModel.getState().observe(this, new Observer<SplashViewModel.State>() {
+        mViewModel.isSuccess().observe(this, new Observer<Boolean>() {
             @Override
-            public void onChanged(SplashViewModel.State state) {
-                if (state.isSuccess) {
+            public void onChanged(Boolean isSuccess) {
+                if (isSuccess) {
                     startActivity(new Intent(SplashActivity.this, MainActivity.class));
                     overridePendingTransition(R.anim.splash_in, R.anim.splash_out);
                     finish();
-                } else {
-                    if (state.isPreferenceClear) {
-                        mViewModel.clearUser();
-                        startActivity(new Intent(SplashActivity.this, LoginActivity.class));
-                        finish();
-                    } else if (state.message != null && !state.message.isEmpty()) {
-                        Toast.makeText(getApplicationContext(), state.message, Toast.LENGTH_LONG).show();
-                        finish();
-                    }
                 }
             }
         });
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mBinding = null;
+        mViewModel.isPreferenceClear().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean isPreferenceClear) {
+                if (isPreferenceClear) {
+                    mViewModel.clearUser();
+                    startActivity(new Intent(SplashActivity.this, LoginActivity.class));
+                    finish();
+                }
+            }
+        });
+        mViewModel.getMessage().observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String message) {
+                if (message != null && !message.isEmpty()) {
+                    Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+                    finish();
+                }
+            }
+        });
     }
 }

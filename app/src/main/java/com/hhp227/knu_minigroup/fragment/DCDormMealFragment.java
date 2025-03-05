@@ -16,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.hhp227.knu_minigroup.databinding.FragmentDormmealBinding;
 import com.hhp227.knu_minigroup.viewmodel.DCDormMealViewModel;
 
+// TODO
 public class DCDormMealFragment extends Fragment {
     private TextView[] mMenuView;
 

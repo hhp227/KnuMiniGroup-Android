@@ -14,6 +14,7 @@ import com.hhp227.knu_minigroup.fragment.MemberManagementFragment;
 import java.util.Arrays;
 import java.util.List;
 
+// TODO
 public class SettingsActivity extends AppCompatActivity {
     private static final String[] TAB_NAMES = {"회원관리", "모임정보"};
 

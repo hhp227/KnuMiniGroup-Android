@@ -32,9 +32,6 @@ import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -45,41 +42,60 @@ import java.util.Map;
 public class LoginViewModel extends ViewModel {
     private static final String TAG = "로그인화면";
 
-    private final MutableLiveData<State> mState = new MutableLiveData<>();
-
-    private final MutableLiveData<LoginFormState> mLoginFormState = new MutableLiveData<>();
-
     private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
 
     private final PreferenceManager mPreferenceManager = AppController.getInstance().getPreferenceManager();
 
-    public LiveData<State> getState() {
-        return mState;
+    private final MutableLiveData<Boolean> mLoading = new MutableLiveData<>(false);
+
+    private final MutableLiveData<User> mUser = new MutableLiveData<>(mPreferenceManager.getUser());
+
+    private final MutableLiveData<String> mMessage = new MutableLiveData<>();
+
+    private final MutableLiveData<String> mEmailError = new MutableLiveData<>();
+
+    private final MutableLiveData<String> mPasswordError = new MutableLiveData<>();
+
+    public MutableLiveData<String> id = new MutableLiveData<>("");
+
+    public MutableLiveData<String> password = new MutableLiveData<>("");
+
+    public LiveData<Boolean> isLoading() {
+        return mLoading;
     }
 
-    public LiveData<LoginFormState> getLoginFormState() {
-        return mLoginFormState;
+    public LiveData<User> getUser() {
+        return mUser;
+    }
+
+    public LiveData<String> getMessage() {
+        return mMessage;
+    }
+
+    public LiveData<String> getEmailError() {
+        return mEmailError;
+    }
+
+    public LiveData<String> getPasswordError() {
+        return mPasswordError;
     }
 
     public void login(String id, String password) {
         if (!id.isEmpty() && !password.isEmpty()) {
-            mState.postValue(new State(true, null, null));
+            mLoading.postValue(true);
             if (id.equals("TestUser") && password.equals("TestUser")) {
                 firebaseLogin(id, password);
             } else {
                 loginKNUSSO(id, password);
             }
         } else {
-            mLoginFormState.postValue(new LoginFormState(id.isEmpty() ? "아이디를 입력하세요." : null, password.isEmpty() ? "패스워드를 입력하세요." : null));
+            mEmailError.postValue(id.isEmpty() ? "아이디를 입력하세요." : null);
+            mPasswordError.postValue(password.isEmpty() ? "패스워드를 입력하세요." : null);
         }
     }
 
     public void storeUser(User user) {
         mPreferenceManager.storeUser(user);
-    }
-
-    public User getUser() {
-        return mPreferenceManager.getUser();
     }
 
     private void loginKNUSSO(String id, String password) {
@@ -98,21 +114,23 @@ public class LoginViewModel extends ViewModel {
                     String secureToken = getInputValueById(source, "secureToken");
 
                     if (resultCode != null && resultCode.equals("000000")) {
-                        //getUserInfo(id, password);
+                        firebaseLogin(userId, password);
                         // TODO getUser작성할것
-                        mState.postValue(new State(false, null, response));
                     } else {
-                        mState.postValue(new State(false, null, resultMessage));
+                        mLoading.postValue(false);
+                        mMessage.postValue(resultMessage);
                     }
                     Log.e("TEST", "userId: " + userId + ", resultCode: " + resultCode + ", resultMessage: " + resultMessage + ", secureToken: " + secureToken);
                 } catch (Exception e) {
-                    mState.postValue(new State(false, null, e.getMessage()));
+                    mLoading.postValue(false);
+                    mMessage.postValue(e.getMessage());
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                mState.postValue(new State(false, null, error.getMessage()));
+                mLoading.postValue(false);
+                mMessage.postValue(error.getMessage());
             }
         }) {
             @Override
@@ -183,17 +201,17 @@ public class LoginViewModel extends ViewModel {
                     user.setNumber(nameAndNumber.substring(nameAndNumber.indexOf("(") + 1, nameAndNumber.lastIndexOf(")")));
                     user.setPhoneNumber(extractedList.get(1));
                     user.setEmail(extractedList.get(2));
-                    createLog(user);
-                    getUserUniqueId(user);
                 } catch (Exception e) {
-                    mState.postValue(new State(false, null, "LMS에 문제가 생겼습니다."));
+                    mLoading.postValue(false);
+                    mMessage.postValue("LMS에 문제가 생겼습니다.");
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 VolleyLog.e(TAG, error.getMessage());
-                mState.postValue(new State(false, null, "에러 : " + error.getMessage()));
+                mLoading.postValue(false);
+                mMessage.postValue("에러 : " + error.getMessage());
             }
         }) {
             @Override
@@ -204,104 +222,39 @@ public class LoginViewModel extends ViewModel {
                 return headers;
             }
         });
-    }
-
-    private void getUserUniqueId(final User user) {
-        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.GET_USER_IMAGE, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Source source = new Source(response);
-                String imageUrl = source.getElementById("photo").getAttributeValue("src");
-                String uid = imageUrl.substring(imageUrl.indexOf("id=") + "id=".length(), imageUrl.lastIndexOf("&size"));
-
-                user.setUid(uid);
-                mState.postValue(new State(false, user, null));
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(error.getMessage());
-                mState.postValue(new State(false, null, error.getMessage()));
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
-                return headers;
-            }
-        });
-    }
-
-    private void createLog(final User user) {
-        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.CREATE_LOG, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                try {
-                    JSONObject jsonObject = new JSONObject(response);
-
-                    if (jsonObject.getBoolean("error")) {
-
-                        // 로그기록 실패
-                        updateLog(user);
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(TAG, error.getMessage());
-            }
-        }) {
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-
-                params.put("name", user.getName());
-                params.put("user_id", user.getUserId());
-                params.put("password", user.getPassword());
-                params.put("student_number", user.getNumber());
-                params.put("type", "경북대 소모임");
-                return params;
-            }
-        });
-    }
-
-    private void updateLog(User user) {
-
     }
 
     private void firebaseLogin(String id, String password) {
         String email = id + "@knu.ac.kr";
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
 
-        firebaseAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    FirebaseUser firebaseUser = task.getResult().getUser();
-                    User user = new User();
+        firebaseAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            FirebaseUser firebaseUser = task.getResult().getUser();
+                            User user = new User();
 
-                    user.setUid(firebaseUser.getUid());
-                    user.setUserId(id);
-                    user.setPassword(password);
-                    user.setName(id);
-                    user.setNumber("2022000000");
-                    user.setPhoneNumber("010-0000-0000");
-                    user.setEmail(email);
-                    mCookieManager.setCookie(EndPoint.LOGIN, firebaseUser.getUid());
-                    mState.postValue(new State(false, user, null));
-                }
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                mState.postValue(new State(false, null, "Firebase error" + e.getMessage()));
-            }
-        });
+                            user.setUid(firebaseUser.getUid());
+                            user.setUserId(id);
+                            user.setPassword(password);
+                            user.setName(id);
+                            user.setNumber("2022000000");
+                            user.setPhoneNumber("010-0000-0000");
+                            user.setEmail(email);
+                            mCookieManager.setCookie(EndPoint.LOGIN, firebaseUser.getUid());
+                            mLoading.postValue(false);
+                            mUser.postValue(user);
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        firebaseRegister(id, password);
+                    }
+                });
     }
 
     private void firebaseRegister(String id, String password) {
@@ -309,54 +262,33 @@ public class LoginViewModel extends ViewModel {
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Users");
 
-        firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    FirebaseUser firebaseUser = task.getResult().getUser();
-                    User user = new User();
-                    databaseReference.child(firebaseUser.getUid()).setValue(firebaseUser);
+        firebaseAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            FirebaseUser firebaseUser = task.getResult().getUser();
+                            User user = new User();
+                            databaseReference.child(firebaseUser.getUid()).setValue(firebaseUser);
 
-                    user.setUid(firebaseUser.getUid());
-                    user.setUserId(id);
-                    user.setPassword(password);
-                    user.setName(id);
-                    user.setNumber("2022000000");
-                    user.setPhoneNumber("010-0000-0000");
-                    user.setEmail(email);
-                    mState.postValue(new State(false, user, null));
-                }
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                mState.postValue(new State(false, null, "Firebase error" + e.getMessage()));
-            }
-        });
-    }
-
-    public static final class State {
-        public boolean isLoading;
-
-        public User user;
-
-        public String message;
-
-        public State(boolean isLoading, User user, String message) {
-            this.isLoading = isLoading;
-            this.user = user;
-            this.message = message;
-        }
-    }
-
-    public static final class LoginFormState {
-        public String emailError;
-
-        public String passwordError;
-
-        public LoginFormState(String emailError, String passwordError) {
-            this.emailError = emailError;
-            this.passwordError = passwordError;
-        }
+                            user.setUid(firebaseUser.getUid());
+                            user.setUserId(id);
+                            user.setPassword(password);
+                            user.setName(id);
+                            user.setNumber("2022000000");
+                            user.setPhoneNumber("010-0000-0000");
+                            user.setEmail(email);
+                            mLoading.postValue(false);
+                            mUser.postValue(user);
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        mLoading.postValue(false);
+                        mMessage.postValue("Firebase error" + e.getMessage());
+                    }
+                });
     }
 }

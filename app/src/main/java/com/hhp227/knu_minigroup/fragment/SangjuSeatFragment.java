@@ -19,6 +19,7 @@ import com.hhp227.knu_minigroup.adapter.SeatListAdapter;
 import com.hhp227.knu_minigroup.databinding.FragmentSeatBinding;
 import com.hhp227.knu_minigroup.viewmodel.SangjuSeatViewModel;
 
+// TODO
 public class SangjuSeatFragment extends Fragment {
     private SeatListAdapter mAdapter;
 

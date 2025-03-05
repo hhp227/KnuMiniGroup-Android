@@ -22,6 +22,7 @@ import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.databinding.FragmentShuttleScheduleScBinding;
 import com.hhp227.knu_minigroup.viewmodel.SCShuttleScheduleViewModel;
 
+// TODO
 public class SCShuttleScheduleFragment extends Fragment {
     private ProgressDialog mProgressDialog;
 

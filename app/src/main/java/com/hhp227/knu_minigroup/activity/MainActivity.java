@@ -40,6 +40,7 @@ import com.hhp227.knu_minigroup.fragment.TimetableFragment;
 import com.hhp227.knu_minigroup.fragment.UnivNoticeFragment;
 import com.hhp227.knu_minigroup.viewmodel.MainViewModel;
 
+// TODO
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding mBinding;
 

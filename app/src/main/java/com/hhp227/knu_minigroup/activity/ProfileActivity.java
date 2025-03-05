@@ -30,6 +30,7 @@ import com.hhp227.knu_minigroup.databinding.ActivityProfileBinding;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
 import com.hhp227.knu_minigroup.viewmodel.ProfileViewModel;
 
+// TODO
 public class ProfileActivity extends AppCompatActivity {
     private ActivityProfileBinding mBinding;
 

@@ -15,6 +15,7 @@ import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.activity.MainActivity;
 import com.hhp227.knu_minigroup.databinding.FragmentTabsBinding;
 
+// TODO
 public class TimetableFragment extends Fragment {
     public static final String TAG = "시간표";
 

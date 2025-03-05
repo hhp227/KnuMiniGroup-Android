@@ -41,6 +41,7 @@ import com.hhp227.knu_minigroup.databinding.FragmentGroupMainBinding;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.viewmodel.GroupMainViewModel;
 
+// TODO
 public class GroupMainFragment extends Fragment {
     private static final int PORTRAIT_SPAN_COUNT = 2;
 

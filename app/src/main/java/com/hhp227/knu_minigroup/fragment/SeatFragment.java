@@ -18,6 +18,7 @@ import com.hhp227.knu_minigroup.databinding.FragmentTabsBinding;
 import java.util.List;
 import java.util.Vector;
 
+// TODO
 public class SeatFragment extends Fragment {
     public static final String TAG = "도서관 좌석";
 

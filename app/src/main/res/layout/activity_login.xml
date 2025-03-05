@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:tools="http://schemas.android.com/tools" xmlns:app="http://schemas.android.com/apk/res-auto"
         tools:context=".activity.LoginActivity">
+
+    <data>
+        <import type="android.view.View" />
+
+        <variable
+                name="viewModel"
+                type="com.hhp227.knu_minigroup.viewmodel.LoginViewModel" />
+    </data>
 
     <RelativeLayout
             android:layout_width="match_parent"
@@ -32,7 +40,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="10dp"
                     android:hint="ID"
-                    android:singleLine="true">
+                    android:singleLine="true"
+                    android:text="@={viewModel.id}">
                 <requestFocus/>
 
             </EditText>
@@ -49,7 +58,8 @@
                     android:layout_marginBottom="10dp"
                     android:hint="Password"
                     android:inputType="textPassword"
-                    android:singleLine="true" />
+                    android:singleLine="true"
+                    android:text="@={viewModel.password}" />
         </LinearLayout>
 
         <TextView
@@ -67,7 +77,8 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/linear_layout"
                 android:layout_centerHorizontal="true"
-                android:text="로그인" />
+                android:text="로그인"
+                android:onClick="@{() -> viewModel.login(viewModel.id, viewModel.password)}" />
 
         <TextView
                 android:id="@+id/register"
@@ -102,7 +113,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingBottom="30dp"
-                android:visibility="gone"
+                android:visibility="@{viewModel.isLoading() ? View.VISIBLE : View.GONE}"
                 android:layout_above="@id/text_view"
                 android:layout_centerHorizontal="true" />
 

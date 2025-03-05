@@ -4,7 +4,9 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.databinding.DataBindingUtil;
 import com.hhp227.knu_minigroup.BuildConfig;
+import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.databinding.ActivityVerinfoBinding;
 
 public class VerInfoActivity extends AppCompatActivity {
@@ -12,10 +14,9 @@ public class VerInfoActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ActivityVerinfoBinding binding = ActivityVerinfoBinding.inflate(getLayoutInflater());
+        ActivityVerinfoBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_verinfo);
         binding.textView2.append(BuildConfig.VERSION_NAME);
 
-        setContentView(binding.getRoot());
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);

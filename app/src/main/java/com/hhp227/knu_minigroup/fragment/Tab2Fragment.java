@@ -22,6 +22,7 @@ import com.hhp227.knu_minigroup.viewmodel.Tab2ViewModel;
 
 import java.util.*;
 
+// TODO
 public class Tab2Fragment extends Fragment {
     private CalendarAdapter mAdapter;
 

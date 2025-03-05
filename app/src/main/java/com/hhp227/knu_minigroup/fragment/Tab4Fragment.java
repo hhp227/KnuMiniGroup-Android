@@ -45,6 +45,7 @@ import com.hhp227.knu_minigroup.databinding.FragmentTab4Binding;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.viewmodel.Tab4ViewModel;
 
+// TODO
 public class Tab4Fragment extends Fragment implements View.OnClickListener {
     private FragmentTab4Binding mBinding;
 

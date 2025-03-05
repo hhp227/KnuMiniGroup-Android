@@ -2,7 +2,6 @@ package com.hhp227.knu_minigroup.viewmodel;
 
 import android.webkit.CookieManager;
 
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -18,21 +17,33 @@ import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import net.htmlparser.jericho.Element;
+import net.htmlparser.jericho.Source;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class SplashViewModel extends ViewModel {
-    private final MutableLiveData<State> mState = new MutableLiveData<>();
-
     private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
 
     private final PreferenceManager mPreferenceManager = AppController.getInstance().getPreferenceManager();
 
-    public LiveData<State> getState() {
-        return mState;
+    private final MutableLiveData<Boolean> mSuccess = new MutableLiveData<>(false);
+
+    private final MutableLiveData<Boolean> mPreferenceClear = new MutableLiveData<>(false);
+
+    private final MutableLiveData<String> mMessage = new MutableLiveData<>();
+
+    public MutableLiveData<Boolean> isSuccess() {
+        return mSuccess;
+    }
+
+    public MutableLiveData<Boolean> isPreferenceClear() {
+        return mPreferenceClear;
+    }
+
+    public MutableLiveData<String> getMessage() {
+        return mMessage;
     }
 
     public void connection() {
@@ -40,21 +51,31 @@ public class SplashViewModel extends ViewModel {
             @Override
             public void onResponse(String response) {
                 try {
-                    JSONObject jsonObject = new JSONObject(response);
+                    Source source = new Source(response);
+                    source.fullSequentialParse();
 
-                    if (!jsonObject.getBoolean("isError")) {
-                        mState.postValue(new State(true, false, null));
+                    String resultCode = getInputValueById(source, "resultCode");
+
+                    if (resultCode != null && resultCode.equals("000000")) {
+                        mSuccess.postValue(true);
+                        mPreferenceClear.postValue(false);
                     } else {
-                        mState.postValue(new State(false, true, "패스워드가 변경되었습니다. 다시 로그인해주세요."));
+                        mSuccess.postValue(false);
+                        mPreferenceClear.postValue(true);
+                        mMessage.postValue("패스워드가 변경되었습니다. 다시 로그인해주세요.");
                     }
-                } catch (JSONException e) {
-                    mState.postValue(new State(false, false, "학습관리시스템(LMS) 서버에 접속할수 없습니다."));
+                } catch (Exception e) {
+                    mSuccess.postValue(false);
+                    mPreferenceClear.postValue(false);
+                    mMessage.postValue("학습관리시스템(LMS) 서버에 접속할수 없습니다.");
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                mState.postValue(new State(false, false, "네트워크 연결을 확인해주세요."));
+                mSuccess.postValue(false);
+                mPreferenceClear.postValue(false);
+                mMessage.postValue("네트워크 연결을 확인해주세요.");
                 VolleyLog.e(SplashViewModel.class.getSimpleName(), error.getMessage());
             }
         }) {
@@ -75,28 +96,20 @@ public class SplashViewModel extends ViewModel {
                 String password = user.getPassword();
                 Map<String, String> params = new HashMap<>();
 
-                params.put("usr_id", knuId);
-                params.put("usr_pwd", password);
+                params.put("id", knuId);
+                params.put("pw", password);
+                params.put("agentId", "2");
                 return params;
             }
         });
     }
 
-    public void clearUser() {
-        mPreferenceManager.clear();
+    private static String getInputValueById(Source source, String id) {
+        Element element = source.getElementById(id);
+        return (element != null) ? element.getAttributeValue("value") : null;
     }
 
-    public static final class State {
-        public boolean isSuccess;
-
-        public boolean isPreferenceClear;
-
-        public String message;
-
-        public State(boolean isSuccess, boolean isPreferenceClear, String message) {
-            this.isSuccess = isSuccess;
-            this.isPreferenceClear = isPreferenceClear;
-            this.message = message;
-        }
+    public void clearUser() {
+        mPreferenceManager.clear();
     }
 }

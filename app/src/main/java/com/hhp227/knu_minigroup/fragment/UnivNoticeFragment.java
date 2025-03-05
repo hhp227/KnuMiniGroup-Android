@@ -26,6 +26,7 @@ import com.hhp227.knu_minigroup.databinding.FragmentListBinding;
 import com.hhp227.knu_minigroup.dto.BbsItem;
 import com.hhp227.knu_minigroup.viewmodel.UnivNoticeViewModel;
 
+// TODO
 public class UnivNoticeFragment extends Fragment {
     private BbsListAdapter mAdapter;
 

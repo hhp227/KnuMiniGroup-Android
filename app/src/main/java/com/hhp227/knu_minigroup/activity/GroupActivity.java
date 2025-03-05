@@ -8,35 +8,26 @@ import android.view.MenuItem;
 
 import androidx.activity.result.ActivityResult;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.hhp227.knu_minigroup.R;
-import com.hhp227.knu_minigroup.databinding.ActivityGroupBinding;
 import com.hhp227.knu_minigroup.fragment.TabHostLayoutFragment;
 import com.hhp227.knu_minigroup.viewmodel.GroupViewModel;
 
 public class GroupActivity extends AppCompatActivity {
     private TabHostLayoutFragment mFragMain;
 
-    private ActivityGroupBinding mBinding;
-
     private GroupViewModel mViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mBinding = ActivityGroupBinding.inflate(getLayoutInflater());
+        DataBindingUtil.setContentView(this, R.layout.activity_group);
         mViewModel = new ViewModelProvider(this).get(GroupViewModel.class);
         mFragMain = TabHostLayoutFragment.newInstance(mViewModel.isAdmin, mViewModel.mGroupId, mViewModel.mGroupName, mViewModel.mGroupImage, mViewModel.mKey);
 
-        setContentView(mBinding.getRoot());
         getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, mFragMain).commit();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mBinding = null;
     }
 
     @Override

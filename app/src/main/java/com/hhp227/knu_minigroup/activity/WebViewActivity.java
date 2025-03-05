@@ -7,6 +7,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import com.hhp227.knu_minigroup.databinding.ActivityWebViewBinding;
 
+// TODO
 public class WebViewActivity extends AppCompatActivity {
     public static String URL = "url";
 

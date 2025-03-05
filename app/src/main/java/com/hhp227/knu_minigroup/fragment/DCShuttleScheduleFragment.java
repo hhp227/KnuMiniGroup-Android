@@ -20,6 +20,7 @@ import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.databinding.FragmentShuttleScheduleBinding;
 import com.hhp227.knu_minigroup.viewmodel.DCShuttleScheduleViewModel;
 
+// TODO
 public class DCShuttleScheduleFragment extends Fragment {
     private SimpleAdapter mAdapter;
 
