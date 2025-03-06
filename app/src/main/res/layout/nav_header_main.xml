@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout
-        xmlns:android="http://schemas.android.com/apk/res/android">
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools">
 
     <data>
+        <import type="com.hhp227.knu_minigroup.app.EndPoint" />
+
         <variable
                 name="viewModel"
                 type="com.hhp227.knu_minigroup.viewmodel.MainViewModel" />
+
+        <variable
+                name="handler"
+                type="com.hhp227.knu_minigroup.handler.OnActivityMainEventListener" />
     </data>
 
     <LinearLayout
@@ -26,7 +34,10 @@
                 android:layout_height="75dp"
                 android:layout_marginStart="10dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/user_image_view_circle" />
+                android:src="@drawable/user_image_view_circle"
+                android:onClick="@{() -> handler.onProfileImageClick()}"
+                app:userImageUrl="@{EndPoint.USER_IMAGE.replace(`{UID}`, viewModel.user.uid)}"
+                app:cookie="@{viewModel.cookie}" />
 
         <TextView
                 android:id="@+id/tv_name"
@@ -34,8 +45,9 @@
                 android:layout_height="wrap_content"
                 android:paddingTop="16dp"
                 android:layout_marginStart="10dp"
-                android:text="이름"
-                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+                android:text="@{viewModel.user.name}"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                tools:text="이름" />
 
     </LinearLayout>
 

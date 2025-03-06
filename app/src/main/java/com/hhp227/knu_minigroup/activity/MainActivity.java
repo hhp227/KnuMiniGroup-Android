@@ -3,7 +3,6 @@ package com.hhp227.knu_minigroup.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.view.View;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
@@ -39,10 +38,10 @@ import com.hhp227.knu_minigroup.fragment.MealFragment;
 import com.hhp227.knu_minigroup.fragment.SeatFragment;
 import com.hhp227.knu_minigroup.fragment.TimetableFragment;
 import com.hhp227.knu_minigroup.fragment.UnivNoticeFragment;
+import com.hhp227.knu_minigroup.handler.OnActivityMainEventListener;
 import com.hhp227.knu_minigroup.viewmodel.MainViewModel;
 
-// TODO
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OnActivityMainEventListener {
     private ActivityMainBinding mBinding;
 
     private MainViewModel mViewModel;
@@ -60,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onActivityResult(ActivityResult result) {
                 if (result.getResultCode() == RESULT_OK) {
+                    // TODO 추후 없어질 코드
                     updateProfileImage();
                 }
             }
@@ -130,6 +130,11 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
     }
 
+    @Override
+    public void onProfileImageClick() {
+        mProfileActivityResultLauncher.launch(new Intent(getApplicationContext(), ProfileActivity.class));
+    }
+
     public void setAppBar(Toolbar toolbar, String title) {
         setTitle(title);
         setSupportActionBar(toolbar);
@@ -161,21 +166,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void subscribeUi(NavHeaderMainBinding navHeaderMainBinding) {
-        Glide.with(this)
-                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mViewModel.getUser().getUid()), new LazyHeaders.Builder()
-                        .addHeader("Cookie", mViewModel.getCookie())
-                        .build()))
-                .apply(new RequestOptions().circleCrop()
-                        .error(R.drawable.user_image_view_circle)
-                        .skipMemoryCache(true)
-                        .diskCacheStrategy(DiskCacheStrategy.NONE))
-                .into(navHeaderMainBinding.ivProfileImage);
-        navHeaderMainBinding.ivProfileImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mProfileActivityResultLauncher.launch(new Intent(getApplicationContext(), ProfileActivity.class));
-            }
-        });
-        navHeaderMainBinding.tvName.setText(mViewModel.getUser().getName());
+        navHeaderMainBinding.setViewModel(mViewModel);
+        navHeaderMainBinding.setLifecycleOwner(this);
+        navHeaderMainBinding.setHandler(this);
     }
 }
