@@ -124,100 +124,31 @@ public class GroupRepository {
 
     public void getNotJoinedGroupList(String cookie, int offset, int limit, Callback callback) {
         callback.onLoading();
-        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
+
+
+        // TODO
+        initFirebaseData(new ArrayList<>(), callback);
+
+        // 작업중
+
+        /*DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
+        FirebasePagingHelper pagingHelper = new FirebasePagingHelper(databaseReference);
+
+        pagingHelper.loadNextPage(new FirebasePagingHelper.OnDataLoadedListener() {
             @Override
-            public void onResponse(String response) {
-                Source source = new Source(response);
-                List<Element> list = source.getAllElements("id", "accordion", false);
+            public void onDataLoaded(List<GroupItem> items) {
                 List<Map.Entry<String, GroupItem>> groupItemList = new ArrayList<>();
+                for (GroupItem item : items) {
+                    String key = "";
 
-                for (Element element : list) {
-                    try {
-                        Element menuList = element.getFirstElementByClass("menu_list");
-
-                        if (element.getAttributeValue("class").equals("accordion")) {
-                            int id = groupIdExtract(menuList.getFirstElementByClass("button").getAttributeValue("onclick"));
-                            String imageUrl = EndPoint.BASE_URL + element.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
-                            String name = element.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
-                            StringBuilder info = new StringBuilder();
-                            String description = menuList.getAllElementsByClass("info").get(0).getContent().toString();
-                            String joinType = menuList.getAllElementsByClass("info").get(1).getTextExtractor().toString().trim();
-                            GroupItem groupItem = new GroupItem();
-                            mMinId = mMinId == 0 ? id : Math.min(mMinId, id);
-
-                            for (Element span : element.getFirstElement(HTMLElementName.A).getAllElementsByClass("info")) {
-                                String extractedText = span.getTextExtractor().toString();
-
-                                info.append(extractedText.contains("회원수") ?
-                                        extractedText.substring(0, extractedText.lastIndexOf("생성일")).trim() + "\n" :
-                                        extractedText + "\n");
-                            }
-                            if (id > mMinId) {
-                                mStopRequestMore = true;
-                                break;
-                            } else
-                                mStopRequestMore = false;
-                            groupItem.setId(String.valueOf(id));
-                            groupItem.setImage(imageUrl);
-                            groupItem.setName(name);
-                            groupItem.setInfo(info.toString().trim());
-                            groupItem.setDescription(description);
-                            groupItem.setJoinType(joinType.equals("가입방식: 자동 승인") ? "0" : "1");
-                            groupItemList.add(new AbstractMap.SimpleEntry<>(String.valueOf(id), groupItem));
-                        }
-                    } catch (Exception e) {
-                        callback.onFailure(e);
-                        Log.e(GroupRepository.class.getSimpleName(), e.getMessage());
+                    if (item != null) {
+                        groupItemList.add(new AbstractMap.SimpleEntry<>(key, item));
                     }
+                    Log.e("TEST", "Item: " + item.getName() + ", Timestamp: " + item.getTimestamp());
                 }
-                initFirebaseData(groupItemList, callback);
+                callback.onSuccess(groupItemList);
             }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                callback.onFailure(error);
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", cookie);
-                return headers;
-            }
-
-            @Override
-            public String getBodyContentType() {
-                return "application/x-www-form-urlencoded; charset=" + getParamsEncoding();
-            }
-
-            @Override
-            public byte[] getBody() {
-                Map<String, String> params = new HashMap<>();
-
-                params.put("panel_id", "1");
-                params.put("gubun", "select_share_total");
-                params.put("start", String.valueOf(offset));
-                params.put("display", String.valueOf(limit));
-                params.put("encoding", "utf-8");
-                if (params.size() > 0) {
-                    StringBuilder encodedParams = new StringBuilder();
-
-                    try {
-                        for (Map.Entry<String, String> entry : params.entrySet()) {
-                            encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));
-                            encodedParams.append('=');
-                            encodedParams.append(URLEncoder.encode(entry.getValue(), getParamsEncoding()));
-                            encodedParams.append('&');
-                        }
-                        return encodedParams.toString().getBytes(getParamsEncoding());
-                    } catch (UnsupportedEncodingException uee) {
-                        throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), uee);
-                    }
-                }
-                return null;
-            }
-        });
+        });*/
     }
 
     public void getJoinRequestGroupList(String cookie, User user, int offset, int limit, Callback callback) {
@@ -563,7 +494,7 @@ public class GroupRepository {
 
     // firebase도 페이징 처리가 필요함
     private void fetchGroupListFromFirebase(Query query, List<Map.Entry<String, GroupItem>> groupItemList, Callback callback) {
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
+        query.limitToFirst(15 + 1).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
@@ -571,6 +502,11 @@ public class GroupRepository {
                     GroupItem value = snapshot.getValue(GroupItem.class);
 
                     if (value != null) {
+                        Log.e("TEST", "id: " + value.getId());
+                        groupItemList.add(new AbstractMap.SimpleEntry<>(key, value));
+                    }
+
+                    /*if (value != null) {
                         int index = -1;
 
                         for (int i = 0; i < groupItemList.size(); i++) {
@@ -586,7 +522,7 @@ public class GroupRepository {
 
                             groupItemList.set(index, new AbstractMap.SimpleEntry<>(key, groupItem));
                         }
-                    }
+                    }*/
                 }
                 callback.onSuccess(groupItemList);
             }
@@ -718,5 +654,64 @@ public class GroupRepository {
 
     private boolean adminCheck(String onClick) {
         return onClick.split("'")[1].trim().equals("0");
+    }
+
+    static class FirebasePagingHelper {
+        private static final int PAGE_SIZE = 15;
+        private DatabaseReference databaseReference;
+        private Long lastTimestamp = null;
+        private boolean isLastPage = false;
+
+        public FirebasePagingHelper(DatabaseReference databaseReference) {
+            this.databaseReference = databaseReference;
+        }
+
+        public void loadNextPage(final OnDataLoadedListener listener) {
+            if (isLastPage) return;
+
+            Query query = databaseReference.orderByKey().limitToFirst(PAGE_SIZE + 1);
+
+            if (lastTimestamp != null) {
+                query = query.startAt(lastTimestamp);
+            }
+
+            query.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot snapshot) {
+                    List<GroupItem> items = new ArrayList<>();
+                    GroupItem lastItem = null;
+                    int count = 0;
+
+                    for (DataSnapshot child : snapshot.getChildren()) {
+                        GroupItem item = child.getValue(GroupItem.class);
+
+                        if (item != null) {
+                            if (count < PAGE_SIZE) {
+                                items.add(item);
+                                count++;
+                            } else {
+                                lastItem = item; // 다음 페이지의 시작점 저장
+                            }
+                        }
+                    }
+
+                    if (!items.isEmpty()) {
+                        lastTimestamp = (lastItem != null) ? lastItem.getTimestamp() : null;
+                    }
+
+                    isLastPage = (lastItem == null);
+                    listener.onDataLoaded(items);
+                }
+
+                @Override
+                public void onCancelled(DatabaseError error) {
+                    System.err.println("Database error: " + error.getMessage());
+                }
+            });
+        }
+
+        public interface OnDataLoadedListener {
+            void onDataLoaded(List<GroupItem> items);
+        }
     }
 }

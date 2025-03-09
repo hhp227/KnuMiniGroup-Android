@@ -13,7 +13,6 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.hhp227.knu_minigroup.R;
-import com.hhp227.knu_minigroup.databinding.ActivitySplashBinding;
 import com.hhp227.knu_minigroup.viewmodel.SplashViewModel;
 
 public class SplashActivity extends AppCompatActivity {
@@ -36,6 +35,10 @@ public class SplashActivity extends AppCompatActivity {
                 mViewModel.connection();
             }
         }, SPLASH_TIME_OUT);
+        observeViewModelData();
+    }
+
+    private void observeViewModelData() {
         mViewModel.isSuccess().observe(this, new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean isSuccess) {

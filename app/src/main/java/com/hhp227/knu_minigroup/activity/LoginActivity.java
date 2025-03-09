@@ -39,6 +39,16 @@ public class LoginActivity extends AppCompatActivity {
             startActivity(new Intent(this, SplashActivity.class));
             finish();
         }
+        observeViewModelData();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mBinding = null;
+    }
+
+    private void observeViewModelData() {
         mViewModel.getUser().observe(this, new Observer<User>() {
             @Override
             public void onChanged(User user) {
@@ -73,11 +83,5 @@ public class LoginActivity extends AppCompatActivity {
                 mBinding.etPassword.setError(passwordError);
             }
         });
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mBinding = null;
     }
 }
