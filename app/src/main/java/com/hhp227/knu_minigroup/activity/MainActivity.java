@@ -29,6 +29,7 @@ import com.google.android.gms.ads.initialization.InitializationStatus;
 import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.google.android.material.navigation.NavigationView;
 import com.hhp227.knu_minigroup.R;
+import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.ActivityMainBinding;
 import com.hhp227.knu_minigroup.databinding.NavHeaderMainBinding;
@@ -146,15 +147,7 @@ public class MainActivity extends AppCompatActivity implements OnActivityMainEve
     }
 
     public void updateProfileImage() {
-        Glide.with(getApplicationContext())
-                .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", mViewModel.getUser().getUid()), new LazyHeaders.Builder()
-                        .addHeader("Cookie", mViewModel.getCookie())
-                        .build()))
-                .apply(new RequestOptions().circleCrop()
-                        .error(R.drawable.user_image_view_circle)
-                        .skipMemoryCache(true)
-                        .diskCacheStrategy(DiskCacheStrategy.NONE))
-                .into(NavHeaderMainBinding.bind(mBinding.navView.getHeaderView(0)).ivProfileImage);
+        mViewModel.setUser(AppController.getInstance().getPreferenceManager().getUser());
     }
 
     public void logout() {
