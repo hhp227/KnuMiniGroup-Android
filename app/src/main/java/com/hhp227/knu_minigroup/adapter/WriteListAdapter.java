@@ -39,6 +39,12 @@ public class WriteListAdapter extends ArrayAdapter<Object> {
         return convertView;
     }
 
+    public void submitList(List<Object> contentList) {
+        clear();
+        addAll(contentList);
+        notifyDataSetChanged();
+    }
+
     private static class ViewHolder {
         private final WriteContentBinding mBinding;
 

@@ -195,7 +195,7 @@ public class CreateGroupActivity extends AppCompatActivity implements OnActivity
                 mBinding.etDescription.setError(message);
             }
         });
-        mViewModel.mBitmap.observe(this, new Observer<Bitmap>() {
+        mViewModel.getBitmap().observe(this, new Observer<Bitmap>() {
             @Override
             public void onChanged(Bitmap bitmap) {
                 if (bitmap != null) {

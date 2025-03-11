@@ -5,6 +5,16 @@
         xmlns:tools="http://schemas.android.com/tools"
         tools:context=".activity.CreateArticleActivity">
 
+    <data>
+        <variable
+                name="viewModel"
+                type="com.hhp227.knu_minigroup.viewmodel.CreateArticleViewModel" />
+
+        <variable
+                name="handler"
+                type="com.hhp227.knu_minigroup.handler.OnActivityCreateArticleEventListener" />
+    </data>
+
     <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
@@ -66,7 +76,8 @@
                             android:paddingTop="8dp"
                             android:clickable="true"
                             android:focusable="true"
-                            android:foreground="?android:attr/selectableItemBackground">
+                            android:foreground="?android:attr/selectableItemBackground"
+                            android:onClick="@{handler::onImageClick}">
 
                         <TextView
                                 android:id="@+id/tv_image"
@@ -95,7 +106,8 @@
                             android:paddingTop="8dp"
                             android:clickable="true"
                             android:focusable="true"
-                            android:foreground="?android:attr/selectableItemBackground">
+                            android:foreground="?android:attr/selectableItemBackground"
+                            android:onClick="@{handler::onVideoClick}">
 
                         <TextView
                                 android:id="@+id/tv_video"

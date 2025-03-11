@@ -33,7 +33,7 @@ public class CreateGroupViewModel extends ViewModel {
 
     private final MutableLiveData<String> mDescriptionError = new MutableLiveData<>();
 
-    public final MutableLiveData<Bitmap> mBitmap = new MutableLiveData<>();
+    private final MutableLiveData<Bitmap> mBitmap = new MutableLiveData<>();
 
     private final PreferenceManager mPreferenceManager = AppController.getInstance().getPreferenceManager();
 
