@@ -2,38 +2,35 @@ package com.hhp227.knu_minigroup.activity;
 
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.databinding.DataBindingUtil;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
+import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.PicturePagerAdapter;
 import com.hhp227.knu_minigroup.databinding.ActivityPictureBinding;
+import com.hhp227.knu_minigroup.viewmodel.PictureViewModel;
 
 import java.util.List;
+import java.util.Objects;
 
-// TODO
 public class PictureActivity extends AppCompatActivity {
-    private List<String> mImages;
+    private PictureViewModel mViewModel;
 
     private ActivityPictureBinding mBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mBinding = ActivityPictureBinding.inflate(getLayoutInflater());
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_picture);
+        mViewModel = new ViewModelProvider(this).get(PictureViewModel.class);
 
-        setContentView(mBinding.getRoot());
-        int position = 0;
-        Bundle b = getIntent().getExtras();
-
-        if (b != null) {
-            mImages = b.getStringArrayList("images");
-            position = b.getInt("position");
-        }
-        setSupportActionBar(mBinding.toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
-        mBinding.viewPager.setAdapter(new PicturePagerAdapter(mImages));
+        mBinding.setViewModel(mViewModel);
+        mBinding.setLifecycleOwner(this);
+        setAppBar(mBinding.toolbar);
+        mBinding.viewPager.setAdapter(new PicturePagerAdapter());
         mBinding.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -41,16 +38,14 @@ public class PictureActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
-                mBinding.tvCount.setText((position + 1) + " / " + mImages.size());
+                mViewModel.setPosition(position);
             }
 
             @Override
             public void onPageScrollStateChanged(int state) {
             }
         });
-        mBinding.viewPager.setCurrentItem(position, false);
-        mBinding.tvCount.setVisibility(mImages.size() > 1 ? View.VISIBLE : View.GONE);
-        mBinding.tvCount.setText((position + 1) + " / " + mImages.size());
+        observeViewModelData();
     }
 
     @Override
@@ -69,5 +64,27 @@ public class PictureActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void setAppBar(Toolbar toolbar) {
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+    }
+
+    private void observeViewModelData() {
+        mViewModel.getImageList().observe(this, new Observer<List<String>>() {
+            @Override
+            public void onChanged(List<String> strings) {
+                ((PicturePagerAdapter) Objects.requireNonNull(mBinding.viewPager.getAdapter())).submitList(strings);
+            }
+        });
+        mViewModel.getPosition().observe(this, new Observer<Integer>() {
+            @Override
+            public void onChanged(Integer position) {
+                mBinding.viewPager.setCurrentItem(position);
+            }
+        });
     }
 }
