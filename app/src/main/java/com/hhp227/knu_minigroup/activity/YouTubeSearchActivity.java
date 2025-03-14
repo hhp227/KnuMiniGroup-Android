@@ -10,20 +10,22 @@ import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
+import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.YouTubeListAdapter;
 import com.hhp227.knu_minigroup.databinding.ActivityListBinding;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
+import com.hhp227.knu_minigroup.handler.OnActivityListEventListener;
 import com.hhp227.knu_minigroup.viewmodel.YoutubeSearchViewModel;
 
-// TODO
-public class YouTubeSearchActivity extends AppCompatActivity {
+import java.util.List;
+
+public class YouTubeSearchActivity extends AppCompatActivity implements OnActivityListEventListener {
     private YouTubeListAdapter mAdapter;
 
     private ActivityListBinding mBinding;
@@ -33,12 +35,14 @@ public class YouTubeSearchActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mBinding = ActivityListBinding.inflate(getLayoutInflater());
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_list);
         mViewModel = new ViewModelProvider(this).get(YoutubeSearchViewModel.class);
         mAdapter = new YouTubeListAdapter();
 
-        setContentView(mBinding.getRoot());
-        setSupportActionBar(mBinding.toolbar);
+        mBinding.setViewModel(mViewModel);
+        mBinding.setLifecycleOwner(this);
+        mBinding.setHandler(this);
+        setAppBar(mBinding.toolbar);
         mAdapter.setOnItemClickListener(new YouTubeListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position) {
@@ -52,40 +56,8 @@ public class YouTubeSearchActivity extends AppCompatActivity {
             }
         });
         mAdapter.setHasStableIds(true);
-        mBinding.srlList.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                new Handler(getMainLooper()).postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        mViewModel.refresh();
-                        mBinding.srlList.setRefreshing(false);
-                    }
-                }, 1000);
-            }
-        });
-        mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         mBinding.recyclerView.setAdapter(mAdapter);
-        mViewModel.getState().observe(this, new Observer<YoutubeSearchViewModel.State>() {
-            @Override
-            public void onChanged(YoutubeSearchViewModel.State state) {
-                if (state.isLoading) {
-                    showProgressBar();
-                } else if (!state.youTubeItems.isEmpty()) {
-                    hideProgressBar();
-                    mAdapter.submitList(state.youTubeItems);
-                } else if (state.message != null && !state.message.isEmpty()) {
-                    hideProgressBar();
-                    Snackbar.make(findViewById(android.R.id.content), state.message, Snackbar.LENGTH_LONG).show();
-                }
-            }
-        });
-        mViewModel.getQuery().observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(String s) {
-                mViewModel.requestData(s);
-            }
-        });
+        observeViewModelData();
     }
 
     @Override
@@ -131,21 +103,41 @@ public class YouTubeSearchActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
-    private void showProgressBar() {
-        if (mBinding.pbGroup.getVisibility() == View.GONE)
-            mBinding.pbGroup.setVisibility(View.VISIBLE);
-        if (!mBinding.sflGroup.isShimmerStarted())
-            mBinding.sflGroup.startShimmer();
-        if (mBinding.sflGroup.getVisibility() == View.GONE)
-            mBinding.sflGroup.setVisibility(View.VISIBLE);
+    @Override
+    public void onRefresh() {
+        new Handler(getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mViewModel.refresh();
+                mBinding.srlList.setRefreshing(false);
+            }
+        }, 1000);
     }
 
-    private void hideProgressBar() {
-        if (mBinding.pbGroup.getVisibility() == View.VISIBLE)
-            mBinding.pbGroup.setVisibility(View.GONE);
-        if (mBinding.sflGroup.isShimmerStarted())
-            mBinding.sflGroup.stopShimmer();
-        if (mBinding.sflGroup.getVisibility() == View.VISIBLE)
-            mBinding.sflGroup.setVisibility(View.GONE);
+    private void setAppBar(Toolbar toolbar) {
+        setSupportActionBar(toolbar);
+    }
+
+    private void observeViewModelData() {
+        mViewModel.getItemList().observe(this, new Observer<List<YouTubeItem>>() {
+            @Override
+            public void onChanged(List<YouTubeItem> youTubeItems) {
+                mAdapter.submitList(youTubeItems);
+            }
+        });
+        mViewModel.getMessage().observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String message) {
+                if (message != null && !message.isEmpty()) {
+                    Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG).show();
+                }
+            }
+        });
+        mViewModel.getQuery().observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                mViewModel.requestData(s);
+            }
+        });
     }
 }

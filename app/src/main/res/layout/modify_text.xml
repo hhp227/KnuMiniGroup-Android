@@ -2,6 +2,12 @@
 <layout
         xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <data>
+        <variable
+                name="viewModel"
+                type="com.hhp227.knu_minigroup.viewmodel.UpdateReplyViewModel" />
+    </data>
+
     <androidx.constraintlayout.widget.ConstraintLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
@@ -16,7 +22,8 @@
                 android:background="@null"
                 android:textColor="#000000"
                 android:hint="내용을 입력하세요."
-                android:divider="@null">
+                android:divider="@null"
+                android:text="@={viewModel.text}">
             <requestFocus/>
 
         </EditText>
