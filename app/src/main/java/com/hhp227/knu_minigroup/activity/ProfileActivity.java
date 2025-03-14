@@ -16,22 +16,18 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.model.GlideUrl;
-import com.bumptech.glide.load.model.LazyHeaders;
-import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
-import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.ActivityProfileBinding;
+import com.hhp227.knu_minigroup.handler.OnActivityProfileEventListener;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
 import com.hhp227.knu_minigroup.viewmodel.ProfileViewModel;
 
-// TODO
-public class ProfileActivity extends AppCompatActivity {
+public class ProfileActivity extends AppCompatActivity implements OnActivityProfileEventListener {
     private ActivityProfileBinding mBinding;
 
     private ActivityResultLauncher<Intent> mCameraPickActivityResultLauncher, mCameraCaptureActivityResultLauncher;
@@ -43,7 +39,7 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mBinding = ActivityProfileBinding.inflate(getLayoutInflater());
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_profile);
         mViewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
         ActivityResultCallback<ActivityResult> activityResultCallback = new ActivityResultCallback<ActivityResult>() {
             @Override
@@ -61,68 +57,13 @@ public class ProfileActivity extends AppCompatActivity {
         mCameraCaptureActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), activityResultCallback);
         mProgressDialog = new ProgressDialog(this);
 
-        setContentView(mBinding.getRoot());
-        setSupportActionBar(mBinding.toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
+        mBinding.setViewModel(mViewModel);
+        mBinding.setLifecycleOwner(this);
+        mBinding.setHandler(this);
+        setAppBar(mBinding.toolbar);
         mProgressDialog.setCancelable(false);
         mProgressDialog.setMessage("요청중 ...");
-        mBinding.ivProfileImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                registerForContextMenu(v);
-                openContextMenu(v);
-                unregisterForContextMenu(v);
-            }
-        });
-        mBinding.bSync.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mViewModel.sync();
-            }
-        });
-        mViewModel.getBitmap().observe(this, new Observer<Bitmap>() {
-            @Override
-            public void onChanged(Bitmap bitmap) {
-                Glide.with(getApplicationContext())
-                        .load(bitmap)
-                        .apply(RequestOptions.errorOf(R.drawable.user_image_view_circle).circleCrop())
-                        .into(mBinding.ivProfileImage);
-                invalidateOptionsMenu();
-            }
-        });
-        mViewModel.getState().observe(this, new Observer<ProfileViewModel.State>() {
-            @Override
-            public void onChanged(ProfileViewModel.State state) {
-                if (state.isLoading) {
-                    showProgressDialog();
-                } else if (state.user != null) {
-                    mBinding.tvName.setText(state.user.getName());
-                    mBinding.tvKnuId.setText(state.user.getUserId());
-                    mBinding.tvDept.setText(state.user.getDepartment());
-                    mBinding.tvStuNum.setText(state.user.getNumber());
-                    mBinding.tvGrade.setText(state.user.getGrade());
-                    mBinding.tvEmail.setText(state.user.getEmail());
-                    mBinding.tvIp.setText(state.user.getUserIp());
-                    mBinding.tvPhoneNum.setText(state.user.getPhoneNumber());
-                    Glide.with(getApplicationContext())
-                            .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", state.user.getUid()), new LazyHeaders.Builder().addHeader("Cookie", mViewModel.getCookie()).build()))
-                            .apply(RequestOptions.errorOf(R.drawable.user_image_view_circle)
-                                    .circleCrop()
-                                    .skipMemoryCache(true)
-                                    .diskCacheStrategy(DiskCacheStrategy.NONE))
-                            .into(mBinding.ivProfileImage);
-                    if (state.isSuccess) {
-                        setResult(RESULT_OK);
-                        Toast.makeText(getApplicationContext(), state.message, Toast.LENGTH_LONG).show();
-                    }
-                } else if (state.message != null && !state.message.isEmpty()) {
-                    hideProgressDialog();
-                    Toast.makeText(getApplicationContext(), state.message, Toast.LENGTH_LONG).show();
-                }
-            }
-        });
+        observeViewModelData();
     }
 
     @Override
@@ -185,6 +126,54 @@ public class ProfileActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onProfileImageClick(View View) {
+        registerForContextMenu(View);
+        openContextMenu(View);
+        unregisterForContextMenu(View);
+    }
+
+    private void setAppBar(Toolbar toolbar) {
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+    }
+
+    private void observeViewModelData() {
+        mViewModel.getBitmap().observe(this, new Observer<Bitmap>() {
+            @Override
+            public void onChanged(Bitmap bitmap) {
+                if (bitmap != null) {
+                    invalidateOptionsMenu();
+                }
+            }
+        });
+        mViewModel.isLoading().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean isLoading) {
+                if (isLoading) showProgressDialog();
+                else hideProgressDialog();
+            }
+        });
+        mViewModel.isSuccess().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean isSuccess) {
+                if (isSuccess) {
+                    setResult(RESULT_OK);
+                }
+            }
+        });
+        mViewModel.getMessage().observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String message) {
+                if (message != null && !message.isEmpty()) {
+                    Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 
     private void showProgressDialog() {
