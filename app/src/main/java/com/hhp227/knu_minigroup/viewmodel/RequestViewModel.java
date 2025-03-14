@@ -2,10 +2,6 @@ package com.hhp227.knu_minigroup.viewmodel;
 
 import android.webkit.CookieManager;
 
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
-
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.data.GroupRepository;
@@ -17,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.Executors;
 
 public class RequestViewModel extends ListViewModel<Map.Entry<String, GroupItem>> {
@@ -65,8 +60,10 @@ public class RequestViewModel extends ListViewModel<Map.Entry<String, GroupItem>
     }
 
     public void fetchNextPage() {
-        setRequestMore(true);
-        fetchGroupList(getOffset());
+        setRequestMore(!mGroupRepository.isStopRequestMore());
+        if (!mGroupRepository.isStopRequestMore()) {
+            fetchGroupList(getOffset());
+        }
     }
 
     public void refresh() {
