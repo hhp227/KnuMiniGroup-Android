@@ -1,9 +1,5 @@
 package com.hhp227.knu_minigroup.viewmodel;
 
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
-
 import com.android.volley.NetworkResponse;
 import com.android.volley.ParseError;
 import com.android.volley.Request;
@@ -19,18 +15,11 @@ import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class SCDormMealViewModel extends ViewModel {
-    private final MutableLiveData<State> mState = new MutableLiveData<>();
-
+public class SCDormMealViewModel extends ListViewModel<String> {
     public SCDormMealViewModel() {
         fetchDataTask();
-    }
-
-    public LiveData<State> getState() {
-        return mState;
     }
 
     private void fetchDataTask() {
@@ -44,31 +33,19 @@ public class SCDormMealViewModel extends ViewModel {
 
                 for (Element p : table.getAllElements(HTMLElementName.P))
                     mealList.add(p.getTextExtractor().toString().trim());
-                mState.postValue(new State(false, mealList, null));
+                setLoading(false);
+                setItemList(mealList);
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                mState.postValue(new State(false, new ArrayList<>(), error.getMessage()));
+                setLoading(false);
+                setMessage(error.getMessage());
             }
         });
 
-        mState.postValue(new State(true, Collections.emptyList(), null));
+        setLoading(true);
         AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
-    }
-
-    public static final class State {
-        public boolean isLoading;
-
-        public List<String> list;
-
-        public String message;
-
-        public State(boolean isLoading, List<String> list, String message) {
-            this.isLoading = isLoading;
-            this.list = list;
-            this.message = message;
-        }
     }
 
     public static class StringEucKrRequest extends StringRequest {

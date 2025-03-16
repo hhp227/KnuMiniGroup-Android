@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -16,9 +15,8 @@ import androidx.lifecycle.ViewModelProvider;
 import com.hhp227.knu_minigroup.databinding.FragmentDormmealBinding;
 import com.hhp227.knu_minigroup.viewmodel.BTLDormMealViewModel;
 
-// TODO
 public class BTLDormMealFragment extends Fragment {
-    private TextView[] mMenuView;
+    private BTLDormMealViewModel mViewModel;
 
     private FragmentDormmealBinding mBinding;
 
@@ -29,34 +27,16 @@ public class BTLDormMealFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mBinding = FragmentDormmealBinding.inflate(inflater, container, false);
+        mViewModel = new ViewModelProvider(this).get(BTLDormMealViewModel.class);
         return mBinding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        BTLDormMealViewModel viewModel = new ViewModelProvider(this).get(BTLDormMealViewModel.class);
-        mMenuView = new TextView[] {
-                mBinding.breakfast,
-                mBinding.lunch,
-                mBinding.dinner
-        };
-
-        viewModel.mState.observe(getViewLifecycleOwner(), new Observer<BTLDormMealViewModel.State>() {
-            @Override
-            public void onChanged(BTLDormMealViewModel.State state) {
-                if (state.isLoading) {
-                    showProgressBar();
-                } else if (!state.list.isEmpty()) {
-                    hideProgressBar();
-                    for (int i = 0; i < mMenuView.length; i++)
-                        mMenuView[i].setText(state.list.get(i));
-                } else if (state.message != null && !state.message.isEmpty()) {
-                    hideProgressBar();
-                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show();
-                }
-            }
-        });
+        mBinding.setViewModel(mViewModel);
+        mBinding.setLifecycleOwner(getViewLifecycleOwner());
+        observeViewModelData();
     }
 
     @Override
@@ -65,13 +45,14 @@ public class BTLDormMealFragment extends Fragment {
         mBinding = null;
     }
 
-    private void showProgressBar() {
-        if (mBinding.progressBar.getVisibility() == View.GONE)
-            mBinding.progressBar.setVisibility(View.VISIBLE);
-    }
-
-    private void hideProgressBar() {
-        if (mBinding.progressBar.getVisibility() == View.VISIBLE)
-            mBinding.progressBar.setVisibility(View.GONE);
+    private void observeViewModelData() {
+        mViewModel.getMessage().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String message) {
+                if (message != null && !message.isEmpty()) {
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 }
