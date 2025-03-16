@@ -4,9 +4,12 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import com.google.android.material.tabs.TabLayout;
+import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.databinding.ActivitySettingsBinding;
 import com.hhp227.knu_minigroup.fragment.DefaultSettingFragment;
 import com.hhp227.knu_minigroup.fragment.MemberManagementFragment;
@@ -14,7 +17,6 @@ import com.hhp227.knu_minigroup.fragment.MemberManagementFragment;
 import java.util.Arrays;
 import java.util.List;
 
-// TODO
 public class SettingsActivity extends AppCompatActivity {
     private static final String[] TAB_NAMES = {"회원관리", "모임정보"};
 
@@ -23,7 +25,7 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mBinding = ActivitySettingsBinding.inflate(getLayoutInflater());
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_settings);
         String groupId = getIntent().getStringExtra("grp_id");
         String groupImage = getIntent().getStringExtra("grp_img");
         String key = getIntent().getStringExtra("key");
@@ -41,12 +43,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         };
 
-        setContentView(mBinding.getRoot());
-        setSupportActionBar(mBinding.toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("소모임 설정");
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
+        setAppBar(mBinding.toolbar);
         for (String s : TAB_NAMES)
             mBinding.tabLayout.addTab(mBinding.tabLayout.newTab().setText(s));
         mBinding.tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mBinding.viewPager));
@@ -70,5 +67,13 @@ public class SettingsActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void setAppBar(Toolbar toolbar) {
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("소모임 설정");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
     }
 }

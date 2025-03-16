@@ -1,9 +1,5 @@
 package com.hhp227.knu_minigroup.viewmodel;
 
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
-
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -20,13 +16,9 @@ import net.htmlparser.jericho.StartTag;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Executors;
 
-// TODO FindGroupViewModel 참고해서 비슷한 로직으로 고치기
-public class UnivNoticeViewModel extends ViewModel {
-    private final MutableLiveData<State> mState = new MutableLiveData<>(new State(false, Collections.emptyList(), 1, false, null));
-
+public class UnivNoticeViewModel extends ListViewModel<BbsItem> {
     private static final int MAX_PAGE = 10;
 
     private Element mBBS_DIV;
@@ -35,13 +27,10 @@ public class UnivNoticeViewModel extends ViewModel {
         fetchNextPage();
     }
 
-    public LiveData<State> getState() {
-        return mState;
-    }
-
     public void fetchNextPage() {
-        if (mState.getValue() != null && mState.getValue().offset < MAX_PAGE) {
-            mState.postValue(new State(false, mState.getValue().bbsItems, mState.getValue().offset, true, null));
+        if (getOffset() < MAX_PAGE) {
+            setRequestMore(true);
+            fetchDataList(getOffset());
         }
     }
 
@@ -49,7 +38,11 @@ public class UnivNoticeViewModel extends ViewModel {
         Executors.newSingleThreadExecutor().execute(new Runnable() {
             @Override
             public void run() {
-                mState.postValue(new State(false, Collections.emptyList(), 1, true, null));
+                setItemList(Collections.emptyList());
+                setOffset(1);
+                setRequestMore(true);
+                setEndReached(false);
+                fetchDataList(getOffset());
             }
         });
     }
@@ -59,18 +52,20 @@ public class UnivNoticeViewModel extends ViewModel {
         StringRequest stringRequest = new StringRequest(Request.Method.GET, EndPoint.URL_KNU_NOTICE.replace("{PAGE}", String.valueOf(offset)), new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                if (mState.getValue() != null) {
-                    mState.postValue(new State(false, mergedList(mState.getValue().bbsItems, parseHTML(response)), mState.getValue().offset + 1, false, null));
-                }
+                setLoading(false);
+                setItemList(mergedList(getItemList().getValue(), parseHTML(response)));
+                setOffset(getOffset() + 1);
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                mState.postValue(new State(false, Collections.emptyList(), 0, false, error.getMessage()));
+                setLoading(false);
+                setMessage(error.getMessage());
             }
         });
 
-        mState.postValue(new State(true, Objects.requireNonNull(mState.getValue()).bbsItems, offset, offset > 1, null));
+        setLoading(true);
+        setRequestMore(offset > 1);
         AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
     }
 
@@ -102,36 +97,18 @@ public class UnivNoticeViewModel extends ViewModel {
                 itemList.add(bbsItem);
             }
         } catch (Exception e) {
-            mState.postValue(new State(false, Collections.emptyList(), 0, false, e.getMessage()));
+            setLoading(false);
+            setMessage(e.getMessage());
         }
         return itemList;
     }
 
     private List<BbsItem> mergedList(List<BbsItem> existingList, List<BbsItem> newList) {
-        List<BbsItem> result = new ArrayList<>();
-
-        result.addAll(existingList);
-        result.addAll(newList);
-        return result;
-    }
-
-    public static final class State {
-        public boolean isLoading;
-
-        public List<BbsItem> bbsItems;
-
-        public int offset;
-
-        public boolean hasRequestedMore;
-
-        public String message;
-
-        public State(boolean isLoading, List<BbsItem> bbsItems, int offset, boolean hasRequestedMore, String message) {
-            this.isLoading = isLoading;
-            this.bbsItems = bbsItems;
-            this.offset = offset;
-            this.hasRequestedMore = hasRequestedMore;
-            this.message = message;
-        }
+        return new ArrayList<BbsItem>() {
+            {
+                addAll(existingList);
+                addAll(newList);
+            }
+        };
     }
 }

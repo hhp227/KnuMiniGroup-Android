@@ -5,7 +5,6 @@ import static com.hhp227.knu_minigroup.viewmodel.GroupInfoViewModel.TYPE_CANCEL;
 import static com.hhp227.knu_minigroup.viewmodel.GroupInfoViewModel.TYPE_REQUEST;
 
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -20,21 +19,12 @@ import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
-import com.bumptech.glide.request.RequestOptions;
-import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.activity.MainActivity;
 import com.hhp227.knu_minigroup.activity.RequestActivity;
 import com.hhp227.knu_minigroup.databinding.FragmentGroupInfoBinding;
 import com.hhp227.knu_minigroup.viewmodel.GroupInfoViewModel;
 
-// TODO
 public class GroupInfoFragment extends DialogFragment {
-    private static final int DESC_MAX_LINE = 6;
-
-    private ProgressDialog mProgressDialog;
-
     private FragmentGroupInfoBinding mBinding;
 
     private GroupInfoViewModel mViewModel;
@@ -60,67 +50,17 @@ public class GroupInfoFragment extends DialogFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mBinding = FragmentGroupInfoBinding.inflate(inflater, container, false);
+        mViewModel = new ViewModelProvider(this).get(GroupInfoViewModel.class);
         return mBinding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mViewModel = new ViewModelProvider(this).get(GroupInfoViewModel.class);
-        mProgressDialog = new ProgressDialog(getContext());
-
-        mProgressDialog.setMessage("요청중...");
-        mProgressDialog.setCancelable(false);
-        mBinding.bRequest.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mViewModel.sendRequest();
-            }
-        });
-        mBinding.bClose.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                GroupInfoFragment.this.dismiss();
-            }
-        });
-        mBinding.tvName.setText(mViewModel.mGroupName);
-        mBinding.tvInfo.setText(mViewModel.mGroupInfo);
-        mBinding.tvDesciption.setText(mViewModel.mGroupDesc);
-        mBinding.tvDesciption.setMaxLines(DESC_MAX_LINE);
-        mBinding.bRequest.setText(mViewModel.mButtonType != null && mViewModel.mButtonType == TYPE_REQUEST ? "가입신청" : "신청취소");
-        Glide.with(this)
-                .load(mViewModel.mGroupImage)
-                .apply(RequestOptions.placeholderOf(R.drawable.ic_launcher_background).error(R.drawable.ic_launcher_background))
-                .transition(DrawableTransitionOptions.withCrossFade(150))
-                .into(mBinding.ivGroupImage);
-        mViewModel.getState().observe(getViewLifecycleOwner(), new Observer<GroupInfoViewModel.State>() {
-            @Override
-            public void onChanged(GroupInfoViewModel.State state) {
-                if (state.isLoading) {
-                    showProgressDialog();
-                } else if (state.type >= 0) {
-                    hideProgressDialog();
-                    Toast.makeText(getContext(), state.message, Toast.LENGTH_LONG).show();
-                    switch (state.type) {
-                        case TYPE_REQUEST:
-                            Intent intent = new Intent(getContext(), MainActivity.class);
-
-                            if (getActivity() != null) {
-                                getActivity().setResult(RESULT_OK, intent);
-                                getActivity().finish();
-                            }
-                            break;
-                        case TYPE_CANCEL:
-                        ((RequestActivity) requireActivity()).refresh();
-                        GroupInfoFragment.this.dismiss();
-                        break;
-                    }
-                } else if (state.message != null && !state.message.isEmpty()) {
-                    hideProgressDialog();
-                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        mBinding.setViewModel(mViewModel);
+        mBinding.setLifecycleOwner(getViewLifecycleOwner());
+        mBinding.setOnClose(this::dismiss);
+        observeViewModelData();
     }
 
     @Override
@@ -129,13 +69,33 @@ public class GroupInfoFragment extends DialogFragment {
         mBinding = null;
     }
 
-    private void showProgressDialog() {
-        if (!mProgressDialog.isShowing())
-            mProgressDialog.show();
-    }
+    private void observeViewModelData() {
+        mViewModel.getType().observe(getViewLifecycleOwner(), new Observer<Integer>() {
+            @Override
+            public void onChanged(Integer type) {
+                switch (type) {
+                    case TYPE_REQUEST:
+                        Intent intent = new Intent(getContext(), MainActivity.class);
 
-    private void hideProgressDialog() {
-        if (mProgressDialog.isShowing())
-            mProgressDialog.dismiss();
+                        if (getActivity() != null) {
+                            getActivity().setResult(RESULT_OK, intent);
+                            getActivity().finish();
+                        }
+                        break;
+                    case TYPE_CANCEL:
+                        ((RequestActivity) requireActivity()).refresh();
+                        GroupInfoFragment.this.dismiss();
+                        break;
+                }
+            }
+        });
+        mViewModel.getMessage().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String message) {
+                if (message != null && !message.isEmpty()) {
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 }

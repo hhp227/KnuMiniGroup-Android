@@ -2,10 +2,6 @@ package com.hhp227.knu_minigroup.viewmodel;
 
 import android.util.Log;
 
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
-
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -19,20 +15,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class SangjuSeatViewModel extends ViewModel {
+public class SangjuSeatViewModel extends ListViewModel<SeatItem> {
     private static final String TAG = SangjuSeatViewModel.class.getSimpleName();
-
-    private final MutableLiveData<State> mState = new MutableLiveData<>();
 
     public SangjuSeatViewModel() {
         fetchDataTask(false);
-    }
-
-    public LiveData<State> getState() {
-        return mState;
     }
 
     public void refresh() {
@@ -64,7 +53,8 @@ public class SangjuSeatViewModel extends ViewModel {
                             disable[1] = disablePeriod.getString("beginTime");
                             disable[2] = disablePeriod.getString("endTime");
                         } catch (JSONException e) {
-                            mState.postValue(new State(false, Collections.emptyList(), e.getMessage()));
+                            setLoading(false);
+                            setMessage(e.getMessage());
                             Log.e(TAG, e.getMessage());
                         } finally {
                             SeatItem listItem = new SeatItem(id, name, total, occupied, available, disable);
@@ -72,33 +62,22 @@ public class SangjuSeatViewModel extends ViewModel {
                             seatItemList.add(listItem);
                         }
                     }
-                    mState.postValue(new State(false, seatItemList, null));
+                    setLoading(false);
+                    setItemList(seatItemList);
                 } catch (JSONException e) {
-                    mState.postValue(new State(false, Collections.emptyList(), e.getMessage()));
+                    setLoading(false);
+                    setMessage(e.getMessage());
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                mState.postValue(new State(false, Collections.emptyList(), error.getMessage()));
+                setLoading(false);
+                setMessage(error.getMessage());
             }
         });
 
-        mState.postValue(new State(!isRefresh, Collections.emptyList(), null));
+        setLoading(!isRefresh);
         AppController.getInstance().addToRequestQueue(jsonObjectRequest);
-    }
-
-    public static final class State {
-        public boolean isLoading;
-
-        public List<SeatItem> seatItemList;
-
-        public String message;
-
-        public State(boolean isLoading, List<SeatItem> seatItemList, String message) {
-            this.isLoading = isLoading;
-            this.seatItemList = seatItemList;
-            this.message = message;
-        }
     }
 }

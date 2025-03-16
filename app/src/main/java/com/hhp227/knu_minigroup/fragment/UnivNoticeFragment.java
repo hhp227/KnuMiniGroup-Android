@@ -12,9 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.hhp227.knu_minigroup.R;
@@ -24,10 +22,12 @@ import com.hhp227.knu_minigroup.adapter.BbsListAdapter;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.FragmentListBinding;
 import com.hhp227.knu_minigroup.dto.BbsItem;
+import com.hhp227.knu_minigroup.handler.OnFragmentListEventListener;
 import com.hhp227.knu_minigroup.viewmodel.UnivNoticeViewModel;
 
-// TODO
-public class UnivNoticeFragment extends Fragment {
+import java.util.List;
+
+public class UnivNoticeFragment extends Fragment implements OnFragmentListEventListener {
     private BbsListAdapter mAdapter;
 
     private RecyclerView.OnScrollListener mOnScrollListener;
@@ -43,12 +43,6 @@ public class UnivNoticeFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mBinding = FragmentListBinding.inflate(inflater, container, false);
-        return mBinding.getRoot();
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(UnivNoticeViewModel.class);
         mAdapter = new BbsListAdapter();
         mOnScrollListener = new RecyclerView.OnScrollListener() {
@@ -60,22 +54,17 @@ public class UnivNoticeFragment extends Fragment {
                 }
             }
         };
+        return mBinding.getRoot();
+    }
 
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mBinding.setViewModel(mViewModel);
+        mBinding.setLifecycleOwner(getViewLifecycleOwner());
+        mBinding.setHandler(this);
         ((MainActivity) requireActivity()).setAppBar(mBinding.toolbar, getString(R.string.knu_board));
-        mBinding.srl.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        mViewModel.refresh();
-                        mBinding.srl.setRefreshing(false);
-                    }
-                }, 1000);
-            }
-        });
         mBinding.recyclerView.addOnScrollListener(mOnScrollListener);
-        mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         mBinding.recyclerView.setAdapter(mAdapter);
         mAdapter.setOnItemClickListener(new BbsListAdapter.OnItemClickListener() {
             @Override
@@ -83,30 +72,11 @@ public class UnivNoticeFragment extends Fragment {
                 BbsItem bbsItem = mAdapter.getCurrentList().get(position);
                 Intent intent = new Intent(v.getContext(), WebViewActivity.class);
 
-                intent.putExtra(WebViewActivity.URL, EndPoint.URL_KNU + bbsItem.getUrl());
+                intent.putExtra("url", EndPoint.URL_KNU + bbsItem.getUrl());
                 startActivity(intent);
             }
         });
-        mViewModel.getState().observe(getViewLifecycleOwner(), new Observer<UnivNoticeViewModel.State>() {
-            @Override
-            public void onChanged(UnivNoticeViewModel.State state) {
-                if (state.isLoading) {
-                    if (state.hasRequestedMore) {
-                        Snackbar.make(requireView(), "게시판 정보 불러오는 중...", Snackbar.LENGTH_LONG).setAction("Action", null).show();
-                    } else {
-                        showProgressBar();
-                    }
-                } else if (state.hasRequestedMore) {
-                    mViewModel.fetchDataList(state.offset);
-                } else if (!state.bbsItems.isEmpty()) {
-                    hideProgressBar();
-                    mAdapter.submitList(state.bbsItems);
-                } else if (state.message != null && !state.message.isEmpty()) {
-                    hideProgressBar();
-                    Snackbar.make(requireView(), state.message, Snackbar.LENGTH_LONG).setAction("Action", null).show();
-                }
-            }
-        });
+        observeViewModelData();
     }
 
     @Override
@@ -118,13 +88,31 @@ public class UnivNoticeFragment extends Fragment {
         mBinding = null;
     }
 
-    private void showProgressBar() {
-        if (mBinding.progressCircular.getVisibility() == View.GONE)
-            mBinding.progressCircular.setVisibility(View.VISIBLE);
+    @Override
+    public void onRefresh() {
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mViewModel.refresh();
+                mBinding.srl.setRefreshing(false);
+            }
+        }, 1000);
     }
 
-    private void hideProgressBar() {
-        if (mBinding.progressCircular.getVisibility() == View.VISIBLE)
-            mBinding.progressCircular.setVisibility(View.GONE);
+    private void observeViewModelData() {
+        mViewModel.getItemList().observe(getViewLifecycleOwner(), new Observer<List<BbsItem>>() {
+            @Override
+            public void onChanged(List<BbsItem> bbsItemList) {
+                mAdapter.submitList(bbsItemList);
+            }
+        });
+        mViewModel.getMessage().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String message) {
+                if (message != null && !message.isEmpty()) {
+                    Snackbar.make(mBinding.recyclerView, message, Snackbar.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 }
