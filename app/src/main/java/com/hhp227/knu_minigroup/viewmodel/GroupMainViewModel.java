@@ -70,7 +70,7 @@ public class GroupMainViewModel extends ViewModel {
     }
 
     private void fetchDataTask() {
-        mGroupRepository.getJoinedGroupList(mCookieManager.getCookie(EndPoint.LOGIN), getUser(), new Callback() {
+        mGroupRepository.getJoinedGroupList(getUser(), new Callback() {
             @Override
             public <T> void onSuccess(T data) {
                 mState.postValue(new State(false, (List<Map.Entry<String, Object>>) data, null));

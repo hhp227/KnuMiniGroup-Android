@@ -201,7 +201,7 @@ public class GroupMainFragment extends Fragment {
                     if (getActivity() != null) {
                         getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
                     }
-                } else if (!state.message.isEmpty()) {
+                } else if (state.message != null && !state.message.isEmpty()) {
                     hideProgressBar();
                     Snackbar.make(requireView(), state.message, Snackbar.LENGTH_LONG).show();
                     if (getActivity() != null) {

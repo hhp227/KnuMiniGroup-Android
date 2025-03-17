@@ -29,7 +29,7 @@ public class RequestViewModel extends ListViewModel<Map.Entry<String, GroupItem>
     }
 
     public void fetchGroupList(int offset) {
-        mGroupRepository.getJoinRequestGroupList(mCookieManager.getCookie(EndPoint.LOGIN), mPreferenceManager.getUser(), offset, LIMIT, new Callback() {
+        mGroupRepository.getJoinRequestGroupList(mPreferenceManager.getUser(), offset, LIMIT, new Callback() {
             @Override
             public <T> void onSuccess(T data) {
                 List<Map.Entry<String, GroupItem>> groupItemList = (List<Map.Entry<String, GroupItem>>) data;
@@ -67,7 +67,7 @@ public class RequestViewModel extends ListViewModel<Map.Entry<String, GroupItem>
     }
 
     public void refresh() {
-        mGroupRepository.setMinId(0);
+        mGroupRepository.setLastKey(null);
         Executors.newSingleThreadExecutor().execute(new Runnable() {
             @Override
             public void run() {

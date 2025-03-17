@@ -3,7 +3,6 @@ package com.hhp227.knu_minigroup.viewmodel;
 import android.webkit.CookieManager;
 
 import com.hhp227.knu_minigroup.app.AppController;
-import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.data.GroupRepository;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.helper.Callback;
@@ -26,7 +25,7 @@ public class FindGroupViewModel extends ListViewModel<Map.Entry<String, GroupIte
     }
 
     public void fetchGroupList(int offset) {
-        mGroupRepository.getNotJoinedGroupList(mCookieManager.getCookie(EndPoint.LOGIN), offset, LIMIT, new Callback() {
+        mGroupRepository.getNotJoinedGroupList(offset, LIMIT, new Callback() {
             @Override
             public <T> void onSuccess(T data) {
                 List<Map.Entry<String, GroupItem>> groupItemList = (List<Map.Entry<String, GroupItem>>) data;
@@ -59,7 +58,7 @@ public class FindGroupViewModel extends ListViewModel<Map.Entry<String, GroupIte
     }
 
     public void refresh() {
-        mGroupRepository.setMinId(0);
+        mGroupRepository.setLastKey(null);
         Executors.newSingleThreadExecutor().execute(new Runnable() {
             @Override
             public void run() {

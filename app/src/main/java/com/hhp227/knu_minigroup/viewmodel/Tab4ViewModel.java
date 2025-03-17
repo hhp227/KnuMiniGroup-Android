@@ -51,7 +51,7 @@ public class Tab4ViewModel extends ViewModel {
     }
 
     public void deleteGroup() {
-        mGroupRepository.removeGroup(getCookie(), getUser(), mIsAdmin, mGroupId, mKey, new Callback() {
+        mGroupRepository.removeGroup(getUser(), mIsAdmin, mKey, new Callback() {
             @Override
             public <T> void onSuccess(T data) {
                 mSavedStateHandle.set(STATE, new State(false, (Boolean) data, "소모임 " + (mIsAdmin ? "폐쇄" : "탈퇴") + " 완료"));
