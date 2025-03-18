@@ -22,20 +22,19 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import com.bumptech.glide.Glide;
 import com.google.android.material.tabs.TabLayout;
+import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.activity.CreateArticleActivity;
 import com.hhp227.knu_minigroup.databinding.FragmentTabHostLayoutBinding;
 
 import java.util.List;
 import java.util.Vector;
 
-// TODO
 public class TabHostLayoutFragment extends Fragment {
     private static final String IS_ADMIN = "admin";
     private static final String GROUP_ID = "grp_id";
     private static final String GROUP_NAME = "grp_nm";
     private static final String GROUP_IMAGE = "grp_img";
     private static final String KEY = "key";
-    private static final String[] TAB_NAMES = {"소식", "일정", "맴버", "설정"};
 
     public ActivityResultLauncher<Intent> mCreateArticleResultLauncher;
 
@@ -118,7 +117,7 @@ public class TabHostLayoutFragment extends Fragment {
         fragmentList.add(new Tab2Fragment());
         fragmentList.add(Tab3Fragment.newInstance(mGroupId));
         fragmentList.add(Tab4Fragment.newInstance(mIsAdmin, mGroupId, mGroupImage, mKey));
-        for (String s : TAB_NAMES)
+        for (String s : getResources().getStringArray(R.array.tab_names))
             mBinding.tabLayout.addTab(mBinding.tabLayout.newTab().setText(s));
         mBinding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -138,7 +137,7 @@ public class TabHostLayoutFragment extends Fragment {
             }
         });
         mBinding.viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(mBinding.tabLayout));
-        mBinding.viewPager.setOffscreenPageLimit(TAB_NAMES.length);
+        mBinding.viewPager.setOffscreenPageLimit(getResources().getStringArray(R.array.tab_names).length);
         mBinding.viewPager.setAdapter(adapter);
         mBinding.fab.setOnClickListener(new View.OnClickListener() {
             @Override
