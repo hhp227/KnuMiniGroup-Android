@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,7 +26,6 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.hhp227.knu_minigroup.R;
@@ -36,13 +34,14 @@ import com.hhp227.knu_minigroup.activity.CreateArticleActivity;
 import com.hhp227.knu_minigroup.adapter.ArticleListAdapter;
 import com.hhp227.knu_minigroup.databinding.FragmentTab1Binding;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
+import com.hhp227.knu_minigroup.handler.OnFragmentTab1EventListener;
 import com.hhp227.knu_minigroup.viewmodel.Tab1ViewModel;
 
 import java.util.AbstractMap;
+import java.util.List;
 import java.util.Map;
 
-// TODO
-public class Tab1Fragment extends Fragment {
+public class Tab1Fragment extends Fragment implements OnFragmentTab1EventListener {
     private long mLastClickTime;
 
     private ArticleListAdapter mAdapter;
@@ -69,12 +68,6 @@ public class Tab1Fragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mBinding = FragmentTab1Binding.inflate(inflater, container, false);
-        return mBinding.getRoot();
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(Tab1ViewModel.class);
         mAdapter = new ArticleListAdapter();
         mArticleActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
@@ -106,9 +99,16 @@ public class Tab1Fragment extends Fragment {
                 }
             }
         });
+        return mBinding.getRoot();
+    }
 
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mBinding.setViewModel(mViewModel);
+        mBinding.setLifecycleOwner(getViewLifecycleOwner());
+        mBinding.setHandler(this);
         mAdapter.setFooterProgressBarVisibility(View.INVISIBLE);
-        mBinding.rvArticle.setLayoutManager(new LinearLayoutManager(getContext()));
         mBinding.rvArticle.setAdapter(mAdapter);
         mBinding.rvArticle.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -149,58 +149,8 @@ public class Tab1Fragment extends Fragment {
                 mArticleActivityResultLauncher.launch(intent);
             }
         });
-        mBinding.rlWrite.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
-                    return;
-                mLastClickTime = SystemClock.elapsedRealtime();
-                Intent intent = new Intent(getActivity(), CreateArticleActivity.class);
-
-                intent.putExtra("grp_id", mGroupId);
-                intent.putExtra("grp_nm", mGroupName);
-                intent.putExtra("grp_img", mGroupImage);
-                intent.putExtra("grp_key", mKey);
-                intent.putExtra("type", 0);
-                ((TabHostLayoutFragment) requireParentFragment()).mCreateArticleResultLauncher.launch(intent);
-            }
-        });
-        mBinding.srlArticleList.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        mViewModel.refresh();
-                        mBinding.srlArticleList.setRefreshing(false);
-                    }
-                }, 1000);
-            }
-        });
         mBinding.srlArticleList.setColorSchemeResources(android.R.color.holo_red_light, android.R.color.holo_orange_light, android.R.color.holo_green_light, android.R.color.holo_blue_bright);
-        mViewModel.getState().observe(getViewLifecycleOwner(), new Observer<Tab1ViewModel.State>() {
-            @Override
-            public void onChanged(Tab1ViewModel.State state) {
-                if (state.isLoading) {
-                    if (!state.hasRequestedMore) {
-                        showProgressBar();
-                    } else {
-                        mAdapter.setFooterProgressBarVisibility(View.VISIBLE);
-                    }
-                } else if (state.hasRequestedMore) {
-                    mViewModel.fetchArticleList(state.offset);
-                } else if (!state.articleItemList.isEmpty() || state.isEndReached) {
-                    hideProgressBar();
-                    mAdapter.submitList(state.articleItemList);
-                    mAdapter.setFooterProgressBarVisibility(state.isEndReached ? View.GONE : View.INVISIBLE);
-                    mBinding.rlWrite.setVisibility(mAdapter.getItemCount() > 1 ? View.GONE : View.VISIBLE);
-                } else if (state.message != null && !state.message.isEmpty()) {
-                    hideProgressBar();
-                    mAdapter.setFooterProgressBarVisibility(View.GONE);
-                    Snackbar.make(mBinding.rvArticle, state.message, Snackbar.LENGTH_LONG).show();
-                }
-            }
-        });
+        observeViewModelData();
     }
 
     @Override
@@ -208,6 +158,32 @@ public class Tab1Fragment extends Fragment {
         super.onDestroyView();
         mBinding = null;
         mArticleActivityResultLauncher = null;
+    }
+
+    @Override
+    public void onEmptyViewClick() {
+        if (SystemClock.elapsedRealtime() - mLastClickTime < 1000)
+            return;
+        mLastClickTime = SystemClock.elapsedRealtime();
+        Intent intent = new Intent(getActivity(), CreateArticleActivity.class);
+
+        intent.putExtra("grp_id", mGroupId);
+        intent.putExtra("grp_nm", mGroupName);
+        intent.putExtra("grp_img", mGroupImage);
+        intent.putExtra("grp_key", mKey);
+        intent.putExtra("type", 0);
+        ((TabHostLayoutFragment) requireParentFragment()).mCreateArticleResultLauncher.launch(intent);
+    }
+
+    @Override
+    public void onRefresh() {
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mViewModel.refresh();
+                mBinding.srlArticleList.setRefreshing(false);
+            }
+        }, 1000);
     }
 
     public void onCreateArticleActivityResult(ActivityResult result) {
@@ -224,13 +200,34 @@ public class Tab1Fragment extends Fragment {
         }
     }
 
-    private void showProgressBar() {
-        if (mBinding.pbArticle.getVisibility() == View.GONE)
-            mBinding.pbArticle.setVisibility(View.VISIBLE);
-    }
-
-    private void hideProgressBar() {
-        if (mBinding.pbArticle.getVisibility() == View.VISIBLE)
-            mBinding.pbArticle.setVisibility(View.GONE);
+    private void observeViewModelData() {
+        mViewModel.getItemList().observe(getViewLifecycleOwner(), new Observer<List<Map.Entry<String, ArticleItem>>>() {
+            @Override
+            public void onChanged(List<Map.Entry<String, ArticleItem>> articleItemList) {
+                mAdapter.submitList(articleItemList);
+            }
+        });
+        mViewModel.hasRequestMore().observe(getViewLifecycleOwner(), new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean hasRequestMore) {
+                if (hasRequestMore) {
+                    mAdapter.setFooterProgressBarVisibility(View.VISIBLE);
+                }
+            }
+        });
+        mViewModel.isEndReached().observe(getViewLifecycleOwner(), new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean isEndReached) {
+                mAdapter.setFooterProgressBarVisibility(isEndReached ? View.GONE : View.INVISIBLE);
+            }
+        });
+        mViewModel.getMessage().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String message) {
+                if (message != null && !message.isEmpty()) {
+                    Snackbar.make(mBinding.rvArticle, message, Snackbar.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 }
