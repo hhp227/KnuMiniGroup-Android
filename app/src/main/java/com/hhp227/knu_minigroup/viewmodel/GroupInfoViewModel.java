@@ -8,25 +8,15 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModel;
 
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.hhp227.knu_minigroup.app.AppController;
-import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,8 +30,6 @@ public class GroupInfoViewModel extends ViewModel {
     public final String mGroupId, mGroupName, mGroupImage, mGroupInfo, mGroupDesc, mJoinType, mKey;
 
     private static final String TAG = GroupInfoViewModel.class.getSimpleName(), LOADING = "loading", JOIN_TYPE = "joinType", MESSAGE = "message";
-
-    private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
 
     private final PreferenceManager mPreferenceManager = AppController.getInstance().getPreferenceManager();
 
@@ -84,69 +72,12 @@ public class GroupInfoViewModel extends ViewModel {
     }
 
     public void sendRequest() {
-        String tag_json_req = "req_register";
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, mButtonType == TYPE_REQUEST ? EndPoint.REGISTER_GROUP : EndPoint.WITHDRAWAL_GROUP, null, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                try {
-                    if (mButtonType == TYPE_REQUEST && !response.getBoolean("isError")) {
-                        insertGroupToFirebase();
-                    } else if (mButtonType == TYPE_CANCEL && !response.getBoolean("isError")) {
-                        deleteUserInGroupFromFirebase();
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    setLoading(false);
-                    setMessage(e.getMessage());
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, error.getMessage());
-                setLoading(false);
-                setMessage(error.getMessage());
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
-                return headers;
-            }
-
-            @Override
-            public String getBodyContentType() {
-                return "application/x-www-form-urlencoded; charset=" + getParamsEncoding();
-            }
-
-            @Override
-            public byte[] getBody() {
-                Map<String, String> params = new HashMap<>();
-
-                params.put("CLUB_GRP_ID", mGroupId);
-                if (params.size() > 0) {
-                    StringBuilder encodedParams = new StringBuilder();
-
-                    try {
-                        for (Map.Entry<String, String> entry : params.entrySet()) {
-                            encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));
-                            encodedParams.append('=');
-                            encodedParams.append(URLEncoder.encode(entry.getValue(), getParamsEncoding()));
-                            encodedParams.append('&');
-                        }
-                        return encodedParams.toString().getBytes(getParamsEncoding());
-                    } catch (UnsupportedEncodingException uee) {
-                        throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), uee);
-                    }
-                }
-                return null;
-            }
-        };
-
         setLoading(true);
-        AppController.getInstance().addToRequestQueue(jsonObjectRequest, tag_json_req);
+        if (mButtonType == TYPE_REQUEST) {
+            insertGroupToFirebase();
+        } else if (mButtonType == TYPE_CANCEL) {
+            deleteUserInGroupFromFirebase();
+        }
     }
 
     private void insertGroupToFirebase() {

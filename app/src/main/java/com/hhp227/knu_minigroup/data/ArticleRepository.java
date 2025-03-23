@@ -45,9 +45,9 @@ import java.util.Map;
 public class ArticleRepository {
     private final String mGroupId, mGroupKey;
 
-    private boolean mStopRequestMore = false;
+    private String mLastKey = null; // 마지막으로 가져온 데이터의 키
 
-    private long mMinId;
+    private boolean mStopRequestMore = false;
 
     public ArticleRepository(String groupId, String key) {
         this.mGroupId = groupId;
@@ -58,151 +58,69 @@ public class ArticleRepository {
         return mStopRequestMore;
     }
 
-    public void setMinId(long minId) {
-        this.mMinId = minId;
+    public void setLastKey(String lastKey) {
+        this.mLastKey = lastKey;
     }
 
-    public void getArticleList(String cookie, String params, Callback callback) {
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, EndPoint.GROUP_ARTICLE_LIST + params, new Response.Listener<String>() {
+    public void getArticleList(String cookie, int limit, Callback callback) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
+        Query query = databaseReference.child(mGroupKey).orderByKey().limitToLast(limit);
+
+        if (mLastKey != null) {
+            query = query.endBefore(mLastKey);
+        }
+        callback.onLoading();
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onResponse(String response) {
-                Source source = new Source(response);
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                String newLastKey = null;
                 List<Map.Entry<String, ArticleItem>> articleItemList = new ArrayList<>();
 
-                try {
-                    List<Element> list = source.getAllElementsByClass("listbox2");
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String key = snapshot.getKey();
+                    ArticleItem value = snapshot.getValue(ArticleItem.class);
 
-                    for (Element element : list) {
-                        Element viewArt = element.getFirstElementByClass("view_art");
-                        Element commentWrap = element.getFirstElementByClass("comment_wrap");
-                        boolean auth = viewArt.getAllElementsByClass("btn-small-gray").size() > 0;
-                        String id = commentWrap.getAttributeValue("num");
-                        String listTitle = viewArt.getFirstElementByClass("list_title").getTextExtractor().toString();
-                        String title = listTitle.substring(0, listTitle.lastIndexOf("-"));
-                        String name = listTitle.substring(listTitle.lastIndexOf("-") + 1);
-                        String date = viewArt.getFirstElement(HTMLElementName.TD).getTextExtractor().toString();
-                        List<Element> images = viewArt.getAllElements(HTMLElementName.IMG);
-                        List<String> imageList = new ArrayList<>();
-                        StringBuilder content = new StringBuilder();
-                        String replyCnt = commentWrap.getFirstElementByClass("commentBtn").getTextExtractor().toString(); // 댓글 + commentWrap.getFirstElementByClass("comment_cnt").getTextExtractor();
-                        ArticleItem articleItem = new ArticleItem();
-                        mMinId = mMinId == 0 ? Long.parseLong(id) : Math.min(mMinId, Long.parseLong(id));
-
-                        if (images.size() > 0) {
-                            for (Element image : images) {
-                                String imageUrl = !image.getAttributeValue("src").contains("http") ? EndPoint.BASE_URL + image.getAttributeValue("src") : image.getAttributeValue("src");
-
-                                imageList.add(imageUrl);
-                            }
-                        }
-                        for (Element childElement : viewArt.getFirstElementByClass("list_cont").getChildElements()) {
-                            content.append(childElement.getTextExtractor().toString().concat("\n"));
-                        }
-                        if (Long.parseLong(id) > mMinId) {
-                            mStopRequestMore = true;
-                            break;
-                        } else
-                            mStopRequestMore = false;
-                        articleItem.setId(id);
-                        articleItem.setTitle(title.trim());
-                        articleItem.setName(name.trim());
-                        // 언어설정을 영어로 변역하면 따로 처리를 해줘야함
-                        articleItem.setTimestamp(DateUtil.getTimeStamp(date));
-                        articleItem.setContent(content.toString().trim());
-                        articleItem.setImages(imageList);
-                        articleItem.setReplyCount(replyCnt);
-                        articleItem.setAuth(auth);
-                        if (viewArt.getFirstElementByClass("youtube-player") != null) {
-                            String youtubeUrl = viewArt.getFirstElementByClass("youtube-player").getAttributeValue("src");
-                            String youtubeId = youtubeUrl.substring(youtubeUrl.lastIndexOf("/") + 1, youtubeUrl.lastIndexOf("?"));
-                            String thumbnail = "https://i.ytimg.com/vi/" + youtubeId + "/mqdefault.jpg";
-                            YouTubeItem youTubeItem = new YouTubeItem(youtubeId, null, null, thumbnail, null);
-
-                            articleItem.setYoutube(youTubeItem);
-                        }
-                        articleItemList.add(new AbstractMap.SimpleEntry<>(id, articleItem));
+                    if (articleItemList.isEmpty()) {
+                        newLastKey = key; // 마지막 키 저장
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    initFirebaseData(articleItemList, callback);
+                    if (value != null) {
+                        articleItemList.add(0, new AbstractMap.SimpleEntry<>(key, value));
+                    }
                 }
+                if (newLastKey == null) {
+                    mStopRequestMore = true;
+                }
+                mLastKey = newLastKey; // 다음 페이지 요청을 위해 키 업데이트
+                callback.onSuccess(articleItemList);
             }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(error.getMessage());
-                callback.onFailure(error);
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
 
-                headers.put("Cookie", cookie);
-                return headers;
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                callback.onFailure(databaseError.toException());
+                Log.e("파이어베이스", databaseError.getMessage());
             }
-        };
-
-        callback.onLoading();
-        AppController.getInstance().addToRequestQueue(stringRequest);
+        });
     }
 
     public void getArticleData(String cookie, String articleId, String articleKey, String params, Callback callback) {
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, EndPoint.GROUP_ARTICLE_LIST + params, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Source source = new Source(response.trim());
-                ArticleItem articleItem = new ArticleItem();
-
-                try {
-                    Element element = source.getFirstElementByClass("listbox2");
-                    Element viewArt = element.getFirstElementByClass("view_art");
-                    Element commentWrap = element.getFirstElementByClass("comment_wrap");
-                    Element listCont = viewArt.getFirstElementByClass("list_cont");
-                    List<Element> commentList = element.getAllElementsByClass("comment-list");
-                    String listTitle = viewArt.getFirstElementByClass("list_title").getTextExtractor().toString();
-                    String title = listTitle.substring(0, listTitle.lastIndexOf("-")).trim();
-                    String name = listTitle.substring(listTitle.lastIndexOf("-") + 1).trim();
-                    String timeStamp = viewArt.getFirstElement(HTMLElementName.TD).getTextExtractor().toString();
-                    String content = contentExtractor(listCont);
-                    List<String> imageList = imageExtract(listCont);
-                    YouTubeItem youTubeItem = youtubeExtract(listCont);
-                    String replyCnt = commentWrap.getFirstElementByClass("commentBtn").getTextExtractor().toString();
-
-                    articleItem.setId(articleId);
-                    articleItem.setName(name);
-                    articleItem.setTitle(title);
-                    articleItem.setContent(content);
-                    articleItem.setImages(imageList);
-                    articleItem.setYoutube(youTubeItem);
-                    articleItem.setTimestamp(DateUtil.getTimeStamp(timeStamp));
-                    articleItem.setReplyCount(replyCnt);
-                    callback.onSuccess(commentList);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    callback.onFailure(e);
-                } finally {
-                    fetchArticleDataFromFirebase(articleItem, articleKey, callback);
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                callback.onFailure(error);
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", cookie);
-                return headers;
-            }
-        };
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
 
         callback.onLoading();
-        AppController.getInstance().addToRequestQueue(stringRequest);
+        databaseReference.child(mGroupKey).child(articleKey).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                ArticleItem value = dataSnapshot.getValue(ArticleItem.class);
+
+                if (value != null) {
+                    callback.onSuccess(value);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                callback.onFailure(databaseError.toException());
+            }
+        });
     }
 
     public void addArticle(String cookie, User user, String title, String content, List<String> imageList, YouTubeItem youTubeItem, Callback callback) {
@@ -421,41 +339,7 @@ public class ArticleRepository {
     }
 
     private void fetchArticleListFromFirebase(Query query, List<Map.Entry<String, ArticleItem>> articleItemList, Callback callback) {
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    String key = snapshot.getKey();
-                    ArticleItem value = snapshot.getValue(ArticleItem.class);
 
-                    if (value != null) {
-                        int index = -1;
-
-                        for (int i = 0; i < articleItemList.size(); i++) {
-                            Map.Entry<String, ArticleItem> entry = articleItemList.get(i);
-
-                            if (entry.getKey().equals(value.getId())) {
-                                index = i;
-                                break;
-                            }
-                        }
-                        if (index > -1) {
-                            ArticleItem articleItem = articleItemList.get(index).getValue();
-
-                            articleItem.setUid(value.getUid());
-                            articleItemList.set(index, new AbstractMap.SimpleEntry<>(key, articleItem));
-                        }
-                    }
-                }
-                callback.onSuccess(articleItemList);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                callback.onFailure(databaseError.toException());
-                Log.e("파이어베이스", databaseError.getMessage());
-            }
-        });
     }
 
     private void fetchArticleDataFromFirebase(ArticleItem articleItem, String articleKey, Callback callback) {

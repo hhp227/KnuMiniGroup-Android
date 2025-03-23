@@ -109,9 +109,7 @@ public class Tab1ViewModel extends ViewModel {
     }
 
     public void fetchArticleList(int offset) {
-        String params = "?CLUB_GRP_ID=" + mGroupId + "&startL=" + offset + "&displayL=" + LIMIT;
-
-        articleRepository.getArticleList(mCookieManager.getCookie(EndPoint.LOGIN), params, new Callback() {
+        articleRepository.getArticleList(mCookieManager.getCookie(EndPoint.LOGIN), LIMIT, new Callback() {
             @Override
             public <T> void onSuccess(T data) {
                 List<Map.Entry<String, ArticleItem>> articleItemList = (List<Map.Entry<String, ArticleItem>>) data;
@@ -144,7 +142,7 @@ public class Tab1ViewModel extends ViewModel {
     }
 
     public void refresh() {
-        articleRepository.setMinId(0);
+        articleRepository.setLastKey(null);
         setRequestMore(true);
         setItemList(Collections.emptyList());
         setOffset(1);

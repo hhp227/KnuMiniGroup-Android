@@ -23,14 +23,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.model.GlideUrl;
-import com.bumptech.glide.load.model.LazyHeaders;
-import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.ads.AdRequest;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.activity.GroupActivity;
@@ -39,13 +33,10 @@ import com.hhp227.knu_minigroup.activity.NoticeActivity;
 import com.hhp227.knu_minigroup.activity.ProfileActivity;
 import com.hhp227.knu_minigroup.activity.SettingsActivity;
 import com.hhp227.knu_minigroup.activity.VerInfoActivity;
-import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.ContentTab4Binding;
 import com.hhp227.knu_minigroup.databinding.FragmentTab4Binding;
-import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.viewmodel.Tab4ViewModel;
 
-// TODO
 public class Tab4Fragment extends Fragment implements View.OnClickListener {
     private FragmentTab4Binding mBinding;
 
@@ -68,12 +59,6 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mBinding = FragmentTab4Binding.inflate(inflater, container, false);
-        return mBinding.getRoot();
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(Tab4ViewModel.class);
         mProfileActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
@@ -105,18 +90,26 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener {
                 }
             }
         });
+        return mBinding.getRoot();
+    }
 
-        mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         mBinding.recyclerView.setAdapter(new RecyclerView.Adapter<Tab4Holder>() {
             @NonNull
             @Override
             public Tab4Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-                return new Tab4Holder(ContentTab4Binding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+                ContentTab4Binding binding = ContentTab4Binding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+
+                binding.setViewModel(mViewModel);
+                binding.setLifecycleOwner(getViewLifecycleOwner());
+                return new Tab4Holder(binding);
             }
 
             @Override
             public void onBindViewHolder(@NonNull Tab4Holder holder, int position) {
-                holder.bind(mViewModel.getUser());
+                holder.bind();
             }
 
             @Override
@@ -124,20 +117,7 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener {
                 return 1;
             }
         });
-        mViewModel.getState().observe(getViewLifecycleOwner(), new Observer<Tab4ViewModel.State>() {
-            @Override
-            public void onChanged(Tab4ViewModel.State state) {
-                if (state.isLoading) {
-
-                } else if (state.isSuccess) {
-                    requireActivity().setResult(RESULT_OK, new Intent(getContext(), MainActivity.class));
-                    requireActivity().finish();
-                    Toast.makeText(getContext(), state.message, Toast.LENGTH_LONG).show();
-                } else if (state.message != null && !state.message.isEmpty()) {
-                    Toast.makeText(getContext(), state.message, Toast.LENGTH_LONG).show();
-                }
-            }
-        });
+        observeViewModelData();
     }
 
     @Override
@@ -146,6 +126,26 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener {
         mBinding = null;
         mProfileActivityResultLauncher = null;
         mSettingsActivityResultLauncher = null;
+    }
+
+    private void observeViewModelData() {
+        mViewModel.isSuccess().observe(getViewLifecycleOwner(), new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean isSuccess) {
+                if (isSuccess) {
+                    requireActivity().setResult(RESULT_OK, new Intent(getContext(), MainActivity.class));
+                    requireActivity().finish();
+                }
+            }
+        });
+        mViewModel.getMessage().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String message) {
+                if (message != null && !message.isEmpty()) {
+                    Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 
     public void onProfileActivityResult(ActivityResult result) {
@@ -238,27 +238,9 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener {
             mBinding.llSettings.setOnClickListener(Tab4Fragment.this);
         }
 
-        private void bind(User user) {
-            Glide.with(itemView.getContext())
-                    .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", user.getUid()), new LazyHeaders.Builder()
-                            .addHeader("Cookie", mViewModel.getCookie())
-                            .build()))
-                    .apply(RequestOptions
-                            .circleCropTransform()
-                            .error(R.drawable.user_image_view_circle)
-                            .skipMemoryCache(true)
-                            .diskCacheStrategy(DiskCacheStrategy.NONE))
-                    .into(mBinding.ivProfileImage);
-            mBinding.tvName.setText(user.getName());
-            mBinding.tvKnuId.setText(user.getUserId());
-            if (mViewModel.mIsAdmin) {
-                mBinding.tvWithdrawal.setText("소모임 폐쇄");
-                mBinding.llSettings.setVisibility(View.VISIBLE);
-            } else {
-                mBinding.tvWithdrawal.setText("소모임 탈퇴");
-                mBinding.llSettings.setVisibility(View.GONE);
-            }
+        private void bind() {
             mBinding.adView.loadAd(new AdRequest.Builder().build());
+            mBinding.executePendingBindings();
         }
     }
 }

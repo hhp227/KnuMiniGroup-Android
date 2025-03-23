@@ -132,7 +132,7 @@ public class GroupMainFragment extends Fragment {
                     GroupItem groupItem = (GroupItem) mAdapter.getCurrentList().get(position).getValue();
                     Intent intent = new Intent(getContext(), GroupActivity.class);
 
-                    intent.putExtra("admin", groupItem.isAdmin());
+                    intent.putExtra("admin", groupItem.getAuthorUid().equals(mViewModel.getUser().getUid()));
                     intent.putExtra("grp_id", groupItem.getId());
                     intent.putExtra("grp_nm", groupItem.getName());
                     intent.putExtra("grp_img", groupItem.getImage()); // 경북대 소모임에는 없음
