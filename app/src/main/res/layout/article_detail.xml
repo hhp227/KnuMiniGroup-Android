@@ -24,7 +24,7 @@
 
         <variable
                 name="onImageClickListener"
-                type="java.util.function.Consumer&lt;Integer>" />
+                type="androidx.arch.core.util.Function&lt;Integer, Boolean>" />
     </data>
 
     <LinearLayout

@@ -252,6 +252,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity implements OnActivity
                     intent.putStringArrayListExtra("images", (ArrayList<String>) articleItem.getImages());
                     intent.putExtra("position", position);
                     startActivity(intent);
+                    return false;
                 });
             }
         });

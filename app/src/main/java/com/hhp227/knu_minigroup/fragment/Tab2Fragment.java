@@ -1,7 +1,6 @@
 package com.hhp227.knu_minigroup.fragment;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +21,6 @@ import com.hhp227.knu_minigroup.viewmodel.Tab2ViewModel;
 
 import java.util.*;
 
-// TODO
 public class Tab2Fragment extends Fragment {
     private CalendarAdapter mAdapter;
 
@@ -33,39 +31,17 @@ public class Tab2Fragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mBinding = FragmentTab2Binding.inflate(inflater, container, false);
+        mViewModel = new ViewModelProvider(this).get(Tab2ViewModel.class);
+        mAdapter = new CalendarAdapter();
         return mBinding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mViewModel = new ViewModelProvider(this).get(Tab2ViewModel.class);
-        mAdapter = new CalendarAdapter();
-
-        mBinding.rvCal.setLayoutManager(new LinearLayoutManager(getContext()));
         mBinding.rvCal.setAdapter(mAdapter);
         mBinding.rvCal.addItemDecoration(new DividerItemDecoration(requireContext(), LinearLayoutManager.VERTICAL));
-        mViewModel.getCalendar().observe(getViewLifecycleOwner(), new Observer<Calendar>() {
-            @Override
-            public void onChanged(Calendar calendar) {
-                mViewModel.fetchDataTask(calendar);
-                if (mBinding.rvCal.getChildCount() > 0) {
-                    ((HeaderHolder) mBinding.rvCal.getChildViewHolder(mBinding.rvCal.getChildAt(0))).mBinding.calendar.setCalendar(calendar);
-                }
-            }
-        });
-        mViewModel.getState().observe(getViewLifecycleOwner(), new Observer<Tab2ViewModel.State>() {
-            @Override
-            public void onChanged(Tab2ViewModel.State state) {
-                if (state.isLoading) {
-                    Log.e("TEST", "isLoading");
-                } else if (!state.list.isEmpty()) {
-                    mAdapter.submitList(state.list);
-                } else if (state.message != null && !state.message.isEmpty()) {
-                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        observeViewModelData();
     }
 
     @Override
@@ -74,25 +50,34 @@ public class Tab2Fragment extends Fragment {
         mBinding = null;
     }
 
-    public class HeaderHolder extends RecyclerView.ViewHolder {
-        private final HeaderCalendarBinding mBinding;
+    private void observeViewModelData() {
+        mViewModel.getCalendar().observe(getViewLifecycleOwner(), new Observer<Calendar>() {
+            @Override
+            public void onChanged(Calendar calendar) {
+                mViewModel.fetchDataTask(calendar);
+            }
+        });
+        mViewModel.getItemList().observe(getViewLifecycleOwner(), new Observer<List<Map<String, String>>>() {
+            @Override
+            public void onChanged(List<Map<String, String>> itemList) {
+                if (!itemList.isEmpty()) {
+                    mAdapter.submitList(itemList);
+                }
+            }
+        });
+        mViewModel.getMessage().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String message) {
+                if (message != null && !message.isEmpty()) {
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
 
+    public static class HeaderHolder extends RecyclerView.ViewHolder {
         public HeaderHolder(HeaderCalendarBinding binding) {
             super(binding.getRoot());
-            this.mBinding = binding;
-
-            mBinding.calendar.prev.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mViewModel.previousMonth();
-                }
-            });
-            mBinding.calendar.next.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mViewModel.nextMonth();
-                }
-            });
         }
     }
 
@@ -105,8 +90,8 @@ public class Tab2Fragment extends Fragment {
         }
 
         public void bind(Map<String, String> map) {
-            mBinding.date.setText(map.get("날짜"));
-            mBinding.content.setText(map.get("내용"));
+            mBinding.setItem(map);
+            mBinding.executePendingBindings();
         }
     }
 
@@ -121,7 +106,11 @@ public class Tab2Fragment extends Fragment {
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             if (viewType == TYPE_CALENDAR) {
-                return new HeaderHolder(HeaderCalendarBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+                HeaderCalendarBinding binding = HeaderCalendarBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+
+                binding.setViewModel(mViewModel);
+                binding.setLifecycleOwner(getViewLifecycleOwner());
+                return new HeaderHolder(binding);
             } else if (viewType == TYPE_ITEM) {
                 return new ItemHolder(ScheduleItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
             }

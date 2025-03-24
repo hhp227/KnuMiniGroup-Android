@@ -1,0 +1,5 @@
+package com.hhp227.knu_minigroup.handler;
+
+public interface OnFragmentTab3EventListener {
+    void onRefresh();
+}

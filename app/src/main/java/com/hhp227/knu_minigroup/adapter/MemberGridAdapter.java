@@ -13,27 +13,42 @@ import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.databinding.LoadMoreBinding;
 import com.hhp227.knu_minigroup.databinding.MemberItemBinding;
-import com.hhp227.knu_minigroup.dto.BbsItem;
 import com.hhp227.knu_minigroup.dto.MemberItem;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MemberGridAdapter extends RecyclerView.Adapter<MemberGridAdapter.MemberGridHolder> {
+public class MemberGridAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private static final int TYPE_MEMBER = 0;
+
+    private static final int TYPE_LOADER = 1;
+
     private final List<MemberItem> mCurrentList = new ArrayList<>();
 
     private OnItemClickListener mOnItemClickListener;
 
+    private int mProgressBarVisibility;
+
     @NonNull
     @Override
-    public MemberGridHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new MemberGridHolder(MemberItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        switch (viewType) {
+            case TYPE_MEMBER:
+                return new MemberGridHolder(MemberItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+            case TYPE_LOADER:
+                return new FooterHolder(LoadMoreBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+        }
+        throw new RuntimeException();
     }
 
     @Override
-    public void onBindViewHolder(MemberGridHolder holder, final int position) {
-        holder.bind(mCurrentList.get(position));
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        if (holder instanceof MemberGridHolder) {
+            ((MemberGridHolder) holder).bind(mCurrentList.get(position));
+        } else if (holder instanceof FooterHolder)
+            ((FooterHolder) holder).bind(mProgressBarVisibility);
     }
 
     @Override
@@ -44,6 +59,12 @@ public class MemberGridAdapter extends RecyclerView.Adapter<MemberGridAdapter.Me
     @Override
     public long getItemId(int position) {
         return position;
+    }
+
+    public void setFooterProgressBarVisibility(int visibility) {
+        this.mProgressBarVisibility = visibility;
+
+        notifyItemChanged(getItemCount() - 1);
     }
 
     public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
@@ -87,6 +108,19 @@ public class MemberGridAdapter extends RecyclerView.Adapter<MemberGridAdapter.Me
                             .skipMemoryCache(true)
                             .diskCacheStrategy(DiskCacheStrategy.NONE))
                     .into(mBinding.ivProfileImage);
+        }
+    }
+
+    public static class FooterHolder extends RecyclerView.ViewHolder {
+        private final LoadMoreBinding mBinding;
+
+        FooterHolder(LoadMoreBinding binding) {
+            super(binding.getRoot());
+            this.mBinding = binding;
+        }
+
+        public void bind(int progressBarVisibility) {
+            mBinding.pbMore.setVisibility(progressBarVisibility);
         }
     }
 

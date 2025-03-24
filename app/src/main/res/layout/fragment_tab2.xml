@@ -14,6 +14,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:layout_constraintTop_toTopOf="parent"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 tools:listitem="@layout/schedule_item" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

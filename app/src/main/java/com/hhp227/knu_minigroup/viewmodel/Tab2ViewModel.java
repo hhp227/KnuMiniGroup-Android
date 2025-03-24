@@ -27,19 +27,27 @@ import java.util.List;
 import java.util.Map;
 
 public class Tab2ViewModel extends ViewModel {
-    private static final String TAG = Tab2ViewModel.class.getSimpleName();
+    private final MutableLiveData<Boolean> mLoading = new MutableLiveData<>(false);
 
-    private final MutableLiveData<State> mState = new MutableLiveData<>();
+    private final MutableLiveData<List<Map<String, String>>> mItemList = new MutableLiveData<>(Collections.emptyList());
+
+    private final MutableLiveData<String> mMessage = new MutableLiveData<>();
 
     private final MutableLiveData<Calendar> mCalendar = new MutableLiveData<>(Calendar.getInstance());
 
-    public LiveData<State> getState() {
-        return mState;
+    public LiveData<Calendar> getCalendar() {
+        return mCalendar;
     }
 
-    public void previousMonth() {
-        Calendar calendar = mCalendar.getValue();
+    public LiveData<List<Map<String, String>>> getItemList() {
+        return mItemList;
+    }
 
+    public LiveData<String> getMessage() {
+        return mMessage;
+    }
+
+    public void previousMonth(Calendar calendar) {
         if (calendar != null) {
             if (calendar.get(Calendar.MONTH) == calendar.getActualMinimum(Calendar.MONTH)) {
                 calendar.set((calendar.get(Calendar.YEAR) - 1), calendar.getActualMaximum(Calendar.MONTH),1);
@@ -50,9 +58,7 @@ public class Tab2ViewModel extends ViewModel {
         }
     }
 
-    public void nextMonth() {
-        Calendar calendar = mCalendar.getValue();
-
+    public void nextMonth(Calendar calendar) {
         if (calendar != null) {
             if (calendar.get(Calendar.MONTH) == calendar.getActualMaximum(Calendar.MONTH)) {
                 calendar.set((calendar.get(Calendar.YEAR) + 1), calendar.getActualMinimum(Calendar.MONTH),1);
@@ -63,16 +69,12 @@ public class Tab2ViewModel extends ViewModel {
         }
     }
 
-    public LiveData<Calendar> getCalendar() {
-        return mCalendar;
-    }
-
     public void fetchDataTask(Calendar calendar) {
         String year = String.valueOf(calendar.get(Calendar.YEAR));
         String month = String.format("%02d", calendar.get(Calendar.MONTH) + 1);
         String endPoint = EndPoint.URL_SCHEDULE.replace("{YEAR-MONTH}", year.concat(month));
 
-        mState.postValue(new State(true, Collections.emptyList(), null));
+        mLoading.postValue(true);
         AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, endPoint, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -99,7 +101,7 @@ public class Tab2ViewModel extends ViewModel {
                                         try {
                                             map.put("내용", parser.nextText());
                                         } catch (Exception e) {
-                                            Log.e(TAG, e.getMessage());
+                                            Log.e("Tab2ViewModel", e.getMessage());
                                         }
                                         break;
                                 }
@@ -109,33 +111,22 @@ public class Tab2ViewModel extends ViewModel {
                         }
                         eventType = parser.next();
                     }
-                    mState.postValue(new State(false, list, null));
+                    mLoading.postValue(false);
+                    mItemList.postValue(list);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    mLoading.postValue(false);
+                    mMessage.postValue(e.getMessage());
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 if (error.getMessage() != null) {
-                    VolleyLog.e(TAG, error.getMessage());
-                    mState.postValue(new State(false, Collections.emptyList(), error.getMessage()));
+                    VolleyLog.e(error.getMessage());
+                    mLoading.postValue(false);
+                    mMessage.postValue(error.getMessage());
                 }
             }
         }));
-    }
-
-    public static final class State {
-        public boolean isLoading;
-
-        public List<Map<String, String>> list;
-
-        public String message;
-
-        public State(boolean isLoading, List<Map<String, String>> list, String message) {
-            this.isLoading = isLoading;
-            this.list = list;
-            this.message = message;
-        }
     }
 }
