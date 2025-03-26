@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout
-        xmlns:android="http://schemas.android.com/apk/res/android">
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <import type="android.view.View" />
+
+        <import type="com.hhp227.knu_minigroup.app.EndPoint" />
+
+        <variable
+                name="viewModel"
+                type="com.hhp227.knu_minigroup.viewmodel.UserViewModel" />
+
+        <variable
+                name="handler"
+                type="com.hhp227.knu_minigroup.handler.OnFragmentUserDialogEventListener" />
+    </data>
 
     <RelativeLayout
             android:layout_width="match_parent"
@@ -43,7 +59,9 @@
                     android:layout_height="60dp"
                     android:paddingTop="3dp"
                     android:src="@drawable/user_image_view_circle"
-                    android:scaleType="fitCenter" />
+                    android:scaleType="fitCenter"
+                    app:userImageUrl="@{EndPoint.USER_IMAGE.replace(`{UID}`, viewModel.mUid != null ? viewModel.mUid : `{Null}`)}"
+                    app:cookie="@{viewModel.cookie}" />
 
             <LinearLayout
                     android:layout_width="wrap_content"
@@ -56,10 +74,11 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:paddingBottom="10dip"
-                        android:paddingLeft="5dip"
+                        android:paddingStart="5dip"
                         android:paddingTop="10dip"
-                        android:text="이름"
-                        android:textSize="16dp" />
+                        android:text="@{viewModel.mName}"
+                        android:textSize="16dp"
+                        tools:text="이름" />
 
                 <LinearLayout
                         android:layout_width="wrap_content"
@@ -107,13 +126,17 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:background="@drawable/main_button"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?android:attr/selectableItemBackground"
                     android:paddingBottom="8dp"
                     android:paddingLeft="12dp"
                     android:paddingRight="12dp"
                     android:paddingTop="8dp"
-                    android:text="버튼"
-                    android:textSize="14dp" />
+                    android:text="메시지 보내기"
+                    android:visibility="@{viewModel.auth ? View.GONE : View.VISIBLE}"
+                    android:textSize="14dp"
+                    android:onClick="@{() -> handler.onSendClick()}" />
 
             <LinearLayout
                     android:layout_width="1px"
@@ -126,13 +149,16 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:background="@drawable/main_button"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?android:attr/selectableItemBackground"
                     android:paddingBottom="8dp"
                     android:paddingLeft="12dp"
                     android:paddingRight="12dp"
                     android:paddingTop="8dp"
                     android:text="닫기"
-                    android:textSize="14dp" />
+                    android:textSize="14dp"
+                    android:onClick="@{() -> handler.onCancelClick()}" />
 
         </LinearLayout>
 
