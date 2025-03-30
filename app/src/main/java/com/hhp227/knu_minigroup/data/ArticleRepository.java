@@ -102,7 +102,7 @@ public class ArticleRepository {
         });
     }
 
-    public void getArticleData(String cookie, String articleId, String articleKey, String params, Callback callback) {
+    public void getArticleData(String articleKey, Callback callback) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
 
         callback.onLoading();
@@ -123,136 +123,61 @@ public class ArticleRepository {
         });
     }
 
-    public void addArticle(String cookie, User user, String title, String content, List<String> imageList, YouTubeItem youTubeItem, Callback callback) {
-        String tagStringReq = "req_send";
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.WRITE_ARTICLE, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                try {
-                    JSONObject jsonObject = new JSONObject(response);
-                    boolean error = jsonObject.getBoolean("isError");
+    public void addArticle(User user, String title, String content, List<String> imageList, YouTubeItem youTubeItem, Callback callback) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
+        DatabaseReference article = databaseReference.child(mGroupKey).push();
 
-                    if (!error) {
-                        getArticleId(cookie, user, title, Html.fromHtml(content).toString().trim(), imageList, youTubeItem, callback);
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    callback.onFailure(e);
-                }
+        article.setValue(new HashMap<String, Object>() {
+            {
+                put("uid", user.getUid());
+                put("name", user.getName());
+                put("title", title);
+                put("timestamp", System.currentTimeMillis());
+                put("content", TextUtils.isEmpty(content) ? null : content);
+                put("images", imageList);
+                put("youtube", youTubeItem);
             }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(error.getMessage());
-                callback.onFailure(error);
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", cookie);
-                return headers;
-            }
-
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-
-                params.put("SBJT", title);
-                params.put("CLUB_GRP_ID", mGroupId);
-                params.put("TXT", content);
-                return params;
-            }
-        };
-
-        AppController.getInstance().addToRequestQueue(stringRequest, tagStringReq);
+        });
+        callback.onSuccess(article.getKey());
     }
 
-    public void setArticle(String cookie, String articleId, String articleKey, String title, String content, List<String> imageList, YouTubeItem youTubeItem, Callback callback) {
-        String tagStringReq = "req_send";
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.MODIFY_ARTICLE, new Response.Listener<String>() {
+    public void setArticle(String articleKey, String title, String content, List<String> imageList, YouTubeItem youTubeItem, Callback callback) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
+        Query query = databaseReference.child(mGroupKey).child(articleKey);
+
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onResponse(String response) {
-                try {
-                    initFirebaseData(articleKey, title, Html.fromHtml(content).toString().trim(), imageList, youTubeItem, callback);
-                } catch (Exception e) {
-                    e.printStackTrace();
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                ArticleItem articleItem = dataSnapshot.getValue(ArticleItem.class);
+
+                if (articleItem != null) {
+                    articleItem.setTitle(title);
+                    articleItem.setContent(TextUtils.isEmpty(content) ? null : content);
+                    articleItem.setImages(imageList.isEmpty() ? null : imageList);
+                    articleItem.setYoutube(youTubeItem);
+                    query.getRef().setValue(articleItem);
+                    callback.onSuccess(articleItem);
+                } else {
+                    callback.onSuccess(null);
                 }
             }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(error.getMessage());
-                callback.onFailure(error);
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", cookie);
-                return headers;
-            }
 
             @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-
-                params.put("CLUB_GRP_ID", mGroupId);
-                params.put("ARTL_NUM", articleId);
-                params.put("SBJT", title);
-                params.put("TXT", content);
-                return params;
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                databaseError.toException().printStackTrace();
+                callback.onFailure(databaseError.toException());
             }
-        };
-
-        AppController.getInstance().addToRequestQueue(stringRequest, tagStringReq);
+        });
     }
 
-    public void removeArticle(String cookie, String articleId, String articleKey, Callback callback) {
-        String tag_string_req = "req_delete";
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, EndPoint.DELETE_ARTICLE, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                try {
-                    JSONObject jsonObject = new JSONObject(response);
-                    boolean error = jsonObject.getBoolean("isError");
-
-                    if (!error) {
-                        deleteArticleFromFirebase(articleKey, callback);
-                    }
-                } catch (JSONException e) {
-                    callback.onFailure(e);
-                    e.printStackTrace();
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                callback.onFailure(error);
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", cookie);
-                return headers;
-            }
-
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-
-                params.put("CLUB_GRP_ID", mGroupId);
-                params.put("ARTL_NUM", articleId);
-                return params;
-            }
-        };
+    public void removeArticle(String articleKey, Callback callback) {
+        DatabaseReference articlesReference = FirebaseDatabase.getInstance().getReference("Articles");
+        DatabaseReference replysReference = FirebaseDatabase.getInstance().getReference("Replys");
 
         callback.onLoading();
-        AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
+        articlesReference.child(mGroupKey).child(articleKey).removeValue();
+        replysReference.child(articleKey).removeValue();
+        callback.onSuccess(null);
     }
 
     public void addArticleImage(String cookie, Bitmap bitmap, Callback callback) {
@@ -298,50 +223,6 @@ public class ArticleRepository {
         AppController.getInstance().addToRequestQueue(multipartRequest);
     }
 
-    private void getArticleId(String cookie, User user, String title, String content, List<String> imageList, YouTubeItem youTubeItem, Callback callback) {
-        String params = "?CLUB_GRP_ID=" + mGroupId + "&displayL=1";
-
-        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.GROUP_ARTICLE_LIST + params, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Source source = new Source(response);
-                String artlNum = source.getFirstElementByClass("comment_wrap").getAttributeValue("num");
-
-                insertArticleToFirebase(artlNum, user, title, content, imageList, youTubeItem, callback);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(error.getMessage());
-                callback.onFailure(error);
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", cookie);
-                return headers;
-            }
-        });
-    }
-
-    private void initFirebaseData(List<Map.Entry<String, ArticleItem>> articleItemList, Callback callback) {
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
-
-        fetchArticleListFromFirebase(databaseReference.child(mGroupKey), articleItemList, callback);
-    }
-
-    private void initFirebaseData(String articleKey, String title, String content, List<String> imageList, YouTubeItem youTubeItem, Callback callback) {
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
-
-        updateArticleDataToFirebase(databaseReference.child(mGroupKey).child(articleKey), title, content, imageList, youTubeItem, callback);
-    }
-
-    private void fetchArticleListFromFirebase(Query query, List<Map.Entry<String, ArticleItem>> articleItemList, Callback callback) {
-
-    }
-
     private void fetchArticleDataFromFirebase(ArticleItem articleItem, String articleKey, Callback callback) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
 
@@ -361,57 +242,6 @@ public class ArticleRepository {
                 callback.onFailure(databaseError.toException());
             }
         });
-    }
-
-    private void insertArticleToFirebase(String artlNum, User user, String title, String content, List<String> imageList, YouTubeItem youTubeItem, Callback callback) {
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Articles");
-        Map<String, Object> map = new HashMap<>();
-
-        map.put("id", artlNum);
-        map.put("uid", user.getUid());
-        map.put("name", user.getName());
-        map.put("title", title);
-        map.put("timestamp", System.currentTimeMillis());
-        map.put("content", TextUtils.isEmpty(content) ? null : content);
-        map.put("images", imageList);
-        map.put("youtube", youTubeItem);
-        databaseReference.child(mGroupKey).push().setValue(map);
-        callback.onSuccess(artlNum);
-    }
-
-    private void updateArticleDataToFirebase(final Query query, final String title, final String content, final List<String> imageList, YouTubeItem youTubeItem, Callback callback) {
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                ArticleItem articleItem = dataSnapshot.getValue(ArticleItem.class);
-
-                if (articleItem != null) {
-                    articleItem.setTitle(title);
-                    articleItem.setContent(TextUtils.isEmpty(content) ? null : content);
-                    articleItem.setImages(imageList.isEmpty() ? null : imageList);
-                    articleItem.setYoutube(youTubeItem);
-                    query.getRef().setValue(articleItem);
-                    callback.onSuccess(articleItem);
-                } else {
-                    callback.onSuccess(null);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                databaseError.toException().printStackTrace();
-                callback.onFailure(databaseError.toException());
-            }
-        });
-    }
-
-    private void deleteArticleFromFirebase(String articleKey, Callback callback) {
-        DatabaseReference articlesReference = FirebaseDatabase.getInstance().getReference("Articles");
-        DatabaseReference replysReference = FirebaseDatabase.getInstance().getReference("Replys");
-
-        articlesReference.child(mGroupKey).child(articleKey).removeValue();
-        replysReference.child(articleKey).removeValue();
-        callback.onSuccess(null);
     }
 
     private String contentExtractor(Element listCont) {

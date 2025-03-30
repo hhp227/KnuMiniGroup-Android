@@ -104,7 +104,6 @@ public class ArticleActivity extends MyYouTubeBaseActivity implements OnActivity
 
                 if (articleItem != null) {
                     intent.putExtra("grp_id", mViewModel.mGroupId);
-                    intent.putExtra("artl_num", articleItem.getId());
                     intent.putExtra("sbjt", articleItem.getTitle());
                     intent.putExtra("txt", articleItem.getContent());
                     intent.putStringArrayListExtra("img", (ArrayList<String>) articleItem.getImages());
@@ -173,7 +172,6 @@ public class ArticleActivity extends MyYouTubeBaseActivity implements OnActivity
                     String reply = replyItem.getReply();
 
                     intent.putExtra("grp_id", mViewModel.mGroupId);
-                    intent.putExtra("artl_num", mViewModel.mArticleId);
                     intent.putExtra("cmt", reply);
                     intent.putExtra("cmmt_num", replyId);
                     intent.putExtra("artl_key", mViewModel.mArticleKey);

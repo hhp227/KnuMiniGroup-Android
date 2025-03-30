@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
 import android.text.Spannable;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -42,6 +43,7 @@ import com.hhp227.knu_minigroup.viewmodel.CreateArticleViewModel;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -68,7 +70,7 @@ public class CreateArticleActivity extends AppCompatActivity implements OnActivi
         mActivityCreateArticleBinding = DataBindingUtil.setContentView(this, R.layout.activity_create_article);
         mWriteTextBinding = WriteTextBinding.inflate(getLayoutInflater());
         mViewModel = new ViewModelProvider(this).get(CreateArticleViewModel.class);
-        mAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, null);
+        mAdapter = new WriteListAdapter(getApplicationContext(), R.layout.write_content, new ArrayList<>());
         mProgressDialog = new ProgressDialog(this);
         mCameraPickActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
@@ -295,10 +297,10 @@ public class CreateArticleActivity extends AppCompatActivity implements OnActivi
                 }
             }
         });
-        mViewModel.getArticleId().observe(this, new Observer<String>() {
+        mViewModel.getArticleKey().observe(this, new Observer<String>() {
             @Override
-            public void onChanged(String articleId) {
-                if (articleId != null && !articleId.isEmpty()) {
+            public void onChanged(String articleKey) {
+                if (articleKey != null && !articleKey.isEmpty()) {
                     setResult(RESULT_OK);
                     finish();
                 }

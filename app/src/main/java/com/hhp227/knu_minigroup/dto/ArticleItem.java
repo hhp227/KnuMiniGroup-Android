@@ -10,7 +10,7 @@ public class ArticleItem implements Parcelable {
 
     private long timestamp;
 
-    private String id, uid, name, title, content, replyCount;
+    private String uid, name, title, content, replyCount;
 
     private List<String> images;
 
@@ -19,9 +19,8 @@ public class ArticleItem implements Parcelable {
     public ArticleItem() {
     }
 
-    public ArticleItem(String id, String uid, String name, String title, String content, List<String> images, YouTubeItem youTube, String replyCount, boolean auth, long timestamp) {
+    public ArticleItem(String uid, String name, String title, String content, List<String> images, YouTubeItem youTube, String replyCount, boolean auth, long timestamp) {
         super();
-        this.id = id;
         this.uid = uid;
         this.name = name;
         this.title = title;
@@ -36,7 +35,6 @@ public class ArticleItem implements Parcelable {
     protected ArticleItem(Parcel in) {
         auth = in.readByte() != 0;
         timestamp = in.readLong();
-        id = in.readString();
         uid = in.readString();
         name = in.readString();
         title = in.readString();
@@ -57,14 +55,6 @@ public class ArticleItem implements Parcelable {
             return new ArticleItem[size];
         }
     };
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getUid() {
         return uid;
@@ -147,7 +137,6 @@ public class ArticleItem implements Parcelable {
     public void writeToParcel(Parcel parcel, int i) {
         parcel.writeByte((byte) (auth ? 1 : 0));
         parcel.writeLong(timestamp);
-        parcel.writeString(id);
         parcel.writeString(uid);
         parcel.writeString(name);
         parcel.writeString(title);

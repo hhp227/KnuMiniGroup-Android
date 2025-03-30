@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.text.Html;
 import android.text.Spannable;
 import android.text.TextUtils;
+import android.util.Log;
 import android.webkit.CookieManager;
 
 import androidx.lifecycle.LiveData;
@@ -28,19 +29,17 @@ public class CreateArticleViewModel extends ViewModel {
 
     public final MutableLiveData<String> content = new MutableLiveData<>();
 
-    private static final String PROGRESS = "progress", ARTICLE_ID = "articleId", MESSAGE = "message";
+    private static final String PROGRESS = "progress", ARTICLE_KEY = "article", MESSAGE = "message";
 
     private final MutableLiveData<List<Object>> mContentList = new MutableLiveData<>();
 
     private List<String> mImageList; // TEMP
 
+    private String mArticleKey;
+
     private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
 
     private final PreferenceManager mPreferenceManager = AppController.getInstance().getPreferenceManager();
-
-    private StringBuilder mMakeHtmlContents;
-
-    private final String mArtlNum, mArtlKey;
 
     private final SavedStateHandle mSavedStateHandle;
 
@@ -48,8 +47,7 @@ public class CreateArticleViewModel extends ViewModel {
 
     public CreateArticleViewModel(SavedStateHandle savedStateHandle) {
         mSavedStateHandle = savedStateHandle;
-        mArtlNum = savedStateHandle.get("artl_num");
-        mArtlKey = savedStateHandle.get("artl_key");
+        mArticleKey = savedStateHandle.get("artl_key");
         mImageList = savedStateHandle.get("img");
         articleRepository = new ArticleRepository(savedStateHandle.get("grp_id"), savedStateHandle.get("grp_key"));
         String title = mSavedStateHandle.get("sbjt");
@@ -86,12 +84,12 @@ public class CreateArticleViewModel extends ViewModel {
         return mSavedStateHandle.getLiveData(PROGRESS);
     }
 
-    public void setArticleId(String id) {
-        mSavedStateHandle.set(ARTICLE_ID, id);
+    public void setArticleKey(String key) {
+        mSavedStateHandle.set(ARTICLE_KEY, key);
     }
 
-    public LiveData<String> getArticleId() {
-        return mSavedStateHandle.getLiveData(ARTICLE_ID);
+    public LiveData<String> getArticleKey() {
+        return mSavedStateHandle.getLiveData(ARTICLE_KEY);
     }
 
     public void setMessage(String message) {
@@ -154,10 +152,9 @@ public class CreateArticleViewModel extends ViewModel {
 
     public void actionSend(Spannable spannableTitle, Spannable spannableContent, List<Object> contentList) {
         String title = spannableTitle.toString();
-        String content = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N ? Html.toHtml(spannableContent, Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL) : Html.toHtml(spannableContent);
+        String content = spannableContent.toString();
 
         if (!title.isEmpty() && !(TextUtils.isEmpty(content) && contentList.isEmpty())) {
-            mMakeHtmlContents = new StringBuilder();
             mImageList = new ArrayList<>();
 
             setProgress(0);
@@ -182,11 +179,11 @@ public class CreateArticleViewModel extends ViewModel {
     }
 
     private void actionCreate(final String title, final String content) {
-        articleRepository.addArticle(mCookieManager.getCookie(EndPoint.LOGIN), mPreferenceManager.getUser(), title, content, mImageList, getYouTubeItem(), new Callback() {
+        articleRepository.addArticle(mPreferenceManager.getUser(), title, content, mImageList, getYouTubeItem(), new Callback() {
             @Override
             public <T> void onSuccess(T data) {
                 setProgress(-1);
-                setArticleId((String) data);
+                setArticleKey((String) data);
                 setMessage("전송완료");
             }
 
@@ -204,14 +201,14 @@ public class CreateArticleViewModel extends ViewModel {
     }
 
     private void actionUpdate(final String title, final String content) {
-        articleRepository.setArticle(mCookieManager.getCookie(EndPoint.LOGIN), mArtlNum, mArtlKey, title, content, mImageList, getYouTubeItem(), new Callback() {
+        articleRepository.setArticle(mArticleKey, title, content, mImageList, getYouTubeItem(), new Callback() {
             @Override
             public <T> void onSuccess(T data) {
                 if (data != null) {
                     ArticleItem articleItem = (ArticleItem) data;
 
                     setProgress(-1);
-                    setArticleId(articleItem.getId());
+                    setArticleKey(mArticleKey);
                     setMessage("수정완료");
                 }
             }
@@ -254,10 +251,6 @@ public class CreateArticleViewModel extends ViewModel {
             mImageList.add(imageUrl);
         setProgress((int) ((double) (position) / (contentList.size() - 1) * 100));
         try {
-            String test = (isYoutube ? "<p><embed title=\"YouTube video player\" class=\"youtube-player\" autostart=\"true\" src=\"//www.youtube.com/embed/" + imageUrl + "?autoplay=1\"  width=\"488\" height=\"274\"></embed><p>" // 유튜브 태그
-                    : ("<p><img src=\"" + imageUrl + "\" width=\"488\"><p>")) + (position < contentList.size() - 1 ? "<br>": "");
-
-            mMakeHtmlContents.append(test);
             if (position < contentList.size() - 1) {
                 position++;
                 Thread.sleep(isYoutube ? 0 : 700);
@@ -266,7 +259,7 @@ public class CreateArticleViewModel extends ViewModel {
                 itemTypeCheck(position, spannableTitle, spannableContent, contentList);
             } else {
                 String title = spannableTitle.toString();
-                String content = (!TextUtils.isEmpty(spannableContent.toString()) ? Html.toHtml(spannableContent) + "<p><br data-mce-bogus=\"1\"></p>" : "") + mMakeHtmlContents.toString();
+                String content = spannableContent.toString();
 
                 typeCheck(title, content);
             }

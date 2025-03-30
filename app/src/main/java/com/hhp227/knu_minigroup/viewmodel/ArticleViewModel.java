@@ -27,7 +27,7 @@ public class ArticleViewModel extends ViewModel {
 
     public final Integer mPosition;
 
-    public final String mGroupId, mArticleId, mGroupName, mGroupImage, mGroupKey, mArticleKey;
+    public final String mGroupId, mGroupName, mGroupImage, mGroupKey, mArticleKey;
 
     public final MutableLiveData<String> reply = new MutableLiveData<>("");
 
@@ -50,16 +50,15 @@ public class ArticleViewModel extends ViewModel {
         mGroupId = savedStateHandle.get("grp_id");
         mGroupName = savedStateHandle.get("grp_nm");
         mGroupImage = savedStateHandle.get("grp_img");
-        mArticleId = savedStateHandle.get("artl_num");
         mGroupKey = savedStateHandle.get("grp_key");
         mArticleKey = savedStateHandle.get("artl_key");
         mPosition = savedStateHandle.get("position");
         mIsAuthorized = savedStateHandle.get("auth");
         mArticleRepository = new ArticleRepository(mGroupId, mGroupKey);
-        mReplyRepository = new ReplyRepository(mGroupId, mArticleId, mArticleKey);
+        mReplyRepository = new ReplyRepository(mGroupId, mArticleKey);
 
-        fetchArticleData(mArticleId, false);
-        setArticle(new ArticleItem("", "", "", "", "", Collections.emptyList(), null, "", false, 0));
+        fetchArticleData(false);
+        setArticle(new ArticleItem("", "", "", "", Collections.emptyList(), null, "", false, 0));
     }
 
     public void setLoading(boolean bool) {
@@ -156,7 +155,7 @@ public class ArticleViewModel extends ViewModel {
     }
 
     public void deleteArticle() {
-        mArticleRepository.removeArticle(getCookie(), mArticleId, mArticleKey, new Callback() {
+        mArticleRepository.removeArticle(mArticleKey, new Callback() {
             @Override
             public <T> void onSuccess(T data) {
                 setLoading(false);
@@ -198,17 +197,17 @@ public class ArticleViewModel extends ViewModel {
     }
 
     public void refresh() {
-        fetchArticleData(mArticleId, true);
+        fetchArticleData(true);
     }
 
     public void refreshReply(List<Element> commentList) {
         fetchReplyData(commentList);
     }
 
-    private void fetchArticleData(String articleId, boolean isUpdated) {
+    private void fetchArticleData(boolean isUpdated) {
         String params = "?CLUB_GRP_ID=" + mGroupId + "&startL=" + mPosition + "&displayL=1";
 
-        mArticleRepository.getArticleData(getCookie(), articleId, mArticleKey, params, new Callback() {
+        mArticleRepository.getArticleData(mArticleKey, new Callback() {
             @Override
             public <T> void onSuccess(T data) {
                 if (data instanceof ArticleItem) {

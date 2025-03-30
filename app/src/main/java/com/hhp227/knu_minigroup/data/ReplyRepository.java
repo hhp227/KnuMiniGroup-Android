@@ -32,11 +32,10 @@ import java.util.List;
 import java.util.Map;
 
 public class ReplyRepository {
-    private final String mGroupId, mArticleId, mArticleKey;
+    private final String mGroupId, mArticleKey;
 
-    public ReplyRepository(String groupId, String articleId, String articleKey) {
+    public ReplyRepository(String groupId, String articleKey) {
         this.mGroupId = groupId;
-        this.mArticleId = articleId;
         this.mArticleKey = articleKey;
     }
 
@@ -104,7 +103,7 @@ public class ReplyRepository {
                 Map<String, String> params = new HashMap<>();
 
                 params.put("CLUB_GRP_ID", mGroupId);
-                params.put("ARTL_NUM", mArticleId);
+                //params.put("ARTL_NUM", mArticleId);
                 params.put("CMT", text);
                 return params;
             }
@@ -144,7 +143,7 @@ public class ReplyRepository {
                 Map<String, String> params = new HashMap<>();
 
                 params.put("CLUB_GRP_ID", mGroupId);
-                params.put("ARTL_NUM", mArticleId);
+                //params.put("ARTL_NUM", mArticleId);
                 params.put("CMMT_NUM", replyId);
                 params.put("CMT", text);
                 return params;
@@ -194,7 +193,7 @@ public class ReplyRepository {
 
                 params.put("CLUB_GRP_ID", mGroupId);
                 params.put("CMMT_NUM", replyId);
-                params.put("ARTL_NUM", mArticleId);
+                //params.put("ARTL_NUM", mArticleId);
                 return params;
             }
         };

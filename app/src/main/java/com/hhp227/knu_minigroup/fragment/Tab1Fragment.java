@@ -140,7 +140,6 @@ public class Tab1Fragment extends Fragment implements OnFragmentTab1EventListene
                 intent.putExtra("grp_id", mGroupId);
                 intent.putExtra("grp_nm", mGroupName);
                 intent.putExtra("grp_img", mGroupImage);
-                intent.putExtra("artl_num", articleItem.getId());
                 intent.putExtra("position", position + 1);
                 intent.putExtra("auth", articleItem.isAuth() || mViewModel.getUser().getUid().equals(articleItem.getUid()));
                 intent.putExtra("isbottom", v.getId() == R.id.ll_reply);

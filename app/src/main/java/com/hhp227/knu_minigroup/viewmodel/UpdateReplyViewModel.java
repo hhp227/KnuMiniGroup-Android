@@ -20,7 +20,7 @@ public class UpdateReplyViewModel extends ViewModel {
 
     private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
 
-    private final String mGroupId, mArticleId, mReplyId, mArticleKey, mReplyKey;
+    private final String mGroupId, mReplyId, mArticleKey, mReplyKey;
 
     private final SavedStateHandle mSavedStateHandle;
 
@@ -29,11 +29,10 @@ public class UpdateReplyViewModel extends ViewModel {
     public UpdateReplyViewModel(SavedStateHandle savedStateHandle) {
         mSavedStateHandle = savedStateHandle;
         mGroupId = savedStateHandle.get("grp_id");
-        mArticleId = savedStateHandle.get("artl_num");
         mReplyId = savedStateHandle.get("cmmt_num");
         mArticleKey = savedStateHandle.get("artl_key");
         mReplyKey = savedStateHandle.get("cmmt_key");
-        mReplyRepository = new ReplyRepository(mGroupId, mArticleId, mArticleKey);
+        mReplyRepository = new ReplyRepository(mGroupId, mArticleKey);
         String reply = savedStateHandle.get("cmt");
 
         if (reply != null) {
