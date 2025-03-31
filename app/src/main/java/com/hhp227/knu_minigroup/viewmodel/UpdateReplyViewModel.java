@@ -32,7 +32,7 @@ public class UpdateReplyViewModel extends ViewModel {
         mReplyId = savedStateHandle.get("cmmt_num");
         mArticleKey = savedStateHandle.get("artl_key");
         mReplyKey = savedStateHandle.get("cmmt_key");
-        mReplyRepository = new ReplyRepository(mGroupId, mArticleKey);
+        mReplyRepository = new ReplyRepository(mArticleKey);
         String reply = savedStateHandle.get("cmt");
 
         if (reply != null) {
@@ -74,7 +74,7 @@ public class UpdateReplyViewModel extends ViewModel {
 
     public void actionSend(String text) {
         if (!TextUtils.isEmpty(text)) {
-            mReplyRepository.setReply(mCookieManager.getCookie(EndPoint.LOGIN), mReplyId, mReplyKey, text, new Callback() {
+            mReplyRepository.setReply(mReplyKey, text, new Callback() {
                 @Override
                 public <T> void onSuccess(T data) {
                     setLoading(false);

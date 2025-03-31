@@ -13,10 +13,9 @@ import com.hhp227.knu_minigroup.data.ArticleRepository;
 import com.hhp227.knu_minigroup.data.ReplyRepository;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.dto.ReplyItem;
+import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.helper.Callback;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
-
-import net.htmlparser.jericho.Element;
 
 import java.util.Collections;
 import java.util.List;
@@ -55,7 +54,7 @@ public class ArticleViewModel extends ViewModel {
         mPosition = savedStateHandle.get("position");
         mIsAuthorized = savedStateHandle.get("auth");
         mArticleRepository = new ArticleRepository(mGroupId, mGroupKey);
-        mReplyRepository = new ReplyRepository(mGroupId, mArticleKey);
+        mReplyRepository = new ReplyRepository(mArticleKey);
 
         fetchArticleData(false);
         setArticle(new ArticleItem("", "", "", "", Collections.emptyList(), null, "", false, 0));
@@ -125,17 +124,23 @@ public class ArticleViewModel extends ViewModel {
         return mSavedStateHandle.getLiveData("isbottom");
     }
 
+    public User getUser() {
+        return mPreferenceManager.getUser();
+    }
+
     public void actionSend(String text) {
         if (!text.isEmpty()) {
             setLoading(true);
             reply.postValue("");
-            mReplyRepository.addReply(getCookie(), mPreferenceManager.getUser(), text, new Callback() {
+            mReplyRepository.addReply(mPreferenceManager.getUser(), text, new Callback() {
                 @Override
                 public <T> void onSuccess(T data) {
-                    refreshReply((List<Element>) data);
+                    if (data instanceof Boolean) {
+                        refreshReply();
 
-                    // 전송할때마다 리스트뷰 아래로
-                    setScrollToLastState(true);
+                        // 전송할때마다 리스트뷰 아래로
+                        setScrollToLastState(true);
+                    }
                 }
 
                 @Override
@@ -176,11 +181,11 @@ public class ArticleViewModel extends ViewModel {
         });
     }
 
-    public void deleteReply(String replyId, String replyKey) {
-        mReplyRepository.removeReply(getCookie(), replyId, replyKey, new Callback() {
+    public void deleteReply(String replyKey) {
+        mReplyRepository.removeReply(replyKey, new Callback() {
             @Override
             public <T> void onSuccess(T data) {
-                refreshReply((List<Element>) data);
+                refreshReply();
             }
 
             @Override
@@ -200,25 +205,20 @@ public class ArticleViewModel extends ViewModel {
         fetchArticleData(true);
     }
 
-    public void refreshReply(List<Element> commentList) {
-        fetchReplyData(commentList);
+    public void refreshReply() {
+        fetchReplyData();
     }
 
     private void fetchArticleData(boolean isUpdated) {
-        String params = "?CLUB_GRP_ID=" + mGroupId + "&startL=" + mPosition + "&displayL=1";
-
         mArticleRepository.getArticleData(mArticleKey, new Callback() {
             @Override
             public <T> void onSuccess(T data) {
-                if (data instanceof ArticleItem) {
-                    ArticleItem articleItem = (ArticleItem) data;
+                ArticleItem articleItem = (ArticleItem) data;
 
-                    setLoading(false);
-                    setArticle(articleItem);
-                    if (isUpdated) setArticleUpdated(true);
-                } else {
-                    refreshReply((List<Element>) data);
-                }
+                setLoading(false);
+                setArticle(articleItem);
+                if (isUpdated) setArticleUpdated(true);
+                refreshReply();
             }
 
             @Override
@@ -234,8 +234,8 @@ public class ArticleViewModel extends ViewModel {
         });
     }
 
-    private void fetchReplyData(List<Element> commentList) {
-        mReplyRepository.getReplyList(commentList, new Callback() {
+    private void fetchReplyData() {
+        mReplyRepository.getReplyList(new Callback() {
             @Override
             public <T> void onSuccess(T data) {
                 setLoading(false);

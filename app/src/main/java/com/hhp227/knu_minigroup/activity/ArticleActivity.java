@@ -31,9 +31,6 @@ import com.hhp227.knu_minigroup.handler.OnActivityArticleEventListener;
 import com.hhp227.knu_minigroup.helper.MyYouTubeBaseActivity;
 import com.hhp227.knu_minigroup.viewmodel.ArticleViewModel;
 
-import net.htmlparser.jericho.Element;
-import net.htmlparser.jericho.Source;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -127,10 +124,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity implements OnActivity
         if (requestCode == UPDATE_ARTICLE && resultCode == RESULT_OK) {
             mViewModel.refresh();
         } else if (requestCode == UPDATE_REPLY && resultCode == RESULT_OK && data != null) {
-            Source source = new Source(data.getStringExtra("update_reply"));
-            List<Element> commentList = source.getAllElementsByClass("comment-list");
-
-            mViewModel.refreshReply(commentList);
+            mViewModel.refreshReply();
         }
     }
 
@@ -141,7 +135,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity implements OnActivity
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         int position = ((AdapterView.AdapterContextMenuInfo) menuInfo).position;
-        boolean auth = !mAdapter.getCurrentList().isEmpty() && position != 0 && mAdapter.getCurrentList().get((position - 1)).getValue().isAuth();
+        boolean auth = !mAdapter.getCurrentList().isEmpty() && position != 0 && mAdapter.getCurrentList().get(position - 1).getValue().getUid().equals(mViewModel.getUser().getUid());
 
         menu.setHeaderTitle("작업선택");
         menu.add(Menu.NONE, 1, Menu.NONE, "내용 복사");
@@ -179,7 +173,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity implements OnActivity
                     startActivityForResult(intent, UPDATE_REPLY);
                     return true;
                 case 3:
-                    mViewModel.deleteReply(replyId, replyKey);
+                    mViewModel.deleteReply(replyKey);
                     return true;
             }
         }
