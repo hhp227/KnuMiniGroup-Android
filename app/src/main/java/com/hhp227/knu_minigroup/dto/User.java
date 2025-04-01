@@ -3,7 +3,11 @@ package com.hhp227.knu_minigroup.dto;
 import java.io.Serializable;
 
 public class User implements Serializable {
-    String userId, password, name, department, number, grade, email, uid, userIp, campus, phoneNumber;
+    boolean anonymous, emailVerified;
+
+    String email, uid, providerId;
+
+    String userId, password, name, department, number, grade, userIp, campus, phoneNumber;
 
     public User() {
     }

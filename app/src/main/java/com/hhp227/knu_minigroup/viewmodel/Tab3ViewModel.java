@@ -1,5 +1,6 @@
 package com.hhp227.knu_minigroup.viewmodel;
 
+import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.SavedStateHandle;
@@ -12,8 +13,11 @@ import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.data.ArticleRepository;
+import com.hhp227.knu_minigroup.data.UserRepository;
 import com.hhp227.knu_minigroup.dto.MemberItem;
 
+import com.hhp227.knu_minigroup.helper.Callback;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
@@ -31,13 +35,17 @@ public class Tab3ViewModel extends ViewModel {
 
     private int offset = 1;
 
-    private final String mGroupId;
+    private final String mGroupId, mKey;
 
     private final SavedStateHandle mSavedStateHandle;
+
+    private final UserRepository mUserRepository;
 
     public Tab3ViewModel(SavedStateHandle savedStateHandle) {
         mSavedStateHandle = savedStateHandle;
         mGroupId = savedStateHandle.get("grp_id");
+        mKey = savedStateHandle.get("key");
+        mUserRepository = new UserRepository(mKey);
 
         setLoading(false);
         setOffset(1);
@@ -98,6 +106,25 @@ public class Tab3ViewModel extends ViewModel {
         String params = "?CLUB_GRP_ID=" + mGroupId + "&startM=" + offset + "&displayM=" + LIMIT;
 
         setLoading(true);
+        mUserRepository.getUserList(LIMIT, new Callback() {
+            @Override
+            public <T> void onSuccess(T data) {
+                Log.e("TEST", "onSuccess: " + data);
+            }
+
+            @Override
+            public void onFailure(Throwable throwable) {
+                Log.e("TEST", "onFailure: " + throwable.getMessage());
+            }
+
+            @Override
+            public void onLoading() {
+                Log.e("TEST", "onLoading");
+            }
+        });
+
+
+
         AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.MEMBER_LIST + params, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {

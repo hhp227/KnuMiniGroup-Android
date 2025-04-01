@@ -31,11 +31,12 @@ public class Tab3Fragment extends Fragment implements OnFragmentTab3EventListene
 
     private Tab3ViewModel mViewModel;
 
-    public static Tab3Fragment newInstance(String grpId) {
+    public static Tab3Fragment newInstance(String grpId, String key) {
         Tab3Fragment fragment = new Tab3Fragment();
         Bundle args = new Bundle();
 
         args.putString("grp_id", grpId);
+        args.putString("key", key);
         fragment.setArguments(args);
         return fragment;
     }

@@ -115,7 +115,7 @@ public class TabHostLayoutFragment extends Fragment {
         mBinding.collapsingToolbar.setTitleEnabled(false);
         fragmentList.add(tab1Fragment);
         fragmentList.add(new Tab2Fragment());
-        fragmentList.add(Tab3Fragment.newInstance(mGroupId));
+        fragmentList.add(Tab3Fragment.newInstance(mGroupId, mKey));
         fragmentList.add(Tab4Fragment.newInstance(mIsAdmin, mGroupId, mGroupImage, mKey));
         for (String s : getResources().getStringArray(R.array.tab_names))
             mBinding.tabLayout.addTab(mBinding.tabLayout.newTab().setText(s));
