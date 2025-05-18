@@ -3,6 +3,12 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <data>
+        <variable
+                name="handler"
+                type="com.hhp227.knu_minigroup.handler.OnFragmentListEventListener" />
+    </data>
+
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -84,7 +90,8 @@
                 <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
                         android:id="@+id/srl_shuttle"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        app:onRefresh="@{handler::onRefresh}">
 
                     <ListView
                             android:id="@+id/lv_shuttle"

@@ -13,15 +13,17 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.databinding.FragmentShuttleScheduleBinding;
+import com.hhp227.knu_minigroup.handler.OnFragmentListEventListener;
 import com.hhp227.knu_minigroup.viewmodel.DCShuttleScheduleViewModel;
 
-// TODO
-public class DCShuttleScheduleFragment extends Fragment {
+import java.util.List;
+import java.util.Map;
+
+public class DCShuttleScheduleFragment extends Fragment implements OnFragmentListEventListener {
     private SimpleAdapter mAdapter;
 
     private FragmentShuttleScheduleBinding mBinding;
@@ -43,38 +45,55 @@ public class DCShuttleScheduleFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(DCShuttleScheduleViewModel.class);
 
-        mBinding.srlShuttle.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        mViewModel.refresh();
-                        mBinding.srlShuttle.setRefreshing(false);
-                    }
-                }, 1000);
-            }
-        });
-        mViewModel.getState().observe(getViewLifecycleOwner(), new Observer<DCShuttleScheduleViewModel.State>() {
-            @Override
-            public void onChanged(DCShuttleScheduleViewModel.State state) {
-                if (state.isLoading) {
-
-                } else if (!state.shuttleList.isEmpty()) {
-                    mAdapter = new SimpleAdapter(getContext(), state.shuttleList, R.layout.shuttle_item, new String[] {"col1", "col2"}, new int[] {R.id.division, R.id.time_label});
-
-                    mBinding.lvShuttle.setAdapter(mAdapter);
-                    mAdapter.notifyDataSetChanged();
-                } else if (state.message != null && !state.message.isEmpty()) {
-                    Snackbar.make(requireView(), state.message, Snackbar.LENGTH_LONG).show();
-                }
-            }
-        });
+        mBinding.setLifecycleOwner(getViewLifecycleOwner());
+        mBinding.setHandler(this);
+        observeViewModelData();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         mBinding = null;
+    }
+
+    @Override
+    public void onRefresh() {
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mViewModel.refresh();
+                mBinding.srlShuttle.setRefreshing(false);
+            }
+        }, 1000);
+    }
+
+    private void observeViewModelData() {
+        mViewModel.isLoading().observe(getViewLifecycleOwner(), new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean isLoading) {
+                if (isLoading) {
+
+                }
+            }
+        });
+        mViewModel.getItemList().observe(getViewLifecycleOwner(), new Observer<List<Map<String, String>>>() {
+            @Override
+            public void onChanged(List<Map<String, String>> shuttleList) {
+                if (!shuttleList.isEmpty()) {
+                    mAdapter = new SimpleAdapter(getContext(), shuttleList, R.layout.shuttle_item, new String[] {"col1", "col2"}, new int[] {R.id.division, R.id.time_label});
+
+                    mBinding.lvShuttle.setAdapter(mAdapter);
+                    mAdapter.notifyDataSetChanged();
+                }
+            }
+        });
+        mViewModel.getMessage().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String message) {
+                if (message != null && !message.isEmpty()) {
+                    Snackbar.make(requireView(), message, Snackbar.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 }

@@ -3,6 +3,16 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <data>
+        <variable
+                name="handler"
+                type="com.hhp227.knu_minigroup.handler.OnFragmentListEventListener" />
+
+        <variable
+                name="viewModel"
+                type="com.hhp227.knu_minigroup.viewmodel.SCShuttleScheduleViewModel" />
+    </data>
+
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -43,7 +53,8 @@
                         <TextView
                                 android:id="@+id/tv_col1"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                android:layout_height="wrap_content"
+                                android:text="@{viewModel.titleList.get(0)}" />
 
                     </LinearLayout>
 
@@ -66,7 +77,9 @@
                         <TextView
                                 android:id="@+id/tv_col2"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                android:layout_height="wrap_content"
+                                android:text="@{viewModel.titleList.get(1)}" />
+
                     </LinearLayout>
 
                     <LinearLayout
@@ -88,7 +101,9 @@
                         <TextView
                                 android:id="@+id/tv_col3"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                android:layout_height="wrap_content"
+                                android:text="@{viewModel.titleList.get(2)}" />
+
                     </LinearLayout>
 
                     <LinearLayout
@@ -110,7 +125,8 @@
                         <TextView
                                 android:id="@+id/tv_col4"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                android:layout_height="wrap_content"
+                                android:text="@{viewModel.titleList.get(3)}" />
 
                     </LinearLayout>
 
@@ -133,7 +149,9 @@
                         <TextView
                                 android:id="@+id/tv_col5"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                android:layout_height="wrap_content"
+                                android:text="@{viewModel.titleList.get(4)}" />
+
                     </LinearLayout>
 
                     <LinearLayout
@@ -155,7 +173,8 @@
                         <TextView
                                 android:id="@+id/tv_col6"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                android:layout_height="wrap_content"
+                                android:text="@{viewModel.titleList.get(5)}" />
 
                     </LinearLayout>
 
@@ -178,7 +197,9 @@
                         <TextView
                                 android:id="@+id/tv_col7"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                android:layout_height="wrap_content"
+                                android:text="@{viewModel.titleList.get(6)}" />
+
                     </LinearLayout>
 
                 </LinearLayout>
@@ -191,7 +212,8 @@
                 <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
                         android:id="@+id/srl_shuttle"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        app:onRefresh="@{handler::onRefresh}">
 
                     <ListView
                             android:id="@+id/lv_shuttle"
