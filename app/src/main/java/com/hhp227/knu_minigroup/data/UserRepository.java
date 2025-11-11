@@ -53,7 +53,7 @@ public class UserRepository {
                         query.addValueEventListener(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                User value = snapshot.getValue(User.class);
+                                //User value = snapshot.getValue(User.class);
                                 Log.e("TEST", "dataSnapshot: " + dataSnapshot);
                             }
 
