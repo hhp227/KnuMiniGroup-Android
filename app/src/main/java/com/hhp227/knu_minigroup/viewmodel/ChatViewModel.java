@@ -81,10 +81,9 @@ public class ChatViewModel extends ViewModel {
     }
 
     public void fetchInitialPage() {
-        if (mReceiver == null) {
-            return;
+        if (mReceiver != null) {
+            fetchMessageList(0, null);
         }
-        fetchMessageList(0, null);
     }
 
     public void fetchPreviousPage() {
