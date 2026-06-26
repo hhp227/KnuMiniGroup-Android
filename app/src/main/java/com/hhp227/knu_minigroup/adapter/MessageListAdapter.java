@@ -33,6 +33,14 @@ public class MessageListAdapter extends BaseAdapter {
         this.mUid = uid;
     }
 
+    public void submitList(List<MessageItem> messageItems) {
+        mMessageItems.clear();
+        if (messageItems != null) {
+            mMessageItems.addAll(messageItems);
+        }
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getCount() {
         return mMessageItems.size();

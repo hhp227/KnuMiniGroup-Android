@@ -1,144 +1,196 @@
 package com.hhp227.knu_minigroup.viewmodel;
 
-import android.annotation.SuppressLint;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
+import android.text.TextUtils;
 
-import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModel;
 
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.hhp227.knu_minigroup.app.AppController;
+import com.hhp227.knu_minigroup.data.ChatRepository;
 import com.hhp227.knu_minigroup.dto.MessageItem;
 import com.hhp227.knu_minigroup.dto.User;
+import com.hhp227.knu_minigroup.helper.Callback;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ChatViewModel extends ViewModel {
-    public final MutableLiveData<State> mState = new MutableLiveData<>();
+    private static final int LIMIT = 20;
 
-    public final List<MessageItem> mMessageItemList = new ArrayList<>();
+    public final MutableLiveData<String> inputMessage;
 
-    public final DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference("Messages");
+    private final MutableLiveData<List<MessageItem>> mMessageItemList = new MutableLiveData<>(Collections.emptyList());
+
+    private final List<MessageItem> mMessageItems = new ArrayList<>();
+
+    private final MutableLiveData<ScrollEvent> mScrollEvent = new MutableLiveData<>();
 
     private final PreferenceManager mPreferenceManager = AppController.getInstance().getPreferenceManager();
 
+    private final ChatRepository mChatRepository = new ChatRepository();
+
     private final SavedStateHandle mSavedStateHandle;
 
-    public Boolean mIsGroupChat;
+    private String mReceiver;
 
-    public String mReceiver, mFirstMessageKey;
+    private boolean mIsGroupChat;
 
-    private String mCursor = null;
+    private String mCursor;
+
+    private String mFirstMessageKey;
+
+    private boolean mHasRequestedMore;
 
     public ChatViewModel(SavedStateHandle savedStateHandle) {
         mSavedStateHandle = savedStateHandle;
-        mIsGroupChat = savedStateHandle.get("grp_chat");
         mReceiver = savedStateHandle.get("uid");
+        Boolean isGroupChat = savedStateHandle.get("grp_chat");
+        mIsGroupChat = isGroupChat != null && isGroupChat;
+        inputMessage = savedStateHandle.getLiveData("inputMessage", "");
 
-        fetchNextPage();
+        if (mReceiver != null) {
+            fetchInitialPage();
+        }
     }
 
     public User getUser() {
         return mPreferenceManager.getUser();
     }
 
+    public LiveData<List<MessageItem>> getMessageItemList() {
+        return mMessageItemList;
+    }
+
+    public LiveData<ScrollEvent> getScrollEvent() {
+        return mScrollEvent;
+    }
+
     public LiveData<InputMessageFormState> getMessageFormState() {
         return mSavedStateHandle.getLiveData("messageFormState");
     }
 
-    @SuppressLint("todo")
-    public void fetchMessageList(Query query, final int prevCnt, final String prevCursor) {
-        query.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s) {
+    public boolean hasRequestedMore() {
+        return mHasRequestedMore;
+    }
 
+    public void fetchInitialPage() {
+        if (mReceiver == null) {
+            return;
+        }
+        fetchMessageList(0, null);
+    }
+
+    public void fetchPreviousPage() {
+        if (!mHasRequestedMore && mCursor != null) {
+            mHasRequestedMore = true;
+            fetchMessageList(getMessageCount(), mCursor);
+            mCursor = null;
+        }
+    }
+
+    public void actionSend() {
+        String message = inputMessage.getValue();
+
+        if (TextUtils.isEmpty(message) || message.trim().length() == 0) {
+            mSavedStateHandle.set("messageFormState", new InputMessageFormState("메시지를 입력하세요."));
+            return;
+        }
+        if (mReceiver == null) {
+            mSavedStateHandle.set("messageFormState", new InputMessageFormState("채팅 대상 정보가 없습니다."));
+            return;
+        }
+        String trimmedMessage = message.trim();
+
+        mChatRepository.sendMessage(getUser(), mReceiver, mIsGroupChat, trimmedMessage);
+        addSentMessage(trimmedMessage);
+        inputMessage.setValue("");
+    }
+
+    private void addSentMessage(String message) {
+        User user = getUser();
+
+        mMessageItems.add(new MessageItem(user.getUid(), user.getName(), message, "text", false, System.currentTimeMillis()));
+        mMessageItemList.setValue(new ArrayList<>(mMessageItems));
+        mScrollEvent.setValue(new ScrollEvent(true, 0, mMessageItems.size(), false));
+    }
+
+    private void fetchMessageList(final int previousCount, final String previousCursor) {
+        mChatRepository.fetchMessageList(getUser().getUid(), mReceiver, mIsGroupChat, previousCursor, LIMIT, new Callback() {
+            @Override
+            public <T> void onSuccess(T data) {
+                List<Map.Entry<String, MessageItem>> messageItemList = (List<Map.Entry<String, MessageItem>>) data;
+                int insertPosition = Math.max(getMessageCount() - previousCount, 0);
+                int addedCount = 0;
+                String newCursor = null;
+
+                for (Map.Entry<String, MessageItem> entry : messageItemList) {
+                    String key = entry.getKey();
+                    MessageItem messageItem = entry.getValue();
+
+                    if (key == null || messageItem == null) {
+                        continue;
+                    }
+                    if (newCursor == null) {
+                        newCursor = key;
+                    }
+                    if (mFirstMessageKey != null && mFirstMessageKey.equals(key)) {
+                        continue;
+                    } else if (mFirstMessageKey == null) {
+                        mFirstMessageKey = key;
+                    }
+                    if (key.equals(previousCursor)) {
+                        continue;
+                    }
+                    mMessageItems.add(insertPosition + addedCount, messageItem);
+                    addedCount++;
+                }
+                mHasRequestedMore = false;
+                if (newCursor != null) {
+                    mCursor = newCursor;
+                }
+                if (addedCount == 0) {
+                    return;
+                }
+                mMessageItemList.setValue(new ArrayList<>(mMessageItems));
+                mScrollEvent.setValue(new ScrollEvent(previousCount == 0, addedCount, mMessageItems.size(), previousCount > 0));
             }
 
             @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, String s) {
+            public void onFailure(Throwable throwable) {
+                mSavedStateHandle.set("messageFormState", new InputMessageFormState(throwable.getMessage()));
             }
 
             @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, String s) {
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
+            public void onLoading() {
             }
         });
     }
 
-    @SuppressLint("todo")
-    public void fetchNextPage() {
-        mCursor = null;
-
-        mState.postValue(new State(false, Collections.emptyList(), true, null));
+    private int getMessageCount() {
+        return mMessageItems.size();
     }
 
-    public void actionSend(String text) {
-        if (!text.isEmpty()) {
-            Map<String, Object> map = new HashMap<>();
+    public static final class ScrollEvent {
+        public final boolean initialLoad;
 
-            map.put("from", getUser().getUid());
-            map.put("name", getUser().getName());
-            map.put("message", text);
-            map.put("type", "text");
-            map.put("seen", false);
-            map.put("timestamp", System.currentTimeMillis());
-            if (mIsGroupChat) {
-                mDatabaseReference.child(mReceiver).push().setValue(map);
-            } else {
-                String receiverPath = mReceiver + "/" + getUser().getUid() + "/";
-                String senderPath = getUser().getUid() + "/" + mReceiver + "/";
-                String pushId = mDatabaseReference.child(getUser().getUid()).child(mReceiver).push().getKey();
-                Map<String, Object> messageMap = new HashMap<>();
+        public final int addedCount;
 
-                messageMap.put(receiverPath.concat(pushId), map);
-                messageMap.put(senderPath.concat(pushId), map);
-                mDatabaseReference.updateChildren(messageMap);
-            }
-        } else {
-            mSavedStateHandle.set("messageFormState", new InputMessageFormState("메시지를 입력하세요."));
-        }
-    }
+        public final int itemCount;
 
-    public void addAll(List<MessageItem> messageItemList) {
-        mMessageItemList.addAll(messageItemList);
-    }
+        public final boolean requestedMore;
 
-    public static final class State {
-        public boolean isLoading;
-
-        public List<MessageItem> messageItemList;
-
-        public boolean hasRequestedMore;
-
-        public String message;
-
-        public State(boolean isLoading, List<MessageItem> messageItemList, boolean hasRequestedMore, String message) {
-            this.isLoading = isLoading;
-            this.messageItemList = messageItemList;
-            this.hasRequestedMore = hasRequestedMore;
-            this.message = message;
+        public ScrollEvent(boolean initialLoad, int addedCount, int itemCount, boolean requestedMore) {
+            this.initialLoad = initialLoad;
+            this.addedCount = addedCount;
+            this.itemCount = itemCount;
+            this.requestedMore = requestedMore;
         }
     }
 
@@ -171,7 +223,7 @@ public class ChatViewModel extends ViewModel {
         }
 
         @Override
-        public void writeToParcel(Parcel parcel, int i) {
+        public void writeToParcel(Parcel parcel, int flags) {
             parcel.writeString(messageError);
         }
     }

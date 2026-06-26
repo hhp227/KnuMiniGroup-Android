@@ -1,167 +1,51 @@
 package com.hhp227.knu_minigroup.activity;
 
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
-import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.adapter.MessageListAdapter;
-import com.hhp227.knu_minigroup.app.AppController;
-import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.ActivityChatBinding;
 import com.hhp227.knu_minigroup.dto.MessageItem;
-import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.viewmodel.ChatViewModel;
-import com.hhp227.knu_minigroup.viewmodel.Tab1ViewModel;
-import com.hhp227.knu_minigroup.volley.util.JsonObjectRequest;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-// TODO
 public class ChatActivity extends AppCompatActivity {
-    private static final int LIMIT = 20;
-
-    private boolean mHasRequestedMore, mHasSelection, mIsGroupChat;
-
     private int mCurrentScrollState;
 
-    private DatabaseReference mDatabaseReference;
-
-    private MessageListAdapter mAdapter;
-
-    private String mCursor, mReceiver, mValue, mFirstMessageKey;
+    private boolean mHasSelection;
 
     private ActivityChatBinding mBinding;
+
+    private MessageListAdapter mAdapter;
 
     private ChatViewModel mViewModel;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBinding = ActivityChatBinding.inflate(getLayoutInflater());
         mViewModel = new ViewModelProvider(this).get(ChatViewModel.class);
-        mDatabaseReference = FirebaseDatabase.getInstance().getReference("Messages");
-        mReceiver = getIntent().getStringExtra("uid");
-        mValue = getIntent().getStringExtra("value");
-        mIsGroupChat = getIntent().getBooleanExtra("grp_chat", false);
-        mAdapter = new MessageListAdapter(mViewModel.mMessageItemList, mViewModel.getUser().getUid());
+        mAdapter = new MessageListAdapter(new ArrayList<MessageItem>(), mViewModel.getUser().getUid());
 
         setContentView(mBinding.getRoot());
         setSupportActionBar(mBinding.toolbar);
         if (getSupportActionBar() != null) {
+            boolean isGroupChat = getIntent().getBooleanExtra("grp_chat", false);
+
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle(getIntent().getStringExtra("chat_nm") + (mIsGroupChat ? " 그룹채팅방" : ""));
+            getSupportActionBar().setTitle(getIntent().getStringExtra("chat_nm") + (isGroupChat ? " 그룹채팅방" : ""));
         }
-        mBinding.tvBtnSend.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String message = mBinding.etInputMsg.getText().toString().trim();
-
-                mViewModel.actionSend(message);
-                mBinding.etInputMsg.setText("");
-                /*if (mBinding.etInputMsg.getText().toString().trim().length() > 0) {
-                    sendMessage();
-                    if (!mIsGroupChat)
-                        sendLMSMessage();
-                    mBinding.etInputMsg.setText("");
-                } else
-                    Toast.makeText(getApplicationContext(), "메시지를 입력하세요.", Toast.LENGTH_LONG).show();*/
-            }
-        });
-        mBinding.etInputMsg.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                mBinding.tvBtnSend.setBackgroundResource(s.length() > 0 ? R.drawable.background_sendbtn_p : R.drawable.background_sendbtn_n);
-                mBinding.tvBtnSend.setTextColor(getResources().getColor(s.length() > 0 ? android.R.color.white : android.R.color.darker_gray));
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-            }
-        });
-        mBinding.etInputMsg.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus)
-                    mBinding.lvMessage.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_NORMAL);
-            }
-        });
-        /*mQuery.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                mMessageItemList.clear();
-                mCursor = dataSnapshot.getChildren().iterator().next().getKey();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    MessageItem message = snapshot.getValue(MessageItem.class);
-                    //if (!isGroupChat && message.getFrom().equals(sender) && message.getTo().equals(receiver) || !isGroupChat && message.getFrom().equals(receiver) && message.getTo().equals(sender) || isGroupChat && message.getTo().equals(receiver))
-                    mMessageItemList.add(message);
-                }
-                mAdapter.notifyDataSetChanged();
-                mListView.setSelection(mMessageItemList.size() + 1);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-            }
-        });*/
-        mBinding.lvMessage.setOnScrollListener(new AbsListView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(AbsListView view, int scrollState) {
-                mCurrentScrollState = scrollState;
-            }
-
-            @Override
-            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                mHasSelection = firstVisibleItem + visibleItemCount > totalItemCount - 20;
-                if (!mHasRequestedMore && firstVisibleItem == 0 && mCurrentScrollState != SCROLL_STATE_IDLE) {
-                    mHasRequestedMore = true;
-
-                    fetchMessageList(mIsGroupChat ? mDatabaseReference.child(mReceiver).orderByKey().endAt(mCursor).limitToLast(LIMIT) : mDatabaseReference.child(mViewModel.getUser().getUid()).child(mReceiver).orderByKey().endAt(mCursor).limitToLast(LIMIT), mViewModel.mMessageItemList.size(), mCursor);
-                    mCursor = null;
-                }
-            }
-        });
-        mBinding.lvMessage.setAdapter(mAdapter);
-        fetchMessageList(mIsGroupChat ? mDatabaseReference.child(mReceiver).orderByKey().limitToLast(LIMIT) : mDatabaseReference.child(mViewModel.getUser().getUid()).child(mReceiver).orderByKey().limitToLast(LIMIT), 0, "");
-        mViewModel.getMessageFormState().observe(this, new Observer<ChatViewModel.InputMessageFormState>() {
-            @Override
-            public void onChanged(ChatViewModel.InputMessageFormState inputMessageFormState) {
-                Toast.makeText(ChatActivity.this, inputMessageFormState.messageError, Toast.LENGTH_SHORT).show();
-            }
-        });
+        subscribeUi();
     }
 
     @Override
@@ -179,132 +63,57 @@ public class ChatActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void fetchMessageList(Query query, final int prevCnt, final String prevCursor) {
-        query.addChildEventListener(new ChildEventListener() {
+    private void subscribeUi() {
+        mBinding.setViewModel(mViewModel);
+        mBinding.setLifecycleOwner(this);
+        mBinding.lvMessage.setAdapter(mAdapter);
+        mBinding.etInputMsg.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s) {
-                Log.e("TEST", "onChildAdded: " + dataSnapshot);
-                if (mFirstMessageKey != null && mFirstMessageKey.equals(dataSnapshot.getKey()))
-                    return;
-                else if (s == null)
-                    mFirstMessageKey = dataSnapshot.getKey();
-                if (mCursor == null)
-                    mCursor = s;
-                else if (prevCursor.equals(dataSnapshot.getKey())) {
-                    mHasRequestedMore = false;
-                    return;
+            public void onFocusChange(View view, boolean hasFocus) {
+                if (hasFocus) {
+                    mBinding.lvMessage.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_NORMAL);
                 }
-                MessageItem messageItem = dataSnapshot.getValue(MessageItem.class);
-
-                mViewModel.mMessageItemList.add(mViewModel.mMessageItemList.size() - prevCnt, messageItem);
-                mAdapter.notifyDataSetChanged();
-                if (mHasSelection || mHasRequestedMore) {
-                    try {
-                        mBinding.lvMessage.setSelection(prevCnt == 0 ? mViewModel.mMessageItemList.size() : mViewModel.mMessageItemList.size() - prevCnt + 1);
-                    } catch (Exception e) {
-                        Log.e("TEST", e.getMessage());
-                    }
-                }
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, String s) {
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, String s) {
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
             }
         });
-        /*query.addValueEventListener(new ValueEventListener() {
+        mBinding.lvMessage.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (!init && dataSnapshot.getChildrenCount() <= 1 || !dataSnapshot.hasChildren())
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                mCurrentScrollState = scrollState;
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                mHasSelection = firstVisibleItem + visibleItemCount > totalItemCount - 20;
+                if (firstVisibleItem == 0 && mCurrentScrollState != SCROLL_STATE_IDLE) {
+                    mViewModel.fetchPreviousPage();
+                }
+            }
+        });
+        mViewModel.getMessageItemList().observe(this, new Observer<List<MessageItem>>() {
+            @Override
+            public void onChanged(List<MessageItem> messageItems) {
+                mAdapter.submitList(messageItems);
+            }
+        });
+        mViewModel.getScrollEvent().observe(this, new Observer<ChatViewModel.ScrollEvent>() {
+            @Override
+            public void onChanged(ChatViewModel.ScrollEvent scrollEvent) {
+                if (scrollEvent == null || (!scrollEvent.initialLoad && !mHasSelection && !scrollEvent.requestedMore)) {
                     return;
-                List<MessageItem> messageList = new ArrayList<>();
-                mCursor = dataSnapshot.getChildren().iterator().next().getKey();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    MessageItem message = snapshot.getValue(MessageItem.class);
-                    messageList.add(message);
                 }
-                if (init)
-                    mMessageItemList.clear();
-                else
-                    messageList.remove(messageList.size() - 1);
-                mMessageItemList.addAll(0, messageList);
-                mAdapter.notifyDataSetChanged();
-                mListView.setSelection(messageList.size() + 1);
-                mHasRequestedMore = false;
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-            }
-        });*/
-    }
-
-    private void sendLMSMessage() {
-        AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, EndPoint.SEND_MESSAGE, null, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
                 try {
-                    if (!response.getBoolean("isError"))
-                        Log.d("채팅", response.getString("message"));
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    mBinding.lvMessage.setSelection(scrollEvent.initialLoad ? scrollEvent.itemCount : scrollEvent.addedCount);
+                } catch (Exception ignored) {
                 }
             }
-        }, new Response.ErrorListener() {
+        });
+        mViewModel.getMessageFormState().observe(this, new Observer<ChatViewModel.InputMessageFormState>() {
             @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(error.getMessage());
-                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN));
-                return headers;
-            }
-
-            @Override
-            public String getBodyContentType() {
-                return "application/x-www-form-urlencoded; charset=" + getParamsEncoding();
-            }
-
-            @Override
-            public byte[] getBody() {
-                Map<String, String> params = new HashMap<>();
-
-                params.put("TXT", mBinding.etInputMsg.getText().toString());
-                params.put("send_msg", "Y");
-                params.put("USERS", mValue);
-                if (params.size() > 0) {
-                    StringBuilder encodedParams = new StringBuilder();
-
-                    try {
-                        for (Map.Entry<String, String> entry : params.entrySet()) {
-                            encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));
-                            encodedParams.append('=');
-                            encodedParams.append(URLEncoder.encode(entry.getValue(), getParamsEncoding()));
-                            encodedParams.append('&');
-                        }
-                        return encodedParams.toString().getBytes(getParamsEncoding());
-                    } catch (UnsupportedEncodingException uee) {
-                        throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), uee);
-                    }
+            public void onChanged(ChatViewModel.InputMessageFormState inputMessageFormState) {
+                if (inputMessageFormState != null && inputMessageFormState.messageError != null) {
+                    Toast.makeText(ChatActivity.this, inputMessageFormState.messageError, Toast.LENGTH_SHORT).show();
                 }
-                return null;
             }
-        }, "req_send_msg");
+        });
     }
 }

@@ -5,6 +5,14 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         tools:context=".activity.ChatActivity">
 
+    <data>
+        <import type="android.text.TextUtils" />
+
+        <variable
+                name="viewModel"
+                type="com.hhp227.knu_minigroup.viewmodel.ChatViewModel" />
+    </data>
+
     <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
@@ -82,6 +90,7 @@
                             android:layout_marginRight="5dp"
                             android:paddingLeft="5dp"
                             android:inputType="textNoSuggestions"
+                            android:text="@={viewModel.inputMessage}"
                             android:textColor="#626262"
                             android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -91,9 +100,10 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="0"
                             android:text="전송"
-                            android:background="@drawable/background_sendbtn_n"
+                            android:background="@{TextUtils.isEmpty(viewModel.inputMessage) ? @drawable/background_sendbtn_n : @drawable/background_sendbtn_p}"
+                            android:onClick="@{() -> viewModel.actionSend()}"
                             android:padding="10dp"
-                            android:textColor="@android:color/darker_gray"
+                            android:textColor="@{TextUtils.isEmpty(viewModel.inputMessage) ? @android:color/darker_gray : @android:color/white}"
                             android:textStyle="bold" />
 
                 </LinearLayout>
