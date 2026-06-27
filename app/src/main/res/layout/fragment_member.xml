@@ -3,6 +3,16 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <data>
+        <variable
+                name="viewModel"
+                type="com.hhp227.knu_minigroup.viewmodel.MemberManagementViewModel" />
+
+        <variable
+                name="handler"
+                type="com.hhp227.knu_minigroup.handler.OnFragmentMemberManagementEventListener" />
+    </data>
+
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -130,7 +140,8 @@
                 <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
                         android:id="@+id/srl_member"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        app:onRefresh="@{handler::onRefresh}">
 
                     <ListView
                             android:id="@+id/lv_member"

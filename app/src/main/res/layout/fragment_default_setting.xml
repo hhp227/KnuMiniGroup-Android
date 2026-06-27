@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout
         xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         tools:context=".fragment.DefaultSettingFragment">
+
+    <data>
+        <variable
+                name="viewModel"
+                type="com.hhp227.knu_minigroup.viewmodel.DefaultSettingViewModel" />
+
+        <variable
+                name="handler"
+                type="com.hhp227.knu_minigroup.handler.OnFragmentDefaultSettingEventListener" />
+    </data>
 
     <LinearLayout
             android:layout_width="match_parent"
@@ -28,6 +39,7 @@
                     android:hint="그룹이름 입력"
                     android:inputType="textNoSuggestions"
                     android:paddingLeft="5dp"
+                    android:text="@={viewModel.title}"
                     android:textAppearance="?android:attr/textAppearanceMedium">
                 <requestFocus/>
             </EditText>
@@ -38,9 +50,11 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="0"
                     android:padding="5dp"
-                    android:src="@drawable/ic_clear_gray_24dp"
+                    android:onClick="@{() -> viewModel.setTitle(``)}"
+                    android:src="@{viewModel.title.empty ? @drawable/ic_clear_gray_24dp : @drawable/ic_clear_black_24dp}"
                     android:textColor="@android:color/darker_gray"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    tools:src="@drawable/ic_clear_gray_24dp" />
 
         </LinearLayout>
 
@@ -54,7 +68,9 @@
                     android:layout_height="275dp"
                     android:layout_centerInParent="true"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/add_photo" />
+                    android:src="@drawable/add_photo"
+                    android:onClick="@{handler::onImageClick}"
+                    app:imageUrl="@{viewModel.groupImage}" />
 
         </RelativeLayout>
 
@@ -74,7 +90,8 @@
                     android:gravity="top"
                     android:background="@null"
                     android:hint="그룹 설명을 입력하세요."
-                    android:divider="@null" />
+                    android:divider="@null"
+                    android:text="@={viewModel.description}" />
 
             <RadioGroup
                     android:id="@+id/rg_jointype"
@@ -97,7 +114,8 @@
                         android:text="자동 승인"
                         android:id="@+id/rb_auto"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:checked="@={viewModel.joinType}" />
 
                 <RadioButton
                         android:layout_weight="2"

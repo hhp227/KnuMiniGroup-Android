@@ -222,8 +222,8 @@ public class CreateArticleActivity extends AppCompatActivity implements OnActivi
                 mViewModel.removeItem(position);
                 return true;
             case 2:
-                intent = new Intent(Intent.ACTION_OPEN_DOCUMENT).setType("image/*")
-                        .setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                intent = new Intent(Intent.ACTION_OPEN_DOCUMENT)
+                        .setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*")
                         .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
 
                 mCameraPickActivityResultLauncher.launch(intent);

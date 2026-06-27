@@ -53,6 +53,12 @@ public class MemberListAdapter extends BaseAdapter {
         return convertView;
     }
 
+    public void submitList(List<MemberItem> memberItems) {
+        mMemberItems.clear();
+        mMemberItems.addAll(memberItems);
+        notifyDataSetChanged();
+    }
+
     public static class ViewHolder {
         private final MemberListItemBinding mBinding;
 

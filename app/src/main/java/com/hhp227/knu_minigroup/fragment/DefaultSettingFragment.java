@@ -2,14 +2,11 @@ package com.hhp227.knu_minigroup.fragment;
 
 import static android.app.Activity.RESULT_OK;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.text.Editable;
-import android.text.TextUtils;
-import android.text.TextWatcher;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -17,8 +14,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.CookieManager;
-import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
@@ -28,53 +23,29 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
-import com.bumptech.glide.request.RequestOptions;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
+import com.google.android.material.snackbar.Snackbar;
 import com.hhp227.knu_minigroup.R;
-import com.hhp227.knu_minigroup.app.AppController;
-import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.FragmentDefaultSettingBinding;
 import com.hhp227.knu_minigroup.dto.GroupItem;
+import com.hhp227.knu_minigroup.handler.OnFragmentDefaultSettingEventListener;
 import com.hhp227.knu_minigroup.helper.BitmapUtil;
+import com.hhp227.knu_minigroup.viewmodel.DefaultSettingViewModel;
 
-import net.htmlparser.jericho.Element;
-import net.htmlparser.jericho.Source;
+public class DefaultSettingFragment extends Fragment implements OnFragmentDefaultSettingEventListener {
+    private static final String GROUP_ID = "grp_id";
 
-import org.json.JSONException;
-import org.json.JSONObject;
+    private static final String GROUP_IMAGE = "grp_img";
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
-
-// TODO
-public class DefaultSettingFragment extends Fragment {
-    private static String mGroupId, mGroupImage, mGroupKey;
-
-    private boolean mJoinTypeCheck;
-
-    private Bitmap mBitmap;
-
-    private CookieManager mCookieManager;
-
-    private TextWatcher mTextWatcher;
+    private static final String GROUP_KEY = "key";
 
     private FragmentDefaultSettingBinding mBinding;
+
+    private DefaultSettingViewModel mViewModel;
+
+    private ProgressDialog mProgressDialog;
 
     private ActivityResultLauncher<Intent> mCameraPickActivityResultLauncher, mCameraCaptureActivityResultLauncher;
 
@@ -85,9 +56,9 @@ public class DefaultSettingFragment extends Fragment {
         DefaultSettingFragment fragment = new DefaultSettingFragment();
         Bundle args = new Bundle();
 
-        args.putString("grp_id", grpId);
-        args.putString("grp_img", grpImg);
-        args.putString("key", key);
+        args.putString(GROUP_ID, grpId);
+        args.putString(GROUP_IMAGE, grpImg);
+        args.putString(GROUP_KEY, key);
         fragment.setArguments(args);
         return fragment;
     }
@@ -96,115 +67,47 @@ public class DefaultSettingFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        if (getArguments() != null) {
-            mGroupId = getArguments().getString("grp_id");
-            mGroupImage = getArguments().getString("grp_img");
-            mGroupKey = getArguments().getString("key");
-        }
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mBinding = FragmentDefaultSettingBinding.inflate(inflater, container, false);
+        mViewModel = new ViewModelProvider(this).get(DefaultSettingViewModel.class);
+        mProgressDialog = new ProgressDialog(requireContext());
+        ActivityResultCallback<ActivityResult> activityResultCallback = new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult result) {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    if (result.getData().getExtras() != null && result.getData().getExtras().get("data") != null) {
+                        mViewModel.setBitmap((Bitmap) result.getData().getExtras().get("data"));
+                    } else if (result.getData().getData() != null) {
+                        mViewModel.setBitmap(new BitmapUtil(requireContext()).bitmapResize(result.getData().getData(), 200));
+                    }
+                }
+            }
+        };
+        mCameraPickActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), activityResultCallback);
+        mCameraCaptureActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), activityResultCallback);
         return mBinding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mCookieManager = AppController.getInstance().getCookieManager();
-        mTextWatcher = new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                mBinding.ivReset.setImageResource(s.length() > 0 ? R.drawable.ic_clear_black_24dp : R.drawable.ic_clear_gray_24dp);
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-            }
-        };
-        ActivityResultCallback<ActivityResult> activityResultCallback = new ActivityResultCallback<ActivityResult>() {
-            @Override
-            public void onActivityResult(ActivityResult result) {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    if (result.getData().getExtras().get("data") != null) {
-                        mBitmap = (Bitmap) result.getData().getExtras().get("data");
-                    } else if (result.getData().getData() != null) {
-                        mBitmap = new BitmapUtil(requireContext()).bitmapResize(result.getData().getData(), 200);
-                    }
-                    mBinding.ivGroupImage.setImageBitmap(mBitmap);
-                }
-            }
-        };
-        mCameraPickActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), activityResultCallback);
-        mCameraCaptureActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), activityResultCallback);
-
-        mBinding.ivGroupImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                registerForContextMenu(v);
-                requireActivity().openContextMenu(v);
-                unregisterForContextMenu(v);
-            }
-        });
-        mBinding.etTitle.addTextChangedListener(mTextWatcher);
-        mBinding.rgJointype.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                mJoinTypeCheck = checkedId != R.id.rb_auto;
-            }
-        });
-        mBinding.ivReset.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mBinding.etTitle.setText("");
-            }
-        });
-        Glide.with(this)
-                .load(mGroupImage)
-                .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
-                .transition(DrawableTransitionOptions.withCrossFade(150))
-                .into(mBinding.ivGroupImage);
-        String params = "?CLUB_GRP_ID=" + mGroupId;
-        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.MODIFY_GROUP + params, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Source source = new Source(response);
-                String title = source.getElementById("wrtGroup").getAttributeValue("value");
-                String desc = source.getElementById("wrtExplain").getContent().toString();
-
-                for (Element rbElement : source.getFirstElementByClass("radiobox").getAllElementsByClass("chktype"))
-                    if (rbElement.toString().contains("checked"))
-                        mJoinTypeCheck = !rbElement.getAttributeValue("value").equals("0");
-                mBinding.etTitle.setText(title);
-                mBinding.etDescription.setText(desc);
-                mBinding.rgJointype.check(!mJoinTypeCheck ? R.id.rb_auto : R.id.rb_check);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(error.getMessage());
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
-                return headers;
-            }
-        });
+        mBinding.setViewModel(mViewModel);
+        mBinding.setLifecycleOwner(getViewLifecycleOwner());
+        mBinding.setHandler(this);
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.setMessage("전송중...");
+        observeViewModelData();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        mBinding.etTitle.removeTextChangedListener(mTextWatcher);
+        hideProgressDialog();
         mBinding = null;
+        mProgressDialog = null;
         mCameraPickActivityResultLauncher = null;
         mCameraCaptureActivityResultLauncher = null;
     }
@@ -217,84 +120,12 @@ public class DefaultSettingFragment extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_send:
-                final String groupName = mBinding.etTitle.getText().toString();
-                final String groupDescription = mBinding.etDescription.getText().toString();
+        if (item.getItemId() == R.id.action_send) {
+            final String groupName = mBinding.etTitle.getText().toString().trim();
+            final String groupDescription = mBinding.etDescription.getText().toString().trim();
 
-                if (!TextUtils.isEmpty(groupName) && !TextUtils.isEmpty(groupDescription)) {
-                    String tagJsonReq = "req_send";
-
-                    AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, EndPoint.UPDATE_GROUP, null, new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            try {
-                                if (!response.getBoolean("isError")) {
-                                    Intent intent = new Intent(getContext(), Tab4Fragment.class);
-
-                                    intent.putExtra("grp_nm", response.getString("GRP_NM"));
-                                    intent.putExtra("grp_desc", groupDescription);
-                                    intent.putExtra("join_div", !mJoinTypeCheck ? "0" : "1");
-                                    requireActivity().setResult(RESULT_OK, intent);
-                                    requireActivity().finish();
-                                    Toast.makeText(getContext(), "소모임 변경 완료", Toast.LENGTH_LONG).show();
-                                }
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            } finally {
-                                initFirebaseData();
-                            }
-                        }
-                    }, new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            VolleyLog.e(error.getMessage());
-                            Toast.makeText(getContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-                        }
-                    }) {
-                        @Override
-                        public String getBodyContentType() {
-                            return "application/x-www-form-urlencoded; charset=" + getParamsEncoding();
-                        }
-
-                        @Override
-                        public byte[] getBody() {
-                            Map<String, String> params = new HashMap<>();
-
-                            params.put("CLUB_GRP_ID", mGroupId);
-                            params.put("GRP_NM", groupName);
-                            params.put("TXT", groupDescription);
-                            params.put("JOIN_DIV", !mJoinTypeCheck ? "0" : "1");
-                            if (params.size() > 0) {
-                                StringBuilder encodedParams = new StringBuilder();
-                                try {
-                                    for (Map.Entry<String, String> entry : params.entrySet()) {
-                                        encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));
-                                        encodedParams.append('=');
-                                        encodedParams.append(URLEncoder.encode(entry.getValue(), getParamsEncoding()));
-                                        encodedParams.append('&');
-                                    }
-                                    return encodedParams.toString().getBytes(getParamsEncoding());
-                                } catch (UnsupportedEncodingException uee) {
-                                    throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), uee);
-                                }
-                            }
-                            return null;
-                        }
-
-                        @Override
-                        public Map<String, String> getHeaders() {
-                            Map<String, String> headers = new HashMap<>();
-
-                            headers.put("Cookie", mCookieManager.getCookie(EndPoint.LOGIN));
-                            return headers;
-                        }
-                    }, tagJsonReq);
-                } else {
-                    mBinding.etTitle.setError(groupName.isEmpty() ? "그룹이름을 입력하세요." : null);
-                    mBinding.etDescription.setError(groupDescription.isEmpty() ? "그룹설명을 입력하세요." : null);
-                }
-                return true;
+            mViewModel.updateGroup(groupName, groupDescription);
+            return true;
         }
         return false;
     }
@@ -319,13 +150,11 @@ public class DefaultSettingFragment extends Fragment {
             case "갤러리":
                 Intent galleryIntent = new Intent(Intent.ACTION_PICK);
 
-                galleryIntent.setType(MediaStore.Images.Media.CONTENT_TYPE);
-                galleryIntent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                galleryIntent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, MediaStore.Images.Media.CONTENT_TYPE);
                 mCameraPickActivityResultLauncher.launch(galleryIntent);
                 break;
             case "이미지 없음":
-                mBitmap = null;
-
+                mViewModel.setBitmap(null);
                 mBinding.ivGroupImage.setImageResource(R.drawable.add_photo);
                 Toast.makeText(getContext(), "이미지 없음 선택", Toast.LENGTH_LONG).show();
                 break;
@@ -333,32 +162,78 @@ public class DefaultSettingFragment extends Fragment {
         return super.onContextItemSelected(item);
     }
 
-    private void initFirebaseData() {
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
-
-        updateGroupDataToFirebase(databaseReference.child(mGroupKey));
+    @Override
+    public void onImageClick(View view) {
+        registerForContextMenu(view);
+        requireActivity().openContextMenu(view);
+        unregisterForContextMenu(view);
     }
 
-    private void updateGroupDataToFirebase(final Query query) {
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
+    private void observeViewModelData() {
+        mViewModel.isLoading().observe(getViewLifecycleOwner(), new Observer<Boolean>() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.getValue() != null) {
-                    GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
-
-                    if (groupItem != null) {
-                        groupItem.setName(mBinding.etTitle.getText().toString());
-                        groupItem.setDescription(mBinding.etDescription.getText().toString());
-                        groupItem.setJoinType(!mJoinTypeCheck ? "0" : "1");
-                        query.getRef().setValue(groupItem);
-                    }
+            public void onChanged(Boolean isLoading) {
+                if (isLoading) {
+                    showProgressDialog();
+                } else {
+                    hideProgressDialog();
                 }
             }
-
+        });
+        mViewModel.getUpdatedGroupItem().observe(getViewLifecycleOwner(), new Observer<GroupItem>() {
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.e("파이어베이스", "파이어베이스 데이터 불러오기 실패", databaseError.toException());
+            public void onChanged(GroupItem groupItem) {
+                if (groupItem != null) {
+                    Intent intent = new Intent(getContext(), Tab4Fragment.class);
+
+                    intent.putExtra("grp_nm", groupItem.getName());
+                    intent.putExtra("grp_desc", groupItem.getDescription());
+                    intent.putExtra("join_div", groupItem.getJoinType());
+                    requireActivity().setResult(RESULT_OK, intent);
+                    requireActivity().finish();
+                    Toast.makeText(getContext(), "소모임 변경 완료", Toast.LENGTH_LONG).show();
+                }
             }
         });
+        mViewModel.getMessage().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String message) {
+                if (message != null && !message.isEmpty()) {
+                    Snackbar.make(mBinding.getRoot(), message, Snackbar.LENGTH_LONG).show();
+                }
+            }
+        });
+        mViewModel.getTitleError().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String message) {
+                mBinding.etTitle.setError(message);
+            }
+        });
+        mViewModel.getDescriptionError().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String message) {
+                mBinding.etDescription.setError(message);
+            }
+        });
+        mViewModel.getBitmap().observe(getViewLifecycleOwner(), new Observer<Bitmap>() {
+            @Override
+            public void onChanged(Bitmap bitmap) {
+                if (bitmap != null) {
+                    mBinding.ivGroupImage.setImageBitmap(bitmap);
+                }
+            }
+        });
+    }
+
+    private void showProgressDialog() {
+        if (mProgressDialog != null && !mProgressDialog.isShowing()) {
+            mProgressDialog.show();
+        }
+    }
+
+    private void hideProgressDialog() {
+        if (mProgressDialog != null && mProgressDialog.isShowing()) {
+            mProgressDialog.dismiss();
+        }
     }
 }
