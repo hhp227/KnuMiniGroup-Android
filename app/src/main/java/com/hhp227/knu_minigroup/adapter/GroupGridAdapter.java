@@ -1,7 +1,6 @@
 package com.hhp227.knu_minigroup.adapter;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -17,11 +16,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
-import com.android.volley.toolbox.StringRequest;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.google.android.gms.ads.AdListener;
@@ -29,8 +23,6 @@ import com.google.android.gms.ads.AdLoader;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.formats.UnifiedNativeAd;
 import com.hhp227.knu_minigroup.R;
-import com.hhp227.knu_minigroup.app.AppController;
-import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.GroupGridAdBinding;
 import com.hhp227.knu_minigroup.databinding.GroupGridHeaderBinding;
 import com.hhp227.knu_minigroup.databinding.GroupGridItemBinding;
@@ -39,13 +31,12 @@ import com.hhp227.knu_minigroup.databinding.GroupGridViewPagerBinding;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.ui.loopviewpager.LoopViewPager;
 
-import net.htmlparser.jericho.Element;
-import net.htmlparser.jericho.HTMLElementName;
-import net.htmlparser.jericho.Source;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GroupGridAdapter extends RecyclerView.Adapter {
     public static final int TYPE_TEXT = 0;
@@ -53,9 +44,9 @@ public class GroupGridAdapter extends RecyclerView.Adapter {
     public static final int TYPE_AD = 2;
     public static final int TYPE_BANNER = 3;
     public static final int TYPE_VIEW_PAGER = 4;
-    private static final String TAG = "어뎁터";
-
     private final List<Map.Entry<String, Object>> mCurrentList = new ArrayList<>();
+
+    private final List<GroupItem> mPopularGroupItemList = new ArrayList<>();
 
     private OnItemClickListener mOnItemClickListener;
 
@@ -99,7 +90,7 @@ public class GroupGridAdapter extends RecyclerView.Adapter {
             mLoopPagerAdapter.setOnClickListener(mOnClickListener);
             ((BannerHolder) holder).bind();
         } else if (holder instanceof ViewPagerHolder) {
-            ((ViewPagerHolder) holder).bind();
+            ((ViewPagerHolder) holder).bind((List<GroupItem>) mCurrentList.get(position).getValue());
         }
     }
 
@@ -114,7 +105,7 @@ public class GroupGridAdapter extends RecyclerView.Adapter {
                 : mCurrentList.get(position).getValue() instanceof GroupItem ? TYPE_GROUP
                 : mCurrentList.get(position).getValue() instanceof String && mCurrentList.get(position).getValue().equals("광고") ? TYPE_AD
                 : mCurrentList.get(position).getValue() instanceof String && mCurrentList.get(position).getValue().equals("없음") ? TYPE_BANNER
-                : mCurrentList.get(position).getValue() instanceof String && mCurrentList.get(position).getValue().equals("뷰페이져") ? TYPE_VIEW_PAGER
+                : mCurrentList.get(position).getValue() instanceof List ? TYPE_VIEW_PAGER
                 : -1;
     }
 
@@ -131,6 +122,20 @@ public class GroupGridAdapter extends RecyclerView.Adapter {
         mCurrentList.clear();
         mCurrentList.addAll(groupItemList);
         insertAdvertisement();
+        notifyDataSetChanged();
+    }
+
+    public void submitPopularGroupList(List<GroupItem> groupItemList) {
+        mPopularGroupItemList.clear();
+        if (groupItemList != null) {
+            mPopularGroupItemList.addAll(groupItemList);
+        }
+        for (int i = 0; i < mCurrentList.size(); i++) {
+            if ("뷰페이져".equals(mCurrentList.get(i).getKey())) {
+                mCurrentList.set(i, new AbstractMap.SimpleEntry<String, Object>("뷰페이져", new ArrayList<>(mPopularGroupItemList)));
+                break;
+            }
+        }
         notifyDataSetChanged();
     }
 
@@ -159,7 +164,7 @@ public class GroupGridAdapter extends RecyclerView.Adapter {
             mCurrentList.add(new AbstractMap.SimpleEntry<>("없음", "없음"));
             headerMap.put("text", "인기 모임");
             mCurrentList.add(new AbstractMap.SimpleEntry<>("인기 모임", headerMap));
-            mCurrentList.add(new AbstractMap.SimpleEntry<>("뷰페이져", "뷰페이져"));
+            mCurrentList.add(new AbstractMap.SimpleEntry<String, Object>("뷰페이져", new ArrayList<>(mPopularGroupItemList)));
         }
     }
 
@@ -182,10 +187,6 @@ public class GroupGridAdapter extends RecyclerView.Adapter {
 
         LoopViewPager loopViewPager = mLoopViewPager;
         loopViewPager.setCurrentItem(loopViewPager.getCurrentItem() + 1);
-    }
-
-    private static int groupIdExtract(String onclick) {
-        return Integer.parseInt(onclick.split("[(]|[)]|[,]")[1].trim());
     }
 
     public static class HeaderHolder extends RecyclerView.ViewHolder {
@@ -324,10 +325,9 @@ public class GroupGridAdapter extends RecyclerView.Adapter {
             this.mBinding = binding;
         }
 
-        private void bind() {
+        private void bind(List<GroupItem> groupItemList) {
             final int margin = 120;
-            final List<GroupItem> popularItemList = new ArrayList<>();
-            final GroupPagerAdapter groupPagerAdapter = new GroupPagerAdapter(popularItemList);
+            final GroupPagerAdapter groupPagerAdapter = new GroupPagerAdapter(groupItemList);
 
             mBinding.viewPager.setAdapter(groupPagerAdapter);
             mBinding.viewPager.setClipToPadding(false);
@@ -345,89 +345,7 @@ public class GroupGridAdapter extends RecyclerView.Adapter {
                 }
             });
             mBinding.viewPager.setPageMargin(margin / 4);
-            mBinding.pbGroup.setVisibility(View.VISIBLE);
-            AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
-                @Override
-                public void onResponse(String response) {
-                    Source source = new Source(response);
-                    List<Element> list = source.getAllElements("id", "accordion", false);
-                    for (Element element : list) {
-                        try {
-                            Element menuList = element.getFirstElementByClass("menu_list");
-                            if (element.getAttributeValue("class").equals("accordion")) {
-                                int id = groupIdExtract(menuList.getFirstElementByClass("button").getAttributeValue("onclick"));
-                                String imageUrl = EndPoint.BASE_URL + element.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
-                                String name = element.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
-                                StringBuilder info = new StringBuilder();
-                                String description = menuList.getAllElementsByClass("info").get(0).getContent().toString();
-                                String joinType = menuList.getAllElementsByClass("info").get(1).getTextExtractor().toString().trim();
-                                for (Element span : element.getFirstElement(HTMLElementName.A).getAllElementsByClass("info")) {
-                                    String extractedText = span.getTextExtractor().toString();
-                                    info.append(extractedText.contains("회원수") ?
-                                            extractedText.substring(0, extractedText.lastIndexOf("생성일")).trim() + "\n" :
-                                            extractedText + "\n");
-                                }
-                                GroupItem groupItem = new GroupItem();
-
-                                groupItem.setId(String.valueOf(id));
-                                groupItem.setImage(imageUrl);
-                                groupItem.setName(name);
-                                groupItem.setInfo(info.toString().trim());
-                                groupItem.setDescription(description);
-                                groupItem.setJoinType(joinType.equals("가입방식: 자동 승인") ? "0" : "1");
-                                popularItemList.add(groupItem);
-                            }
-                        } catch (Exception e) {
-                            if (e.getMessage() != null)
-                                Log.e(TAG, e.getMessage());
-                        }
-                    }
-                    groupPagerAdapter.notifyDataSetChanged();
-                    mBinding.pbGroup.setVisibility(View.GONE);
-                }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    VolleyLog.e(TAG, error.getMessage());
-                    mBinding.pbGroup.setVisibility(View.GONE);
-                }
-            }) {
-                @Override
-                public Map<String, String> getHeaders() {
-                    Map<String, String> headers = new HashMap<>();
-
-                    headers.put("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN));
-                    return headers;
-                }
-
-                @Override
-                public String getBodyContentType() {
-                    return "application/x-www-form-urlencoded; charset=" + getParamsEncoding();
-                }
-
-                @Override
-                public byte[] getBody() {
-                    Map<String, String> params = new HashMap<>();
-
-                    params.put("panel_id", "3");
-                    params.put("encoding", "utf-8");
-                    if (params.size() > 0) {
-                        StringBuilder encodedParams = new StringBuilder();
-                        try {
-                            for (Map.Entry<String, String> entry : params.entrySet()) {
-                                encodedParams.append(URLEncoder.encode(entry.getKey(), getParamsEncoding()));
-                                encodedParams.append('=');
-                                encodedParams.append(URLEncoder.encode(entry.getValue(), getParamsEncoding()));
-                                encodedParams.append('&');
-                            }
-                            return encodedParams.toString().getBytes(getParamsEncoding());
-                        } catch (UnsupportedEncodingException uee) {
-                            throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), uee);
-                        }
-                    }
-                    return null;
-                }
-            });
+            mBinding.pbGroup.setVisibility(View.GONE);
         }
     }
 

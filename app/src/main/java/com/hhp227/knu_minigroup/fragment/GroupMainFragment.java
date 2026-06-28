@@ -9,6 +9,7 @@ import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -20,14 +21,13 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.arch.core.util.Function;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.snackbar.Snackbar;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.activity.CreateGroupActivity;
@@ -38,23 +38,13 @@ import com.hhp227.knu_minigroup.activity.RequestActivity;
 import com.hhp227.knu_minigroup.adapter.GroupGridAdapter;
 import com.hhp227.knu_minigroup.databinding.FragmentGroupMainBinding;
 import com.hhp227.knu_minigroup.dto.GroupItem;
+import com.hhp227.knu_minigroup.handler.OnFragmentGroupMainEventListener;
 import com.hhp227.knu_minigroup.viewmodel.GroupMainViewModel;
 
 import java.util.List;
 import java.util.Map;
 
-// TODO
-public class GroupMainFragment extends Fragment {
-    private static final int PORTRAIT_SPAN_COUNT = 2;
-
-    private static final int LANDSCAPE_SPAN_COUNT = 4;
-
-    private int mSpanCount;
-
-    private GridLayoutManager mGridLayoutManager;
-
-    private GridLayoutManager.SpanSizeLookup mSpanSizeLookup;
-
+public class GroupMainFragment extends Fragment implements OnFragmentGroupMainEventListener {
     private GroupGridAdapter mAdapter;
 
     private RecyclerView.ItemDecoration mItemDecoration;
@@ -73,29 +63,21 @@ public class GroupMainFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mBinding = FragmentGroupMainBinding.inflate(inflater, container, false);
         mViewModel = new ViewModelProvider(this).get(GroupMainViewModel.class);
-        mSpanCount = getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ? PORTRAIT_SPAN_COUNT :
-                getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? LANDSCAPE_SPAN_COUNT :
-                        0;
-        mSpanSizeLookup = new GridLayoutManager.SpanSizeLookup() {
-            @Override
-            public int getSpanSize(int position) {
-                return mAdapter.getItemViewType(position) == GroupGridAdapter.TYPE_TEXT
-                        || mAdapter.getItemViewType(position) == GroupGridAdapter.TYPE_BANNER
-                        || mAdapter.getItemViewType(position) == GroupGridAdapter.TYPE_VIEW_PAGER ? mSpanCount : 1;
-            }
-        };
-        mGridLayoutManager = new GridLayoutManager(getContext(), mSpanCount);
         mItemDecoration = new RecyclerView.ItemDecoration() {
             @Override
             public void getItemOffsets(@NonNull Rect outRect, @NonNull View view, @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
                 super.getItemOffsets(outRect, view, parent, state);
-                if (parent.getAdapter() != null && parent.getAdapter().getItemViewType(parent.getChildAdapterPosition(view)) == TYPE_GROUP || parent.getAdapter().getItemViewType(parent.getChildAdapterPosition(view)) == TYPE_AD) {
+                int position = parent.getChildAdapterPosition(view);
+
+                if (parent.getAdapter() != null && parent.getLayoutManager() instanceof GridLayoutManager && position != RecyclerView.NO_POSITION && (parent.getAdapter().getItemViewType(position) == TYPE_GROUP || parent.getAdapter().getItemViewType(position) == TYPE_AD)) {
+                    int spanCount = ((GridLayoutManager) parent.getLayoutManager()).getSpanCount();
                     outRect.top = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10, getResources().getDisplayMetrics());
                     outRect.bottom = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 5, getResources().getDisplayMetrics());
-                    if (parent.getChildAdapterPosition(view) % mSpanCount == 0) {
+
+                    if (position % spanCount == 0) {
                         outRect.left = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 7, getResources().getDisplayMetrics());
                         outRect.right = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, getResources().getDisplayMetrics());
-                    } else if (parent.getChildAdapterPosition(view) % mSpanCount == 1) {
+                    } else if (position % spanCount == 1) {
                         outRect.left = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 14, getResources().getDisplayMetrics());
                         outRect.right = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 7, getResources().getDisplayMetrics());
                     } else {
@@ -123,22 +105,28 @@ public class GroupMainFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         mBinding.setViewModel(mViewModel);
         mBinding.setLifecycleOwner(getViewLifecycleOwner());
+        mBinding.setHandler(this);
+        mBinding.setSpanCount(getResources().getInteger(R.integer.group_main_span_count));
+        mBinding.setOnSpanSizeListener(new Function<Integer, Integer>() {
+            @Override
+            public Integer apply(Integer position) {
+                return mAdapter.getItemViewType(position) == TYPE_AD || mAdapter.getItemViewType(position) == TYPE_GROUP ? 1 : mBinding.getSpanCount();
+            }
+        });
         ((MainActivity) requireActivity()).setAppBar(mBinding.toolbar, getString(R.string.main));
         mAdapter.setHasStableIds(true);
         mAdapter.setOnItemClickListener(new GroupGridAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position) {
-                if (mAdapter.getCurrentList().get(position).getValue() instanceof GroupItem) {
-                    GroupItem groupItem = (GroupItem) mAdapter.getCurrentList().get(position).getValue();
-                    Intent intent = new Intent(getContext(), GroupActivity.class);
+                GroupItem groupItem = (GroupItem) mAdapter.getCurrentList().get(position).getValue();
+                Intent intent = new Intent(getContext(), GroupActivity.class);
 
-                    intent.putExtra("admin", groupItem.getAuthorUid().equals(mViewModel.getUser().getUid()));
-                    intent.putExtra("grp_id", groupItem.getId());
-                    intent.putExtra("grp_nm", groupItem.getName());
-                    intent.putExtra("grp_img", groupItem.getImage()); // 경북대 소모임에는 없음
-                    intent.putExtra("key", mAdapter.getKey(position));
-                    mActivityResultLauncher.launch(intent);
-                }
+                intent.putExtra("admin", groupItem.isAdmin());
+                intent.putExtra("grp_id", groupItem.getId());
+                intent.putExtra("grp_nm", groupItem.getName());
+                intent.putExtra("grp_img", groupItem.getImage()); // 경북대 소모임에는 없음
+                intent.putExtra("key", mAdapter.getKey(position));
+                mActivityResultLauncher.launch(intent);
             }
         });
         mAdapter.setOnClickListener(new View.OnClickListener() {
@@ -153,42 +141,10 @@ public class GroupMainFragment extends Fragment {
                 }
             }
         });
-        mGridLayoutManager.setSpanSizeLookup(mSpanSizeLookup);
-        mBinding.rvGroup.setLayoutManager(mGridLayoutManager);
         mBinding.rvGroup.setAdapter(mAdapter);
         mBinding.rvGroup.addItemDecoration(mItemDecoration);
-        mBinding.srlGroup.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        mBinding.srlGroup.setRefreshing(false);
-                        mViewModel.refresh();
-                    }
-                }, 1700);
-            }
-        });
         mBinding.srlGroup.setColorSchemeResources(android.R.color.holo_blue_bright, android.R.color.holo_green_light, android.R.color.holo_orange_light, android.R.color.holo_red_light);
         mBinding.bnvGroupButton.getMenu().getItem(0).setCheckable(false);
-        mBinding.bnvGroupButton.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                item.setCheckable(false);
-                switch (item.getItemId()) {
-                    case R.id.navigation_find:
-                        mActivityResultLauncher.launch(new Intent(getContext(), FindGroupActivity.class));
-                        return true;
-                    case R.id.navigation_request:
-                        startActivity(new Intent(getContext(), RequestActivity.class));
-                        return true;
-                    case R.id.navigation_create:
-                        mActivityResultLauncher.launch(new Intent(getContext(), CreateGroupActivity.class));
-                        return true;
-                }
-                return false;
-            }
-        });
         if (mViewModel.getUser() == null) {
             ((MainActivity) requireActivity()).logout();
         }
@@ -218,17 +174,37 @@ public class GroupMainFragment extends Fragment {
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        switch (newConfig.orientation) {
-            case Configuration.ORIENTATION_PORTRAIT:
-                mSpanCount = PORTRAIT_SPAN_COUNT;
-                break;
-            case Configuration.ORIENTATION_LANDSCAPE:
-                mSpanCount = LANDSCAPE_SPAN_COUNT;
-                break;
+        mBinding.setSpanCount(getResources().getInteger(R.integer.group_main_span_count));
+    }
+
+    @Override
+    public void onRefresh() {
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (mBinding != null) {
+                    mBinding.srlGroup.setRefreshing(false);
+                    mViewModel.refresh();
+                }
+            }
+        }, 1700);
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        item.setCheckable(false);
+        switch (item.getItemId()) {
+            case R.id.navigation_find:
+                mActivityResultLauncher.launch(new Intent(getContext(), FindGroupActivity.class));
+                return true;
+            case R.id.navigation_request:
+                startActivity(new Intent(getContext(), RequestActivity.class));
+                return true;
+            case R.id.navigation_create:
+                mActivityResultLauncher.launch(new Intent(getContext(), CreateGroupActivity.class));
+                return true;
         }
-        mGridLayoutManager.setSpanSizeLookup(mSpanSizeLookup);
-        mGridLayoutManager.setSpanCount(mSpanCount);
-        mBinding.rvGroup.invalidateItemDecorations();
+        return false;
     }
 
     private void observeViewModelData() {
@@ -236,6 +212,12 @@ public class GroupMainFragment extends Fragment {
             @Override
             public void onChanged(List<Map.Entry<String, Object>> groupItemList) {
                 mAdapter.submitList(groupItemList);
+            }
+        });
+        mViewModel.getPopularItemList().observe(getViewLifecycleOwner(), new Observer<List<GroupItem>>() {
+            @Override
+            public void onChanged(List<GroupItem> groupItemList) {
+                mAdapter.submitPopularGroupList(groupItemList);
             }
         });
         mViewModel.getMessage().observe(getViewLifecycleOwner(), new Observer<String>() {

@@ -26,6 +26,7 @@ import com.hhp227.knu_minigroup.helper.Callback;
 import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 
 import net.htmlparser.jericho.Element;
+import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
 
 import org.json.JSONException;
@@ -109,6 +110,89 @@ public class GroupRepository {
         Query query = databaseReference.child(user.getUid()).orderByValue().equalTo(false);
 
         fetchDataTaskFromFirebase(query, false, new ArrayList<>(), callback);
+    }
+
+    public void getPopularGroupList(String cookie, Callback callback) {
+        callback.onLoading();
+        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                List<GroupItem> popularItemList = new ArrayList<>();
+
+                try {
+                    Source source = new Source(response);
+                    List<Element> list = source.getAllElements("id", "accordion", false);
+
+                    for (Element element : list) {
+                        try {
+                            Element menuList = element.getFirstElementByClass("menu_list");
+
+                            if (menuList != null && "accordion".equals(element.getAttributeValue("class"))) {
+                                int id = groupIdExtract(menuList.getFirstElementByClass("button").getAttributeValue("onclick"));
+                                String imageUrl = EndPoint.BASE_URL + element.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
+                                String name = element.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
+                                StringBuilder info = new StringBuilder();
+                                String description = menuList.getAllElementsByClass("info").get(0).getContent().toString();
+                                String joinType = menuList.getAllElementsByClass("info").get(1).getTextExtractor().toString().trim();
+
+                                for (Element span : element.getFirstElement(HTMLElementName.A).getAllElementsByClass("info")) {
+                                    String extractedText = span.getTextExtractor().toString();
+
+                                    info.append(extractedText.contains("회원수") ?
+                                            extractedText.substring(0, extractedText.lastIndexOf("생성일")).trim() + "\n" :
+                                            extractedText + "\n");
+                                }
+
+                                GroupItem groupItem = new GroupItem();
+
+                                groupItem.setId(String.valueOf(id));
+                                groupItem.setImage(imageUrl);
+                                groupItem.setName(name);
+                                groupItem.setInfo(info.toString().trim());
+                                groupItem.setDescription(description);
+                                groupItem.setJoinType(joinType.equals("가입방식: 자동 승인") ? "0" : "1");
+                                popularItemList.add(groupItem);
+                            }
+                        } catch (Exception ignored) {
+                        }
+                    }
+                    callback.onSuccess(popularItemList);
+                } catch (Exception e) {
+                    callback.onFailure(e);
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                callback.onFailure(error);
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+
+                headers.put("Cookie", cookie);
+                return headers;
+            }
+
+            @Override
+            public String getBodyContentType() {
+                return "application/x-www-form-urlencoded; charset=" + getParamsEncoding();
+            }
+
+            @Override
+            public byte[] getBody() {
+                Map<String, String> params = new HashMap<>();
+
+                params.put("panel_id", "3");
+                params.put("encoding", "utf-8");
+                try {
+                    return encodeParams(params, getParamsEncoding());
+                } catch (UnsupportedEncodingException e) {
+                    throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), e);
+                }
+            }
+        });
     }
 
     public void getGroup(String cookie, String groupId, String groupImage, Callback callback) {
@@ -438,5 +522,9 @@ public class GroupRepository {
             encodedParams.append('&');
         }
         return encodedParams.toString().getBytes(paramsEncoding);
+    }
+
+    private static int groupIdExtract(String onclick) {
+        return Integer.parseInt(onclick.split("[(]|[)]|[,]")[1].trim());
     }
 }
