@@ -108,7 +108,7 @@ public class BindingAdapters {
 
     @BindingAdapter(value = {"verticalArrangement", "horizontalArrangement"}, requireAll = false)
     public static void setItemOffsets(RecyclerView view, float verticalArrangement, float horizontalArrangement) {
-        RecyclerView.ItemDecoration oldDecoration = (RecyclerView.ItemDecoration) view.getTag(0);
+        RecyclerView.ItemDecoration oldDecoration = (RecyclerView.ItemDecoration) view.getTag(-1);
 
         if (oldDecoration != null) {
             view.removeItemDecoration(oldDecoration);
@@ -146,7 +146,7 @@ public class BindingAdapters {
         };
 
         view.addItemDecoration(decoration);
-        view.setTag(0, decoration);
+        view.setTag(-1, decoration);
     }
 
     private static int dpToPx(View view, float dp) {
