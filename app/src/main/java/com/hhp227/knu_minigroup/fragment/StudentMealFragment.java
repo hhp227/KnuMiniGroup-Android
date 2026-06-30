@@ -56,17 +56,29 @@ public class StudentMealFragment extends Fragment {
                 new Pair<>(KEY_LAUNCH, mBinding.lunch),
                 new Pair<>(KEY_DINNER, mBinding.dinner)
         };
-        viewModel.getState().observe(getViewLifecycleOwner(), new Observer<StudentMealViewModel.State>() {
+        viewModel.isLoading().observe(getViewLifecycleOwner(), new Observer<Boolean>() {
             @Override
-            public void onChanged(StudentMealViewModel.State state) {
-                if (state.isLoading) {
+            public void onChanged(Boolean isLoading) {
+                if (isLoading) {
                     showProgressBar();
-                } else if (!state.list.isEmpty()) {
+                } else {
                     hideProgressBar();
-                    setTextView(StudentMealViewModel.groupBy(state.list));
-                } else if (state.message != null && !state.message.isEmpty()) {
-                    hideProgressBar();
-                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+        viewModel.getItemList().observe(getViewLifecycleOwner(), new Observer<List<Pair<String, String>>>() {
+            @Override
+            public void onChanged(List<Pair<String, String>> list) {
+                if (!list.isEmpty()) {
+                    setTextView(StudentMealViewModel.groupBy(list));
+                }
+            }
+        });
+        viewModel.getMessage().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String message) {
+                if (message != null && !message.isEmpty()) {
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();
                 }
             }
         });

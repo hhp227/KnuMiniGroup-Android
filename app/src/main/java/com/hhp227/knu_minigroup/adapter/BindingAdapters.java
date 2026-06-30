@@ -3,6 +3,7 @@ package com.hhp227.knu_minigroup.adapter;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
@@ -14,12 +15,14 @@ import androidx.databinding.BindingAdapter;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.viewpager.widget.ViewPager;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.material.tabs.TabLayout;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerView;
@@ -86,6 +89,39 @@ public class BindingAdapters {
     @BindingAdapter("onNavigationItemSelected")
     public static void setOnNavigationItemSelectedListener(NavigationBarView view, NavigationBarView.OnItemSelectedListener listener) {
         view.setOnItemSelectedListener(listener);
+    }
+
+    @BindingAdapter("tabTitles")
+    public static void bindTabTitles(TabLayout tabLayout, List<String> tabTitles) {
+        if (tabTitles == null) {
+            return;
+        }
+        if (tabLayout.getTabCount() == tabTitles.size()) {
+            boolean hasSameTitles = true;
+
+            for (int i = 0; i < tabTitles.size(); i++) {
+                TabLayout.Tab tab = tabLayout.getTabAt(i);
+
+                if (tab == null || !TextUtils.equals(tabTitles.get(i), tab.getText())) {
+                    hasSameTitles = false;
+                    break;
+                }
+            }
+            if (hasSameTitles) {
+                return;
+            }
+        }
+        tabLayout.removeAllTabs();
+        for (String tabTitle : tabTitles) {
+            tabLayout.addTab(tabLayout.newTab().setText(tabTitle));
+        }
+    }
+
+    @BindingAdapter("offscreenPageLimit")
+    public static void bindOffscreenPageLimit(ViewPager viewPager, int offscreenPageLimit) {
+        if (offscreenPageLimit > 0) {
+            viewPager.setOffscreenPageLimit(offscreenPageLimit);
+        }
     }
 
     @BindingAdapter(value = {"spanCount", "spanSize"}, requireAll = true)

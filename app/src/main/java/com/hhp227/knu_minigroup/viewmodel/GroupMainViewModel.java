@@ -1,7 +1,5 @@
 package com.hhp227.knu_minigroup.viewmodel;
 
-import android.os.CountDownTimer;
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -27,21 +25,7 @@ public class GroupMainViewModel extends ViewModel {
 
     private final MutableLiveData<String> mMessage = new MutableLiveData<>();
 
-    private final MutableLiveData<Long> mTick = new MutableLiveData<>();
-
     private final PreferenceManager mPreferenceManager = AppController.getInstance().getPreferenceManager();
-
-    private final CountDownTimer mCountDownTimer = new CountDownTimer(80000, 8000) {
-        @Override
-        public void onTick(long millisUntilFinished) {
-            mTick.postValue(millisUntilFinished);
-        }
-
-        @Override
-        public void onFinish() {
-            start();
-        }
-    };
 
     private final GroupRepository mGroupRepository = new GroupRepository();
 
@@ -67,18 +51,6 @@ public class GroupMainViewModel extends ViewModel {
 
     public User getUser() {
         return mPreferenceManager.getUser();
-    }
-
-    public void startCountDownTimer() {
-        mCountDownTimer.start();
-    }
-
-    public void cancelCountDownTimer() {
-        mCountDownTimer.cancel();
-    }
-
-    public LiveData<Long> getTick() {
-        return mTick;
     }
 
     public void refresh() {

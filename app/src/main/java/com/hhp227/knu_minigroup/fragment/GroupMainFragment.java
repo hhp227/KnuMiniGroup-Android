@@ -41,6 +41,8 @@ import java.util.List;
 import java.util.Map;
 
 public class GroupMainFragment extends Fragment implements OnFragmentGroupMainEventListener {
+    private static final long SLIDER_DELAY_MILLIS = 8000L;
+
     private GroupGridAdapter mAdapter;
 
     private FragmentGroupMainBinding mBinding;
@@ -48,6 +50,10 @@ public class GroupMainFragment extends Fragment implements OnFragmentGroupMainEv
     private GroupMainViewModel mViewModel;
 
     private ActivityResultLauncher<Intent> mActivityResultLauncher;
+
+    private Handler mSliderHandler;
+
+    private Runnable mSliderRunnable;
 
     public static GroupMainFragment newInstance() {
         return new GroupMainFragment();
@@ -58,6 +64,16 @@ public class GroupMainFragment extends Fragment implements OnFragmentGroupMainEv
         mBinding = FragmentGroupMainBinding.inflate(inflater, container, false);
         mViewModel = new ViewModelProvider(this).get(GroupMainViewModel.class);
         mAdapter = new GroupGridAdapter();
+        mSliderHandler = new Handler(Looper.getMainLooper());
+        mSliderRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (mBinding != null && mAdapter != null) {
+                    mAdapter.moveSliderPager();
+                    mSliderHandler.postDelayed(this, SLIDER_DELAY_MILLIS);
+                }
+            }
+        };
         mActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
             public void onActivityResult(ActivityResult result) {
@@ -123,20 +139,24 @@ public class GroupMainFragment extends Fragment implements OnFragmentGroupMainEv
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        stopSlider();
         mBinding = null;
+        mAdapter = null;
+        mSliderHandler = null;
+        mSliderRunnable = null;
         mActivityResultLauncher = null;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mViewModel.startCountDownTimer();
+        startSlider();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        mViewModel.cancelCountDownTimer();
+        stopSlider();
     }
 
     @Override
@@ -196,11 +216,18 @@ public class GroupMainFragment extends Fragment implements OnFragmentGroupMainEv
                 }
             }
         });
-        mViewModel.getTick().observe(getViewLifecycleOwner(), new Observer<Long>() {
-            @Override
-            public void onChanged(Long aLong) {
-                mAdapter.moveSliderPager();
-            }
-        });
+    }
+
+    private void startSlider() {
+        stopSlider();
+        if (mSliderHandler != null && mSliderRunnable != null) {
+            mSliderHandler.postDelayed(mSliderRunnable, SLIDER_DELAY_MILLIS);
+        }
+    }
+
+    private void stopSlider() {
+        if (mSliderHandler != null && mSliderRunnable != null) {
+            mSliderHandler.removeCallbacks(mSliderRunnable);
+        }
     }
 }
