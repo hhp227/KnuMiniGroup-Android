@@ -5,7 +5,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.viewpager.widget.PagerAdapter;
-import com.bumptech.glide.Glide;
 import com.hhp227.knu_minigroup.databinding.ImageFullscreenBinding;
 
 import java.util.ArrayList;
@@ -18,9 +17,9 @@ public class PicturePagerAdapter extends PagerAdapter {
     @Override
     public Object instantiateItem(@NonNull ViewGroup container, int position) {
         ImageFullscreenBinding binding = ImageFullscreenBinding.inflate(LayoutInflater.from(container.getContext()), container, false);
-        String image = mImageList.get(position);
 
-        Glide.with(container.getContext()).load(image).into(binding.zivImage);
+        binding.setImage(mImageList.get(position));
+        binding.executePendingBindings();
         container.addView(binding.getRoot());
         return binding.getRoot();
     }

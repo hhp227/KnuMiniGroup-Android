@@ -5,10 +5,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
-import com.bumptech.glide.request.RequestOptions;
-import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.databinding.YoutubeItemBinding;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 
@@ -72,13 +68,8 @@ public class YouTubeListAdapter extends RecyclerView.Adapter<YouTubeListAdapter.
         }
 
         private void bind(YouTubeItem youTubeItem) {
-            Glide.with(itemView.getContext())
-                    .load(youTubeItem.thumbnail)
-                    .apply(RequestOptions.errorOf(R.drawable.ic_launcher_background))
-                    .transition(DrawableTransitionOptions.withCrossFade(150))
-                    .into(mBinding.ivYoutube);
-            mBinding.tvTitle.setText(youTubeItem.title);
-            mBinding.tvChannelTitle.setText(youTubeItem.channelTitle);
+            mBinding.setYouTubeItem(youTubeItem);
+            mBinding.executePendingBindings();
         }
     }
 

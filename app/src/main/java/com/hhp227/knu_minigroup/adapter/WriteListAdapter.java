@@ -1,14 +1,11 @@
 package com.hhp227.knu_minigroup.adapter;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import com.bumptech.glide.Glide;
 import com.hhp227.knu_minigroup.databinding.WriteContentBinding;
-import com.hhp227.knu_minigroup.dto.YouTubeItem;
 
 import java.util.List;
 
@@ -29,13 +26,7 @@ public class WriteListAdapter extends ArrayAdapter<Object> {
             convertView.setTag(viewHolder);
         } else
             viewHolder = (ViewHolder) convertView.getTag();
-        if (getItem(position) instanceof Bitmap) {
-            viewHolder.bind((Bitmap) getItem(position));
-        } else if (getItem(position) instanceof String) {
-            viewHolder.bind((String) getItem(position));
-        } else if (getItem(position) instanceof YouTubeItem) { // 수정
-            viewHolder.bind((YouTubeItem) getItem(position));
-        }
+        viewHolder.bind(getItem(position));
         return convertView;
     }
 
@@ -52,21 +43,9 @@ public class WriteListAdapter extends ArrayAdapter<Object> {
             this.mBinding = binding;
         }
 
-        public void bind(Bitmap bitmap) {
-            mBinding.ivImagePreview.setVisibility(bitmap != null ? View.VISIBLE : View.GONE);
-            Glide.with(mBinding.getRoot().getContext()).load(bitmap).into(mBinding.ivImagePreview);
-            mBinding.ivVideoPreview.setVisibility(View.GONE);
-        }
-
-        public void bind(String imageUrl) {
-            mBinding.ivImagePreview.setVisibility(imageUrl != null ? View.VISIBLE : View.GONE);
-            Glide.with(mBinding.getRoot().getContext()).load(imageUrl).into(mBinding.ivImagePreview);
-            mBinding.ivVideoPreview.setVisibility(View.GONE);
-        }
-
-        public void bind(YouTubeItem youTubeItem) {
-            mBinding.ivVideoPreview.setVisibility(View.VISIBLE);
-            Glide.with(mBinding.getRoot().getContext()).load(youTubeItem.thumbnail).into(mBinding.ivImagePreview);
+        public void bind(Object content) {
+            mBinding.setContent(content);
+            mBinding.executePendingBindings();
         }
     }
 }

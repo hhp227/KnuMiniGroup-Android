@@ -5,12 +5,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.model.GlideUrl;
-import com.bumptech.glide.load.model.LazyHeaders;
-import com.bumptech.glide.request.RequestOptions;
-import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.LoadMoreBinding;
@@ -98,16 +92,9 @@ public class MemberGridAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
 
         private void bind(MemberItem memberItem) {
-            mBinding.tvName.setText(memberItem.name);
-            Glide.with(itemView.getContext())
-                    .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", memberItem.uid), new LazyHeaders.Builder()
-                            .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
-                            .build()))
-                    .apply(new RequestOptions().centerCrop()
-                            .error(R.drawable.user_image_view)
-                            .skipMemoryCache(true)
-                            .diskCacheStrategy(DiskCacheStrategy.NONE))
-                    .into(mBinding.ivProfileImage);
+            mBinding.setMemberItem(memberItem);
+            mBinding.setCookie(AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN));
+            mBinding.executePendingBindings();
         }
     }
 

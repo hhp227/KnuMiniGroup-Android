@@ -1,6 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout
-        xmlns:android="http://schemas.android.com/apk/res/android">
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <import type="android.view.View" />
+
+        <import type="com.hhp227.knu_minigroup.app.EndPoint" />
+
+        <variable
+                name="messageItem"
+                type="com.hhp227.knu_minigroup.dto.MessageItem" />
+
+        <variable
+                name="timestamp"
+                type="String" />
+
+        <variable
+                name="isContinuation"
+                type="boolean" />
+
+        <variable
+                name="cookie"
+                type="String" />
+    </data>
 
     <LinearLayout
             android:layout_width="match_parent"
@@ -8,7 +31,7 @@
             android:id="@+id/ll_message"
             android:gravity="start"
             android:orientation="vertical"
-            android:paddingTop="5dp"
+            android:paddingTop="@{isContinuation ? 0f : 10f}"
             android:paddingStart="5dp"
             android:paddingBottom="5dp">
 
@@ -22,7 +45,10 @@
                     android:layout_width="41dp"
                     android:layout_height="41dp"
                     android:src="@drawable/user_image_view_circle"
-                    android:scaleType="fitCenter" />
+                    android:scaleType="fitCenter"
+                    android:visibility="@{isContinuation ? View.INVISIBLE : View.VISIBLE}"
+                    app:userImageUrl="@{isContinuation ? null : EndPoint.USER_IMAGE.replace(`{UID}`, messageItem.from)}"
+                    app:cookie="@{cookie}" />
 
             <LinearLayout
                     android:layout_width="wrap_content"
@@ -37,6 +63,8 @@
                         android:textColor="#777777"
                         android:textSize="13dp"
                         android:textStyle="bold"
+                        android:text="@{messageItem.name}"
+                        android:visibility="@{isContinuation ? View.GONE : View.VISIBLE}"
                         android:paddingBottom="2dp" />
 
                 <LinearLayout
@@ -51,7 +79,7 @@
                             android:layout_weight="4.5"
                             android:background="@drawable/bg_other_msg"
                             android:padding="9dp"
-                            android:text="메시지"
+                            android:text="@{messageItem.message}"
                             android:textColor="#434343"
                             android:textSize="16dp" />
 
@@ -62,7 +90,7 @@
                             android:layout_gravity="bottom"
                             android:layout_marginEnd="50dp"
                             android:paddingBottom="2dp"
-                            android:text="시간"
+                            android:text="@{timestamp}"
                             android:textSize="10dp" />
 
                 </LinearLayout>

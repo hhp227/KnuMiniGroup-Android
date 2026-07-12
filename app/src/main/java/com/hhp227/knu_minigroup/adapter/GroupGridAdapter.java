@@ -16,8 +16,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdLoader;
 import com.google.android.gms.ads.AdRequest;
@@ -198,7 +196,8 @@ public class GroupGridAdapter extends RecyclerView.Adapter {
         }
 
         private void bind(Map<String, String> map) {
-            mBinding.tvTitle.setText(map.get("text"));
+            mBinding.setText(map.get("text"));
+            mBinding.executePendingBindings();
         }
     }
 
@@ -243,12 +242,8 @@ public class GroupGridAdapter extends RecyclerView.Adapter {
         }
 
         private void bind(GroupItem groupItem) {
-            Glide.with(itemView.getContext())
-                    .load(groupItem.getImage())
-                    .transition(new DrawableTransitionOptions().crossFade(150))
-                    .into(mBinding.ivGroupImage);
-            mBinding.tvTitle.setText(groupItem.getName());
-            mBinding.rlGroup.setVisibility(View.VISIBLE);
+            mBinding.setGroupItem(groupItem);
+            mBinding.executePendingBindings();
         }
     }
 

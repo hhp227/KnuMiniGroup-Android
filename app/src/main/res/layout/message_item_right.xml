@@ -2,13 +2,27 @@
 <layout
         xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <data>
+        <variable
+                name="messageItem"
+                type="com.hhp227.knu_minigroup.dto.MessageItem" />
+
+        <variable
+                name="timestamp"
+                type="String" />
+
+        <variable
+                name="isContinuation"
+                type="boolean" />
+    </data>
+
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/ll_message"
             android:gravity="end"
             android:orientation="vertical"
-            android:paddingTop="5dp"
+            android:paddingTop="@{isContinuation ? 0f : 10f}"
             android:paddingRight="5dp"
             android:paddingBottom="5dp">
 
@@ -44,7 +58,7 @@
                             android:layout_gravity="bottom"
                             android:layout_marginLeft="50dp"
                             android:paddingBottom="2dp"
-                            android:text="시간"
+                            android:text="@{timestamp}"
                             android:textSize="10dp" />
 
                     <TextView
@@ -55,7 +69,7 @@
                             android:background="@drawable/bg_my_msg"
                             android:padding="9dp"
                             android:textColor="#0a2332"
-                            android:text="메시지"
+                            android:text="@{messageItem.message}"
                             android:textSize="16dp" />
 
                 </LinearLayout>

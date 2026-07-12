@@ -5,11 +5,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.model.GlideUrl;
-import com.bumptech.glide.load.model.LazyHeaders;
-import com.bumptech.glide.request.RequestOptions;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.databinding.MessageItemLeftBinding;
@@ -99,6 +94,24 @@ public class MessageListAdapter extends BaseAdapter {
         return !mMessageItems.get(position).getFrom().equals(mUid) ? MSG_TYPE_LEFT : MSG_TYPE_RIGHT;
     }
 
+    /*이전 메시지와 같은 시간, 같은 사람이 보낸 메시지인지 판별*/
+    private boolean isContinuation(MessageItem messageItem, int position) {
+        return position > 0
+                && getTimeStamp(mMessageItems.get(position - 1).getTimestamp()).equals(getTimeStamp(messageItem.getTimestamp()))
+                && mMessageItems.get(position - 1).getFrom().equals(messageItem.getFrom());
+    }
+
+    /*다음 메시지와 같은 시간, 같은 사람이 보낸 메시지이면 타임스탬프를 숨김*/
+    private boolean hideTimestamp(MessageItem messageItem, int position) {
+        return position + 1 != mMessageItems.size()
+                && getTimeStamp(messageItem.getTimestamp()).equals(getTimeStamp(mMessageItems.get(position + 1).getTimestamp()))
+                && messageItem.getFrom().equals(mMessageItems.get(position + 1).getFrom());
+    }
+
+    private static String getTimeStamp(long time) {
+        return new SimpleDateFormat("a h:mm", Locale.getDefault()).format(time);
+    }
+
     private class MessageListLeftHolder {
         private final MessageItemLeftBinding mBinding;
 
@@ -107,33 +120,11 @@ public class MessageListAdapter extends BaseAdapter {
         }
 
         public void bind(MessageItem messageItem, int position) {
-            mBinding.tvName.setText(messageItem.getName());
-            mBinding.tvMessage.setText(messageItem.getMessage());
-            mBinding.tvTimestamp.setText(getTimeStamp(messageItem.getTimestamp()));
-            if (position > 0 && getTimeStamp(mMessageItems.get(position - 1).getTimestamp()).equals(getTimeStamp(messageItem.getTimestamp())) && mMessageItems.get(position - 1).getFrom().equals(messageItem.getFrom())) {
-                mBinding.tvName.setVisibility(View.GONE);
-                mBinding.llMessage.setPadding(mBinding.llMessage.getPaddingLeft(), 0, mBinding.llMessage.getPaddingRight(), mBinding.llMessage.getPaddingBottom());
-                mBinding.ivProfileImage.setVisibility(View.INVISIBLE);
-            } else {
-                mBinding.tvName.setVisibility(getItemViewType(position) == MSG_TYPE_RIGHT ? View.GONE : View.VISIBLE);
-                mBinding.ivProfileImage.setVisibility(View.VISIBLE);
-                mBinding.llMessage.setPadding(10, 10, 10, 10);
-                Glide.with(mBinding.ivProfileImage.getContext())
-                        .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", messageItem.getFrom()), new LazyHeaders.Builder()
-                                .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
-                                .build()))
-                        .apply(new RequestOptions()
-                                .circleCrop()
-                                .skipMemoryCache(true)
-                                .diskCacheStrategy(DiskCacheStrategy.NONE))
-                        .into(mBinding.ivProfileImage);
-            }
-            if (position + 1 != mMessageItems.size() && getTimeStamp(messageItem.getTimestamp()).equals(getTimeStamp(mMessageItems.get(position + 1).getTimestamp())) && messageItem.getFrom().equals(mMessageItems.get(position + 1).getFrom()))
-                mBinding.tvTimestamp.setText("");
-        }
-
-        private String getTimeStamp(long time) {
-            return new SimpleDateFormat("a h:mm", Locale.getDefault()).format(time);
+            mBinding.setMessageItem(messageItem);
+            mBinding.setIsContinuation(isContinuation(messageItem, position));
+            mBinding.setTimestamp(hideTimestamp(messageItem, position) ? "" : getTimeStamp(messageItem.getTimestamp()));
+            mBinding.setCookie(AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN));
+            mBinding.executePendingBindings();
         }
     }
 
@@ -145,33 +136,10 @@ public class MessageListAdapter extends BaseAdapter {
         }
 
         public void bind(MessageItem messageItem, int position) {
-            mBinding.tvName.setText(messageItem.getName());
-            mBinding.tvMessage.setText(messageItem.getMessage());
-            mBinding.tvTimestamp.setText(getTimeStamp(messageItem.getTimestamp()));
-            if (position > 0 && getTimeStamp(mMessageItems.get(position - 1).getTimestamp()).equals(getTimeStamp(messageItem.getTimestamp())) && mMessageItems.get(position - 1).getFrom().equals(messageItem.getFrom())) {
-                mBinding.tvName.setVisibility(View.GONE);
-                mBinding.llMessage.setPadding(mBinding.llMessage.getPaddingLeft(), 0, mBinding.llMessage.getPaddingRight(), mBinding.llMessage.getPaddingBottom());
-                mBinding.ivProfileImage.setVisibility(View.INVISIBLE);
-            } else {
-                mBinding.tvName.setVisibility(getItemViewType(position) == MSG_TYPE_RIGHT ? View.GONE : View.VISIBLE);
-                mBinding.ivProfileImage.setVisibility(View.VISIBLE);
-                mBinding.llMessage.setPadding(10, 10, 10, 10);
-                Glide.with(mBinding.ivProfileImage.getContext())
-                        .load(new GlideUrl(EndPoint.USER_IMAGE.replace("{UID}", messageItem.getFrom()), new LazyHeaders.Builder()
-                                .addHeader("Cookie", AppController.getInstance().getCookieManager().getCookie(EndPoint.LOGIN))
-                                .build()))
-                        .apply(new RequestOptions()
-                                .circleCrop()
-                                .skipMemoryCache(true)
-                                .diskCacheStrategy(DiskCacheStrategy.NONE))
-                        .into(mBinding.ivProfileImage);
-            }
-            if (position + 1 != mMessageItems.size() && getTimeStamp(messageItem.getTimestamp()).equals(getTimeStamp(mMessageItems.get(position + 1).getTimestamp())) && messageItem.getFrom().equals(mMessageItems.get(position + 1).getFrom()))
-                mBinding.tvTimestamp.setText("");
-        }
-
-        private String getTimeStamp(long time) {
-            return new SimpleDateFormat("a h:mm", Locale.getDefault()).format(time);
+            mBinding.setMessageItem(messageItem);
+            mBinding.setIsContinuation(isContinuation(messageItem, position));
+            mBinding.setTimestamp(hideTimestamp(messageItem, position) ? "" : getTimeStamp(messageItem.getTimestamp()));
+            mBinding.executePendingBindings();
         }
     }
 }

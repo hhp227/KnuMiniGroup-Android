@@ -1,11 +1,16 @@
 package com.hhp227.knu_minigroup.helper;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.text.TextUtils;
+
+import com.hhp227.knu_minigroup.R;
 
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 public class DateUtil {
     @SuppressLint("SimpleDateFormat")
@@ -34,5 +39,24 @@ public class DateUtil {
         }
 
         return timestamp;
+    }
+
+    // 타임 제네레이터
+    public static String getPeriodTime(Context context, String strDate) {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat sdf = new SimpleDateFormat(context.getResources().getString(R.string.format_date2));
+        Date date;
+
+        df.setTimeZone(TimeZone.getDefault());
+        if (TextUtils.isEmpty(strDate))
+            return "";
+        try {
+            date = df.parse(strDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return "";
+        }
+        assert date != null;
+        return sdf.format(date);
     }
 }

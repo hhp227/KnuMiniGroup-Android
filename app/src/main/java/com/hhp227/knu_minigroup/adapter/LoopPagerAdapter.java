@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.viewpager.widget.PagerAdapter;
-import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.databinding.FragmentMainPagerBinding;
 
 import java.util.List;
@@ -25,30 +24,9 @@ public class LoopPagerAdapter extends PagerAdapter {
     public Object instantiateItem(@NonNull ViewGroup container, int position) {
         FragmentMainPagerBinding binding = FragmentMainPagerBinding.inflate(LayoutInflater.from(container.getContext()), container, false);
 
-        switch (mPagerItemList.get(position)) {
-            case "메인":
-                binding.tvType1.setVisibility(View.GONE);
-                binding.tvType2.setVisibility(View.GONE);
-                binding.rlTypeMain.setVisibility(View.VISIBLE);
-                binding.rlTypeImage.setVisibility(View.GONE);
-                binding.bFind.setOnClickListener(mOnClickListener);
-                binding.bCreate.setOnClickListener(mOnClickListener);
-                break;
-            case "이미지1":
-                binding.tvType1.setVisibility(View.VISIBLE);
-                binding.tvType2.setVisibility(View.GONE);
-                binding.rlTypeMain.setVisibility(View.GONE);
-                binding.rlTypeImage.setVisibility(View.VISIBLE);
-                binding.ivBanner.setImageResource(R.drawable.banner01);
-                break;
-            case "이미지2":
-                binding.tvType1.setVisibility(View.GONE);
-                binding.tvType2.setVisibility(View.VISIBLE);
-                binding.rlTypeMain.setVisibility(View.GONE);
-                binding.rlTypeImage.setVisibility(View.VISIBLE);
-                binding.ivBanner.setImageResource(R.drawable.banner02);
-                break;
-        }
+        binding.setType(mPagerItemList.get(position));
+        binding.setOnClickListener(mOnClickListener);
+        binding.executePendingBindings();
         container.addView(binding.getRoot(), 0);
         return binding.getRoot();
     }
