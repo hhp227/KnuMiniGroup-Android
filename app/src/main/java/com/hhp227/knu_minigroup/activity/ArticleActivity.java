@@ -14,6 +14,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.Observer;
@@ -106,7 +107,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity implements OnActivity
                 }
                 return true;
             case 2:
-                mViewModel.deleteArticle();
+                showDeleteConfirmDialog("게시글을 삭제하시겠습니까?", () -> mViewModel.deleteArticle());
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -167,7 +168,7 @@ public class ArticleActivity extends MyYouTubeBaseActivity implements OnActivity
                     startActivityForResult(intent, UPDATE_REPLY);
                     return true;
                 case 3:
-                    mViewModel.deleteReply(replyKey);
+                    showDeleteConfirmDialog("댓글을 삭제하시겠습니까?", () -> mViewModel.deleteReply(replyKey));
                     return true;
             }
         }
@@ -293,5 +294,14 @@ public class ArticleActivity extends MyYouTubeBaseActivity implements OnActivity
                 mActivityArticleBinding.lvArticle.setSelection(articleHeight);
             }
         }, 500);
+    }
+
+    private void showDeleteConfirmDialog(String message, Runnable onConfirm) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setMessage(message);
+        builder.setPositiveButton("확인", (dialog, which) -> onConfirm.run());
+        builder.setNegativeButton("취소", (dialog, which) -> dialog.dismiss());
+        builder.show();
     }
 }
