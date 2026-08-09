@@ -3,6 +3,12 @@ package com.hhp227.knu_minigroup.app;
 public interface EndPoint {
     // 경북대 LMS URL
     String BASE_URL = "https://lms.knu.ac.kr";
+
+    // Firebase Storage 공개 다운로드 URL (google-services.json의 storage_bucket과 일치해야 한다)
+    String STORAGE_BASE_URL = "https://firebasestorage.googleapis.com/v0/b/hhp227-ed727.appspot.com/o/";
+
+    // 프로필 이미지 저장 경로. USER_IMAGE가 이 경로를 URL로 조립하므로 둘을 함께 바꿔야 한다.
+    String STORAGE_PROFILE_IMAGE_PATH = "profile_images";
     //String LOGIN = BASE_URL + "/ilos/lo/login.acl";
     String LOGIN = "https://knusso.knu.ac.kr/authentication/idpw/loginProcess";
     String GROUP_LIST = BASE_URL + "/ilos/m/community/share_group_list.acl";
@@ -23,7 +29,9 @@ public interface EndPoint {
     String DELETE_REPLY = BASE_URL + "/ilos/community/share_comment_delete.acl";
     String MODIFY_REPLY = BASE_URL + "/ilos/community/share_comment_update.acl";
     String MEMBER_LIST = BASE_URL + "/ilos/community/share_member_list.acl";
-    String USER_IMAGE = BASE_URL + "/ilos/mp/user_image_view.acl?id={UID}&ext=.jpg";
+    // LMS 서버가 닫혀 프로필 이미지는 Firebase Storage에 uid별 고정 경로로 저장한다.
+    // 경로가 uid로 정해지므로 조회 없이 URL을 조립할 수 있다 (STORAGE_PROFILE_IMAGE_PATH와 짝을 이룬다).
+    String USER_IMAGE = STORAGE_BASE_URL + "profile_images%2F{UID}.jpg?alt=media";
     String GET_USER_IMAGE = BASE_URL + "/ilos/mp/myinfo_update_photo.acl";
     String TIMETABLE = BASE_URL + "/ilos/st/main/pop_academic_timetable_form.acl";
     String MY_INFO = BASE_URL + "/ilos/mp/myinfo_form.acl";

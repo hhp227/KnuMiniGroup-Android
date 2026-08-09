@@ -106,7 +106,7 @@ public class DefaultSettingViewModel extends ViewModel {
         if (!title.isEmpty() && !description.isEmpty()) {
             String joinTypeValue = Boolean.TRUE.equals(joinType.getValue()) ? "0" : "1";
 
-            mGroupRepository.setGroup(mCookieManager.getCookie(EndPoint.LOGIN), mGroupKey, mGroupId, title, description, joinTypeValue, new Callback() {
+            mGroupRepository.setGroup(mCookieManager.getCookie(EndPoint.LOGIN), mGroupKey, mGroupId, title, description, joinTypeValue, mBitmap.getValue(), new Callback() {
                 @Override
                 public <T> void onSuccess(T data) {
                     mLoading.postValue(false);

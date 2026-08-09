@@ -1,16 +1,13 @@
 package com.hhp227.knu_minigroup.data.remote;
 
-import static com.hhp227.knu_minigroup.app.EndPoint.GROUP_IMAGE;
-
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -18,19 +15,18 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.helper.Callback;
-import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
@@ -247,61 +243,62 @@ public class GroupRemoteDataSource {
         }
     }
 
-    public void setGroup(String cookie, String groupKey, String groupId, String groupName, String description, String joinType, Callback callback) {
-        callback.onLoading();
-        AppController.getInstance().addToRequestQueue(new JsonObjectRequest(Request.Method.POST, EndPoint.UPDATE_GROUP, null, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                try {
-                    if (!response.getBoolean("isError")) {
-                        GroupItem groupItem = new GroupItem();
+    /**
+     * 커버 이미지를 Firebase Storage에 올리고 다운로드 URL을 그룹 정보에 담는다.
+     * LMS 서버가 닫혀 기존 이미지 업로드 엔드포인트는 쓸 수 없다.
+     */
+    private void groupImageUpdate(String cookie, User user, String groupName, String description, Bitmap bitmap, String type, Callback callback) {
+        uploadGroupImage(bitmap, imageUrl -> insertGroupToFirebase(user, groupName, description, imageUrl, type, callback), callback);
+    }
 
-                        groupItem.setId(groupId);
-                        groupItem.setName(response.getString("GRP_NM"));
-                        groupItem.setDescription(description);
-                        groupItem.setJoinType(joinType);
-                        updateGroupDataToFirebase(groupKey, groupItem, callback);
-                    } else {
-                        callback.onFailure(new IllegalStateException(response.toString()));
+    /**
+     * 그룹 생성과 그룹 설정이 함께 쓰는 커버 업로드. 성공하면 다운로드 URL을 넘긴다.
+     */
+    private void uploadGroupImage(Bitmap bitmap, OnImageUploaded onImageUploaded, Callback callback) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        StorageReference storageReference = FirebaseStorage.getInstance()
+                .getReference("group_images")
+                .child(UUID.randomUUID().toString().replace("-", "").concat(".jpg"));
+
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream);
+        storageReference.putBytes(byteArrayOutputStream.toByteArray())
+                .continueWithTask(task -> {
+                    if (!task.isSuccessful() && task.getException() != null) {
+                        throw task.getException();
                     }
-                } catch (JSONException e) {
+                    return storageReference.getDownloadUrl();
+                })
+                .addOnSuccessListener(uri -> onImageUploaded.onImageUploaded(uri.toString()))
+                .addOnFailureListener(e -> {
+                    Log.e("GroupRemoteDataSource", "그룹 이미지 업로드 실패", e);
                     callback.onFailure(e);
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                callback.onFailure(error);
-            }
-        }) {
-            @Override
-            public String getBodyContentType() {
-                return "application/x-www-form-urlencoded; charset=" + getParamsEncoding();
-            }
+                });
+    }
 
-            @Override
-            public byte[] getBody() {
-                Map<String, String> params = new HashMap<>();
+    private interface OnImageUploaded {
+        void onImageUploaded(String imageUrl);
+    }
 
-                params.put("CLUB_GRP_ID", groupId);
-                params.put("GRP_NM", groupName);
-                params.put("TXT", description);
-                params.put("JOIN_DIV", joinType);
-                try {
-                    return encodeParams(params, getParamsEncoding());
-                } catch (UnsupportedEncodingException e) {
-                    throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), e);
-                }
-            }
+    /**
+     * LMS 서버가 닫혀 그룹 수정 엔드포인트를 쓸 수 없으므로 Firebase에 바로 반영한다.
+     * 커버를 새로 골랐으면 Storage에 올린 뒤 그 URL까지 함께 갱신한다.
+     */
+    public void setGroup(String cookie, String groupKey, String groupId, String groupName, String description, String joinType, Bitmap bitmap, Callback callback) {
+        GroupItem groupItem = new GroupItem();
 
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", cookie);
-                return headers;
-            }
-        });
+        groupItem.setId(groupId);
+        groupItem.setName(groupName);
+        groupItem.setDescription(description);
+        groupItem.setJoinType(joinType);
+        callback.onLoading();
+        if (bitmap != null) {
+            uploadGroupImage(bitmap, imageUrl -> {
+                groupItem.setImage(imageUrl);
+                updateGroupDataToFirebase(groupKey, groupItem, callback);
+            }, callback);
+        } else {
+            updateGroupDataToFirebase(groupKey, groupItem, callback);
+        }
     }
 
     public void removeGroup(User user, boolean isAdmin, String key, Callback callback) {
@@ -372,57 +369,6 @@ public class GroupRemoteDataSource {
         callback.onSuccess(true);
     }
 
-    private void groupImageUpdate(String cookie, User user, String groupName, String description, Bitmap bitmap, String type, Callback callback) {
-        AppController.getInstance().addToRequestQueue(new MultipartRequest(Request.Method.POST, EndPoint.GROUP_IMAGE_UPDATE, new Response.Listener<NetworkResponse>() {
-            @Override
-            public void onResponse(NetworkResponse response) {
-                insertGroupToFirebase(user, groupName, description, bitmap, type, callback);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                if (error.networkResponse.statusCode == 302) {
-                    // 임시로 넣은코드, 서버에서 왜 이런 응답을 보내는지 이해가 안된다.
-                    insertGroupToFirebase(user, groupName, description, bitmap, type, callback);
-                } else {
-                    callback.onFailure(error);
-                }
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", cookie);
-                return headers;
-            }
-
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-
-                return params;
-            }
-
-            @Override
-            protected Map<String, DataPart> getByteData() {
-                Map<String, DataPart> params = new HashMap<>();
-
-                if (bitmap != null) {
-                    params.put("file", new DataPart(UUID.randomUUID().toString().replace("-", "").concat(".jpg"), getFileDataFromDrawable(bitmap)));
-                }
-                return params;
-            }
-
-            private byte[] getFileDataFromDrawable(Bitmap bitmap) {
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-                bitmap.compress(Bitmap.CompressFormat.PNG, 80, byteArrayOutputStream);
-                return byteArrayOutputStream.toByteArray();
-            }
-        });
-    }
-
     private void fetchDataTaskFromFirebase(Query query, final boolean isRecursion, List<Map.Entry<String, Object>> groupItemList, Callback callback) {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -463,7 +409,7 @@ public class GroupRemoteDataSource {
         });
     }
 
-    private void insertGroupToFirebase(User user, String groupName, String description, Bitmap bitmap, String type, Callback callback) {
+    private void insertGroupToFirebase(User user, String groupName, String description, String imageUrl, String type, Callback callback) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         Map<String, Boolean> members = new HashMap<>();
         GroupItem groupItem = new GroupItem();
@@ -475,7 +421,8 @@ public class GroupRemoteDataSource {
         groupItem.setTimestamp(System.currentTimeMillis());
         groupItem.setAuthor(user.getName());
         groupItem.setAuthorUid(user.getUid());
-        groupItem.setImage(bitmap != null ? GROUP_IMAGE.replace("{FILE}", key.concat(".jpg")) : EndPoint.BASE_URL + "/ilos/images/community/share_nophoto.gif");
+        // 커버가 없으면 null로 두고 표시 단계의 placeholder에 맡긴다 (LMS의 기본 이미지 URL은 서버가 닫혀 로드되지 않는다)
+        groupItem.setImage(imageUrl);
         groupItem.setName(groupName);
         groupItem.setDescription(description);
         groupItem.setJoinType(type);
@@ -500,6 +447,12 @@ public class GroupRemoteDataSource {
                     groupItem.setName(newGroupItem.getName());
                     groupItem.setDescription(newGroupItem.getDescription());
                     groupItem.setJoinType(newGroupItem.getJoinType());
+                    // 커버를 새로 고른 경우에만 교체하고, 아니면 기존 이미지를 유지한다
+                    if (newGroupItem.getImage() != null) {
+                        groupItem.setImage(newGroupItem.getImage());
+                    } else {
+                        newGroupItem.setImage(groupItem.getImage());
+                    }
                     query.getRef().setValue(groupItem);
                 }
                 callback.onSuccess(newGroupItem);

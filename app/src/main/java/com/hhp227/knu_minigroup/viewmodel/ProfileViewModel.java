@@ -1,22 +1,24 @@
 package com.hhp227.knu_minigroup.viewmodel;
 
 import android.graphics.Bitmap;
+import android.text.TextUtils;
+import android.util.Log;
 import android.webkit.CookieManager;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.helper.PreferenceManager;
-import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,7 +26,6 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 public class ProfileViewModel extends ViewModel {
     private final CookieManager mCookieManager = AppController.getInstance().getCookieManager();
@@ -108,62 +109,43 @@ public class ProfileViewModel extends ViewModel {
         AppController.getInstance().addToRequestQueue(jsonObjectRequest);
     }
 
+    /**
+     * LMS 서버가 닫혀 프로필 이미지 업로드 엔드포인트를 쓸 수 없으므로 Firebase Storage에 올린다.
+     * 표시 쪽은 uid로 URL을 조립하므로(EndPoint.USER_IMAGE) 경로를 uid로 고정하고 덮어쓴다.
+     *
+     * @param isUpdate LMS 시절 미리보기/확정 2단계 호출의 잔재. Storage는 한 번에 끝나므로 사용하지 않는다.
+     */
     public void uploadImage(final boolean isUpdate) {
-        MultipartRequest multipartRequest = new MultipartRequest(Request.Method.POST, isUpdate ? EndPoint.PROFILE_IMAGE_UPDATE : EndPoint.PROFILE_IMAGE_PREVIEW, new Response.Listener<NetworkResponse>() {
-            @Override
-            public void onResponse(NetworkResponse response) {
-                if (isUpdate) {
-                    mLoading.postValue(false);
-                    mSuccess.postValue(true);
-                    mUser.postValue(mPreferenceManager.getUser());
-                    mMessage.postValue(new String(response.data).contains("성공") ? "수정되었습니다." : "실패했습니다.");
-                } else {
-                    uploadImage(true);
-                }
+        Bitmap bitmap = mBitmap.getValue();
+
+        if (bitmap != null) {
+            User user = mPreferenceManager.getUser();
+
+            if (user == null || TextUtils.isEmpty(user.getUid())) {
+                mMessage.postValue("로그인 정보를 찾을 수 없습니다.");
+                return;
             }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                mLoading.postValue(false);
-                mMessage.postValue(error.getMessage());
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            StorageReference storageReference = FirebaseStorage.getInstance()
+                    .getReference(EndPoint.STORAGE_PROFILE_IMAGE_PATH)
+                    .child(user.getUid().concat(".jpg"));
 
-                headers.put("Cookie", getCookie());
-                return headers;
-            }
-
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-
-                params.put("FLAG", "FILE");
-                return params;
-            }
-
-            @Override
-            protected Map<String, DataPart> getByteData() {
-                Map<String, DataPart> params = new HashMap<>();
-                Bitmap bitmap = mBitmap.getValue();
-
-                if (bitmap != null) {
-                    params.put("img_file", new DataPart(UUID.randomUUID().toString().replace("-", "").concat(".jpg"), getFileDataFromDrawable(bitmap)));
-                }
-                return params;
-            }
-
-            private byte[] getFileDataFromDrawable(Bitmap bitmap) {
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-                bitmap.compress(Bitmap.CompressFormat.PNG, 80, byteArrayOutputStream);
-                return byteArrayOutputStream.toByteArray();
-            }
-        };
-
-        mLoading.postValue(true);
-        AppController.getInstance().addToRequestQueue(multipartRequest);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream);
+            mLoading.postValue(true);
+            storageReference.putBytes(byteArrayOutputStream.toByteArray())
+                    .addOnSuccessListener(taskSnapshot -> {
+                        mLoading.postValue(false);
+                        mSuccess.postValue(true);
+                        mUser.postValue(user);
+                        mMessage.postValue("수정되었습니다.");
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("ProfileViewModel", "프로필 이미지 업로드 실패", e);
+                        mLoading.postValue(false);
+                        mMessage.postValue("실패했습니다.");
+                    });
+        } else {
+            mMessage.postValue("이미지를 선택하세요.");
+        }
     }
 }

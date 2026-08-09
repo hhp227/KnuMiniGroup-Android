@@ -44,8 +44,8 @@ public class GroupRepository {
         mGroupRemoteDataSource.addGroup(cookie, user, bitmap, title, description, type, callback);
     }
 
-    public void setGroup(String cookie, String groupKey, String groupId, String groupName, String description, String joinType, Callback callback) {
-        mGroupRemoteDataSource.setGroup(cookie, groupKey, groupId, groupName, description, joinType, callback);
+    public void setGroup(String cookie, String groupKey, String groupId, String groupName, String description, String joinType, Bitmap bitmap, Callback callback) {
+        mGroupRemoteDataSource.setGroup(cookie, groupKey, groupId, groupName, description, joinType, bitmap, callback);
     }
 
     public void removeGroup(User user, boolean isAdmin, String key, Callback callback) {

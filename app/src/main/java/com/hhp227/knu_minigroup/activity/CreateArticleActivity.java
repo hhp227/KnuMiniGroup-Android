@@ -82,11 +82,11 @@ public class CreateArticleActivity extends AppCompatActivity implements OnActivi
 
                             if (clipData != null) {
                                 for (int i = 0; i < clipData.getItemCount(); i++) {
-                                    Uri fileUri = clipData.getItemAt(i).getUri();
-                                    Bitmap bitmap = new BitmapUtil(getBaseContext()).bitmapResize(fileUri, 200);
-
-                                    mViewModel.addItem(bitmap);
+                                    addPickedImage(clipData.getItemAt(i).getUri());
                                 }
+                            } else {
+                                // 갤러리에서 한 장만 고르면 ClipData 없이 data URI로만 돌아온다
+                                addPickedImage(result.getData().getData());
                             }
                         }
                     });
@@ -196,12 +196,12 @@ public class CreateArticleActivity extends AppCompatActivity implements OnActivi
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         switch (v.getId()) {
-            case R.id.ll_image:
+            case R.id.ib_image:
                 menu.setHeaderTitle("이미지 선택");
                 menu.add(Menu.NONE, 2, Menu.NONE, "갤러리");
                 menu.add(Menu.NONE, 3, Menu.NONE, "카메라");
                 break;
-            case R.id.ll_video:
+            case R.id.ib_video:
                 menu.setHeaderTitle("동영상 선택");
                 menu.add(Menu.NONE, 4, Menu.NONE, "유튜브");
                 break;
@@ -223,7 +223,8 @@ public class CreateArticleActivity extends AppCompatActivity implements OnActivi
                 return true;
             case 2:
                 intent = new Intent(Intent.ACTION_OPEN_DOCUMENT)
-                        .setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*")
+                        .addCategory(Intent.CATEGORY_OPENABLE)
+                        .setType("image/*")
                         .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
 
                 mCameraPickActivityResultLauncher.launch(intent);
@@ -313,6 +314,16 @@ public class CreateArticleActivity extends AppCompatActivity implements OnActivi
                 }
             }
         });
+    }
+
+    private void addPickedImage(Uri fileUri) {
+        if (fileUri != null) {
+            Bitmap bitmap = new BitmapUtil(this).bitmapResize(fileUri, 200);
+
+            if (bitmap != null) {
+                mViewModel.addItem(bitmap);
+            }
+        }
     }
 
     private File createImageFile() throws IOException {

@@ -6,24 +6,21 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.android.volley.NetworkResponse;
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-import com.hhp227.knu_minigroup.app.AppController;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.hhp227.knu_minigroup.app.EndPoint;
 import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.helper.Callback;
-import com.hhp227.knu_minigroup.volley.util.MultipartRequest;
 
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
@@ -173,47 +170,49 @@ public class ArticleRemoteDataSource {
         callback.onSuccess(null);
     }
 
+    /**
+     * LMS 서버가 닫혀 이미지 업로드 엔드포인트를 쓸 수 없으므로 Firebase Storage에 올리고 다운로드 URL을 돌려준다.
+     * 상위 계층은 URL 문자열만 받으므로 기존 계약(onSuccess(String))은 그대로다.
+     *
+     * @param cookie 로그인 시 CookieManager에 넣어둔 Firebase uid (LoginViewModel 참고)
+     */
     public void addArticleImage(String cookie, Bitmap bitmap, Callback callback) {
-        MultipartRequest multipartRequest = new MultipartRequest(Request.Method.POST, EndPoint.IMAGE_UPLOAD, new Response.Listener<NetworkResponse>() {
-            @Override
-            public void onResponse(NetworkResponse response) {
-                String imageSrc = new String(response.data);
-                imageSrc = EndPoint.BASE_URL + imageSrc.substring(imageSrc.lastIndexOf("/ilosfiles2/"), imageSrc.lastIndexOf("\""));
+        if (bitmap != null) {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            StorageReference storageReference = FirebaseStorage.getInstance()
+                    .getReference("article_images")
+                    .child(resolveUid(cookie))
+                    .child(System.currentTimeMillis() + ".jpg");
 
-                callback.onSuccess(imageSrc);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(error.getMessage());
-                callback.onFailure(error);
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream);
+            callback.onLoading();
+            storageReference.putBytes(byteArrayOutputStream.toByteArray())
+                    .continueWithTask(task -> {
+                        if (!task.isSuccessful() && task.getException() != null) {
+                            throw task.getException();
+                        }
+                        return storageReference.getDownloadUrl();
+                    })
+                    .addOnSuccessListener(uri -> callback.onSuccess(uri.toString()))
+                    .addOnFailureListener(e -> {
+                        Log.e("ArticleRemoteDataSource", "이미지 업로드 실패", e);
+                        callback.onFailure(e);
+                    });
+        } else {
+            callback.onFailure(new IllegalArgumentException("이미지가 비어있습니다."));
+        }
+    }
 
-                headers.put("Cookie", cookie);
-                return headers;
-            }
+    /**
+     * 저장 경로를 유저별로 나누기 위한 uid. 쿠키에 값이 없으면 현재 로그인 세션에서 채운다.
+     */
+    private String resolveUid(String cookie) {
+        if (!TextUtils.isEmpty(cookie)) {
+            return cookie;
+        }
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
 
-            @Override
-            protected Map<String, DataPart> getByteData() {
-                Map<String, DataPart> params = new HashMap<>();
-
-                params.put("file", new DataPart(System.currentTimeMillis() + ".jpg", getFileDataFromDrawable(bitmap)));
-                return params;
-            }
-
-            private byte[] getFileDataFromDrawable(Bitmap bitmap) {
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-                bitmap.compress(Bitmap.CompressFormat.PNG, 80, byteArrayOutputStream);
-                return byteArrayOutputStream.toByteArray();
-            }
-        };
-
-        AppController.getInstance().addToRequestQueue(multipartRequest);
+        return firebaseUser != null ? firebaseUser.getUid() : "anonymous";
     }
 
     private void fetchArticleDataFromFirebase(ArticleItem articleItem, String articleKey, Callback callback) {
