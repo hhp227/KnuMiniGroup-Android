@@ -21,6 +21,7 @@ import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.dto.YouTubeItem;
 import com.hhp227.knu_minigroup.helper.Callback;
+import com.hhp227.knu_minigroup.helper.StorageCleaner;
 
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
@@ -141,11 +142,21 @@ public class ArticleRemoteDataSource {
                 ArticleItem articleItem = dataSnapshot.getValue(ArticleItem.class);
 
                 if (articleItem != null) {
+                    // 덮어쓰기 전에 기존 목록을 떠둔다. 수정 화면에서 빠진 이미지는 이 차집합으로만 알 수 있다.
+                    final List<String> oldImageList = articleItem.getImages() != null
+                            ? new ArrayList<>(articleItem.getImages())
+                            : null;
+
                     articleItem.setTitle(title);
                     articleItem.setContent(TextUtils.isEmpty(content) ? null : content);
                     articleItem.setImages(imageList.isEmpty() ? null : imageList);
                     articleItem.setYoutube(youTubeItem);
-                    query.getRef().setValue(articleItem);
+                    query.getRef().setValue(articleItem, (error, reference) -> {
+                        // 수정이 실제로 반영된 뒤에 지워야 실패 시 파일만 날아가는 일이 없다.
+                        if (error == null) {
+                            StorageCleaner.deleteRemoved(oldImageList, imageList);
+                        }
+                    });
                     callback.onSuccess(articleItem);
                 } else {
                     callback.onSuccess(null);
@@ -163,9 +174,32 @@ public class ArticleRemoteDataSource {
     public void removeArticle(String articleKey, Callback callback) {
         DatabaseReference articlesReference = FirebaseDatabase.getInstance().getReference("Articles");
         DatabaseReference replysReference = FirebaseDatabase.getInstance().getReference("Replys");
+        DatabaseReference articleReference = articlesReference.child(mGroupKey).child(articleKey);
 
         callback.onLoading();
-        articlesReference.child(mGroupKey).child(articleKey).removeValue();
+
+        // 글을 지우고 나면 이미지 목록을 알 수 없으므로 먼저 읽어둔다.
+        articleReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                ArticleItem articleItem = dataSnapshot.getValue(ArticleItem.class);
+
+                removeArticleData(articleReference, replysReference, articleKey, callback);
+                if (articleItem != null) {
+                    StorageCleaner.delete(articleItem.getImages());
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // 이미지 목록을 못 읽어도 글 삭제 자체는 진행한다.
+                removeArticleData(articleReference, replysReference, articleKey, callback);
+            }
+        });
+    }
+
+    private void removeArticleData(DatabaseReference articleReference, DatabaseReference replysReference, String articleKey, Callback callback) {
+        articleReference.removeValue();
         replysReference.child(articleKey).removeValue();
         callback.onSuccess(null);
     }

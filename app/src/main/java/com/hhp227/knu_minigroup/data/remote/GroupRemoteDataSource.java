@@ -19,9 +19,11 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
+import com.hhp227.knu_minigroup.dto.ArticleItem;
 import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.dto.User;
 import com.hhp227.knu_minigroup.helper.Callback;
+import com.hhp227.knu_minigroup.helper.StorageCleaner;
 
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
@@ -307,33 +309,47 @@ public class GroupRemoteDataSource {
         final DatabaseReference groupsReference = FirebaseDatabase.getInstance().getReference("Groups");
 
         if (isAdmin) {
-            groupsReference.child(key).child("members").addListenerForSingleValueEvent(new ValueEventListener() {
+            // 그룹 노드를 통째로 읽어 멤버 목록과 커버 이미지를 한 번에 확보한다.
+            groupsReference.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                public void onDataChange(@NonNull DataSnapshot groupSnapshot) {
+                    GroupItem groupItem = groupSnapshot.getValue(GroupItem.class);
+                    final String groupImage = groupItem != null ? groupItem.getImage() : null;
+
+                    for (DataSnapshot snapshot : groupSnapshot.child("members").getChildren()) {
                         if (snapshot.getKey() != null) {
                             userGroupListReference.child(snapshot.getKey()).child(key).removeValue();
                         }
                     }
-                }
+                    articlesReference.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            DatabaseReference replysReference = FirebaseDatabase.getInstance().getReference("Replys");
+                            List<String> articleImageList = new ArrayList<>();
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-                    callback.onFailure(databaseError.toException());
-                }
-            });
-            articlesReference.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    DatabaseReference replysReference = FirebaseDatabase.getInstance().getReference("Replys");
+                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                ArticleItem articleItem = snapshot.getValue(ArticleItem.class);
 
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                        if (snapshot.getKey() != null) {
-                            replysReference.child(snapshot.getKey()).removeValue();
+                                if (snapshot.getKey() != null) {
+                                    replysReference.child(snapshot.getKey()).removeValue();
+                                }
+                                if (articleItem != null && articleItem.getImages() != null) {
+                                    articleImageList.addAll(articleItem.getImages());
+                                }
+                            }
+                            articlesReference.child(key).removeValue();
+                            groupsReference.child(key).removeValue();
+
+                            // 글과 그룹이 사라졌으니 참조를 잃은 이미지도 함께 정리한다.
+                            StorageCleaner.delete(articleImageList);
+                            StorageCleaner.delete(groupImage);
                         }
-                    }
-                    articlesReference.child(key).removeValue();
-                    groupsReference.child(key).removeValue();
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                            callback.onFailure(databaseError.toException());
+                        }
+                    });
                 }
 
                 @Override
@@ -444,16 +460,25 @@ public class GroupRemoteDataSource {
                 GroupItem groupItem = dataSnapshot.getValue(GroupItem.class);
 
                 if (groupItem != null) {
+                    // 커버는 매번 새 UUID 파일로 올라가므로, 교체된 경우 이전 파일을 지워야 고아가 남지 않는다.
+                    final String oldImage = groupItem.getImage();
+                    final String newImage = newGroupItem.getImage();
+
                     groupItem.setName(newGroupItem.getName());
                     groupItem.setDescription(newGroupItem.getDescription());
                     groupItem.setJoinType(newGroupItem.getJoinType());
                     // 커버를 새로 고른 경우에만 교체하고, 아니면 기존 이미지를 유지한다
-                    if (newGroupItem.getImage() != null) {
-                        groupItem.setImage(newGroupItem.getImage());
+                    if (newImage != null) {
+                        groupItem.setImage(newImage);
                     } else {
-                        newGroupItem.setImage(groupItem.getImage());
+                        newGroupItem.setImage(oldImage);
                     }
-                    query.getRef().setValue(groupItem);
+                    query.getRef().setValue(groupItem, (error, reference) -> {
+                        // 갱신이 반영된 뒤에만 이전 커버를 정리한다.
+                        if (error == null && newImage != null && !newImage.equals(oldImage)) {
+                            StorageCleaner.delete(oldImage);
+                        }
+                    });
                 }
                 callback.onSuccess(newGroupItem);
             }
