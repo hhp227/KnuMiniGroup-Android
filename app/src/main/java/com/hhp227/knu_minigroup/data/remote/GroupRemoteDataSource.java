@@ -26,13 +26,10 @@ import com.hhp227.knu_minigroup.helper.Callback;
 import com.hhp227.knu_minigroup.helper.StorageCleaner;
 
 import net.htmlparser.jericho.Element;
-import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
 
 
 import java.io.ByteArrayOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,6 +38,9 @@ import java.util.Map;
 import java.util.UUID;
 
 public class GroupRemoteDataSource {
+    // 가입한 그룹이 없을 때 첫 화면에 띄우는 인기 모임 개수
+    private static final int POPULAR_GROUP_LIMIT = 10;
+
     private String mLastKey = null; // 마지막으로 가져온 데이터의 키
 
     private boolean mStopRequestMore = false;
@@ -110,85 +110,36 @@ public class GroupRemoteDataSource {
         fetchDataTaskFromFirebase(query, false, new ArrayList<>(), callback);
     }
 
+    /**
+     * LMS 서버가 닫혀 인기 소모임 목록을 긁어올 수 없으므로 Firebase의 그룹 중 회원수가 많은 순으로 채운다.
+     * 가입한 그룹이 하나도 없을 때 첫 화면에 노출되는 목록이다 (GroupMainViewModel 참고).
+     *
+     * @param cookie LMS 시절 인증 쿠키. Firebase만 쓰므로 사용하지 않지만 상위 계층 계약은 그대로 둔다.
+     */
     public void getPopularGroupList(String cookie, Callback callback) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
+        Query query = databaseReference.orderByChild("memberCount").limitToLast(POPULAR_GROUP_LIMIT);
+
         callback.onLoading();
-        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.POST, EndPoint.GROUP_LIST, new Response.Listener<String>() {
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onResponse(String response) {
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 List<GroupItem> popularItemList = new ArrayList<>();
 
-                try {
-                    Source source = new Source(response);
-                    List<Element> list = source.getAllElements("id", "accordion", false);
+                // 정렬 결과는 오름차순으로 오므로 앞쪽에 넣어 회원수가 많은 순으로 뒤집는다.
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    GroupItem value = snapshot.getValue(GroupItem.class);
 
-                    for (Element element : list) {
-                        try {
-                            Element menuList = element.getFirstElementByClass("menu_list");
-
-                            if (menuList != null && "accordion".equals(element.getAttributeValue("class"))) {
-                                int id = groupIdExtract(menuList.getFirstElementByClass("button").getAttributeValue("onclick"));
-                                String imageUrl = EndPoint.BASE_URL + element.getFirstElement(HTMLElementName.IMG).getAttributeValue("src");
-                                String name = element.getFirstElement(HTMLElementName.STRONG).getTextExtractor().toString();
-                                StringBuilder info = new StringBuilder();
-                                String description = menuList.getAllElementsByClass("info").get(0).getContent().toString();
-                                String joinType = menuList.getAllElementsByClass("info").get(1).getTextExtractor().toString().trim();
-
-                                for (Element span : element.getFirstElement(HTMLElementName.A).getAllElementsByClass("info")) {
-                                    String extractedText = span.getTextExtractor().toString();
-
-                                    info.append(extractedText.contains("회원수") ?
-                                            extractedText.substring(0, extractedText.lastIndexOf("생성일")).trim() + "\n" :
-                                            extractedText + "\n");
-                                }
-
-                                GroupItem groupItem = new GroupItem();
-
-                                groupItem.setId(String.valueOf(id));
-                                groupItem.setImage(imageUrl);
-                                groupItem.setName(name);
-                                groupItem.setInfo(info.toString().trim());
-                                groupItem.setDescription(description);
-                                groupItem.setJoinType(joinType.equals("가입방식: 자동 승인") ? "0" : "1");
-                                popularItemList.add(groupItem);
-                            }
-                        } catch (Exception ignored) {
-                        }
+                    if (value != null) {
+                        popularItemList.add(0, value);
                     }
-                    callback.onSuccess(popularItemList);
-                } catch (Exception e) {
-                    callback.onFailure(e);
                 }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                callback.onFailure(error);
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-
-                headers.put("Cookie", cookie);
-                return headers;
+                callback.onSuccess(popularItemList);
             }
 
             @Override
-            public String getBodyContentType() {
-                return "application/x-www-form-urlencoded; charset=" + getParamsEncoding();
-            }
-
-            @Override
-            public byte[] getBody() {
-                Map<String, String> params = new HashMap<>();
-
-                params.put("panel_id", "3");
-                params.put("encoding", "utf-8");
-                try {
-                    return encodeParams(params, getParamsEncoding());
-                } catch (UnsupportedEncodingException e) {
-                    throw new RuntimeException("Encoding not supported: " + getParamsEncoding(), e);
-                }
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                callback.onFailure(databaseError.toException());
             }
         });
     }
@@ -488,21 +439,5 @@ public class GroupRemoteDataSource {
                 callback.onFailure(databaseError.toException());
             }
         });
-    }
-
-    private byte[] encodeParams(Map<String, String> params, String paramsEncoding) throws UnsupportedEncodingException {
-        StringBuilder encodedParams = new StringBuilder();
-
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            encodedParams.append(URLEncoder.encode(entry.getKey(), paramsEncoding));
-            encodedParams.append('=');
-            encodedParams.append(URLEncoder.encode(entry.getValue(), paramsEncoding));
-            encodedParams.append('&');
-        }
-        return encodedParams.toString().getBytes(paramsEncoding);
-    }
-
-    private static int groupIdExtract(String onclick) {
-        return Integer.parseInt(onclick.split("[(]|[)]|[,]")[1].trim());
     }
 }

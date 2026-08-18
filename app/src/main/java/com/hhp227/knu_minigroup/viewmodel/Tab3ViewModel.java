@@ -1,26 +1,14 @@
 package com.hhp227.knu_minigroup.viewmodel;
 
-import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModel;
 
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
-import com.android.volley.toolbox.StringRequest;
-import com.hhp227.knu_minigroup.app.AppController;
-import com.hhp227.knu_minigroup.app.EndPoint;
-import com.hhp227.knu_minigroup.data.ArticleRepository;
 import com.hhp227.knu_minigroup.data.UserRepository;
 import com.hhp227.knu_minigroup.dto.MemberItem;
 
 import com.hhp227.knu_minigroup.helper.Callback;
-import net.htmlparser.jericho.Element;
-import net.htmlparser.jericho.HTMLElementName;
-import net.htmlparser.jericho.Source;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -103,68 +91,32 @@ public class Tab3ViewModel extends ViewModel {
     }
 
     public void fetchMemberList(int offset) {
-        String params = "?CLUB_GRP_ID=" + mGroupId + "&startM=" + offset + "&displayM=" + LIMIT;
-
-        setLoading(true);
+        // 스크롤 바닥에서 계속 호출되므로 중복 요청을 여기서 막지 않으면 같은 멤버가 겹쳐 쌓인다.
+        if (Boolean.TRUE.equals(isLoading().getValue()) || Boolean.TRUE.equals(isEndReached().getValue())) {
+            return;
+        }
         mUserRepository.getUserList(LIMIT, new Callback() {
             @Override
             public <T> void onSuccess(T data) {
-                Log.e("TEST", "onSuccess: " + data);
+                List<MemberItem> memberItemList = (List<MemberItem>) data;
+
+                setLoading(false);
+                setItemList(mergedList(getItemList().getValue(), memberItemList));
+                setOffset(getOffset() + LIMIT);
+                setEndReached(mUserRepository.isStopRequestMore());
             }
 
             @Override
             public void onFailure(Throwable throwable) {
-                Log.e("TEST", "onFailure: " + throwable.getMessage());
+                setLoading(false);
+                setMessage(throwable.getMessage());
             }
 
             @Override
             public void onLoading() {
-                Log.e("TEST", "onLoading");
+                setLoading(true);
             }
         });
-
-
-
-        AppController.getInstance().addToRequestQueue(new StringRequest(Request.Method.GET, EndPoint.MEMBER_LIST + params, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                List<MemberItem> memberItemList = new ArrayList<>();
-
-                try {
-                    Source source = new Source(response);
-                    Element memberList = source.getElementById("member_list");
-
-                    // 페이징 처리
-                    String page = memberList.getFirstElementByClass("paging").getFirstElement("title", "현재 선택 목록", false).getTextExtractor().toString();
-                    List<Element> inputElements = memberList.getAllElements("name", "memberIdCheck", false);
-                    List<Element> imgElements = memberList.getAllElements("title", "프로필", false);
-                    List<Element> spanElements = memberList.getAllElements(HTMLElementName.SPAN);
-
-                    for (int i = 0; i < inputElements.size(); i++) {
-                        String imageUrl = imgElements.get(i).getAttributeValue("src");
-                        String uid = imageUrl.substring(imageUrl.indexOf("id=") + "id=".length(), imageUrl.lastIndexOf("&ext"));
-                        String name = spanElements.get(i).getContent().toString();
-                        String value = inputElements.get(i).getAttributeValue("value");
-
-                        memberItemList.add(new MemberItem(uid, name, value));
-                    }
-                    setLoading(false);
-                    setItemList(mergedList(getItemList().getValue(), memberItemList));
-                    setOffset(getOffset() + LIMIT);
-                    setEndReached(memberItemList.isEmpty());
-                } catch (NullPointerException e) {
-                    e.printStackTrace();
-                    setLoading(false);
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.e(TAG, error.getMessage());
-                setLoading(false);
-                setMessage(error.getMessage());
-            }
-        }));
     }
 
     public void fetchNextPage() {
@@ -177,6 +129,7 @@ public class Tab3ViewModel extends ViewModel {
         setItemList(Collections.emptyList());
         setOffset(1);
         setEndReached(false);
+        mUserRepository.setLastKey(null);
         fetchMemberList(getOffset());
     }
 

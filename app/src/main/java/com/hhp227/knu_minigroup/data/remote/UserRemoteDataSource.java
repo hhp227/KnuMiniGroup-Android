@@ -1,5 +1,6 @@
 package com.hhp227.knu_minigroup.data.remote;
 
+import android.text.TextUtils;
 import android.util.Log;
 import androidx.annotation.NonNull;
 import com.android.volley.Request;
@@ -9,7 +10,6 @@ import com.android.volley.toolbox.StringRequest;
 import com.google.firebase.database.*;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
-import com.hhp227.knu_minigroup.dto.GroupItem;
 import com.hhp227.knu_minigroup.dto.MemberItem;
 import com.hhp227.knu_minigroup.helper.Callback;
 
@@ -18,9 +18,11 @@ import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class UserRemoteDataSource {
     private String mGroupKey;
@@ -93,6 +95,21 @@ public class UserRemoteDataSource {
         });
     }
 
+    public boolean isStopRequestMore() {
+        return mStopRequestMore;
+    }
+
+    public void setLastKey(String lastKey) {
+        this.mLastKey = lastKey;
+        if (lastKey == null) {
+            mStopRequestMore = false; // 새로고침 시 페이징 재개
+        }
+    }
+
+    /**
+     * LMS 서버가 닫혀 멤버 목록을 긁어올 수 없으므로 Groups/{key}/members에서 가입한 uid를 읽어 채운다.
+     * members의 값이 false면 가입 신청중이므로 멤버가 아니다.
+     */
     public void getUserList(int limit, Callback callback) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Groups");
         Query query = databaseReference.child(mGroupKey).child("members").orderByKey().limitToLast(limit);
@@ -105,39 +122,24 @@ public class UserRemoteDataSource {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 String newLastKey = null;
-                List<Map.Entry<String, GroupItem>> groupItemList = new ArrayList<>();
+                List<String> uidList = new ArrayList<>();
 
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     String key = snapshot.getKey();
-                    boolean value = snapshot.getValue(Boolean.class);
+                    Boolean value = snapshot.getValue(Boolean.class);
 
-                    if (groupItemList.isEmpty()) {
-                        newLastKey = key; // 마지막 키 저장
+                    if (newLastKey == null) {
+                        newLastKey = key; // 이 페이지에서 가장 앞선 키 - 다음 페이지는 이 키 앞을 읽는다
                     }
-                    if (key != null && value) {
-                        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Users");
-                        Query query = databaseReference.child(key);
-
-                        query.addValueEventListener(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                //User value = snapshot.getValue(User.class);
-                                Log.e("TEST", "dataSnapshot: " + dataSnapshot);
-                            }
-
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError databaseError) {
-                            }
-                        });
-                        Log.e("TEST", "key: " + key + ", value: " + value);
-                        //groupItemList.add(0, new AbstractMap.SimpleEntry<>(key, value));
+                    if (key != null && Boolean.TRUE.equals(value)) {
+                        uidList.add(0, key);
                     }
                 }
                 if (newLastKey == null) {
                     mStopRequestMore = true;
                 }
                 mLastKey = newLastKey; // 다음 페이지 요청을 위해 키 업데이트
-                callback.onSuccess(groupItemList);
+                fetchMemberNames(uidList, callback);
             }
 
             @Override
@@ -146,5 +148,61 @@ public class UserRemoteDataSource {
                 Log.e("파이어베이스", databaseError.getMessage());
             }
         });
+    }
+
+    /**
+     * uid만으로는 화면에 이름을 못 쓰므로 Users/{uid}를 하나씩 읽어 채운다.
+     * 모든 조회가 끝나야 목록 순서가 보장되므로 남은 개수를 세어 마지막에 한 번만 콜백한다.
+     */
+    private void fetchMemberNames(List<String> uidList, Callback callback) {
+        if (!uidList.isEmpty()) {
+            DatabaseReference usersReference = FirebaseDatabase.getInstance().getReference("Users");
+            MemberItem[] memberItems = new MemberItem[uidList.size()];
+            AtomicInteger remaining = new AtomicInteger(uidList.size());
+
+            for (int i = 0; i < uidList.size(); i++) {
+                final int index = i;
+                final String uid = uidList.get(i);
+
+                usersReference.child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        complete(resolveName(dataSnapshot, uid));
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        complete(uid); // 이름을 못 읽어도 멤버 자체는 보여준다
+                    }
+
+                    private void complete(String name) {
+                        memberItems[index] = new MemberItem(uid, name, null);
+                        if (remaining.decrementAndGet() == 0) {
+                            callback.onSuccess(new ArrayList<>(Arrays.asList(memberItems)));
+                        }
+                    }
+                });
+            }
+        } else {
+            callback.onSuccess(new ArrayList<MemberItem>());
+        }
+    }
+
+    /**
+     * Users/{uid}에 저장된 이름. 클라이언트마다 저장 포맷이 달라(iOS는 name을 넣고, 구버전 안드로이드는
+     * FirebaseUser를 통째로 넣어 name이 없다) 이메일 아이디 → uid 순으로 물러난다.
+     */
+    private static String resolveName(DataSnapshot dataSnapshot, String uid) {
+        String name = dataSnapshot.child("name").getValue(String.class);
+
+        if (!TextUtils.isEmpty(name)) {
+            return name;
+        }
+        String email = dataSnapshot.child("email").getValue(String.class);
+
+        if (!TextUtils.isEmpty(email) && email.contains("@")) {
+            return email.substring(0, email.indexOf("@"));
+        }
+        return uid;
     }
 }

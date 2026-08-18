@@ -21,7 +21,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.hhp227.knu_minigroup.app.AppController;
 import com.hhp227.knu_minigroup.app.EndPoint;
@@ -243,6 +242,7 @@ public class LoginViewModel extends ViewModel {
                             user.setNumber("2022000000");
                             user.setPhoneNumber("010-0000-0000");
                             user.setEmail(email);
+                            saveUserToFirebase(firebaseUser.getUid(), id, email);
                             mCookieManager.setCookie(EndPoint.LOGIN, firebaseUser.getUid());
                             mLoading.postValue(false);
                             mUser.postValue(user);
@@ -260,7 +260,6 @@ public class LoginViewModel extends ViewModel {
     private void firebaseRegister(String id, String password) {
         String email = id + "@knu.ac.kr";
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Users");
 
         firebaseAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -269,8 +268,8 @@ public class LoginViewModel extends ViewModel {
                         if (task.isSuccessful()) {
                             FirebaseUser firebaseUser = task.getResult().getUser();
                             User user = new User();
-                            databaseReference.child(firebaseUser.getUid()).setValue(firebaseUser);
 
+                            saveUserToFirebase(firebaseUser.getUid(), id, email);
                             user.setUid(firebaseUser.getUid());
                             user.setUserId(id);
                             user.setPassword(password);
@@ -290,5 +289,19 @@ public class LoginViewModel extends ViewModel {
                         mMessage.postValue("Firebase error" + e.getMessage());
                     }
                 });
+    }
+
+    /**
+     * 멤버 목록이 uid로 이름을 찾을 수 있도록 Users/{uid}를 채운다.
+     * 예전에는 FirebaseUser 객체를 통째로 넣어 name이 없었으므로, iOS와 같은 포맷(uid/email/name)으로 맞춘다.
+     * 로그인할 때마다 호출해 기존 계정도 다음 로그인 때 보정되게 한다 (setValue가 아닌 병합이라 다른 필드는 보존).
+     */
+    private void saveUserToFirebase(String uid, String id, String email) {
+        Map<String, Object> childUpdates = new HashMap<>();
+
+        childUpdates.put("uid", uid);
+        childUpdates.put("email", email);
+        childUpdates.put("name", id);
+        FirebaseDatabase.getInstance().getReference("Users").child(uid).updateChildren(childUpdates);
     }
 }

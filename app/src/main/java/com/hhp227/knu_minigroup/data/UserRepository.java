@@ -14,6 +14,14 @@ public class UserRepository {
         this.mUserRemoteDataSource = new UserRemoteDataSource(mGroupKey);
     }
 
+    public boolean isStopRequestMore() {
+        return mUserRemoteDataSource.isStopRequestMore();
+    }
+
+    public void setLastKey(String lastKey) {
+        mUserRemoteDataSource.setLastKey(lastKey);
+    }
+
     public void getManagedMemberList(String cookie, String groupId, Callback callback) {
         mUserRemoteDataSource.getManagedMemberList(cookie, groupId, callback);
     }
