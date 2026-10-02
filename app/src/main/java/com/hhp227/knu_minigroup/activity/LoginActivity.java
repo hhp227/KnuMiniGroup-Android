@@ -55,8 +55,6 @@ public class LoginActivity extends AppCompatActivity {
                 if (user != null) {
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
 
-                    mViewModel.storeUser(user);
-
                     // 화면이동
                     startActivity(intent);
                     finish();

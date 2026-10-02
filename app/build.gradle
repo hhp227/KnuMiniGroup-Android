@@ -1,6 +1,12 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withInputStream { localProperties.load(it) }
+}
+
 android {
     namespace 'com.hhp227.knu_minigroup'
     compileSdkVersion 32
@@ -13,6 +19,16 @@ android {
         versionName "1.50"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+    signingConfigs {
+        release {
+            if (localProperties['release.storeFile']) {
+                storeFile file(localProperties['release.storeFile'])
+                storePassword localProperties['release.storePassword']
+                keyAlias localProperties['release.keyAlias']
+                keyPassword localProperties['release.keyPassword']
+            }
+        }
+    }
     buildTypes {
         debug {
             minifyEnabled false
@@ -21,6 +37,7 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {

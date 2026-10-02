@@ -28,3 +28,7 @@
 -keepclassmembers class com.hhp227.knu_minigroup.dto.** {
 *;
 }
+
+# jericho-html optional logger dependencies
+-dontwarn org.apache.logging.log4j.**
+-dontwarn org.slf4j.**

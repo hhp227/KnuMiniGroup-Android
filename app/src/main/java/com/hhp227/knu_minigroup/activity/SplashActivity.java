@@ -8,7 +8,6 @@ import android.os.Looper;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
@@ -60,15 +59,6 @@ public class SplashActivity extends AppCompatActivity {
                 if (isPreferenceClear) {
                     mViewModel.clearUser();
                     startActivity(new Intent(SplashActivity.this, LoginActivity.class));
-                    finish();
-                }
-            }
-        });
-        mViewModel.getMessage().observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(String message) {
-                if (message != null && !message.isEmpty()) {
-                    Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
                     finish();
                 }
             }
