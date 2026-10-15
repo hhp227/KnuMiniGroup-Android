@@ -19,7 +19,8 @@ import androidx.viewpager.widget.ViewPager;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdLoader;
 import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.formats.UnifiedNativeAd;
+import com.google.android.gms.ads.LoadAdError;
+import com.google.android.gms.ads.nativead.NativeAd;
 import com.hhp227.knu_minigroup.R;
 import com.hhp227.knu_minigroup.databinding.GroupGridAdBinding;
 import com.hhp227.knu_minigroup.databinding.GroupGridHeaderBinding;
@@ -257,9 +258,9 @@ public class GroupGridAdapter extends RecyclerView.Adapter {
 
         private void bind(final Context context) {
             AdLoader.Builder builder = new AdLoader.Builder(context, context.getString(R.string.native_ad));
-            builder.forUnifiedNativeAd(new UnifiedNativeAd.OnUnifiedNativeAdLoadedListener() {
+            builder.forNativeAd(new NativeAd.OnNativeAdLoadedListener() {
                 @Override
-                public void onUnifiedNativeAdLoaded(UnifiedNativeAd unifiedNativeAd) {
+                public void onNativeAdLoaded(NativeAd unifiedNativeAd) {
                     mBinding.adMedia.setImageScaleType(ImageView.ScaleType.CENTER_CROP);
                     mBinding.unav.setMediaView(mBinding.adMedia);
                     mBinding.unav.setHeadlineView(mBinding.adHeadline);
@@ -289,9 +290,9 @@ public class GroupGridAdapter extends RecyclerView.Adapter {
                 }
 
                 @Override
-                public void onAdFailedToLoad(int i) {
-                    super.onAdFailedToLoad(i);
-                    Toast.makeText(context, "광고 불러오기 실패 : " + i, Toast.LENGTH_LONG).show();
+                public void onAdFailedToLoad(LoadAdError loadAdError) {
+                    super.onAdFailedToLoad(loadAdError);
+                    Toast.makeText(context, "광고 불러오기 실패 : " + loadAdError.getCode(), Toast.LENGTH_LONG).show();
                 }
             }).build();
             adLoader.loadAd(new AdRequest.Builder().build());

@@ -1,6 +1,7 @@
 package com.hhp227.knu_minigroup.activity;
 
 import android.os.Bundle;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
@@ -14,6 +15,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.hhp227.knu_minigroup.adapter.MessageListAdapter;
 import com.hhp227.knu_minigroup.databinding.ActivityChatBinding;
 import com.hhp227.knu_minigroup.dto.MessageItem;
+import com.hhp227.knu_minigroup.helper.ReportHelper;
 import com.hhp227.knu_minigroup.viewmodel.ChatViewModel;
 
 import java.util.ArrayList;
@@ -55,9 +57,22 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(Menu.NONE, 1, Menu.NONE, "신고하기");
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
             finish();
+            return true;
+        } else if (item.getItemId() == 1) {
+            boolean isGroupChat = getIntent().getBooleanExtra("grp_chat", false);
+
+            ReportHelper.report(this, "채팅방", (isGroupChat ? "그룹 채팅방: " : "1:1 채팅 상대: ") + getIntent().getStringExtra("chat_nm") + " (" + getIntent().getStringExtra("uid") + ")\n"
+                    + "신고자: " + mViewModel.getUser().getUid() + "\n"
+                    + "문제가 된 메시지의 내용과 보낸 시각을 사유에 함께 적어 주세요.\n");
             return true;
         }
         return super.onOptionsItemSelected(item);
